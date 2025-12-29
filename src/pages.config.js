@@ -8,6 +8,11 @@ import MyBooking from './pages/MyBooking';
 import AskRitual from './pages/AskRitual';
 import AdminDashboard from './pages/AdminDashboard';
 import StaffDashboard from './pages/StaffDashboard';
+import AdminBookings from './pages/AdminBookings';
+import AdminRooms from './pages/AdminRooms';
+import AdminTreatments from './pages/AdminTreatments';
+import AdminPackages from './pages/AdminPackages';
+import AdminKnowledge from './pages/AdminKnowledge';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +27,11 @@ export const PAGES = {
     "AskRitual": AskRitual,
     "AdminDashboard": AdminDashboard,
     "StaffDashboard": StaffDashboard,
+    "AdminBookings": AdminBookings,
+    "AdminRooms": AdminRooms,
+    "AdminTreatments": AdminTreatments,
+    "AdminPackages": AdminPackages,
+    "AdminKnowledge": AdminKnowledge,
 }
 
 export const pagesConfig = {
