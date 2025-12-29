@@ -6,6 +6,8 @@ import BookingFlow from './pages/BookingFlow';
 import BookingConfirmation from './pages/BookingConfirmation';
 import MyBooking from './pages/MyBooking';
 import AskRitual from './pages/AskRitual';
+import AdminDashboard from './pages/AdminDashboard';
+import StaffDashboard from './pages/StaffDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -18,6 +20,8 @@ export const PAGES = {
     "BookingConfirmation": BookingConfirmation,
     "MyBooking": MyBooking,
     "AskRitual": AskRitual,
+    "AdminDashboard": AdminDashboard,
+    "StaffDashboard": StaffDashboard,
 }
 
 export const pagesConfig = {
