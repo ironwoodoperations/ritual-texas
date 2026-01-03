@@ -13,12 +13,7 @@ export default function Packages() {
 
   const { data: packages, isLoading } = useQuery({
     queryKey: ['packages'],
-    queryFn: () => base44.entities.SpaPackage.filter({ is_available: true }),
-  });
-
-  const { data: treatments } = useQuery({
-    queryKey: ['treatments'],
-    queryFn: () => base44.entities.Treatment.list(),
+    queryFn: () => base44.entities.Package.filter({ is_active: true }, 'sort_order'),
   });
 
   const getTreatmentName = (id) => {

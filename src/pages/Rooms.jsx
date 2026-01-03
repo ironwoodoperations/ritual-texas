@@ -9,8 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Rooms() {
   const { data: rooms, isLoading } = useQuery({
-    queryKey: ['rooms'],
-    queryFn: () => base44.entities.Room.filter({ is_available: true }),
+    queryKey: ['suites'],
+    queryFn: () => base44.entities.Suite.filter({ is_available: true }, 'sort_order'),
   });
 
   return (
