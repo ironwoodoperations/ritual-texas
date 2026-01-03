@@ -108,7 +108,7 @@ export default function Layout({ children, currentPageName }) {
                   Ask Ritual
                 </Link>
                 <Link 
-                  to={createPageUrl('BookingFlow')} 
+                  to={createPageUrl('BookRooms')} 
                   className="px-6 py-2.5 bg-[rgb(150,170,155)] text-white text-sm tracking-wide rounded-none hover:bg-[rgb(130,150,135)] transition-all"
                 >
                   Book Your Stay
@@ -145,7 +145,7 @@ export default function Layout({ children, currentPageName }) {
                     Ask Ritual
                   </Link>
                 <Link 
-                  to={createPageUrl('BookingFlow')} 
+                  to={createPageUrl('BookRooms')} 
                   className="mt-2 px-6 py-3 bg-[rgb(150,170,155)] text-white text-center"
                   onClick={() => setIsMenuOpen(false)}
                 >

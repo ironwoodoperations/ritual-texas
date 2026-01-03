@@ -115,16 +115,16 @@ export default function Rooms() {
 
                 <div className="flex flex-col gap-2">
                   <Link 
-                    to={createPageUrl('BookingFlow')}
+                    to={createPageUrl('BookRooms')}
                     className="w-full text-center px-4 py-3 bg-[rgb(150,170,155)] text-white text-sm tracking-widest hover:bg-[rgb(130,150,135)] transition-colors"
                   >
-                    BOOK YOUR STAY
+                    BOOK ROOMS
                   </Link>
                   <Link 
-                    to={createPageUrl('Treatments')}
+                    to={createPageUrl('BookingFlow')}
                     className="w-full text-center px-4 py-3 border border-[rgb(198,182,165)] text-[rgb(107,85,64)] text-sm tracking-widest hover:bg-[rgb(235,225,213)] transition-colors"
                   >
-                    VIEW TREATMENTS
+                    BOOK SPA & TREATMENTS
                   </Link>
                 </div>
               </div>
@@ -313,16 +313,16 @@ export default function Rooms() {
                 {/* CTAs */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-[rgb(235,225,213)]">
                   <Link
-                    to={createPageUrl('BookingFlow') + `?room=${selectedSuite.id}`}
+                    to={createPageUrl('BookRooms')}
                     className="flex-1 text-center px-6 py-3 bg-[rgb(150,170,155)] text-white tracking-widest text-sm hover:bg-[rgb(130,150,135)] transition-colors"
                   >
                     BOOK THIS SUITE
                   </Link>
                   <Link
-                    to={createPageUrl('Treatments')}
+                    to={createPageUrl('BookingFlow')}
                     className="flex-1 text-center px-6 py-3 border border-[rgb(198,182,165)] text-[rgb(107,85,64)] tracking-widest text-sm hover:bg-[rgb(235,225,213)] transition-colors"
                   >
-                    ADD TREATMENTS
+                    BOOK SPA & TREATMENTS
                   </Link>
                 </div>
 
