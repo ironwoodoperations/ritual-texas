@@ -7,6 +7,7 @@ import { Clock, ArrowRight, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import TestimonialCard from '@/components/TestimonialCard';
 
 const categoryLabels = {
   massage: 'Massage',
@@ -48,10 +49,15 @@ export default function Treatments() {
           <h1 className="text-4xl md:text-5xl font-extralight text-[rgb(107,85,64)] mb-4">
             Spa & Wellness
           </h1>
-          <p className="text-[rgb(45,45,45)] font-light max-w-2xl mx-auto">
+          <p className="text-[rgb(45,45,45)] font-light max-w-2xl mx-auto mb-8">
             Each treatment is an invitation to return to yourself. 
             Read carefully — we want you to choose what truly calls to you.
           </p>
+          {testimonials && testimonials.length > 0 && (
+            <div className="max-w-2xl mx-auto mt-8">
+              <TestimonialCard testimonial={testimonials[0]} />
+            </div>
+          )}
         </motion.div>
 
         {/* Category Filter */}
