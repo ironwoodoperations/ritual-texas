@@ -4,9 +4,7 @@
 
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.6";
 
-type AnyRecord = Record<string, any>;
-
-function slugify(input: string) {
+function slugify(input) {
   return input
     .toLowerCase()
     .trim()
@@ -16,10 +14,10 @@ function slugify(input: string) {
 }
 
 async function upsertBySlug(
-  entities: any,
-  entityName: string,
-  slug: string,
-  data: AnyRecord
+  entities,
+  entityName,
+  slug,
+  data
 ) {
   const handler = entities[entityName];
   if (!handler) {
@@ -565,7 +563,7 @@ Deno.serve(async (req) => {
   // ----------------------------
   // EXECUTE UPSERTS
   // ----------------------------
-  const results: any[] = [];
+  const results = [];
 
   // Suites
   for (const s of suites) {
