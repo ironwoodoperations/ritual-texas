@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import ImageSelector from '@/components/ImageSelector';
 
 export default function AdminPackages() {
   const [user, setUser] = useState(null);
@@ -342,14 +343,11 @@ export default function AdminPackages() {
               </div>
             </div>
 
-            <div>
-              <Label>Image URL</Label>
-              <Input
-                value={formData.image_url}
-                onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-                placeholder="https://..."
-              />
-            </div>
+            <ImageSelector
+              label="Package Image"
+              value={formData.image_url}
+              onChange={(url) => setFormData({...formData, image_url: url})}
+            />
 
             <div className="flex items-center gap-2">
               <Switch

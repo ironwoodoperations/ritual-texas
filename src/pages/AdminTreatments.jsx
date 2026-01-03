@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import ImageSelector from '@/components/ImageSelector';
 
 const CATEGORIES = [
   { value: 'massage', label: 'Massage' },
@@ -336,14 +337,11 @@ export default function AdminTreatments() {
               />
             </div>
 
-            <div>
-              <Label>Image URL</Label>
-              <Input
-                value={formData.image_url}
-                onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-                placeholder="https://..."
-              />
-            </div>
+            <ImageSelector
+              label="Treatment Image"
+              value={formData.image_url}
+              onChange={(url) => setFormData({...formData, image_url: url})}
+            />
 
             <div className="flex items-center gap-2">
               <Switch

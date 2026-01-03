@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import ImageSelector from '@/components/ImageSelector';
 
 export default function AdminRooms() {
   const [user, setUser] = useState(null);
@@ -296,12 +297,14 @@ export default function AdminRooms() {
             </div>
 
             <div>
-              <Label>Image URLs (one per line)</Label>
-              <Textarea
-                value={formData.images?.join('\n')}
-                onChange={(e) => setFormData({...formData, images: e.target.value.split('\n').filter(Boolean)})}
-                placeholder="https://..."
-                rows={3}
+              <ImageSelector
+                label="Primary Image"
+                value={formData.images?.[0] || ''}
+                onChange={(url) => {
+                  const newImages = [...(formData.images || [])];
+                  newImages[0] = url;
+                  setFormData({...formData, images: newImages.filter(Boolean)});
+                }}
               />
             </div>
 
