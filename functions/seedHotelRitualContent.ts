@@ -41,10 +41,20 @@ async function upsertBySlug(
 }
 
 Deno.serve(async (req) => {
-  const base44 = createClientFromRequest(req);
+  try {
+    const base44 = createClientFromRequest(req);
 
-  // Use admin-level permissions
-  const entities = base44.asServiceRole.entities;
+    // Check if user is authenticated and is admin
+    const user = await base44.auth.me();
+    if (!user || user.role !== 'admin') {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Admin access required' }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Use admin-level permissions
+    const entities = base44.asServiceRole.entities;
 
   const ENTITY_NAMES = {
     suites: "Suite",
@@ -623,7 +633,16 @@ Deno.serve(async (req) => {
     );
   }
 
-  return new Response(JSON.stringify({ ok: true, results }, null, 2), {
-    headers: { "Content-Type": "application/json" },
-  });
+    return new Response(JSON.stringify({ ok: true, results }, null, 2), {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ 
+        error: error.message || 'Unknown error',
+        stack: error.stack 
+      }, null, 2),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
 });
