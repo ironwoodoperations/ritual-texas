@@ -23,11 +23,10 @@ export default function Rooms() {
           className="text-center mb-16"
         >
           <h1 className="text-4xl md:text-5xl font-extralight text-[rgb(107,85,64)] mb-4">
-            Rooms & Suites
+            Our Suites
           </h1>
           <p className="text-[rgb(45,45,45)] font-light max-w-2xl mx-auto">
-            Each space has been thoughtfully designed for rest. Natural light, 
-            organic textures, and everything you need — nothing you don't.
+            Seven unique spaces designed for deep rest and restoration
           </p>
         </motion.div>
 
@@ -44,7 +43,7 @@ export default function Rooms() {
           </div>
         ) : rooms?.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-[rgb(107,85,64)] text-lg">Rooms coming soon...</p>
+            <p className="text-[rgb(107,85,64)] text-lg">Suites coming soon...</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-10">
@@ -67,9 +66,17 @@ export default function Rooms() {
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <h3 className="text-2xl font-light text-[rgb(107,85,64)] mb-1">{room.name}</h3>
-                    <div className="flex items-center gap-2 text-sm text-[rgb(45,45,45)]">
-                      <Users className="w-4 h-4" />
-                      <span>Up to {room.max_occupancy} guests</span>
+                    {room.headline && (
+                      <p className="text-sm text-[rgb(150,170,155)] italic">{room.headline}</p>
+                    )}
+                    <div className="flex items-center gap-3 text-sm text-[rgb(45,45,45)] mt-2">
+                      <span className="flex items-center gap-1">
+                        <Users className="w-4 h-4" />
+                        Up to {room.max_occupancy}
+                      </span>
+                      {room.level && (
+                        <span className="px-2 py-0.5 bg-[rgb(235,225,213)] text-xs">{room.level}</span>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">
@@ -82,22 +89,13 @@ export default function Rooms() {
                   {room.description}
                 </p>
 
-                {room.best_for && (
-                  <p className="text-sm text-[rgb(150,170,155)] mb-4 italic">
-                    Best for: {room.best_for}
-                  </p>
-                )}
-
-                {room.amenities?.length > 0 && (
-                  <div className="flex flex-wrap gap-3 mb-6">
-                    {room.amenities.slice(0, 4).map((amenity, i) => (
-                      <span 
-                        key={i}
-                        className="flex items-center gap-1 text-xs text-[rgb(45,45,45)] bg-[rgb(235,225,213)] px-3 py-1.5"
-                      >
-                        <Check className="w-3 h-3 text-[rgb(150,170,155)]" />
-                        {amenity}
-                      </span>
+                {room.features && room.features.length > 0 && (
+                  <div className="space-y-1.5 mb-6">
+                    {room.features.map((feature, i) => (
+                      <div key={i} className="flex items-start gap-2 text-sm text-[rgb(45,45,45)]">
+                        <Check className="w-4 h-4 text-[rgb(150,170,155)] flex-shrink-0 mt-0.5" />
+                        <span>{feature}</span>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -106,7 +104,7 @@ export default function Rooms() {
                   to={createPageUrl('BookingFlow') + `?room=${room.id}`}
                   className="inline-flex items-center gap-2 text-[rgb(107,85,64)] hover:text-[rgb(150,170,155)] transition-colors"
                 >
-                  <span className="tracking-widest text-sm">SELECT THIS ROOM</span>
+                  <span className="tracking-widest text-sm">SELECT THIS SUITE</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </motion.div>
@@ -122,7 +120,7 @@ export default function Rooms() {
           className="mt-20 text-center p-8 bg-[rgb(235,225,213)]"
         >
           <p className="text-[rgb(107,85,64)] font-light">
-            All rooms include sauna access, organic robes, and daily light breakfast
+            Every suite includes gourmet breakfast, luxury linens & robes, and full access to sauna, pool, and hot tub
           </p>
         </motion.div>
       </div>
