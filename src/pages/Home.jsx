@@ -36,7 +36,7 @@ export default function Home() {
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=1920&q=80)',
+            backgroundImage: 'url(https://images.squarespace-cdn.com/content/v1/5f28ea4d05e06334e017a510/1748650067284-0B3HBUUEXAC8UNICUEUB/pool.jpg)',
           }}
         >
           <div className="absolute inset-0 bg-[rgb(107,85,64)]/40" />
@@ -156,14 +156,14 @@ export default function Home() {
               className="relative aspect-[4/3] overflow-hidden group"
             >
               <img 
-                src="https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&q=80" 
+                src="https://images.squarespace-cdn.com/content/v1/5f28ea4d05e06334e017a510/44fbd548-a918-43db-af0d-b4d60e8f9bcb/S1+bed.JPG" 
                 alt="Suite"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[rgb(107,85,64)]/60 to-transparent" />
               <div className="absolute bottom-8 left-8 text-white">
                 <h3 className="text-2xl font-light mb-2">Suites & Rooms</h3>
-                <p className="text-white/80 font-light">From $245/night</p>
+                <p className="text-white/80 font-light">Starting at $150/night</p>
               </div>
             </motion.div>
 
@@ -174,14 +174,14 @@ export default function Home() {
               className="relative aspect-[4/3] overflow-hidden group"
             >
               <img 
-                src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80" 
+                src="https://images.squarespace-cdn.com/content/v1/5f28ea4d05e06334e017a510/9b89c6de-d91a-4333-ae22-99e134ff6756/Sauna.jpg" 
                 alt="Spa"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[rgb(107,85,64)]/60 to-transparent" />
               <div className="absolute bottom-8 left-8 text-white">
                 <h3 className="text-2xl font-light mb-2">Spa & Wellness</h3>
-                <p className="text-white/80 font-light">Treatments from $95</p>
+                <p className="text-white/80 font-light">Treatments from $250</p>
               </div>
             </motion.div>
           </div>
