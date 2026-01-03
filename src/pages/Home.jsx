@@ -193,6 +193,16 @@ export default function Home() {
           </Link>
         </div>
       </section>
-    </div>
-  );
-}
+
+      {/* Temporary Admin Link */}
+      <div className="text-center py-4">
+        <Link 
+          to={createPageUrl('AdminSeedData')}
+          className="text-xs text-[rgb(198,182,165)] hover:text-[rgb(150,170,155)]"
+        >
+          Seed Data (Admin)
+        </Link>
+      </div>
+      </div>
+      );
+      }
