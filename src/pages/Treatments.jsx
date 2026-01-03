@@ -25,6 +25,11 @@ export default function Treatments() {
     queryFn: () => base44.entities.Treatment.filter({ is_available: true }),
   });
 
+  const { data: testimonials } = useQuery({
+    queryKey: ['testimonials'],
+    queryFn: () => base44.entities.Testimonial.filter({ is_active: true }, 'sort_order', 1),
+  });
+
   const categories = ['all', ...Object.keys(categoryLabels)];
   
   const filteredTreatments = activeCategory === 'all' 

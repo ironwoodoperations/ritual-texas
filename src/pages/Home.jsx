@@ -3,8 +3,17 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowRight, Leaf, Wind, Droplets, Sun } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import TestimonialCard from '@/components/TestimonialCard';
+import PressSection from '@/components/PressSection';
 
 export default function Home() {
+  const { data: testimonials } = useQuery({
+    queryKey: ['testimonials'],
+    queryFn: () => base44.entities.Testimonial.filter({ is_active: true }, 'sort_order'),
+  });
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -173,6 +182,38 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Testimonials */}
+      {testimonials && testimonials.length > 0 && (
+        <section className="py-20 px-6">
+          <div className="max-w-4xl mx-auto">
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-3xl font-extralight text-[rgb(107,85,64)] text-center mb-12"
+            >
+              Guest Experiences
+            </motion.h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              {testimonials.slice(0, 3).map((testimonial, idx) => (
+                <motion.div
+                  key={testimonial.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  <TestimonialCard testimonial={testimonial} />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Press */}
+      <PressSection />
 
       {/* CTA Section */}
       <section className="py-24 px-6 bg-[rgb(107,85,64)]">

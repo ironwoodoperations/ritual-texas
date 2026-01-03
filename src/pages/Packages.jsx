@@ -7,6 +7,8 @@ import { Check, ArrowRight, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import TestimonialCard from '@/components/TestimonialCard';
+import PressSection from '@/components/PressSection';
 
 export default function Packages() {
   const [selectedPackage, setSelectedPackage] = useState(null);
@@ -14,6 +16,11 @@ export default function Packages() {
   const { data: packages, isLoading } = useQuery({
     queryKey: ['packages'],
     queryFn: () => base44.entities.Package.filter({ is_active: true }, 'sort_order'),
+  });
+
+  const { data: testimonials } = useQuery({
+    queryKey: ['testimonials'],
+    queryFn: () => base44.entities.Testimonial.filter({ is_active: true }, 'sort_order'),
   });
 
 
@@ -156,6 +163,25 @@ export default function Packages() {
           </DialogContent>
         </Dialog>
 
+        {/* Testimonials */}
+        {testimonials && testimonials.length > 0 && (
+          <section className="mt-20">
+            <div className="grid md:grid-cols-3 gap-6">
+              {testimonials.slice(0, 3).map((testimonial, idx) => (
+                <motion.div
+                  key={testimonial.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  <TestimonialCard testimonial={testimonial} />
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Note */}
         <motion.div 
           initial={{ opacity: 0 }}
@@ -168,6 +194,9 @@ export default function Packages() {
           </p>
         </motion.div>
       </div>
+
+      {/* Press Section */}
+      <PressSection />
     </div>
   );
 }
