@@ -3,6 +3,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminKnowledge from './pages/AdminKnowledge';
 import AdminPackages from './pages/AdminPackages';
 import AdminRooms from './pages/AdminRooms';
+import AdminSeedData from './pages/AdminSeedData';
 import AdminTreatments from './pages/AdminTreatments';
 import AskRitual from './pages/AskRitual';
 import BookingConfirmation from './pages/BookingConfirmation';
@@ -13,7 +14,7 @@ import Packages from './pages/Packages';
 import Rooms from './pages/Rooms';
 import StaffDashboard from './pages/StaffDashboard';
 import Treatments from './pages/Treatments';
-import AdminSeedData from './pages/AdminSeedData';
+import AdminImages from './pages/AdminImages';
 import __Layout from './Layout.jsx';
 
 
@@ -23,6 +24,7 @@ export const PAGES = {
     "AdminKnowledge": AdminKnowledge,
     "AdminPackages": AdminPackages,
     "AdminRooms": AdminRooms,
+    "AdminSeedData": AdminSeedData,
     "AdminTreatments": AdminTreatments,
     "AskRitual": AskRitual,
     "BookingConfirmation": BookingConfirmation,
@@ -33,7 +35,7 @@ export const PAGES = {
     "Rooms": Rooms,
     "StaffDashboard": StaffDashboard,
     "Treatments": Treatments,
-    "AdminSeedData": AdminSeedData,
+    "AdminImages": AdminImages,
 }
 
 export const pagesConfig = {
