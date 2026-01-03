@@ -101,6 +101,9 @@ export default function Layout({ children, currentPageName }) {
                 <Link to={createPageUrl('Packages')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   Packages
                 </Link>
+                <Link to={createPageUrl('Amenities')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
+                  Amenities
+                </Link>
                 <Link to={createPageUrl('AskRitual')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   Ask Ritual
                 </Link>
@@ -126,18 +129,21 @@ export default function Layout({ children, currentPageName }) {
           {isMenuOpen && (
             <div className="md:hidden absolute top-full left-0 right-0 bg-[rgb(248,246,242)] border-b border-[rgb(235,225,213)] py-6 px-6">
               <div className="flex flex-col gap-4">
-                <Link to={createPageUrl('Rooms')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
-                  Rooms
-                </Link>
-                <Link to={createPageUrl('Treatments')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
-                  Spa & Wellness
-                </Link>
-                <Link to={createPageUrl('Packages')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
-                  Packages
-                </Link>
-                <Link to={createPageUrl('AskRitual')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
-                  Ask Ritual
-                </Link>
+                  <Link to={createPageUrl('Rooms')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
+                    Rooms
+                  </Link>
+                  <Link to={createPageUrl('Treatments')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
+                    Spa & Wellness
+                  </Link>
+                  <Link to={createPageUrl('Packages')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
+                    Packages
+                  </Link>
+                  <Link to={createPageUrl('Amenities')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
+                    Amenities
+                  </Link>
+                  <Link to={createPageUrl('AskRitual')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
+                    Ask Ritual
+                  </Link>
                 <Link 
                   to={createPageUrl('BookingFlow')} 
                   className="mt-2 px-6 py-3 bg-[rgb(150,170,155)] text-white text-center"
@@ -176,6 +182,7 @@ export default function Layout({ children, currentPageName }) {
                   <Link to={createPageUrl('Rooms')} className="hover:text-[rgb(107,85,64)]">Rooms & Suites</Link>
                   <Link to={createPageUrl('Treatments')} className="hover:text-[rgb(107,85,64)]">Spa Treatments</Link>
                   <Link to={createPageUrl('Packages')} className="hover:text-[rgb(107,85,64)]">Packages</Link>
+                  <Link to={createPageUrl('Amenities')} className="hover:text-[rgb(107,85,64)]">Amenities</Link>
                 </div>
               </div>
               <div>
