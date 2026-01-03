@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import TestimonialCard from '@/components/TestimonialCard';
+import ReviewCarousel from '@/components/reviews/ReviewCarousel';
 
 const categoryLabels = {
   massage: 'Massage',

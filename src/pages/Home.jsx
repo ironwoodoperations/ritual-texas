@@ -228,7 +228,19 @@ export default function Home() {
       )}
 
       {/* Press */}
-      <PressSection />
+      <section className="py-16 px-6 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-2xl font-extralight text-[rgb(107,85,64)] text-center mb-8"
+          >
+            As Featured In
+          </motion.h2>
+          <PressSection />
+        </div>
+      </section>
 
       {/* CTA Section */}
       <section className="py-24 px-6 bg-[rgb(107,85,64)]">

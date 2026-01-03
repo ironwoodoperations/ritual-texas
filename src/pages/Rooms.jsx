@@ -7,6 +7,7 @@ import { Users, ArrowRight, X, Plus, Minus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import PressStrip from '@/components/reviews/PressStrip';
 
 const PRICING = {
   weekdayLabel: "Mon–Thu",
@@ -128,6 +129,16 @@ export default function Rooms() {
                 </div>
               </div>
             </div>
+          </motion.div>
+
+          {/* Social Proof Strip */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="mb-8"
+          >
+            <PressStrip limit={4} compact />
           </motion.div>
 
           {/* Connecting Suites Callout */}
