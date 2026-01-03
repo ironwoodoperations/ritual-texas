@@ -1,37 +1,39 @@
-import Home from './pages/Home';
-import Rooms from './pages/Rooms';
-import Treatments from './pages/Treatments';
-import Packages from './pages/Packages';
-import BookingFlow from './pages/BookingFlow';
-import BookingConfirmation from './pages/BookingConfirmation';
-import MyBooking from './pages/MyBooking';
-import AskRitual from './pages/AskRitual';
-import AdminDashboard from './pages/AdminDashboard';
-import StaffDashboard from './pages/StaffDashboard';
 import AdminBookings from './pages/AdminBookings';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminKnowledge from './pages/AdminKnowledge';
+import AdminPackages from './pages/AdminPackages';
 import AdminRooms from './pages/AdminRooms';
 import AdminTreatments from './pages/AdminTreatments';
-import AdminPackages from './pages/AdminPackages';
-import AdminKnowledge from './pages/AdminKnowledge';
+import AskRitual from './pages/AskRitual';
+import BookingConfirmation from './pages/BookingConfirmation';
+import BookingFlow from './pages/BookingFlow';
+import Home from './pages/Home';
+import MyBooking from './pages/MyBooking';
+import Packages from './pages/Packages';
+import Rooms from './pages/Rooms';
+import StaffDashboard from './pages/StaffDashboard';
+import Treatments from './pages/Treatments';
+import AdminSeedData from './pages/AdminSeedData';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Home": Home,
-    "Rooms": Rooms,
-    "Treatments": Treatments,
-    "Packages": Packages,
-    "BookingFlow": BookingFlow,
-    "BookingConfirmation": BookingConfirmation,
-    "MyBooking": MyBooking,
-    "AskRitual": AskRitual,
-    "AdminDashboard": AdminDashboard,
-    "StaffDashboard": StaffDashboard,
     "AdminBookings": AdminBookings,
+    "AdminDashboard": AdminDashboard,
+    "AdminKnowledge": AdminKnowledge,
+    "AdminPackages": AdminPackages,
     "AdminRooms": AdminRooms,
     "AdminTreatments": AdminTreatments,
-    "AdminPackages": AdminPackages,
-    "AdminKnowledge": AdminKnowledge,
+    "AskRitual": AskRitual,
+    "BookingConfirmation": BookingConfirmation,
+    "BookingFlow": BookingFlow,
+    "Home": Home,
+    "MyBooking": MyBooking,
+    "Packages": Packages,
+    "Rooms": Rooms,
+    "StaffDashboard": StaffDashboard,
+    "Treatments": Treatments,
+    "AdminSeedData": AdminSeedData,
 }
 
 export const pagesConfig = {
