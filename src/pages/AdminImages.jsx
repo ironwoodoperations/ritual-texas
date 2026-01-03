@@ -16,6 +16,8 @@ export default function AdminImages() {
   const [showUpload, setShowUpload] = useState(false);
   const [editingImage, setEditingImage] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
+  const [bulkUploadProgress, setBulkUploadProgress] = useState({ current: 0, total: 0 });
   const [formData, setFormData] = useState({
     name: '',
     url: '',
@@ -141,6 +143,54 @@ export default function AdminImages() {
     }
   };
 
+  const handleBulkUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setBulkUploadProgress({ current: 0, total: files.length });
+    const uploadedImages = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      setBulkUploadProgress({ current: i + 1, total: files.length });
+
+      try {
+        const result = await base44.integrations.Core.UploadFile({ file });
+        
+        // Get dimensions
+        const img = new Image();
+        const dimensions = await new Promise((resolve) => {
+          img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+          img.onerror = () => resolve({ width: null, height: null });
+          img.src = result.file_url;
+        });
+
+        uploadedImages.push({
+          name: file.name.replace(/\.[^/.]+$/, ''),
+          url: result.file_url,
+          width: dimensions.width,
+          height: dimensions.height,
+          sort_order: i,
+          is_active: true,
+        });
+      } catch (error) {
+        console.error(`Failed to upload ${file.name}:`, error);
+      }
+    }
+
+    // Bulk create all images
+    if (uploadedImages.length > 0) {
+      try {
+        await base44.entities.ImageAsset.bulkCreate(uploadedImages);
+        queryClient.invalidateQueries(['images']);
+        setShowBulkUpload(false);
+        setBulkUploadProgress({ current: 0, total: 0 });
+      } catch (error) {
+        alert('Failed to save images to database');
+      }
+    }
+  };
+
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -163,16 +213,25 @@ export default function AdminImages() {
             </Link>
             <h1 className="text-3xl font-extralight text-[rgb(107,85,64)]">Image Library</h1>
           </div>
-          <Button
-            onClick={() => {
-              resetForm();
-              setShowUpload(true);
-            }}
-            className="bg-[rgb(150,170,155)] hover:bg-[rgb(130,150,135)] text-white"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Upload Image
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setShowBulkUpload(true)}
+              variant="outline"
+              className="text-[rgb(107,85,64)]"
+            >
+              Bulk Upload
+            </Button>
+            <Button
+              onClick={() => {
+                resetForm();
+                setShowUpload(true);
+              }}
+              className="bg-[rgb(150,170,155)] hover:bg-[rgb(130,150,135)] text-white"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Upload Image
+            </Button>
+          </div>
         </div>
 
         {/* Images Grid */}
@@ -388,6 +447,51 @@ export default function AdminImages() {
                   {editingImage ? 'Update' : 'Upload'} Image
                 </Button>
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Bulk Upload Dialog */}
+        <Dialog open={showBulkUpload} onOpenChange={(open) => !open && setShowBulkUpload(false)}>
+          <DialogContent className="max-w-xl bg-[rgb(248,246,242)]">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-light text-[rgb(107,85,64)]">
+                Bulk Upload Images
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4 mt-4">
+              {bulkUploadProgress.total > 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto mb-4 border-4 border-[rgb(235,225,213)] border-t-[rgb(150,170,155)] rounded-full animate-spin" />
+                  <p className="text-[rgb(107,85,64)]">
+                    Uploading {bulkUploadProgress.current} of {bulkUploadProgress.total}...
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="border-2 border-dashed border-[rgb(235,225,213)] p-12 text-center">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleBulkUpload}
+                      className="hidden"
+                      id="bulk-upload"
+                    />
+                    <label htmlFor="bulk-upload" className="cursor-pointer">
+                      <Upload className="w-12 h-12 mx-auto mb-4 text-[rgb(198,182,165)]" />
+                      <p className="text-[rgb(107,85,64)] mb-2">Click to select multiple images</p>
+                      <p className="text-sm text-[rgb(45,45,45)]">
+                        All images will be uploaded and saved automatically
+                      </p>
+                    </label>
+                  </div>
+                  <p className="text-xs text-[rgb(45,45,45)] text-center">
+                    Images will be named based on their filename. You can edit details later.
+                  </p>
+                </>
+              )}
             </div>
           </DialogContent>
         </Dialog>
