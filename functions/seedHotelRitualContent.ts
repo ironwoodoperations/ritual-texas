@@ -2,7 +2,7 @@
 // Creates/updates Suites + Treatments/Services + Press/Reviews + ReviewPlacements + Packages.
 // Safe to run multiple times (idempotent via slug lookups).
 
-import { createClientFromRequest } from "npm:@base44/sdk";
+import { createClientFromRequest } from "npm:@base44/sdk@0.8.6";
 
 type AnyRecord = Record<string, any>;
 
