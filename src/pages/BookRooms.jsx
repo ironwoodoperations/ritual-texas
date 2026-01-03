@@ -13,9 +13,9 @@ export default function BookRooms() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="h-screen flex flex-col bg-white overflow-hidden">
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-6 px-6 py-4 border-b border-[rgb(235,225,213)] bg-white">
+      <div className="flex items-center gap-6 px-6 py-4 border-b border-[rgb(235,225,213)] bg-white flex-shrink-0">
         <div className="flex items-center gap-2 opacity-60 pointer-events-none">
           <BedDouble className="w-5 h-5 text-[rgb(107,85,64)]" />
           <span className="text-sm font-medium text-[rgb(107,85,64)]">Book Rooms</span>
@@ -30,7 +30,7 @@ export default function BookRooms() {
       </div>
 
       {/* Iframe Container */}
-      <div className="relative flex-1">
+      <div className="relative flex-1 overflow-hidden">
         {/* Loading State */}
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-[rgb(248,246,242)] z-10">
@@ -45,10 +45,11 @@ export default function BookRooms() {
         <iframe
           src="https://hotels.cloudbeds.com/en/reservation/aqlut4?currency=usd"
           title="Hotel RITUAL Room Booking"
-          className="w-full h-full border-0"
+          className="w-full h-full border-0 block"
           onLoad={() => setLoading(false)}
           allow="payment"
           referrerPolicy="no-referrer-when-downgrade"
+          sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation-by-user-activation"
         />
       </div>
     </div>
