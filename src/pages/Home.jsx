@@ -9,6 +9,21 @@ import TestimonialCard from '@/components/TestimonialCard';
 import PressSection from '@/components/PressSection';
 
 export default function Home() {
+  const [user, setUser] = React.useState(null);
+
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (isAuth) {
+          const userData = await base44.auth.me();
+          setUser(userData);
+        }
+      } catch (e) {}
+    };
+    checkAuth();
+  }, []);
+
   const { data: testimonials } = useQuery({
     queryKey: ['testimonials'],
     queryFn: () => base44.entities.Testimonial.filter({ is_active: true }, 'sort_order'),
@@ -234,6 +249,18 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      {/* Admin Link */}
+      {user?.role === 'admin' && (
+        <div className="py-8 text-center">
+          <Link 
+            to={createPageUrl('AdminDashboard')}
+            className="text-sm text-[rgb(150,170,155)] hover:text-[rgb(107,85,64)] transition-colors"
+          >
+            Admin Dashboard →
+          </Link>
+        </div>
+      )}
 
       </div>
       );
