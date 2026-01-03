@@ -111,7 +111,14 @@ export default function AdminDashboard() {
             ))}
           </nav>
 
-          <div className="p-4 border-t border-[rgb(235,225,213)]">
+          <div className="p-4 border-t border-[rgb(235,225,213)] space-y-1">
+            <Link 
+              to={createPageUrl('Home')}
+              className="flex items-center gap-3 px-4 py-3 text-[rgb(45,45,45)] hover:bg-[rgb(235,225,213)] rounded-lg"
+            >
+              <Home className="w-5 h-5" />
+              <span className="text-sm">Back to Home</span>
+            </Link>
             <Link 
               to={createPageUrl('StaffDashboard')}
               className="flex items-center gap-3 px-4 py-3 text-[rgb(45,45,45)] hover:bg-[rgb(235,225,213)] rounded-lg"
