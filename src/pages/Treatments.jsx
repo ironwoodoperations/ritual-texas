@@ -34,9 +34,59 @@ export default function Treatments() {
 
   const categories = ['all', ...Object.keys(categoryLabels)];
   
+  // Group treatments by name, sort by price, and keep Dr. Parkinstine last
+  const processedTreatments = React.useMemo(() => {
+    if (!treatments) return [];
+    
+    // Group treatments with the same name
+    const grouped = treatments.reduce((acc, treatment) => {
+      const key = treatment.name;
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(treatment);
+      return acc;
+    }, {});
+    
+    // Convert to array with options for multiple variants
+    const processed = Object.entries(grouped).map(([name, variants]) => {
+      if (variants.length === 1) {
+        return variants[0];
+      }
+      // Multiple variants - sort by price and add options
+      const sortedVariants = [...variants].sort((a, b) => a.price - b.price);
+      return {
+        ...sortedVariants[0],
+        hasOptions: true,
+        options: sortedVariants.map(v => ({
+          id: v.id,
+          duration_minutes: v.duration_minutes,
+          price: v.price,
+          label: `${v.duration_minutes} min - $${v.price}`
+        }))
+      };
+    });
+    
+    // Separate Dr. Parkinstine treatments
+    const drParkinstine = processed.filter(t => 
+      t.name.toLowerCase().includes('parkinstine') || 
+      t.name.toLowerCase().includes('dr. parkinstine') ||
+      t.name.toLowerCase().includes('dr parkinstine')
+    );
+    const others = processed.filter(t => 
+      !t.name.toLowerCase().includes('parkinstine')
+    );
+    
+    // Sort others by price (low to high), then append Dr. Parkinstine
+    return [
+      ...others.sort((a, b) => a.price - b.price),
+      ...drParkinstine.sort((a, b) => a.price - b.price)
+    ];
+  }, [treatments]);
+  
   const filteredTreatments = activeCategory === 'all' 
-    ? treatments 
-    : treatments?.filter(t => t.category === activeCategory);
+    ? processedTreatments 
+    : processedTreatments?.filter(t => t.category === activeCategory);
 
   return (
     <div className="min-h-screen py-16 px-6">
@@ -124,15 +174,30 @@ export default function Treatments() {
                       <span className="text-xs tracking-widest text-[rgb(150,170,155)] uppercase">
                         {categoryLabels[treatment.category]}
                       </span>
-                      <div className="flex items-center gap-1 text-sm text-[rgb(45,45,45)]">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{treatment.duration_minutes} min</span>
-                      </div>
+                      {!treatment.hasOptions ? (
+                        <div className="flex items-center gap-1 text-sm text-[rgb(45,45,45)]">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>{treatment.duration_minutes} min</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-[rgb(45,45,45)]">Multiple options</span>
+                      )}
                     </div>
 
                     <h3 className="text-xl font-light text-[rgb(107,85,64)] mb-3">
                       {treatment.name}
                     </h3>
+
+                    {treatment.hasOptions && (
+                      <div className="mb-3 space-y-1">
+                        {treatment.options.map((opt, idx) => (
+                          <div key={idx} className="text-xs text-[rgb(45,45,45)] flex items-center gap-2">
+                            <span className="w-1 h-1 bg-[rgb(150,170,155)] rounded-full" />
+                            <span>{opt.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     <p className="text-sm text-[rgb(45,45,45)] font-light mb-4 line-clamp-2">
                       {treatment.what_it_is}
