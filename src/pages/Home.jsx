@@ -160,10 +160,10 @@ export default function Home() {
                 alt="Suite"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[rgb(107,85,64)]/60 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
               <div className="absolute bottom-8 left-8 text-white">
-                <h3 className="text-2xl font-light mb-2">Suites & Rooms</h3>
-                <p className="text-white/80 font-light">Starting at $150/night</p>
+                <h3 className="text-2xl font-light mb-2 drop-shadow-lg">Suites & Rooms</h3>
+                <p className="text-white/90 font-light drop-shadow-lg">Starting at $150/night</p>
               </div>
             </motion.div>
 
@@ -178,10 +178,10 @@ export default function Home() {
                 alt="Spa"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[rgb(107,85,64)]/60 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
               <div className="absolute bottom-8 left-8 text-white">
-                <h3 className="text-2xl font-light mb-2">Spa & Wellness</h3>
-                <p className="text-white/80 font-light">Treatments from $250</p>
+                <h3 className="text-2xl font-light mb-2 drop-shadow-lg">Spa & Wellness</h3>
+                <p className="text-white/90 font-light drop-shadow-lg">Treatments from $95</p>
               </div>
             </motion.div>
           </div>
