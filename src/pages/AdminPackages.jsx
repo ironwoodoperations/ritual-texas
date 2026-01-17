@@ -61,6 +61,11 @@ export default function AdminPackages() {
     queryFn: () => base44.entities.Treatment.list(),
   });
 
+  const { data: suites } = useQuery({
+    queryKey: ['suites'],
+    queryFn: () => base44.entities.Suite.list('sort_order'),
+  });
+
   const createMutation = useMutation({
     mutationFn: (data) => {
       const slug = data.slug || data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
