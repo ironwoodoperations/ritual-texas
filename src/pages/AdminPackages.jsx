@@ -23,17 +23,19 @@ export default function AdminPackages() {
 
   const [formData, setFormData] = useState({
     name: '',
-    slug: '',
     description: '',
-    includes_room: false,
-    room_nights: 1,
-    room_type_description: '',
+    detailed_description: '',
+    package_type: 'spa_only',
+    room_id: '',
+    room_name: '',
+    number_of_nights: 0,
     included_treatments: [],
-    price_from_usd: 0,
-    price_unit: 'all inclusive',
+    sequence_type: 'flexible',
+    schedule_notes: '',
+    total_price: 0,
+    savings: 0,
     image_url: '',
-    sort_order: 0,
-    is_active: true
+    is_available: true
   });
 
   useEffect(() => {
@@ -53,7 +55,7 @@ export default function AdminPackages() {
 
   const { data: packages, isLoading } = useQuery({
     queryKey: ['admin-packages'],
-    queryFn: () => base44.entities.Package.list(),
+    queryFn: () => base44.entities.SpaPackage.list(),
   });
 
   const { data: treatments } = useQuery({
@@ -67,10 +69,7 @@ export default function AdminPackages() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => {
-      const slug = data.slug || data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      return base44.entities.Package.create({ ...data, slug });
-    },
+    mutationFn: (data) => base44.entities.SpaPackage.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-packages']);
       queryClient.invalidateQueries(['packages']);
@@ -80,7 +79,7 @@ export default function AdminPackages() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Package.update(id, data),
+    mutationFn: ({ id, data }) => base44.entities.SpaPackage.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-packages']);
       queryClient.invalidateQueries(['packages']);
@@ -91,7 +90,7 @@ export default function AdminPackages() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Package.delete(id),
+    mutationFn: (id) => base44.entities.SpaPackage.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-packages']);
       queryClient.invalidateQueries(['packages']);
@@ -101,17 +100,19 @@ export default function AdminPackages() {
   const resetForm = () => {
     setFormData({
       name: '',
-      slug: '',
       description: '',
-      includes_room: false,
-      room_nights: 1,
-      room_type_description: '',
+      detailed_description: '',
+      package_type: 'spa_only',
+      room_id: '',
+      room_name: '',
+      number_of_nights: 0,
       included_treatments: [],
-      price_from_usd: 0,
-      price_unit: 'all inclusive',
+      sequence_type: 'flexible',
+      schedule_notes: '',
+      total_price: 0,
+      savings: 0,
       image_url: '',
-      sort_order: 0,
-      is_active: true
+      is_available: true
     });
   };
 
@@ -119,17 +120,19 @@ export default function AdminPackages() {
     setEditingPackage(pkg);
     setFormData({
       name: pkg.name || '',
-      slug: pkg.slug || '',
       description: pkg.description || '',
-      includes_room: pkg.includes_room || false,
-      room_nights: pkg.room_nights || 1,
-      room_type_description: pkg.room_type_description || '',
+      detailed_description: pkg.detailed_description || '',
+      package_type: pkg.package_type || 'spa_only',
+      room_id: pkg.room_id || '',
+      room_name: pkg.room_name || '',
+      number_of_nights: pkg.number_of_nights || 0,
       included_treatments: pkg.included_treatments || [],
-      price_from_usd: pkg.price_from_usd || 0,
-      price_unit: pkg.price_unit || 'all inclusive',
+      sequence_type: pkg.sequence_type || 'flexible',
+      schedule_notes: pkg.schedule_notes || '',
+      total_price: pkg.total_price || 0,
+      savings: pkg.savings || 0,
       image_url: pkg.image_url || '',
-      sort_order: pkg.sort_order || 0,
-      is_active: pkg.is_active !== false
+      is_available: pkg.is_available !== false
     });
     setIsFormOpen(true);
   };
@@ -181,7 +184,7 @@ export default function AdminPackages() {
             </Link>
             <div>
               <h1 className="text-xl font-light text-[rgb(107,85,64)]">Packages</h1>
-              <p className="text-sm text-[rgb(45,45,45)]">Manage spa packages</p>
+              <p className="text-sm text-[rgb(45,45,45)]">Manage spa packages & room+spa bundles</p>
             </div>
           </div>
           <Button 
@@ -209,15 +212,21 @@ export default function AdminPackages() {
               />
               <div className="p-4">
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-medium text-[rgb(107,85,64)]">{pkg.name}</h3>
-                  <div className={`w-3 h-3 rounded-full ${pkg.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <div className="flex-1">
+                    <p className="text-xs text-[rgb(150,170,155)] mb-1">
+                      {pkg.package_type === 'room_and_spa' ? '🏨 Room + Spa Bundle' : '💆 Spa Only'}
+                    </p>
+                    <h3 className="font-medium text-[rgb(107,85,64)]">{pkg.name}</h3>
+                  </div>
+                  <div className={`w-3 h-3 rounded-full ${pkg.is_available ? 'bg-green-500' : 'bg-red-500'}`} />
                 </div>
-                <p className="text-lg text-[rgb(107,85,64)] mb-2">
-                  {pkg.price_from_usd ? `From $${pkg.price_from_usd}` : 'Custom pricing'}
-                </p>
-                <div className="text-sm text-[rgb(45,45,45)] space-y-1 mb-3">
-                  {pkg.includes_room && (
-                    <p className="text-[rgb(150,170,155)]">✓ Includes {pkg.room_nights || 1} night{pkg.room_nights > 1 ? 's' : ''}</p>
+                <p className="text-lg text-[rgb(107,85,64)] mb-2">${pkg.total_price}</p>
+                {pkg.savings > 0 && (
+                  <p className="text-sm text-[rgb(150,170,155)]">Save ${pkg.savings}</p>
+                )}
+                <div className="text-sm text-[rgb(45,45,45)] mt-2 mb-3">
+                  {pkg.package_type === 'room_and_spa' && pkg.room_name && (
+                    <p className="mb-1 font-medium">{pkg.room_name} • {pkg.number_of_nights} nights</p>
                   )}
                   <p>{pkg.included_treatments?.length || 0} treatments included</p>
                 </div>
@@ -262,6 +271,63 @@ export default function AdminPackages() {
 
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
             <div>
+              <Label>Package Type *</Label>
+              <Select 
+                value={formData.package_type} 
+                onValueChange={(val) => setFormData({...formData, package_type: val})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="spa_only">Spa Treatments Only</SelectItem>
+                  <SelectItem value="room_and_spa">Room + Spa Bundle</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {formData.package_type === 'room_and_spa' && (
+              <>
+                <div>
+                  <Label>Select Room/Suite *</Label>
+                  <Select 
+                    value={formData.room_id} 
+                    onValueChange={(val) => {
+                      const suite = suites?.find(s => s.id === val);
+                      setFormData({
+                        ...formData, 
+                        room_id: val,
+                        room_name: suite?.name || ''
+                      });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a room..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {suites?.map(suite => (
+                        <SelectItem key={suite.id} value={suite.id}>
+                          {suite.name} - ${suite.price_per_night}/night
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Number of Nights *</Label>
+                  <Input
+                    type="number"
+                    value={formData.number_of_nights}
+                    onChange={(e) => setFormData({...formData, number_of_nights: parseInt(e.target.value) || 0})}
+                    min="1"
+                    placeholder="2"
+                  />
+                </div>
+              </>
+            )}
+
+            <div>
               <Label>Package Name *</Label>
               <Input
                 value={formData.name}
@@ -272,49 +338,23 @@ export default function AdminPackages() {
             </div>
 
             <div>
-              <Label>Package Description *</Label>
+              <Label>Short Description</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="A complete renewal experience with room and treatments..."
-                rows={4}
-                required
+                placeholder="A complete renewal experience..."
+                rows={2}
               />
             </div>
 
-            {/* Room Section */}
-            <div className="border border-[rgb(235,225,213)] p-4 bg-white space-y-3">
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={formData.includes_room}
-                  onCheckedChange={(checked) => setFormData({...formData, includes_room: checked})}
-                />
-                <Label>This package includes a room stay</Label>
-              </div>
-
-              {formData.includes_room && (
-                <>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label>Number of Nights</Label>
-                      <Input
-                        type="number"
-                        value={formData.room_nights}
-                        onChange={(e) => setFormData({...formData, room_nights: parseInt(e.target.value)})}
-                        min="1"
-                      />
-                    </div>
-                    <div>
-                      <Label>Room Type</Label>
-                      <Input
-                        value={formData.room_type_description}
-                        onChange={(e) => setFormData({...formData, room_type_description: e.target.value})}
-                        placeholder="Any suite, Suite 1-4 only, etc."
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
+            <div>
+              <Label>Detailed Description</Label>
+              <Textarea
+                value={formData.detailed_description}
+                onChange={(e) => setFormData({...formData, detailed_description: e.target.value})}
+                placeholder="Full description of the package experience..."
+                rows={4}
+              />
             </div>
 
             <div>
@@ -339,42 +379,50 @@ export default function AdminPackages() {
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <Label>Starting Price (USD)</Label>
-                <Input
-                  type="number"
-                  value={formData.price_from_usd}
-                  onChange={(e) => setFormData({...formData, price_from_usd: parseFloat(e.target.value)})}
-                  min="0"
-                  placeholder="Leave blank for custom pricing"
-                />
-              </div>
-              <div>
-                <Label>Price Unit</Label>
+                <Label>Sequence Type</Label>
                 <Select 
-                  value={formData.price_unit} 
-                  onValueChange={(val) => setFormData({...formData, price_unit: val})}
+                  value={formData.sequence_type} 
+                  onValueChange={(val) => setFormData({...formData, sequence_type: val})}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all inclusive">All Inclusive</SelectItem>
-                    <SelectItem value="per person">Per Person</SelectItem>
-                    <SelectItem value="per night">Per Night</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
+                    <SelectItem value="flexible">Flexible (guest chooses)</SelectItem>
+                    <SelectItem value="fixed">Fixed (pre-scheduled)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <Label>Schedule Notes</Label>
+                <Input
+                  value={formData.schedule_notes}
+                  onChange={(e) => setFormData({...formData, schedule_notes: e.target.value})}
+                  placeholder="Spread across 2 days..."
+                />
+              </div>
             </div>
 
-            <div>
-              <Label>Display Order</Label>
-              <Input
-                type="number"
-                value={formData.sort_order}
-                onChange={(e) => setFormData({...formData, sort_order: parseInt(e.target.value)})}
-                min="0"
-              />
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Total Price *</Label>
+                <Input
+                  type="number"
+                  value={formData.total_price}
+                  onChange={(e) => setFormData({...formData, total_price: parseFloat(e.target.value)})}
+                  min="0"
+                  required
+                />
+              </div>
+              <div>
+                <Label>Savings (vs individual)</Label>
+                <Input
+                  type="number"
+                  value={formData.savings}
+                  onChange={(e) => setFormData({...formData, savings: parseFloat(e.target.value)})}
+                  min="0"
+                />
+              </div>
             </div>
 
             <ImageSelector
@@ -385,10 +433,10 @@ export default function AdminPackages() {
 
             <div className="flex items-center gap-2">
               <Switch
-                checked={formData.is_active}
-                onCheckedChange={(checked) => setFormData({...formData, is_active: checked})}
+                checked={formData.is_available}
+                onCheckedChange={(checked) => setFormData({...formData, is_available: checked})}
               />
-              <Label>Active (visible on website)</Label>
+              <Label>Available for booking</Label>
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
