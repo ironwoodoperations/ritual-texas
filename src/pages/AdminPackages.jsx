@@ -23,15 +23,17 @@ export default function AdminPackages() {
 
   const [formData, setFormData] = useState({
     name: '',
+    slug: '',
     description: '',
-    detailed_description: '',
+    includes_room: false,
+    room_nights: 1,
+    room_type_description: '',
     included_treatments: [],
-    sequence_type: 'flexible',
-    schedule_notes: '',
-    total_price: 0,
-    savings: 0,
+    price_from_usd: 0,
+    price_unit: 'all inclusive',
     image_url: '',
-    is_available: true
+    sort_order: 0,
+    is_active: true
   });
 
   useEffect(() => {
@@ -51,7 +53,7 @@ export default function AdminPackages() {
 
   const { data: packages, isLoading } = useQuery({
     queryKey: ['admin-packages'],
-    queryFn: () => base44.entities.SpaPackage.list(),
+    queryFn: () => base44.entities.Package.list(),
   });
 
   const { data: treatments } = useQuery({
@@ -60,7 +62,10 @@ export default function AdminPackages() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.SpaPackage.create(data),
+    mutationFn: (data) => {
+      const slug = data.slug || data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      return base44.entities.Package.create({ ...data, slug });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-packages']);
       queryClient.invalidateQueries(['packages']);
@@ -70,7 +75,7 @@ export default function AdminPackages() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.SpaPackage.update(id, data),
+    mutationFn: ({ id, data }) => base44.entities.Package.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-packages']);
       queryClient.invalidateQueries(['packages']);
@@ -81,7 +86,7 @@ export default function AdminPackages() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.SpaPackage.delete(id),
+    mutationFn: (id) => base44.entities.Package.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-packages']);
       queryClient.invalidateQueries(['packages']);
@@ -91,15 +96,17 @@ export default function AdminPackages() {
   const resetForm = () => {
     setFormData({
       name: '',
+      slug: '',
       description: '',
-      detailed_description: '',
+      includes_room: false,
+      room_nights: 1,
+      room_type_description: '',
       included_treatments: [],
-      sequence_type: 'flexible',
-      schedule_notes: '',
-      total_price: 0,
-      savings: 0,
+      price_from_usd: 0,
+      price_unit: 'all inclusive',
       image_url: '',
-      is_available: true
+      sort_order: 0,
+      is_active: true
     });
   };
 
@@ -107,15 +114,17 @@ export default function AdminPackages() {
     setEditingPackage(pkg);
     setFormData({
       name: pkg.name || '',
+      slug: pkg.slug || '',
       description: pkg.description || '',
-      detailed_description: pkg.detailed_description || '',
+      includes_room: pkg.includes_room || false,
+      room_nights: pkg.room_nights || 1,
+      room_type_description: pkg.room_type_description || '',
       included_treatments: pkg.included_treatments || [],
-      sequence_type: pkg.sequence_type || 'flexible',
-      schedule_notes: pkg.schedule_notes || '',
-      total_price: pkg.total_price || 0,
-      savings: pkg.savings || 0,
+      price_from_usd: pkg.price_from_usd || 0,
+      price_unit: pkg.price_unit || 'all inclusive',
       image_url: pkg.image_url || '',
-      is_available: pkg.is_available !== false
+      sort_order: pkg.sort_order || 0,
+      is_active: pkg.is_active !== false
     });
     setIsFormOpen(true);
   };
@@ -196,15 +205,17 @@ export default function AdminPackages() {
               <div className="p-4">
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-medium text-[rgb(107,85,64)]">{pkg.name}</h3>
-                  <div className={`w-3 h-3 rounded-full ${pkg.is_available ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <div className={`w-3 h-3 rounded-full ${pkg.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
                 </div>
-                <p className="text-lg text-[rgb(107,85,64)] mb-2">${pkg.total_price}</p>
-                {pkg.savings > 0 && (
-                  <p className="text-sm text-[rgb(150,170,155)]">Save ${pkg.savings}</p>
-                )}
-                <p className="text-sm text-[rgb(45,45,45)] mt-2 mb-3">
-                  {pkg.included_treatments?.length || 0} treatments included
+                <p className="text-lg text-[rgb(107,85,64)] mb-2">
+                  {pkg.price_from_usd ? `From $${pkg.price_from_usd}` : 'Custom pricing'}
                 </p>
+                <div className="text-sm text-[rgb(45,45,45)] space-y-1 mb-3">
+                  {pkg.includes_room && (
+                    <p className="text-[rgb(150,170,155)]">✓ Includes {pkg.room_nights || 1} night{pkg.room_nights > 1 ? 's' : ''}</p>
+                  )}
+                  <p>{pkg.included_treatments?.length || 0} treatments included</p>
+                </div>
                 <div className="flex gap-2">
                   <Button 
                     variant="outline" 
@@ -256,23 +267,49 @@ export default function AdminPackages() {
             </div>
 
             <div>
-              <Label>Short Description</Label>
+              <Label>Package Description *</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="A complete renewal experience..."
-                rows={2}
+                placeholder="A complete renewal experience with room and treatments..."
+                rows={4}
+                required
               />
             </div>
 
-            <div>
-              <Label>Detailed Description</Label>
-              <Textarea
-                value={formData.detailed_description}
-                onChange={(e) => setFormData({...formData, detailed_description: e.target.value})}
-                placeholder="Full description of the package experience..."
-                rows={4}
-              />
+            {/* Room Section */}
+            <div className="border border-[rgb(235,225,213)] p-4 bg-white space-y-3">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={formData.includes_room}
+                  onCheckedChange={(checked) => setFormData({...formData, includes_room: checked})}
+                />
+                <Label>This package includes a room stay</Label>
+              </div>
+
+              {formData.includes_room && (
+                <>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Number of Nights</Label>
+                      <Input
+                        type="number"
+                        value={formData.room_nights}
+                        onChange={(e) => setFormData({...formData, room_nights: parseInt(e.target.value)})}
+                        min="1"
+                      />
+                    </div>
+                    <div>
+                      <Label>Room Type</Label>
+                      <Input
+                        value={formData.room_type_description}
+                        onChange={(e) => setFormData({...formData, room_type_description: e.target.value})}
+                        placeholder="Any suite, Suite 1-4 only, etc."
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             <div>
@@ -297,50 +334,42 @@ export default function AdminPackages() {
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <Label>Sequence Type</Label>
+                <Label>Starting Price (USD)</Label>
+                <Input
+                  type="number"
+                  value={formData.price_from_usd}
+                  onChange={(e) => setFormData({...formData, price_from_usd: parseFloat(e.target.value)})}
+                  min="0"
+                  placeholder="Leave blank for custom pricing"
+                />
+              </div>
+              <div>
+                <Label>Price Unit</Label>
                 <Select 
-                  value={formData.sequence_type} 
-                  onValueChange={(val) => setFormData({...formData, sequence_type: val})}
+                  value={formData.price_unit} 
+                  onValueChange={(val) => setFormData({...formData, price_unit: val})}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="flexible">Flexible (guest chooses)</SelectItem>
-                    <SelectItem value="fixed">Fixed (pre-scheduled)</SelectItem>
+                    <SelectItem value="all inclusive">All Inclusive</SelectItem>
+                    <SelectItem value="per person">Per Person</SelectItem>
+                    <SelectItem value="per night">Per Night</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>Schedule Notes</Label>
-                <Input
-                  value={formData.schedule_notes}
-                  onChange={(e) => setFormData({...formData, schedule_notes: e.target.value})}
-                  placeholder="Spread across 2 days..."
-                />
-              </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <Label>Total Price *</Label>
-                <Input
-                  type="number"
-                  value={formData.total_price}
-                  onChange={(e) => setFormData({...formData, total_price: parseFloat(e.target.value)})}
-                  min="0"
-                  required
-                />
-              </div>
-              <div>
-                <Label>Savings (vs individual)</Label>
-                <Input
-                  type="number"
-                  value={formData.savings}
-                  onChange={(e) => setFormData({...formData, savings: parseFloat(e.target.value)})}
-                  min="0"
-                />
-              </div>
+            <div>
+              <Label>Display Order</Label>
+              <Input
+                type="number"
+                value={formData.sort_order}
+                onChange={(e) => setFormData({...formData, sort_order: parseInt(e.target.value)})}
+                min="0"
+              />
             </div>
 
             <ImageSelector
@@ -351,10 +380,10 @@ export default function AdminPackages() {
 
             <div className="flex items-center gap-2">
               <Switch
-                checked={formData.is_available}
-                onCheckedChange={(checked) => setFormData({...formData, is_available: checked})}
+                checked={formData.is_active}
+                onCheckedChange={(checked) => setFormData({...formData, is_active: checked})}
               />
-              <Label>Available for booking</Label>
+              <Label>Active (visible on website)</Label>
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
