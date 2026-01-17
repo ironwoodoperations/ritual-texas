@@ -185,20 +185,12 @@ export default function Rooms() {
                   <div>{PRICING.groupRecLine}</div>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <Link 
-                    to={buildBookingUrl(null)}
-                    className="w-full text-center px-4 py-3 bg-[rgb(150,170,155)] text-white text-sm tracking-widest hover:bg-[rgb(130,150,135)] transition-colors"
-                  >
-                    BOOK ROOMS
-                  </Link>
-                  <Link 
-                    to={createPageUrl('BookingFlow')}
-                    className="w-full text-center px-4 py-3 border border-[rgb(198,182,165)] text-[rgb(107,85,64)] text-sm tracking-widest hover:bg-[rgb(235,225,213)] transition-colors"
-                  >
-                    BOOK SPA & TREATMENTS
-                  </Link>
-                </div>
+                <Link 
+                  to={buildBookingUrl(null)}
+                  className="w-full text-center px-4 py-3 bg-[rgb(150,170,155)] text-white text-sm tracking-widest hover:bg-[rgb(130,150,135)] transition-colors"
+                >
+                  BOOK ROOMS
+                </Link>
                 {(checkInDate || checkOutDate || guests > 2) && (
                   <p className="text-xs text-[rgb(45,45,45)] text-center mt-2 opacity-80">
                     Your selections will be pre-filled
@@ -388,18 +380,12 @@ export default function Rooms() {
                 )}
 
                 {/* CTAs */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-[rgb(235,225,213)]">
+                <div className="pt-4 border-t border-[rgb(235,225,213)]">
                   <Link
                     to={buildBookingUrl(selectedSuite)}
-                    className="flex-1 text-center px-6 py-3 bg-[rgb(150,170,155)] text-white tracking-widest text-sm hover:bg-[rgb(130,150,135)] transition-colors"
+                    className="block w-full text-center px-6 py-3 bg-[rgb(150,170,155)] text-white tracking-widest text-sm hover:bg-[rgb(130,150,135)] transition-colors"
                   >
                     BOOK THIS SUITE
-                  </Link>
-                  <Link
-                    to={createPageUrl('BookingFlow')}
-                    className="flex-1 text-center px-6 py-3 border border-[rgb(198,182,165)] text-[rgb(107,85,64)] tracking-widest text-sm hover:bg-[rgb(235,225,213)] transition-colors"
-                  >
-                    BOOK SPA & TREATMENTS
                   </Link>
                 </div>
                 {(checkInDate || checkOutDate || guests > 2) && (
