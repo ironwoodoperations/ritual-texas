@@ -66,137 +66,84 @@ export default function Rooms() {
 
   return (
     <div className="min-h-screen bg-[rgb(248,246,242)]">
-      {/* Hero Section */}
-      <section className="py-16 px-6">
+      {/* Hero Section with Image */}
+      <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: 'url(https://images.squarespace-cdn.com/content/v1/5f28ea4d05e06334e017a510/44fbd548-a918-43db-af0d-b4d60e8f9bcb/S1+bed.JPG)',
+          }}
+        >
+          <div className="absolute inset-0 bg-[rgb(107,85,64)]/40" />
+        </div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+          className="relative z-10 text-center px-6 max-w-3xl"
+        >
+          <p className="text-xs uppercase tracking-widest text-white/90 mb-3">Hotel RITUAL</p>
+          <h1 className="text-4xl md:text-6xl font-extralight text-white mb-4">
+            Your Sanctuary Awaits
+          </h1>
+          <p className="text-lg text-white/90 font-light leading-relaxed">
+            Seven unique suites. Each a refuge. Choose your space for rest and restoration.
+          </p>
+        </motion.div>
+      </section>
+
+      {/* Main Content */}
+      <section className="py-12 px-6">
         <div className="max-w-6xl mx-auto">
+          {/* Quick Pricing Info + CTA */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-12"
+            transition={{ delay: 0.2 }}
+            className="bg-white border border-[rgb(235,225,213)] p-6 mb-8 rounded-sm"
           >
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div className="flex-1">
-                <p className="text-xs uppercase tracking-widest text-[rgb(150,170,155)] mb-2">Hotel RITUAL</p>
-                <h1 className="text-4xl md:text-5xl font-extralight text-[rgb(107,85,64)] mb-4">
-                  Suites
-                </h1>
-                <p className="text-[rgb(45,45,45)] font-light max-w-2xl leading-relaxed">
-                  Choose your sanctuary. Tap a suite to see details, features, and photos.
+                <h2 className="text-2xl font-light text-[rgb(107,85,64)] mb-3">Plan Your Stay</h2>
+                <div className="flex flex-wrap items-center gap-4 text-sm text-[rgb(45,45,45)]">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-[rgb(150,170,155)]" />
+                      <button
+                        onClick={() => setGuests(Math.max(1, guests - 1))}
+                        className="w-7 h-7 flex items-center justify-center border border-[rgb(198,182,165)] rounded-sm hover:bg-[rgb(235,225,213)] transition-colors"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <span className="text-lg font-light text-[rgb(107,85,64)] w-8 text-center">{guests}</span>
+                      <button
+                        onClick={() => setGuests(Math.min(10, guests + 1))}
+                        className="w-7 h-7 flex items-center justify-center border border-[rgb(198,182,165)] rounded-sm hover:bg-[rgb(235,225,213)] transition-colors"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                      <span className="text-[rgb(45,45,45)] opacity-70">guests</span>
+                    </div>
+                  </div>
+                  <div className="h-4 w-px bg-[rgb(235,225,213)]" />
+                  <div>
+                    <span className="font-medium">{PRICING.weekdayLabel}:</span> ${pricingPreview.weekday}/night
+                  </div>
+                  <div>
+                    <span className="font-medium">{PRICING.weekendLabel}:</span> ${pricingPreview.weekend}/night
+                  </div>
+                </div>
+                <p className="text-xs text-[rgb(45,45,45)] mt-3 opacity-70">
+                  Pricing includes all amenities + gourmet breakfast. +${PRICING.extraGuestNight}/night per extra guest after {PRICING.baseGuestsIncluded}.
                 </p>
               </div>
-
-              {/* Pricing Calculator Box */}
-              <div className="lg:w-96 bg-white border border-[rgb(235,225,213)] p-6 rounded-sm shadow-sm">
-                <div className="text-sm text-[rgb(45,45,45)] mb-4 opacity-80">
-                  Nightly pricing (auto-calculates with guests)
-                </div>
-
-                <label className="text-xs uppercase tracking-widest text-[rgb(150,170,155)] block mb-3">
-                  Number of Guests
-                </label>
-                <div className="flex items-center gap-3 mb-4">
-                  <button
-                    onClick={() => setGuests(Math.max(1, guests - 1))}
-                    className="w-9 h-9 flex items-center justify-center border border-[rgb(198,182,165)] rounded-sm hover:bg-[rgb(235,225,213)] transition-colors"
-                    aria-label="Decrease guests"
-                  >
-                    <Minus className="w-4 h-4 text-[rgb(107,85,64)]" />
-                  </button>
-                  <div className="flex-1 text-center text-2xl font-light text-[rgb(107,85,64)]">{guests}</div>
-                  <button
-                    onClick={() => setGuests(Math.min(10, guests + 1))}
-                    className="w-9 h-9 flex items-center justify-center border border-[rgb(198,182,165)] rounded-sm hover:bg-[rgb(235,225,213)] transition-colors"
-                    aria-label="Increase guests"
-                  >
-                    <Plus className="w-4 h-4 text-[rgb(107,85,64)]" />
-                  </button>
-                </div>
-                <div className="text-xs text-[rgb(45,45,45)] opacity-70 mb-4">
-                  +${PRICING.extraGuestNight}/night each extra guest after {PRICING.baseGuestsIncluded}
-                </div>
-
-                {/* Date Selection */}
-                <div className="mb-4 space-y-3">
-                  <label className="text-xs uppercase tracking-widest text-[rgb(150,170,155)] block">
-                    Select Dates (Optional)
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button className="px-3 py-2 border border-[rgb(198,182,165)] text-left text-sm hover:bg-[rgb(235,225,213)] transition-colors flex items-center justify-between">
-                          {checkInDate ? format(new Date(checkInDate), 'MMM d') : 'Check-in'}
-                          <CalendarIcon className="w-4 h-4 opacity-50" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={checkInDate}
-                          onSelect={(date) => {
-                            setCheckInDate(date);
-                            if (checkOutDate && date && date >= checkOutDate) {
-                              setCheckOutDate(null);
-                            }
-                          }}
-                          disabled={(date) => date < new Date()}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button className="px-3 py-2 border border-[rgb(198,182,165)] text-left text-sm hover:bg-[rgb(235,225,213)] transition-colors flex items-center justify-between">
-                          {checkOutDate ? format(new Date(checkOutDate), 'MMM d') : 'Check-out'}
-                          <CalendarIcon className="w-4 h-4 opacity-50" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={checkOutDate}
-                          onSelect={setCheckOutDate}
-                          disabled={(date) => !checkInDate || date <= new Date(checkInDate)}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  {nights > 0 && (
-                    <div className="text-xs text-[rgb(107,85,64)]">
-                      {nights} {nights === 1 ? 'night' : 'nights'} selected
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="bg-[rgb(235,225,213)] p-3 rounded-sm">
-                    <div className="text-xs text-[rgb(107,85,64)] opacity-75 mb-1">{PRICING.weekdayLabel}</div>
-                    <div className="text-xl font-light text-[rgb(107,85,64)]">${pricingPreview.weekday}</div>
-                  </div>
-                  <div className="bg-[rgb(235,225,213)] p-3 rounded-sm">
-                    <div className="text-xs text-[rgb(107,85,64)] opacity-75 mb-1">{PRICING.weekendLabel}</div>
-                    <div className="text-xl font-light text-[rgb(107,85,64)]">${pricingPreview.weekend}</div>
-                  </div>
-                </div>
-
-                <div className="text-xs text-[rgb(45,45,45)] leading-relaxed mb-4 opacity-80">
-                  <div className="mb-2">{PRICING.includesLine}</div>
-                  <div>{PRICING.groupRecLine}</div>
-                </div>
-
-                <Link 
-                  to={buildBookingUrl(null)}
-                  className="w-full text-center px-4 py-3 bg-[rgb(150,170,155)] text-white text-sm tracking-widest hover:bg-[rgb(130,150,135)] transition-colors"
-                >
-                  BOOK ROOMS
-                </Link>
-                {(checkInDate || checkOutDate || guests > 2) && (
-                  <p className="text-xs text-[rgb(45,45,45)] text-center mt-2 opacity-80">
-                    Your selections will be pre-filled
-                  </p>
-                )}
-              </div>
+              <Link 
+                to={buildBookingUrl(null)}
+                className="px-8 py-3 bg-[rgb(150,170,155)] text-white text-sm tracking-widest hover:bg-[rgb(130,150,135)] transition-colors whitespace-nowrap"
+              >
+                BOOK NOW
+              </Link>
             </div>
           </motion.div>
 
@@ -204,7 +151,7 @@ export default function Rooms() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
+            transition={{ delay: 0.25 }}
             className="mb-8"
           >
             <PressStrip limit={4} compact />
@@ -214,26 +161,25 @@ export default function Rooms() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-[rgb(235,225,213)] border border-[rgb(198,182,165)] p-6 mb-12 rounded-sm"
+            transition={{ delay: 0.3 }}
+            className="bg-[rgb(235,225,213)] border border-[rgb(198,182,165)] p-6 mb-10 rounded-sm"
           >
-            <div className="mb-4">
-              <h2 className="text-xl font-light text-[rgb(107,85,64)] mb-2">Best for Groups</h2>
-              <p className="text-[rgb(45,45,45)] font-light">Book connecting suites for more space while staying close together.</p>
-            </div>
-            <div className="grid md:grid-cols-2 gap-4">
-              {connectingPairs.map((pair, idx) => (
-                <div key={idx} className="bg-white/80 border border-[rgb(198,182,165)] p-4 rounded-sm">
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <span className="px-3 py-1 bg-[rgb(150,170,155)] text-white text-xs tracking-wide">{pair.suites[0]}</span>
-                    <span className="text-[rgb(198,182,165)]">⇄</span>
-                    <span className="px-3 py-1 bg-[rgb(150,170,155)] text-white text-xs tracking-wide">{pair.suites[1]}</span>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-light text-[rgb(107,85,64)] mb-2">Traveling with a Group?</h3>
+                <p className="text-sm text-[rgb(45,45,45)] font-light">Book connecting suites for shared space and privacy.</p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {connectingPairs.map((pair, idx) => (
+                  <div key={idx} className="flex items-center gap-2 px-3 py-2 bg-white border border-[rgb(198,182,165)] rounded-sm">
+                    <span className="text-xs font-medium text-[rgb(107,85,64)]">{pair.suites[0]} + {pair.suites[1]}</span>
                   </div>
-                  <p className="text-sm text-[rgb(45,45,45)] font-light">{pair.note}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </motion.div>
+
+          <h2 className="text-2xl font-light text-[rgb(107,85,64)] mb-6">Our Suites</h2>
 
           {/* Suites Grid */}
           {isLoading && (
