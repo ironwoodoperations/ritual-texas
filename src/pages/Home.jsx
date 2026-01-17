@@ -95,6 +95,45 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Founder Section */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="grid md:grid-cols-2 gap-12 items-center"
+          >
+            <div className="order-2 md:order-1">
+              <h2 className="text-3xl md:text-4xl font-extralight text-[rgb(107,85,64)] mb-6">
+                Meet Whitney Graham
+              </h2>
+              <p className="text-lg text-[rgb(45,45,45)] leading-relaxed font-light mb-6">
+                Whitney is the heart and soul behind everything RITUAL. As a modern-day alchemist and creator of sacred healing spaces, she has curated every detail of your experience to guide you back to yourself.
+              </p>
+              <p className="text-[rgb(45,45,45)] leading-relaxed font-light mb-8">
+                Rooted in ancient wisdom and holistic healing practices, Whitney founded Hotel RITUAL to offer a sanctuary where wellness isn't something you do—it's something you remember.
+              </p>
+              <Link 
+                to={createPageUrl('About')}
+                className="inline-flex items-center gap-2 text-[rgb(107,85,64)] hover:text-[rgb(150,170,155)] transition-colors"
+              >
+                <span className="tracking-widest text-sm">LEARN MORE ABOUT WHITNEY</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+            <div className="order-1 md:order-2">
+              <img 
+                src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80" 
+                alt="Whitney Graham, Founder of Hotel RITUAL"
+                className="w-full aspect-square object-cover rounded-sm"
+              />
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Features Grid */}
       <section className="py-20 px-6 bg-[rgb(235,225,213)]">
         <div className="max-w-6xl mx-auto">
