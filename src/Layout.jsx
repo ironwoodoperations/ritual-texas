@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { Menu, X, Calendar, Leaf } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import ScrollToTop from '@/components/ScrollToTop';
 
 export default function Layout({ children, currentPageName }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -29,6 +30,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'rgb(248, 246, 242)' }}>
+      <ScrollToTop />
       <style>{`
         :root {
           --sand: rgb(235, 225, 213);
