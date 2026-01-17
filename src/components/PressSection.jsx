@@ -37,22 +37,41 @@ export default function PressSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              className="bg-white p-6 hover:shadow-lg transition-shadow group"
+              className="bg-white overflow-hidden hover:shadow-lg transition-shadow group"
             >
-              <div className="flex items-start justify-between mb-3">
-                <span className="text-xs tracking-widest text-[rgb(150,170,155)]">
-                  {item.publisher}
-                </span>
-                <ExternalLink className="w-4 h-4 text-[rgb(198,182,165)] group-hover:text-[rgb(150,170,155)] transition-colors" />
-              </div>
-              <h3 className="text-[rgb(107,85,64)] font-light leading-snug mb-2">
-                {item.title}
-              </h3>
-              {item.pull_quote && (
-                <p className="text-sm text-[rgb(45,45,45)] italic line-clamp-3">
-                  "{item.pull_quote}"
-                </p>
+              {item.thumbnail_url ? (
+                <div className="aspect-[4/3] overflow-hidden bg-[rgb(248,246,242)] flex items-center justify-center p-6">
+                  <img 
+                    src={item.thumbnail_url} 
+                    alt={item.publisher}
+                    className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+              ) : (
+                <div className="aspect-[4/3] bg-[rgb(235,225,213)] flex items-center justify-center p-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-light text-[rgb(107,85,64)]">
+                      {item.publisher}
+                    </div>
+                  </div>
+                </div>
               )}
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-3">
+                  <span className="text-xs tracking-widest text-[rgb(150,170,155)]">
+                    {item.publisher}
+                  </span>
+                  <ExternalLink className="w-4 h-4 text-[rgb(198,182,165)] group-hover:text-[rgb(150,170,155)] transition-colors" />
+                </div>
+                <h3 className="text-[rgb(107,85,64)] font-light leading-snug mb-2">
+                  {item.title}
+                </h3>
+                {item.pull_quote && (
+                  <p className="text-sm text-[rgb(45,45,45)] italic line-clamp-3">
+                    "{item.pull_quote}"
+                  </p>
+                )}
+              </div>
             </motion.a>
           ))}
         </div>

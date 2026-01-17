@@ -25,7 +25,7 @@ export default function PressStrip({ limit = 4, compact = false }) {
 
   if (compact) {
     return (
-      <div className="flex flex-wrap items-center justify-center gap-8 py-6">
+      <div className="flex flex-wrap items-center justify-center gap-6 py-6">
         {pressItems.map((item, idx) => (
           <motion.a
             key={item.id}
@@ -36,10 +36,22 @@ export default function PressStrip({ limit = 4, compact = false }) {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: idx * 0.1 }}
-            className="text-sm text-[rgb(107,85,64)] hover:text-[rgb(150,170,155)] transition-colors flex items-center gap-2"
+            className="group"
           >
-            <span className="font-medium">{item.publisher}</span>
-            <ExternalLink className="w-3 h-3 opacity-50" />
+            {item.thumbnail_url ? (
+              <div className="relative w-20 h-20 overflow-hidden rounded-sm border border-[rgb(235,225,213)] group-hover:border-[rgb(150,170,155)] transition-colors bg-white">
+                <img 
+                  src={item.thumbnail_url} 
+                  alt={item.publisher}
+                  className="w-full h-full object-contain p-2"
+                />
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-[rgb(107,85,64)] hover:text-[rgb(150,170,155)] transition-colors">
+                <span className="font-medium">{item.publisher}</span>
+                <ExternalLink className="w-3 h-3 opacity-50" />
+              </div>
+            )}
           </motion.a>
         ))}
       </div>
@@ -58,19 +70,30 @@ export default function PressStrip({ limit = 4, compact = false }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: idx * 0.1 }}
-          className="bg-white border border-[rgb(235,225,213)] p-4 rounded-sm hover:shadow-md transition-all group"
+          className="bg-white border border-[rgb(235,225,213)] overflow-hidden rounded-sm hover:shadow-md transition-all group"
         >
-          <div className="text-xs uppercase tracking-widest text-[rgb(150,170,155)] mb-2">
-            {item.publisher}
-          </div>
-          <div className="text-sm text-[rgb(107,85,64)] mb-3 font-light line-clamp-2 group-hover:text-[rgb(150,170,155)] transition-colors">
-            {item.title}
-          </div>
-          {item.pull_quote && (
-            <p className="text-xs text-[rgb(45,45,45)] italic line-clamp-2 leading-relaxed">
-              "{item.pull_quote}"
-            </p>
+          {item.thumbnail_url && (
+            <div className="aspect-[16/9] overflow-hidden bg-[rgb(248,246,242)] flex items-center justify-center p-4">
+              <img 
+                src={item.thumbnail_url} 
+                alt={item.publisher}
+                className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-500"
+              />
+            </div>
           )}
+          <div className="p-4">
+            <div className="text-xs uppercase tracking-widest text-[rgb(150,170,155)] mb-2">
+              {item.publisher}
+            </div>
+            <div className="text-sm text-[rgb(107,85,64)] mb-3 font-light line-clamp-2 group-hover:text-[rgb(150,170,155)] transition-colors">
+              {item.title}
+            </div>
+            {item.pull_quote && (
+              <p className="text-xs text-[rgb(45,45,45)] italic line-clamp-2 leading-relaxed">
+                "{item.pull_quote}"
+              </p>
+            )}
+          </div>
         </motion.a>
       ))}
     </div>
