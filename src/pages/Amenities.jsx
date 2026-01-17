@@ -9,13 +9,13 @@ export default function Amenities() {
     {
       icon: Droplets,
       title: "Pool",
-      description: "Outdoor heated saltwater pool surrounded by palms and loungers",
+      description: "Outdoor heated pool surrounded by palms and loungers",
       image: "https://images.squarespace-cdn.com/content/v1/5f28ea4d05e06334e017a510/1748650067284-0B3HBUUEXAC8UNICUEUB/pool.jpg"
     },
     {
       icon: Droplets,
-      title: "Hot Tub",
-      description: "Private outdoor hot tub for deep relaxation",
+      title: "Jacuzzi",
+      description: "Private outdoor jacuzzi for deep relaxation",
       image: "https://base44.app/api/apps/6952b5de56519adda6e982ce/files/public/6952b5de56519adda6e982ce/f42315e15_pool.webp"
     },
     {
@@ -23,6 +23,12 @@ export default function Amenities() {
       title: "Sauna",
       description: "Traditional dry sauna with ritual sweat circuit available",
       image: "https://images.squarespace-cdn.com/content/v1/5f28ea4d05e06334e017a510/9b89c6de-d91a-4333-ae22-99e134ff6756/Sauna.jpg"
+    },
+    {
+      icon: Droplets,
+      title: "Rain Shower",
+      description: "Luxurious rain shower experience for ultimate relaxation",
+      image: "https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=800&q=80"
     },
     {
       icon: Coffee,
@@ -48,12 +54,7 @@ export default function Amenities() {
       description: "Outdoor nature space for grounding and reflection",
       image: "https://base44.app/api/apps/6952b5de56519adda6e982ce/files/public/6952b5de56519adda6e982ce/aaced5997_IMG_0093.jpg"
     },
-    {
-      icon: Music,
-      title: "Sound Bath & Reiki",
-      description: "Private sound healing sessions and energy work available",
-      image: "https://base44.app/api/apps/6952b5de56519adda6e982ce/files/public/6952b5de56519adda6e982ce/1da7c6262_IMG_6208.jpg"
-    }
+
   ];
 
   return (
