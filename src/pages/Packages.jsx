@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -13,10 +13,20 @@ import PressSection from '@/components/PressSection';
 export default function Packages() {
   const [selectedPackage, setSelectedPackage] = useState(null);
 
-  const { data: packages, isLoading } = useQuery({
+  const { data: packagesRaw, isLoading } = useQuery({
     queryKey: ['packages'],
-    queryFn: () => base44.entities.Package.filter({ is_active: true }, 'sort_order'),
+    queryFn: () => base44.entities.Package.filter({ is_active: true }),
   });
+
+  // Sort packages by price (low to high)
+  const packages = React.useMemo(() => {
+    if (!packagesRaw) return [];
+    return [...packagesRaw].sort((a, b) => {
+      const priceA = a.price_from_usd || 0;
+      const priceB = b.price_from_usd || 0;
+      return priceA - priceB;
+    });
+  }, [packagesRaw]);
 
   const { data: testimonials } = useQuery({
     queryKey: ['testimonials'],
@@ -137,6 +147,12 @@ export default function Packages() {
                   <p className="text-[rgb(45,45,45)] font-light leading-relaxed">
                     {selectedPackage.description}
                   </p>
+
+                  <div className="bg-[rgb(235,225,213)] p-4 my-4 rounded-sm">
+                    <p className="text-sm text-[rgb(45,45,45)] font-light">
+                      <strong>Add a Guest:</strong> Additional person can enjoy all amenities for $100 per night
+                    </p>
+                  </div>
 
                   <div className="flex items-baseline gap-2 py-4 border-y border-[rgb(235,225,213)]">
                     {selectedPackage.price_from_usd ? (
