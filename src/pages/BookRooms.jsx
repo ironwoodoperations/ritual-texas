@@ -41,11 +41,11 @@ export default function BookRooms() {
           <span className="text-sm font-medium text-[rgb(107,85,64)]">Book Rooms</span>
         </div>
         <Link 
-          to={createPageUrl('BookingFlow')}
+          to={createPageUrl('Treatments')}
           className="flex items-center gap-2 text-[rgb(45,45,45)] hover:text-[rgb(150,170,155)] transition-colors"
         >
           <Sparkles className="w-5 h-5" />
-          <span className="text-sm font-medium">Book Spa & Treatments</span>
+          <span className="text-sm font-medium">View Spa & Treatments</span>
         </Link>
       </div>
 

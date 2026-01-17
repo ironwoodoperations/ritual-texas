@@ -1,3 +1,4 @@
+import About from './pages/About';
 import AdminBookings from './pages/AdminBookings';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminImages from './pages/AdminImages';
@@ -17,11 +18,11 @@ import Packages from './pages/Packages';
 import Rooms from './pages/Rooms';
 import StaffDashboard from './pages/StaffDashboard';
 import Treatments from './pages/Treatments';
-import About from './pages/About';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "About": About,
     "AdminBookings": AdminBookings,
     "AdminDashboard": AdminDashboard,
     "AdminImages": AdminImages,
@@ -41,7 +42,6 @@ export const PAGES = {
     "Rooms": Rooms,
     "StaffDashboard": StaffDashboard,
     "Treatments": Treatments,
-    "About": About,
 }
 
 export const pagesConfig = {
