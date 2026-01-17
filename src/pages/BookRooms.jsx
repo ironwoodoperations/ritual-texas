@@ -5,11 +5,31 @@ import { Sparkles, BedDouble } from 'lucide-react';
 
 export default function BookRooms() {
   const [loading, setLoading] = useState(true);
+  const [iframeUrl, setIframeUrl] = useState('https://hotels.cloudbeds.com/en/reservation/aqlut4?currency=usd');
 
   useEffect(() => {
     // Hide loader after iframe loads or 12 seconds max
     const timer = setTimeout(() => setLoading(false), 12000);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    // Build Cloudbeds URL with parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const room = urlParams.get('room');
+    const checkin = urlParams.get('checkin');
+    const checkout = urlParams.get('checkout');
+    const guests = urlParams.get('guests');
+
+    const cloudbedsParams = new URLSearchParams('currency=usd');
+    
+    // Add parameters to Cloudbeds URL (adjust parameter names based on Cloudbeds documentation)
+    if (checkin) cloudbedsParams.append('checkin', checkin);
+    if (checkout) cloudbedsParams.append('checkout', checkout);
+    if (guests) cloudbedsParams.append('adults', guests);
+    if (room) cloudbedsParams.append('room_type', room);
+
+    setIframeUrl(`https://hotels.cloudbeds.com/en/reservation/aqlut4?${cloudbedsParams.toString()}`);
   }, []);
 
   return (
@@ -43,7 +63,7 @@ export default function BookRooms() {
 
         {/* Cloudbeds Booking Iframe */}
         <iframe
-          src="https://hotels.cloudbeds.com/en/reservation/aqlut4?currency=usd"
+          src={iframeUrl}
           title="Hotel RITUAL Room Booking"
           className="w-full h-full border-0 block"
           onLoad={() => setLoading(false)}

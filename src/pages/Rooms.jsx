@@ -3,10 +3,13 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Users, ArrowRight, X, Plus, Minus } from 'lucide-react';
+import { Users, ArrowRight, X, Plus, Minus, Calendar as CalendarIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format, differenceInDays } from 'date-fns';
 import PressStrip from '@/components/reviews/PressStrip';
 
 const PRICING = {
@@ -23,6 +26,8 @@ const PRICING = {
 export default function Rooms() {
   const [selectedSuite, setSelectedSuite] = useState(null);
   const [guests, setGuests] = useState(2);
+  const [checkInDate, setCheckInDate] = useState(null);
+  const [checkOutDate, setCheckOutDate] = useState(null);
   
   const { data: suites, isLoading } = useQuery({
     queryKey: ['suites'],
@@ -40,6 +45,19 @@ export default function Rooms() {
       weekend: calcNightly(guests, PRICING.weekendNight)
     };
   }, [guests]);
+
+  const nights = checkInDate && checkOutDate 
+    ? differenceInDays(new Date(checkOutDate), new Date(checkInDate))
+    : 0;
+
+  const buildBookingUrl = (suite) => {
+    const params = new URLSearchParams();
+    if (suite) params.append('room', suite.slug || suite.name);
+    if (checkInDate) params.append('checkin', format(new Date(checkInDate), 'yyyy-MM-dd'));
+    if (checkOutDate) params.append('checkout', format(new Date(checkOutDate), 'yyyy-MM-dd'));
+    if (guests) params.append('guests', guests.toString());
+    return createPageUrl('BookRooms') + (params.toString() ? '?' + params.toString() : '');
+  };
 
   const connectingPairs = [
     { suites: ['Suite 3', 'Suite 4'], note: 'Shared bathroom — perfect for groups' },
@@ -97,6 +115,60 @@ export default function Rooms() {
                   +${PRICING.extraGuestNight}/night each extra guest after {PRICING.baseGuestsIncluded}
                 </div>
 
+                {/* Date Selection */}
+                <div className="mb-4 space-y-3">
+                  <label className="text-xs uppercase tracking-widest text-[rgb(150,170,155)] block">
+                    Select Dates (Optional)
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="px-3 py-2 border border-[rgb(198,182,165)] text-left text-sm hover:bg-[rgb(235,225,213)] transition-colors flex items-center justify-between">
+                          {checkInDate ? format(new Date(checkInDate), 'MMM d') : 'Check-in'}
+                          <CalendarIcon className="w-4 h-4 opacity-50" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={checkInDate}
+                          onSelect={(date) => {
+                            setCheckInDate(date);
+                            if (checkOutDate && date && date >= checkOutDate) {
+                              setCheckOutDate(null);
+                            }
+                          }}
+                          disabled={(date) => date < new Date()}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="px-3 py-2 border border-[rgb(198,182,165)] text-left text-sm hover:bg-[rgb(235,225,213)] transition-colors flex items-center justify-between">
+                          {checkOutDate ? format(new Date(checkOutDate), 'MMM d') : 'Check-out'}
+                          <CalendarIcon className="w-4 h-4 opacity-50" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={checkOutDate}
+                          onSelect={setCheckOutDate}
+                          disabled={(date) => !checkInDate || date <= new Date(checkInDate)}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  {nights > 0 && (
+                    <div className="text-xs text-[rgb(107,85,64)]">
+                      {nights} {nights === 1 ? 'night' : 'nights'} selected
+                    </div>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div className="bg-[rgb(235,225,213)] p-3 rounded-sm">
                     <div className="text-xs text-[rgb(107,85,64)] opacity-75 mb-1">{PRICING.weekdayLabel}</div>
@@ -115,7 +187,7 @@ export default function Rooms() {
 
                 <div className="flex flex-col gap-2">
                   <Link 
-                    to={createPageUrl('BookRooms')}
+                    to={buildBookingUrl(null)}
                     className="w-full text-center px-4 py-3 bg-[rgb(150,170,155)] text-white text-sm tracking-widest hover:bg-[rgb(130,150,135)] transition-colors"
                   >
                     BOOK ROOMS
@@ -127,6 +199,11 @@ export default function Rooms() {
                     BOOK SPA & TREATMENTS
                   </Link>
                 </div>
+                {(checkInDate || checkOutDate || guests > 2) && (
+                  <p className="text-xs text-[rgb(45,45,45)] text-center mt-2 opacity-80">
+                    Your selections will be pre-filled
+                  </p>
+                )}
               </div>
             </div>
           </motion.div>
@@ -313,7 +390,7 @@ export default function Rooms() {
                 {/* CTAs */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-[rgb(235,225,213)]">
                   <Link
-                    to={createPageUrl('BookRooms')}
+                    to={buildBookingUrl(selectedSuite)}
                     className="flex-1 text-center px-6 py-3 bg-[rgb(150,170,155)] text-white tracking-widest text-sm hover:bg-[rgb(130,150,135)] transition-colors"
                   >
                     BOOK THIS SUITE
@@ -325,6 +402,11 @@ export default function Rooms() {
                     BOOK SPA & TREATMENTS
                   </Link>
                 </div>
+                {(checkInDate || checkOutDate || guests > 2) && (
+                  <p className="text-xs text-[rgb(45,45,45)] text-center mt-3 opacity-80">
+                    Your dates and guest count will be pre-filled
+                  </p>
+                )}
 
                 <p className="text-xs text-[rgb(45,45,45)] text-center leading-relaxed opacity-80">
                   {PRICING.includesLine} Extra guests: ${PRICING.extraGuestNight}/night each after {PRICING.baseGuestsIncluded}.
