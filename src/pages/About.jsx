@@ -1,10 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowRight, Sparkles, Heart } from 'lucide-react';
+import { ArrowRight, Sparkles, Heart, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 
 export default function About() {
+  const { data: pressItems } = useQuery({
+    queryKey: ['press-about'],
+    queryFn: () => base44.entities.PressItem.filter({ is_active: true }, 'sort_order'),
+  });
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -71,6 +78,13 @@ export default function About() {
                 In 2018, Whitney founded Hotel RITUAL to offer a healing sanctuary providing Ayurvedic-inspired detox treatments, natural therapies, and holistic wellness experiences. Her vision was clear: create a place where guests could slow down, turn within, and reboot their mind, body, and soul.
               </p>
 
+              <div className="bg-[rgb(248,246,242)] p-6 mb-6 border-l-4 border-[rgb(150,170,155)]">
+                <p className="font-light italic text-[rgb(45,45,45)]">
+                  "Hotel RITUAL—a healing sanctuary offering our version of Ayurvedic detox (Panchakarma) and holistic experiences rooted in vibration, nutrition, breath, and nature."
+                </p>
+                <p className="text-sm text-[rgb(107,85,64)] mt-2">— VoyageDallas</p>
+              </div>
+
               <p className="font-light mb-6">
                 Every aspect of Hotel RITUAL reflects Whitney's deep commitment to wellness as a practice of remembering rather than doing. From the carefully curated treatments to the intentional design of each space, she has infused the property with her philosophy that true healing comes from returning to the rituals that keep us healthy, sane, and present.
               </p>
@@ -83,6 +97,23 @@ export default function About() {
 
               <p className="font-light mb-6">
                 Her work extends beyond the physical treatments offered at Hotel RITUAL. Whitney has created a complete ecosystem of wellness, including the RITUAL Luncheonette, the Soda Fountain of Youth, and experiential healing spaces like the RITUAL Wonderland—each designed to nourish a different aspect of the human experience.
+              </p>
+
+              <div className="bg-[rgb(248,246,242)] p-6 mb-6 border-l-4 border-[rgb(150,170,155)]">
+                <p className="font-light italic text-[rgb(45,45,45)]">
+                  "All-inclusive... access to dozens of amenities like high-vibrational foods, a sauna, chakra showers, sage ceremonies, and even private yoga, meditation, and sound baths."
+                </p>
+                <p className="text-sm text-[rgb(107,85,64)] mt-2">— Dallasites101</p>
+              </div>
+
+              <h2 className="text-3xl font-extralight text-[rgb(107,85,64)] mb-6 mt-12">Recognition & Press</h2>
+              
+              <p className="font-light mb-6">
+                Whitney's innovative approach to wellness has earned recognition from publications across Texas and beyond. Featured in <strong>Texas Monthly</strong>, <strong>VoyageDallas</strong>, <strong>PaperCity</strong>, and <strong>Charm East Texas</strong>, Hotel RITUAL has been celebrated as one of the best wellness retreats in the state.
+              </p>
+
+              <p className="font-light mb-8">
+                As <strong>Texas Monthly</strong> noted, Hotel RITUAL is where "New Age meets yore"—a unique blend of ancient healing traditions and modern comfort in the heart of East Texas. The property's four water amenities—sauna, jacuzzi, heated pool, and rain shower—combined with secluded suites and holistic treatments, create an unparalleled sanctuary for transformation.
               </p>
 
               <h2 className="text-3xl font-extralight text-[rgb(107,85,64)] mb-6 mt-12">The RITUAL Philosophy</h2>
@@ -106,6 +137,32 @@ export default function About() {
               </p>
               <p className="text-sm text-[rgb(45,45,45)]">— Whitney Graham</p>
             </div>
+
+            {/* Press Links */}
+            {pressItems && pressItems.length > 0 && (
+              <div className="mt-12 pt-8 border-t border-[rgb(235,225,213)]">
+                <h3 className="text-xl font-light text-[rgb(107,85,64)] mb-6 text-center">
+                  Featured In
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {pressItems.slice(0, 6).map((item) => (
+                    <a
+                      key={item.id}
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-4 bg-white border border-[rgb(235,225,213)] hover:border-[rgb(150,170,155)] transition-colors group"
+                    >
+                      <div>
+                        <p className="font-medium text-[rgb(107,85,64)] mb-1">{item.publisher}</p>
+                        <p className="text-sm text-[rgb(45,45,45)] line-clamp-1">{item.title}</p>
+                      </div>
+                      <ExternalLink className="w-4 h-4 text-[rgb(150,170,155)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </motion.div>
         </div>
       </section>
