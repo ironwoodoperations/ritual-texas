@@ -36,7 +36,7 @@ export default function Home() {
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://images.squarespace-cdn.com/content/v1/5f28ea4d05e06334e017a510/1748650067284-0B3HBUUEXAC8UNICUEUB/pool.jpg)',
+            backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/d388bd802_generated-image44.jpg)',
           }}
         >
           <div className="absolute inset-0 bg-[rgb(107,85,64)]/40" />
