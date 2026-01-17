@@ -245,13 +245,9 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-24 px-6 bg-[rgb(107,85,64)]">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-extralight text-white mb-6">
+          <h2 className="text-3xl md:text-4xl font-extralight text-white mb-10">
             Ready to Slow Down?
           </h2>
-          <p className="text-white/80 font-light mb-10 leading-relaxed">
-            Book your stay and receive a personalized itinerary. 
-            Everything planned. Nothing to think about.
-          </p>
           <Link 
             to={createPageUrl('BookRooms')}
             className="inline-flex items-center gap-3 px-8 py-4 bg-white text-[rgb(107,85,64)] tracking-widest text-sm hover:bg-[rgb(235,225,213)] transition-all"
