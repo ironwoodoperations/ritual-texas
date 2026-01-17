@@ -14,7 +14,7 @@ import PressStrip from '@/components/reviews/PressStrip';
 
 const PRICING = {
   weekdayLabel: "Mon–Thu",
-  weekdayNight: 150,
+  weekdayNight: 148,
   weekendLabel: "Fri–Sat",
   weekendNight: 198,
   baseGuestsIncluded: 2,
