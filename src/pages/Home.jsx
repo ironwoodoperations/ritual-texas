@@ -125,7 +125,7 @@ export default function Home() {
             </div>
             <div className="order-1 md:order-2">
               <img 
-                src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80" 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/ca960cfa8_generated-image45.jpg" 
                 alt="Whitney Graham, Founder of Hotel RITUAL"
                 className="w-full aspect-square object-cover rounded-sm"
               />

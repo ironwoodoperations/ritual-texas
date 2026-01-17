@@ -12,7 +12,7 @@ export default function About() {
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1200&q=80)',
+            backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/ca960cfa8_generated-image45.jpg)',
           }}
         >
           <div className="absolute inset-0 bg-[rgb(107,85,64)]/50" />
