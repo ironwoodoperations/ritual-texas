@@ -1,55 +1,84 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { format, addDays } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
-import { ArrowRight, ArrowLeft, ShoppingCart, Calendar as CalendarIcon, Clock } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ArrowRight, ArrowLeft, ShoppingCart, Calendar as CalendarIcon, Clock, X, Plus, Trash2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 export default function TreatmentCheckout() {
   const urlParams = new URLSearchParams(window.location.search);
-  const treatmentId = urlParams.get('treatment');
+  const initialTreatmentId = urlParams.get('treatment');
 
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [stayType, setStayType] = useState(''); // 'hotel' or 'daytrip'
+  const [selectedRoomId, setSelectedRoomId] = useState('');
+  const [cart, setCart] = useState([]);
+  const [showAddTreatment, setShowAddTreatment] = useState(false);
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
 
-  const { data: treatment } = useQuery({
-    queryKey: ['treatment', treatmentId],
-    queryFn: async () => {
-      const treatments = await base44.entities.Treatment.filter({ id: treatmentId });
-      return treatments?.[0];
-    },
-    enabled: !!treatmentId,
+  const { data: treatments } = useQuery({
+    queryKey: ['treatments'],
+    queryFn: () => base44.entities.Treatment.filter({ is_available: true }, 'sort_order'),
   });
 
-  // Convert selected date to CST (UTC-6) to fix timezone issue
-  const handleDateSelect = (date) => {
+  const { data: rooms } = useQuery({
+    queryKey: ['rooms'],
+    queryFn: () => base44.entities.Room.filter({ is_available: true }),
+  });
+
+  // Add initial treatment to cart if provided
+  useEffect(() => {
+    if (initialTreatmentId && treatments && cart.length === 0) {
+      const treatment = treatments.find(t => t.id === initialTreatmentId);
+      if (treatment) {
+        setCart([{ id: Date.now(), treatmentId: treatment.id, treatmentName: treatment.name, price: treatment.price, duration: treatment.duration_minutes, date: null }]);
+      }
+    }
+  }, [initialTreatmentId, treatments]);
+
+  const addTreatmentToCart = (treatment) => {
+    setCart([...cart, { 
+      id: Date.now(), 
+      treatmentId: treatment.id, 
+      treatmentName: treatment.name, 
+      price: treatment.price, 
+      duration: treatment.duration_minutes,
+      date: null 
+    }]);
+    setShowAddTreatment(false);
+  };
+
+  const removeTreatmentFromCart = (id) => {
+    setCart(cart.filter(item => item.id !== id));
+  };
+
+  const updateTreatmentDate = (id, date) => {
+    setCart(cart.map(item => 
+      item.id === id ? { ...item, date: date } : item
+    ));
+  };
+
+  const handleDateSelect = (itemId, date) => {
     if (date) {
-      // Create date in local timezone at midnight
       const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      setSelectedDate(format(localDate, 'yyyy-MM-dd'));
-    } else {
-      setSelectedDate(null);
+      updateTreatmentDate(itemId, format(localDate, 'yyyy-MM-dd'));
     }
   };
 
-  const canProceed = selectedDate && guestName && guestEmail && treatment;
-
-  if (!treatment) {
-    return (
-      <div className="min-h-screen py-16 px-6 flex items-center justify-center">
-        <p className="text-[rgb(107,85,64)]">Loading treatment...</p>
-      </div>
-    );
-  }
+  const selectedRoom = rooms?.find(r => r.id === selectedRoomId);
+  const cartTotal = cart.reduce((sum, item) => sum + item.price, 0);
+  const allDatesSelected = cart.every(item => item.date);
+  const canProceed = stayType && (stayType === 'daytrip' || selectedRoomId) && cart.length > 0 && allDatesSelected && guestName && guestEmail;
 
   return (
     <div className="min-h-screen py-16 px-6">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -57,58 +86,134 @@ export default function TreatmentCheckout() {
         >
           <ShoppingCart className="w-12 h-12 mx-auto mb-4 text-[rgb(150,170,155)]" />
           <h1 className="text-3xl font-extralight text-[rgb(107,85,64)] mb-2">
-            Book Your Treatment
+            Book Spa Treatments
           </h1>
           <p className="text-[rgb(45,45,45)] font-light">
-            Select a date and provide your details
+            Build your custom spa experience
           </p>
         </motion.div>
 
-        {/* Treatment Summary */}
+        {/* Stay Type Selection */}
         <div className="bg-white border border-[rgb(235,225,213)] p-6 mb-8">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h2 className="text-xl font-light text-[rgb(107,85,64)] mb-2">
-                {treatment.name}
-              </h2>
-              <p className="text-sm text-[rgb(45,45,45)] flex items-center gap-2">
-                <Clock className="w-4 h-4" /> {treatment.duration_minutes} minutes
-              </p>
+          <h3 className="text-sm tracking-widest text-[rgb(150,170,155)] mb-4">
+            ARE YOU STAYING AT THE HOTEL?
+          </h3>
+          <RadioGroup value={stayType} onValueChange={setStayType}>
+            <div className="flex items-center space-x-2 p-4 border border-[rgb(235,225,213)] mb-3">
+              <RadioGroupItem value="hotel" id="hotel" />
+              <Label htmlFor="hotel" className="flex-1 cursor-pointer">
+                <span className="text-[rgb(107,85,64)]">Yes, I'm a hotel guest</span>
+                <span className="text-sm text-[rgb(45,45,45)] block">I have a room reservation</span>
+              </Label>
             </div>
-            <div className="text-2xl text-[rgb(107,85,64)]">
-              ${treatment.price}
+            <div className="flex items-center space-x-2 p-4 border border-[rgb(235,225,213)]">
+              <RadioGroupItem value="daytrip" id="daytrip" />
+              <Label htmlFor="daytrip" className="flex-1 cursor-pointer">
+                <span className="text-[rgb(107,85,64)]">No, just spa treatments</span>
+                <span className="text-sm text-[rgb(45,45,45)] block">Day visit for treatments only</span>
+              </Label>
             </div>
-          </div>
-          <p className="text-sm text-[rgb(45,45,45)] font-light leading-relaxed">
-            {treatment.what_it_is}
-          </p>
+          </RadioGroup>
         </div>
 
-        {/* Date Selection */}
-        <div className="bg-[rgb(248,246,242)] p-6 mb-8">
-          <h3 className="text-sm tracking-widest text-[rgb(150,170,155)] mb-4 flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4" />
-            SELECT PREFERRED DATE
-          </h3>
-          <div className="flex justify-center">
-            <Calendar
-              mode="single"
-              selected={selectedDate ? new Date(selectedDate + 'T12:00:00') : undefined}
-              onSelect={handleDateSelect}
-              disabled={(date) => {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                return date < today;
-              }}
-              className="border border-[rgb(235,225,213)] bg-white"
-            />
-          </div>
-          {selectedDate && (
-            <p className="text-center mt-4 text-[rgb(107,85,64)]">
-              Selected: {format(new Date(selectedDate + 'T12:00:00'), 'MMMM d, yyyy')}
-            </p>
-          )}
-        </div>
+        {/* Room Selection (if hotel guest) */}
+        {stayType === 'hotel' && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="bg-[rgb(248,246,242)] p-6 mb-8"
+          >
+            <h3 className="text-sm tracking-widest text-[rgb(150,170,155)] mb-4">
+              SELECT YOUR ROOM
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              {rooms?.map(room => (
+                <div
+                  key={room.id}
+                  onClick={() => setSelectedRoomId(room.id)}
+                  className={`cursor-pointer p-4 border-2 transition-all ${
+                    selectedRoomId === room.id
+                      ? 'border-[rgb(150,170,155)] bg-white'
+                      : 'border-[rgb(235,225,213)] bg-white hover:border-[rgb(198,182,165)]'
+                  }`}
+                >
+                  <h4 className="font-light text-[rgb(107,85,64)] mb-1">{room.name}</h4>
+                  <p className="text-sm text-[rgb(45,45,45)]">${room.price_per_night}/night</p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Treatment Cart */}
+        {(stayType === 'daytrip' || selectedRoomId) && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="bg-white border border-[rgb(235,225,213)] p-6 mb-8"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-sm tracking-widest text-[rgb(150,170,155)]">
+                YOUR TREATMENTS ({cart.length})
+              </h3>
+              <button
+                onClick={() => setShowAddTreatment(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-[rgb(150,170,155)] text-white text-sm hover:bg-[rgb(130,150,135)] transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Add Treatment
+              </button>
+            </div>
+
+            {cart.length === 0 ? (
+              <p className="text-center py-8 text-[rgb(45,45,45)]">No treatments added yet</p>
+            ) : (
+              <div className="space-y-4">
+                {cart.map((item) => (
+                  <div key={item.id} className="border border-[rgb(235,225,213)] p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h4 className="font-light text-[rgb(107,85,64)]">{item.treatmentName}</h4>
+                        <p className="text-sm text-[rgb(45,45,45)] flex items-center gap-2">
+                          <Clock className="w-3 h-3" /> {item.duration} min
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg text-[rgb(107,85,64)]">${item.price}</span>
+                        <button
+                          onClick={() => removeTreatmentFromCart(item.id)}
+                          className="text-[rgb(196,155,145)] hover:text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-3 pt-3 border-t border-[rgb(235,225,213)]">
+                      <p className="text-xs tracking-widest text-[rgb(150,170,155)] mb-2">SELECT DATE FOR THIS TREATMENT</p>
+                      <Calendar
+                        mode="single"
+                        selected={item.date ? new Date(item.date + 'T12:00:00') : undefined}
+                        onSelect={(date) => handleDateSelect(item.id, date)}
+                        disabled={(date) => {
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          return date < today;
+                        }}
+                        className="border border-[rgb(235,225,213)] bg-[rgb(248,246,242)]"
+                      />
+                      {item.date && (
+                        <p className="text-sm text-[rgb(107,85,64)] mt-2">
+                          Scheduled: {format(new Date(item.date + 'T12:00:00'), 'MMMM d, yyyy')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
 
         {/* Guest Information */}
         <div className="bg-white border border-[rgb(235,225,213)] p-6 mb-8">
@@ -148,47 +253,105 @@ export default function TreatmentCheckout() {
           </div>
         </div>
 
-        {/* Checkout Placeholder */}
-        <div className="bg-[rgb(235,225,213)] p-8 text-center">
-          <h3 className="text-lg font-light text-[rgb(107,85,64)] mb-4">
-            Payment Processing
-          </h3>
-          <p className="text-[rgb(45,45,45)] mb-6 max-w-md mx-auto">
-            Square payment integration coming soon. You'll receive a payment link via email to complete your booking.
-          </p>
-          
-          <div className="max-w-sm mx-auto bg-white border border-[rgb(198,182,165)] p-6 mb-6">
-            <div className="flex justify-between items-center mb-4 pb-4 border-b border-[rgb(235,225,213)]">
-              <span className="text-[rgb(45,45,45)]">Treatment</span>
-              <span className="text-[rgb(107,85,64)]">${treatment.price}</span>
+        {/* Checkout */}
+        {cart.length > 0 && (stayType === 'daytrip' || selectedRoomId) && (
+          <div className="bg-[rgb(235,225,213)] p-8">
+            <h3 className="text-lg font-light text-[rgb(107,85,64)] mb-6 text-center">
+              Complete Your Booking
+            </h3>
+            
+            {/* Booking Summary */}
+            <div className="max-w-2xl mx-auto bg-white border border-[rgb(198,182,165)] p-6 mb-6">
+              <h4 className="text-sm tracking-widest text-[rgb(150,170,155)] mb-4">BOOKING SUMMARY</h4>
+              
+              {stayType === 'hotel' && selectedRoom && (
+                <div className="pb-4 mb-4 border-b border-[rgb(235,225,213)]">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[rgb(45,45,45)]">Room: {selectedRoom.name}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-3 mb-4">
+                {cart.map((item, idx) => (
+                  <div key={item.id} className="flex justify-between text-sm">
+                    <div>
+                      <span className="text-[rgb(45,45,45)]">{item.treatmentName}</span>
+                      {item.date && (
+                        <span className="block text-xs text-[rgb(150,170,155)]">
+                          {format(new Date(item.date + 'T12:00:00'), 'MMM d, yyyy')}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[rgb(107,85,64)]">${item.price}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-between items-center text-xl pt-4 border-t border-[rgb(198,182,165)]">
+                <span className="font-light text-[rgb(107,85,64)]">Total</span>
+                <span className="font-medium text-[rgb(107,85,64)]">${cartTotal}</span>
+              </div>
             </div>
-            <div className="flex justify-between items-center text-xl">
-              <span className="font-light text-[rgb(107,85,64)]">Total</span>
-              <span className="font-medium text-[rgb(107,85,64)]">${treatment.price}</span>
+
+            <p className="text-[rgb(45,45,45)] mb-6 max-w-md mx-auto text-center text-sm">
+              Square payment integration coming soon. You'll receive a payment link via email to complete your booking.
+            </p>
+
+            <button
+              disabled={!canProceed}
+              className={`flex items-center justify-center gap-2 px-8 py-4 mx-auto text-sm tracking-widest transition-all ${
+                canProceed
+                  ? 'bg-[rgb(150,170,155)] text-white hover:bg-[rgb(130,150,135)]'
+                  : 'bg-[rgb(198,182,165)] text-white cursor-not-allowed'
+              }`}
+              onClick={() => {
+                if (canProceed) {
+                  const summary = cart.map(item => 
+                    `${item.treatmentName} - ${format(new Date(item.date + 'T12:00:00'), 'MMM d, yyyy')}`
+                  ).join('\n');
+                  alert(`Booking confirmed!\n\n${stayType === 'hotel' ? `Room: ${selectedRoom.name}\n` : 'Day Visit\n'}\nTreatments:\n${summary}\n\nTotal: $${cartTotal}\n\nGuest: ${guestName}\n\nYou'll receive a payment link at ${guestEmail} to complete your booking.`);
+                }
+              }}
+            >
+              CONFIRM BOOKING
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
+            <p className="text-xs text-[rgb(45,45,45)] mt-4 text-center">
+              By confirming, you agree to receive booking details and payment instructions via email.
+            </p>
+          </div>
+        )}
+
+        {/* Add Treatment Modal */}
+        {showAddTreatment && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
+            <div className="bg-white max-w-3xl w-full max-h-[80vh] overflow-y-auto p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-light text-[rgb(107,85,64)]">Add Treatment</h3>
+                <button onClick={() => setShowAddTreatment(false)}>
+                  <X className="w-6 h-6 text-[rgb(45,45,45)]" />
+                </button>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                {treatments?.map(treatment => (
+                  <div
+                    key={treatment.id}
+                    onClick={() => addTreatmentToCart(treatment)}
+                    className="cursor-pointer border border-[rgb(235,225,213)] p-4 hover:border-[rgb(150,170,155)] transition-colors"
+                  >
+                    <h4 className="font-light text-[rgb(107,85,64)] mb-2">{treatment.name}</h4>
+                    <p className="text-sm text-[rgb(45,45,45)] flex items-center gap-2 mb-2">
+                      <Clock className="w-3 h-3" /> {treatment.duration_minutes} min
+                    </p>
+                    <p className="text-lg text-[rgb(107,85,64)]">${treatment.price}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-
-          <button
-            disabled={!canProceed}
-            className={`flex items-center justify-center gap-2 px-8 py-4 mx-auto text-sm tracking-widest transition-all ${
-              canProceed
-                ? 'bg-[rgb(150,170,155)] text-white hover:bg-[rgb(130,150,135)]'
-                : 'bg-[rgb(198,182,165)] text-white cursor-not-allowed'
-            }`}
-            onClick={() => {
-              if (canProceed) {
-                alert(`Booking confirmed!\n\nTreatment: ${treatment.name}\nDate: ${format(new Date(selectedDate + 'T12:00:00'), 'MMMM d, yyyy')}\nGuest: ${guestName}\n\nYou'll receive a payment link at ${guestEmail} to complete your booking.`);
-              }
-            }}
-          >
-            CONFIRM BOOKING
-            <ArrowRight className="w-4 h-4" />
-          </button>
-
-          <p className="text-xs text-[rgb(45,45,45)] mt-4">
-            By confirming, you agree to receive booking details and payment instructions via email.
-          </p>
-        </div>
+        )}
 
         {/* Back Link */}
         <div className="mt-8 text-center">
