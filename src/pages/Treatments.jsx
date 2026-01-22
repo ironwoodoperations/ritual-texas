@@ -67,8 +67,8 @@ export default function Treatments() {
       };
     });
     
-    // Keep the order from database (sort_order)
-    return processed;
+    // Sort by sort_order to maintain database order
+    return processed.sort((a, b) => a.sort_order - b.sort_order);
   }, [treatments]);
   
   const filteredTreatments = activeCategory === 'all' 
