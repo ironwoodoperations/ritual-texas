@@ -17,6 +17,7 @@ import Rooms from './pages/Rooms';
 import StaffDashboard from './pages/StaffDashboard';
 import AdminMedia from './pages/AdminMedia';
 import Treatments from './pages/Treatments';
+import TreatmentCheckout from './pages/TreatmentCheckout';
 import __Layout from './Layout.jsx';
 
 
@@ -40,6 +41,7 @@ export const PAGES = {
     "StaffDashboard": StaffDashboard,
     "AdminMedia": AdminMedia,
     "Treatments": Treatments,
+    "TreatmentCheckout": TreatmentCheckout,
 }
 
 export const pagesConfig = {
