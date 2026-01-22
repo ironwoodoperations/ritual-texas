@@ -31,7 +31,7 @@ export default function TreatmentCheckout() {
 
   const { data: rooms } = useQuery({
     queryKey: ['rooms'],
-    queryFn: () => base44.entities.Room.filter({ is_available: true }),
+    queryFn: () => base44.entities.Suite.filter({ is_available: true }, 'sort_order'),
   });
 
   // Add initial treatment to cart if provided
