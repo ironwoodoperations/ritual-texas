@@ -156,32 +156,26 @@ export default function Treatments() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  className="bg-white border border-[rgb(235,225,213)] group"
+                  className="bg-white border border-[rgb(235,225,213)] p-6"
                 >
-                  <div className="relative aspect-[3/2] overflow-hidden">
-                    <img 
-                      src={treatment.image_url || 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&q=80'}
-                      alt={treatment.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                    <div className="absolute top-4 right-4 bg-white/90 px-3 py-1 text-sm text-[rgb(107,85,64)]">
-                      ${treatment.price}
-                    </div>
-                  </div>
-
-                  <div className="p-6">
+                  <div>
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-xs tracking-widest text-[rgb(150,170,155)] uppercase">
                         {categoryLabels[treatment.category]}
                       </span>
-                      {!treatment.hasOptions ? (
-                        <div className="flex items-center gap-1 text-sm text-[rgb(45,45,45)]">
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>{treatment.duration_minutes} min</span>
+                      <div className="flex items-center gap-3">
+                        {!treatment.hasOptions ? (
+                          <div className="flex items-center gap-1 text-sm text-[rgb(45,45,45)]">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>{treatment.duration_minutes} min</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-[rgb(45,45,45)]">Multiple options</span>
+                        )}
+                        <div className="text-lg font-medium text-[rgb(107,85,64)]">
+                          ${treatment.price}
                         </div>
-                      ) : (
-                        <span className="text-xs text-[rgb(45,45,45)]">Multiple options</span>
-                      )}
+                      </div>
                     </div>
 
                     <h3 className="text-xl font-light text-[rgb(107,85,64)] mb-3">
@@ -209,9 +203,8 @@ export default function Treatments() {
                     >
                       <Info className="w-4 h-4" />
                       <span>Learn more about this treatment</span>
-                    </button>
-                  </div>
-                </motion.div>
+                      </button>
+                      </div>
               ))}
             </AnimatePresence>
           </motion.div>
@@ -229,13 +222,7 @@ export default function Treatments() {
                 </DialogHeader>
 
                 <div className="space-y-6 mt-4">
-                  <img 
-                    src={selectedTreatment.image_url || 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80'}
-                    alt={selectedTreatment.name}
-                    className="w-full aspect-video object-cover"
-                  />
-
-                  <div className="flex items-center justify-between py-4 border-y border-[rgb(235,225,213)]">
+                  <div className="flex items-center justify-between py-4 border-b border-[rgb(235,225,213)]">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-[rgb(150,170,155)]" />
                       <span>{selectedTreatment.duration_minutes} minutes</span>

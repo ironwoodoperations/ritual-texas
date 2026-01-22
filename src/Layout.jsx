@@ -100,9 +100,6 @@ export default function Layout({ children, currentPageName }) {
                 <Link to={createPageUrl('Treatments')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   Spa & Wellness
                 </Link>
-                <Link to={createPageUrl('Packages')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
-                  Packages
-                </Link>
                 <Link to={createPageUrl('Amenities')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   Amenities
                 </Link>
@@ -183,7 +180,6 @@ export default function Layout({ children, currentPageName }) {
                 <div className="flex flex-col gap-2 text-sm text-[rgb(45,45,45)]">
                   <Link to={createPageUrl('Rooms')} className="hover:text-[rgb(107,85,64)]">Rooms & Suites</Link>
                   <Link to={createPageUrl('Treatments')} className="hover:text-[rgb(107,85,64)]">Spa Treatments</Link>
-                  <Link to={createPageUrl('Packages')} className="hover:text-[rgb(107,85,64)]">Packages</Link>
                   <Link to={createPageUrl('Amenities')} className="hover:text-[rgb(107,85,64)]">Amenities</Link>
                 </div>
               </div>
