@@ -34,7 +34,7 @@ export default function Treatments() {
 
   const categories = ['all', ...Object.keys(categoryLabels)];
   
-  // Group treatments by name and preserve sort_order
+  // Group treatments by name, sort by price, and keep Dr. Parkinstine last
   const processedTreatments = React.useMemo(() => {
     if (!treatments) return [];
     
@@ -67,8 +67,21 @@ export default function Treatments() {
       };
     });
     
-    // Sort by sort_order to maintain database order
-    return processed.sort((a, b) => a.sort_order - b.sort_order);
+    // Separate Dr. Parkinstine treatments
+    const drParkinstine = processed.filter(t => 
+      t.name.toLowerCase().includes('parkinstine') || 
+      t.name.toLowerCase().includes('dr. parkinstine') ||
+      t.name.toLowerCase().includes('dr parkinstine')
+    );
+    const others = processed.filter(t => 
+      !t.name.toLowerCase().includes('parkinstine')
+    );
+    
+    // Sort others by price (low to high), then append Dr. Parkinstine
+    return [
+      ...others.sort((a, b) => a.price - b.price),
+      ...drParkinstine.sort((a, b) => a.price - b.price)
+    ];
   }, [treatments]);
   
   const filteredTreatments = activeCategory === 'all' 
