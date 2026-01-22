@@ -24,7 +24,7 @@ export default function Treatments() {
 
   const { data: treatments, isLoading } = useQuery({
     queryKey: ['treatments'],
-    queryFn: () => base44.entities.Treatment.filter({ is_available: true }),
+    queryFn: () => base44.entities.Treatment.filter({ is_available: true }, 'sort_order'),
   });
 
   const { data: testimonials } = useQuery({
