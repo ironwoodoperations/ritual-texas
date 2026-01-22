@@ -134,9 +134,6 @@ export default function Layout({ children, currentPageName }) {
                   <Link to={createPageUrl('Treatments')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
                     Spa & Wellness
                   </Link>
-                  <Link to={createPageUrl('Packages')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
-                    Packages
-                  </Link>
                   <Link to={createPageUrl('Amenities')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
                     Amenities
                   </Link>
