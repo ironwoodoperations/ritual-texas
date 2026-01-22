@@ -34,7 +34,7 @@ export default function Treatments() {
 
   const categories = ['all', ...Object.keys(categoryLabels)];
   
-  // Group treatments by name, sort by price, and keep Dr. Parkinstine last
+  // Group treatments by name and maintain sort_order
   const processedTreatments = React.useMemo(() => {
     if (!treatments) return [];
     
@@ -53,10 +53,12 @@ export default function Treatments() {
       if (variants.length === 1) {
         return variants[0];
       }
-      // Multiple variants - sort by price and add options
+      // Multiple variants - sort by price for display options
       const sortedVariants = [...variants].sort((a, b) => a.price - b.price);
+      // Use the variant with the lowest sort_order as the base
+      const baseVariant = [...variants].sort((a, b) => a.sort_order - b.sort_order)[0];
       return {
-        ...sortedVariants[0],
+        ...baseVariant,
         hasOptions: true,
         options: sortedVariants.map(v => ({
           id: v.id,
@@ -67,21 +69,8 @@ export default function Treatments() {
       };
     });
     
-    // Separate Dr. Parkinstine treatments
-    const drParkinstine = processed.filter(t => 
-      t.name.toLowerCase().includes('parkinstine') || 
-      t.name.toLowerCase().includes('dr. parkinstine') ||
-      t.name.toLowerCase().includes('dr parkinstine')
-    );
-    const others = processed.filter(t => 
-      !t.name.toLowerCase().includes('parkinstine')
-    );
-    
-    // Sort others by price (low to high), then append Dr. Parkinstine
-    return [
-      ...others.sort((a, b) => a.price - b.price),
-      ...drParkinstine.sort((a, b) => a.price - b.price)
-    ];
+    // Sort by sort_order to maintain the exact order from the database
+    return processed.sort((a, b) => a.sort_order - b.sort_order);
   }, [treatments]);
   
   const filteredTreatments = activeCategory === 'all' 

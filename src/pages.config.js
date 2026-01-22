@@ -15,8 +15,8 @@ import Home from './pages/Home';
 import MyBooking from './pages/MyBooking';
 import Rooms from './pages/Rooms';
 import StaffDashboard from './pages/StaffDashboard';
-import Treatments from './pages/Treatments';
 import AdminMedia from './pages/AdminMedia';
+import Treatments from './pages/Treatments';
 import __Layout from './Layout.jsx';
 
 
@@ -38,8 +38,8 @@ export const PAGES = {
     "MyBooking": MyBooking,
     "Rooms": Rooms,
     "StaffDashboard": StaffDashboard,
-    "Treatments": Treatments,
     "AdminMedia": AdminMedia,
+    "Treatments": Treatments,
 }
 
 export const pagesConfig = {
