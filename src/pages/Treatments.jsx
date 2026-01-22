@@ -191,7 +191,7 @@ export default function Treatments() {
                       className="flex items-center gap-2 text-[rgb(107,85,64)] hover:text-[rgb(150,170,155)] transition-colors text-sm"
                     >
                       <Info className="w-4 h-4" />
-                      <span>Learn more about this treatment</span>
+                      <span>Book Treatment</span>
                     </button>
                   </div>
                 </motion.div>
@@ -266,10 +266,10 @@ export default function Treatments() {
                   </div>
 
                   <Link 
-                    to={createPageUrl('BookingFlow') + `?treatment=${selectedTreatment.id}`}
+                    to={createPageUrl('TreatmentCheckout') + `?treatment=${selectedTreatment.id}`}
                     className="flex items-center justify-center gap-2 w-full py-4 bg-[rgb(150,170,155)] text-white tracking-widest text-sm hover:bg-[rgb(130,150,135)] transition-all"
                   >
-                    ADD TO YOUR STAY
+                    BOOK THIS TREATMENT
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
