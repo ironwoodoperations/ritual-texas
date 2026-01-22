@@ -65,7 +65,8 @@ export default function AdminDashboard() {
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', page: 'AdminDashboard', active: true },
-    { icon: CalendarDays, label: 'Bookings', page: 'AdminBookings' },
+    { icon: CalendarDays, label: 'Room Bookings', page: 'AdminBookings' },
+    { icon: Sparkles, label: 'Treatment Bookings', page: 'AdminTreatmentBookings' },
     { icon: BedDouble, label: 'Rooms', page: 'AdminRooms' },
     { icon: Sparkles, label: 'Treatments', page: 'AdminTreatments' },
     { icon: FileText, label: 'Packages', page: 'AdminPackages' },
