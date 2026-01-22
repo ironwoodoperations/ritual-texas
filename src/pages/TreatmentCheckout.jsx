@@ -20,6 +20,8 @@ export default function TreatmentCheckout() {
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmedBooking, setConfirmedBooking] = useState(null);
 
   const { data: treatments } = useQuery({
     queryKey: ['treatments'],
@@ -342,12 +344,16 @@ export default function TreatmentCheckout() {
                     booking_status: 'pending'
                   });
                   
-                  const summary = cart.map(item => 
-                    `${item.treatmentName} - ${format(new Date(item.date + 'T12:00:00'), 'MMM d, yyyy')}`
-                  ).join('\n');
-                  alert(`Booking confirmed!\n\nConfirmation: ${confirmationCode}\n\n${stayType === 'hotel' ? `Room: ${selectedRoom.name}\n` : 'Day Visit\n'}\nTreatments:\n${summary}\n\nTotal: $${cartTotal}\n\nGuest: ${guestName}\n\nYou'll receive a payment link at ${guestEmail} to complete your booking.`);
-                  
-                  window.location.href = createPageUrl('Treatments');
+                  setConfirmedBooking({
+                    confirmationCode,
+                    stayType,
+                    roomName: selectedRoom?.name,
+                    treatments: cart,
+                    total: cartTotal,
+                    guestName,
+                    guestEmail
+                  });
+                  setShowConfirmation(true);
                 }
               }}
             >
@@ -372,6 +378,79 @@ export default function TreatmentCheckout() {
           </a>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <Dialog open={showConfirmation} onOpenChange={() => {}}>
+        <DialogContent className="max-w-lg bg-[rgb(248,246,242)] border-2 border-[rgb(150,170,155)]">
+          {confirmedBooking && (
+            <div className="text-center py-4">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", duration: 0.5 }}
+                className="w-20 h-20 mx-auto mb-6 rounded-full bg-[rgb(150,170,155)] flex items-center justify-center"
+              >
+                <ShoppingCart className="w-10 h-10 text-white" />
+              </motion.div>
+
+              <h2 className="text-2xl font-extralight text-[rgb(107,85,64)] mb-2">
+                Booking Confirmed!
+              </h2>
+              <p className="text-[rgb(45,45,45)] mb-6">
+                Your spa experience is reserved
+              </p>
+
+              <div className="bg-white border border-[rgb(235,225,213)] p-6 mb-6 text-left">
+                <div className="mb-4 pb-4 border-b border-[rgb(235,225,213)]">
+                  <p className="text-xs tracking-widest text-[rgb(150,170,155)] mb-2">CONFIRMATION CODE</p>
+                  <p className="text-xl font-light text-[rgb(107,85,64)] tracking-wider">
+                    {confirmedBooking.confirmationCode}
+                  </p>
+                </div>
+
+                {confirmedBooking.stayType === 'hotel' && confirmedBooking.roomName && (
+                  <div className="mb-4">
+                    <p className="text-xs tracking-widest text-[rgb(150,170,155)] mb-1">ROOM</p>
+                    <p className="text-[rgb(45,45,45)]">{confirmedBooking.roomName}</p>
+                  </div>
+                )}
+
+                <div className="mb-4">
+                  <p className="text-xs tracking-widest text-[rgb(150,170,155)] mb-2">TREATMENTS</p>
+                  <div className="space-y-2">
+                    {confirmedBooking.treatments.map((treatment, idx) => (
+                      <div key={idx} className="text-sm">
+                        <p className="text-[rgb(107,85,64)]">{treatment.treatmentName}</p>
+                        <p className="text-xs text-[rgb(45,45,45)]">
+                          {format(new Date(treatment.date + 'T12:00:00'), 'MMMM d, yyyy')}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-[rgb(235,225,213)] flex justify-between items-center">
+                  <span className="text-[rgb(107,85,64)]">Total</span>
+                  <span className="text-2xl font-light text-[rgb(107,85,64)]">${confirmedBooking.total}</span>
+                </div>
+              </div>
+
+              <div className="bg-[rgb(235,225,213)] p-4 mb-6 text-sm text-[rgb(45,45,45)]">
+                <p>📧 Payment link will be sent to:</p>
+                <p className="font-medium mt-1">{confirmedBooking.guestEmail}</p>
+              </div>
+
+              <button
+                onClick={() => window.location.href = createPageUrl('Treatments')}
+                className="w-full py-4 bg-[rgb(150,170,155)] text-white tracking-widest text-sm hover:bg-[rgb(130,150,135)] transition-all flex items-center justify-center gap-2"
+              >
+                RETURN TO TREATMENTS
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
