@@ -203,8 +203,9 @@ export default function Treatments() {
                     >
                       <Info className="w-4 h-4" />
                       <span>Learn more about this treatment</span>
-                      </button>
-                      </div>
+                    </button>
+                  </div>
+                </motion.div>
               ))}
             </AnimatePresence>
           </motion.div>
