@@ -158,22 +158,23 @@ export default function TreatmentCheckout() {
               <h3 className="text-sm tracking-widest text-[rgb(150,170,155)] mb-4">
                 YOUR TREATMENTS ({cart.length})
               </h3>
-              <div className="flex items-center gap-3">
+              <div className="relative">
                 <select
                   onChange={(e) => {
                     addTreatmentToCart(e.target.value);
                     e.target.value = '';
                   }}
-                  className="flex-1 px-4 py-3 border border-[rgb(235,225,213)] bg-white text-[rgb(45,45,45)] focus:border-[rgb(150,170,155)] focus:outline-none"
+                  className="w-full px-4 py-4 pr-10 border-2 border-[rgb(235,225,213)] bg-white text-[rgb(45,45,45)] focus:border-[rgb(150,170,155)] focus:outline-none appearance-none transition-all hover:border-[rgb(198,182,165)] text-sm md:text-base"
                   defaultValue=""
                 >
-                  <option value="" disabled>Add additional treatments</option>
+                  <option value="" disabled>✨ Add additional treatments</option>
                   {treatments?.map(treatment => (
                     <option key={treatment.id} value={treatment.id}>
-                      {treatment.name} - ${treatment.price} ({treatment.duration_minutes} min)
+                      {treatment.name} • ${treatment.price} • {treatment.duration_minutes} min
                     </option>
                   ))}
                 </select>
+                <Plus className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[rgb(150,170,155)] pointer-events-none" />
               </div>
             </div>
 
