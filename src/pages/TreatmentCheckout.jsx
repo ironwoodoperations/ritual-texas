@@ -318,12 +318,36 @@ export default function TreatmentCheckout() {
                   ? 'bg-[rgb(150,170,155)] text-white hover:bg-[rgb(130,150,135)]'
                   : 'bg-[rgb(198,182,165)] text-white cursor-not-allowed'
               }`}
-              onClick={() => {
+              onClick={async () => {
                 if (canProceed) {
+                  const confirmationCode = 'SPA' + Date.now().toString(36).toUpperCase();
+                  await base44.entities.TreatmentBooking.create({
+                    confirmation_code: confirmationCode,
+                    guest_name: guestName,
+                    guest_email: guestEmail,
+                    guest_phone: guestPhone,
+                    stay_type: stayType,
+                    room_id: selectedRoomId || null,
+                    room_name: selectedRoom?.name || null,
+                    treatments: cart.map(item => ({
+                      treatment_id: item.treatmentId,
+                      treatment_name: item.treatmentName,
+                      price: item.price,
+                      duration: item.duration,
+                      scheduled_date: item.date,
+                      status: 'pending'
+                    })),
+                    total_amount: cartTotal,
+                    payment_status: 'pending',
+                    booking_status: 'pending'
+                  });
+                  
                   const summary = cart.map(item => 
                     `${item.treatmentName} - ${format(new Date(item.date + 'T12:00:00'), 'MMM d, yyyy')}`
                   ).join('\n');
-                  alert(`Booking confirmed!\n\n${stayType === 'hotel' ? `Room: ${selectedRoom.name}\n` : 'Day Visit\n'}\nTreatments:\n${summary}\n\nTotal: $${cartTotal}\n\nGuest: ${guestName}\n\nYou'll receive a payment link at ${guestEmail} to complete your booking.`);
+                  alert(`Booking confirmed!\n\nConfirmation: ${confirmationCode}\n\n${stayType === 'hotel' ? `Room: ${selectedRoom.name}\n` : 'Day Visit\n'}\nTreatments:\n${summary}\n\nTotal: $${cartTotal}\n\nGuest: ${guestName}\n\nYou'll receive a payment link at ${guestEmail} to complete your booking.`);
+                  
+                  window.location.href = createPageUrl('Treatments');
                 }
               }}
             >
