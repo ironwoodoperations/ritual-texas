@@ -17,7 +17,6 @@ export default function TreatmentCheckout() {
   const [stayType, setStayType] = useState(''); // 'hotel' or 'daytrip'
   const [selectedRoomId, setSelectedRoomId] = useState('');
   const [cart, setCart] = useState([]);
-  const [showAddTreatment, setShowAddTreatment] = useState(false);
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
@@ -42,16 +41,19 @@ export default function TreatmentCheckout() {
     }
   }, [initialTreatmentId, treatments]);
 
-  const addTreatmentToCart = (treatment) => {
-    setCart([...cart, { 
-      id: Date.now(), 
-      treatmentId: treatment.id, 
-      treatmentName: treatment.name, 
-      price: treatment.price, 
-      duration: treatment.duration_minutes,
-      date: null 
-    }]);
-    setShowAddTreatment(false);
+  const addTreatmentToCart = (treatmentId) => {
+    if (!treatmentId) return;
+    const treatment = treatments.find(t => t.id === treatmentId);
+    if (treatment) {
+      setCart([...cart, { 
+        id: Date.now(), 
+        treatmentId: treatment.id, 
+        treatmentName: treatment.name, 
+        price: treatment.price, 
+        duration: treatment.duration_minutes,
+        date: null 
+      }]);
+    }
   };
 
   const removeTreatmentFromCart = (id) => {
@@ -152,17 +154,27 @@ export default function TreatmentCheckout() {
             animate={{ opacity: 1, height: 'auto' }}
             className="bg-white border border-[rgb(235,225,213)] p-6 mb-8"
           >
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-sm tracking-widest text-[rgb(150,170,155)]">
+            <div className="mb-6">
+              <h3 className="text-sm tracking-widest text-[rgb(150,170,155)] mb-4">
                 YOUR TREATMENTS ({cart.length})
               </h3>
-              <button
-                onClick={() => setShowAddTreatment(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-[rgb(150,170,155)] text-white text-sm hover:bg-[rgb(130,150,135)] transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Add Treatment
-              </button>
+              <div className="flex items-center gap-3">
+                <select
+                  onChange={(e) => {
+                    addTreatmentToCart(e.target.value);
+                    e.target.value = '';
+                  }}
+                  className="flex-1 px-4 py-3 border border-[rgb(235,225,213)] bg-white text-[rgb(45,45,45)] focus:border-[rgb(150,170,155)] focus:outline-none"
+                  defaultValue=""
+                >
+                  <option value="" disabled>Add additional treatments</option>
+                  {treatments?.map(treatment => (
+                    <option key={treatment.id} value={treatment.id}>
+                      {treatment.name} - ${treatment.price} ({treatment.duration_minutes} min)
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {cart.length === 0 ? (
@@ -321,35 +333,6 @@ export default function TreatmentCheckout() {
             <p className="text-xs text-[rgb(45,45,45)] mt-4 text-center">
               By confirming, you agree to receive booking details and payment instructions via email.
             </p>
-          </div>
-        )}
-
-        {/* Add Treatment Modal */}
-        {showAddTreatment && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
-            <div className="bg-white max-w-3xl w-full max-h-[80vh] overflow-y-auto p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-light text-[rgb(107,85,64)]">Add Treatment</h3>
-                <button onClick={() => setShowAddTreatment(false)}>
-                  <X className="w-6 h-6 text-[rgb(45,45,45)]" />
-                </button>
-              </div>
-              <div className="grid md:grid-cols-2 gap-4">
-                {treatments?.map(treatment => (
-                  <div
-                    key={treatment.id}
-                    onClick={() => addTreatmentToCart(treatment)}
-                    className="cursor-pointer border border-[rgb(235,225,213)] p-4 hover:border-[rgb(150,170,155)] transition-colors"
-                  >
-                    <h4 className="font-light text-[rgb(107,85,64)] mb-2">{treatment.name}</h4>
-                    <p className="text-sm text-[rgb(45,45,45)] flex items-center gap-2 mb-2">
-                      <Clock className="w-3 h-3" /> {treatment.duration_minutes} min
-                    </p>
-                    <p className="text-lg text-[rgb(107,85,64)]">${treatment.price}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         )}
 
