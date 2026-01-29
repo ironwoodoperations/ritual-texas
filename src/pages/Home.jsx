@@ -152,7 +152,7 @@ export default function Home() {
               {
                 icon: Sun,
                 title: "Intentional Days",
-                description: "A daily schedule delivered to you. Know exactly what awaits. Surrender to the flow."
+                description: "A daily itinerary delivered to you. Know exactly what awaits. Surrender to the flow."
               }
             ].map((feature, idx) => (
               <motion.div
