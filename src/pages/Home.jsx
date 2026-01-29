@@ -55,7 +55,7 @@ export default function Home() {
             A boutique sanctuary where time slows and intention guides every moment
           </p>
           <Link 
-            to={createPageUrl('BookRooms')}
+            to={createPageUrl('Rooms')}
             className="inline-flex items-center gap-3 px-8 py-4 bg-[rgb(150,170,155)] text-white tracking-widest text-sm hover:bg-[rgb(130,150,135)] transition-all"
           >
             BEGIN YOUR JOURNEY
