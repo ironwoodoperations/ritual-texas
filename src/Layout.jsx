@@ -103,6 +103,9 @@ export default function Layout({ children, currentPageName }) {
                 <Link to={createPageUrl('Amenities')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   Amenities
                 </Link>
+                <Link to={createPageUrl('Press')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
+                  Press
+                </Link>
                 <Link to={createPageUrl('AskRitual')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   Ask Ritual
                 </Link>
@@ -136,6 +139,9 @@ export default function Layout({ children, currentPageName }) {
                   </Link>
                   <Link to={createPageUrl('Amenities')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
                     Amenities
+                  </Link>
+                  <Link to={createPageUrl('Press')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
+                    Press
                   </Link>
                   <Link to={createPageUrl('AskRitual')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
                     Ask Ritual
