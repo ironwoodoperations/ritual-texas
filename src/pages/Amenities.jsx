@@ -143,7 +143,7 @@ export default function Amenities() {
           </h2>
           <p className="text-[rgb(45,45,45)] font-light leading-relaxed mb-8">
             RITUAL Luncheonette, Soda Fountain of Youth with house-made custards, 
-            yoga studio, antique shops nearby, and nature trails. Everything designed 
+            wellness studio, antique shops nearby, and nature trails. Everything designed 
             to help you disconnect from the world and reconnect with yourself.
           </p>
           <Link 
