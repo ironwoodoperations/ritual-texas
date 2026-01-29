@@ -196,8 +196,16 @@ export default function Layout({ children, currentPageName }) {
               <div>
                 <h4 className="text-sm tracking-widest mb-4 text-[rgb(107,85,64)]">VISIT</h4>
                 <p className="text-sm text-[rgb(45,45,45)]">
-                  540 El Paso Street<br />
-                  Jacksonville, Texas 75766<br />
+                  <a 
+                    href="https://www.google.com/maps/search/?api=1&query=540+El+Paso+Street+Jacksonville+Texas+75766" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="hover:text-[rgb(107,85,64)] transition-colors"
+                  >
+                    540 El Paso Street<br />
+                    Jacksonville, Texas 75766
+                  </a>
+                  <br />
                   <br />
                   Check-in: 3:00 PM<br />
                   Check-out: 11:00 AM
