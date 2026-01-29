@@ -107,26 +107,6 @@ export default function Rooms() {
               <div className="flex-1">
                 <h2 className="text-2xl font-light text-[rgb(107,85,64)] mb-3">Plan Your Stay</h2>
                 <div className="flex flex-wrap items-center gap-4 text-sm text-[rgb(45,45,45)]">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-[rgb(150,170,155)]" />
-                      <button
-                        onClick={() => setGuests(Math.max(1, guests - 1))}
-                        className="w-7 h-7 flex items-center justify-center border border-[rgb(198,182,165)] rounded-sm hover:bg-[rgb(235,225,213)] transition-colors"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <span className="text-lg font-light text-[rgb(107,85,64)] w-8 text-center">{guests}</span>
-                      <button
-                        onClick={() => setGuests(Math.min(10, guests + 1))}
-                        className="w-7 h-7 flex items-center justify-center border border-[rgb(198,182,165)] rounded-sm hover:bg-[rgb(235,225,213)] transition-colors"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
-                      <span className="text-[rgb(45,45,45)] opacity-70">guests</span>
-                    </div>
-                  </div>
-                  <div className="h-4 w-px bg-[rgb(235,225,213)]" />
                   <div>
                     <span className="font-medium">{PRICING.weekdayLabel}:</span> ${pricingPreview.weekday}/night
                   </div>
