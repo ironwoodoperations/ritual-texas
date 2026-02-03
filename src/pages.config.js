@@ -64,11 +64,11 @@ import BookingConfirmation from './pages/BookingConfirmation';
 import BookingFlow from './pages/BookingFlow';
 import Home from './pages/Home';
 import MyBooking from './pages/MyBooking';
+import Press from './pages/Press';
 import Rooms from './pages/Rooms';
 import StaffDashboard from './pages/StaffDashboard';
 import TreatmentCheckout from './pages/TreatmentCheckout';
 import Treatments from './pages/Treatments';
-import Press from './pages/Press';
 import __Layout from './Layout.jsx';
 
 
@@ -90,11 +90,11 @@ export const PAGES = {
     "BookingFlow": BookingFlow,
     "Home": Home,
     "MyBooking": MyBooking,
+    "Press": Press,
     "Rooms": Rooms,
     "StaffDashboard": StaffDashboard,
     "TreatmentCheckout": TreatmentCheckout,
     "Treatments": Treatments,
-    "Press": Press,
 }
 
 export const pagesConfig = {

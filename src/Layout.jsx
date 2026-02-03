@@ -4,6 +4,8 @@ import { createPageUrl } from './utils';
 import { Menu, X, Calendar, Leaf } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import ScrollToTop from '@/components/ScrollToTop';
+import { HelmetProvider } from 'react-helmet-async';
+import SEO from '@/components/Seo';
 
 export default function Layout({ children, currentPageName }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -29,8 +31,10 @@ export default function Layout({ children, currentPageName }) {
   const isAdminPage = currentPageName?.toLowerCase().includes('admin') || currentPageName?.toLowerCase().includes('staff');
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'rgb(248, 246, 242)' }}>
-      <ScrollToTop />
+    <HelmetProvider>
+      <div className="min-h-screen" style={{ backgroundColor: 'rgb(248, 246, 242)' }}>
+        <SEO />
+        <ScrollToTop />
       <style>{`
         :root {
           --sand: rgb(235, 225, 213);
