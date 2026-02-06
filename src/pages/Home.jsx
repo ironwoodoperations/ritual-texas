@@ -12,6 +12,92 @@ export default function Home() {
   const [user, setUser] = React.useState(null);
 
   React.useEffect(() => {
+    // SEO Meta Tags
+    document.title = "Hotel RITUAL | Boutique Wellness Retreat in Jacksonville, Texas";
+    
+    const metaTags = [
+      { name: "description", content: "Experience deep rest and restoration at Hotel RITUAL in Jacksonville, Texas. Boutique suites, luxury spa treatments, and wellness experiences in a 1932 historic mansion. Book your transformative escape." },
+      { name: "keywords", content: "Hotel Ritual, boutique hotel Jacksonville Texas, spa services, wellness retreat, luxury stay, East Texas hotel, boutique stays, massage therapy, holistic wellness" },
+      { property: "og:title", content: "Hotel RITUAL | Boutique Wellness Retreat in Jacksonville, Texas" },
+      { property: "og:description", content: "Discover Hotel RITUAL in Jacksonville, TX: boutique suites, spa treatments, and transformative wellness experiences in a historic mansion. Book your sacred reset." },
+      { property: "og:url", content: "https://hotel-ritual-experience-automation-a6e982ce.base44.app/" },
+      { property: "og:type", content: "hotel" },
+      { property: "og:image", content: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/d388bd802_generated-image44.jpg" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Hotel RITUAL | Boutique Wellness Retreat in Jacksonville, Texas" },
+      { name: "twitter:description", content: "Luxury suites, spa treatments, and curated wellness stays at Hotel RITUAL in Jacksonville, Texas. Book your transformative experience." },
+      { name: "twitter:image", content: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/d388bd802_generated-image44.jpg" }
+    ];
+
+    metaTags.forEach(({ name, property, content }) => {
+      const attr = name ? 'name' : 'property';
+      const value = name || property;
+      let meta = document.querySelector(`meta[${attr}="${value}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute(attr, value);
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute('content', content);
+    });
+
+    // Canonical URL
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', 'https://hotel-ritual-experience-automation-a6e982ce.base44.app/');
+
+    // Structured Data
+    const structuredData = {
+      "@context": "https://schema.org",
+      "@type": "Hotel",
+      "name": "Hotel RITUAL",
+      "description": "Boutique wellness retreat and spa with luxury suites, curated wellness experiences, and holistic treatments in Jacksonville, Texas. A sacred space for deep rest and restoration.",
+      "url": "https://hotel-ritual-experience-automation-a6e982ce.base44.app/",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "540 El Paso Street",
+        "addressLocality": "Jacksonville",
+        "addressRegion": "TX",
+        "postalCode": "75766",
+        "addressCountry": "US"
+      },
+      "image": [
+        "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/d388bd802_generated-image44.jpg",
+        "https://images.squarespace-cdn.com/content/v1/5f28ea4d05e06334e017a510/44fbd548-a918-43db-af0d-b4d60e8f9bcb/S1+bed.JPG"
+      ],
+      "priceRange": "$$$",
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+        "opens": "00:00",
+        "closes": "23:59"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "31.9638",
+        "longitude": "-95.2705"
+      },
+      "amenityFeature": [
+        { "@type": "LocationFeatureSpecification", "name": "Spa Services" },
+        { "@type": "LocationFeatureSpecification", "name": "Massage Therapy" },
+        { "@type": "LocationFeatureSpecification", "name": "Sauna" },
+        { "@type": "LocationFeatureSpecification", "name": "Jacuzzi" },
+        { "@type": "LocationFeatureSpecification", "name": "Pool" }
+      ]
+    };
+
+    let script = document.querySelector('script[type="application/ld+json"]');
+    if (!script) {
+      script = document.createElement('script');
+      script.setAttribute('type', 'application/ld+json');
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(structuredData);
+
     const checkAuth = async () => {
       try {
         const isAuth = await base44.auth.isAuthenticated();
