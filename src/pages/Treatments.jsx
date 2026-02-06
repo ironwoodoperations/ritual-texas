@@ -283,36 +283,52 @@ export default function Treatments() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="mt-24 bg-[rgb(240,232,221)] rounded-2xl p-8"
+          className="mt-24"
         >
-          <h2 className="text-3xl font-light text-[rgb(59,72,49)] mb-4">
-            Book a Treatment
-          </h2>
-          <p className="text-[rgb(27,27,27)] leading-relaxed max-w-3xl mb-6">
-            Choose your ritual, pick a time, and confirm securely. Gift cards are accepted for treatments.
-          </p>
+          <header className="mb-6">
+            <h2 className="text-3xl md:text-4xl font-light text-[rgb(59,72,49)] mb-4" style={{ fontFamily: 'serif', letterSpacing: '0.2px' }}>
+              Book a Treatment
+            </h2>
+            <p className="text-[rgb(27,27,27)] leading-relaxed max-w-3xl">
+              Choose your ritual, pick a time, and confirm securely. Treatments are booked through our secure Square system.
+            </p>
 
-          <div className="bg-[rgb(252,249,244)] rounded-2xl p-6 mb-6 border border-[rgb(59,72,49)]/10 shadow-lg">
-            <strong className="text-[rgb(59,72,49)]">Before you book:</strong>
-            <div className="mt-2 text-[rgb(27,27,27)] leading-relaxed">
-              Sauna + rainshower are available pre or post treatment. Rehydrate with mineral water, organic teas, and snacks in the butler's pantry.
-            </div>
-          </div>
-
-          {/* Square Booking Embed */}
-          <div className="bg-[rgb(252,249,244)] rounded-2xl overflow-hidden border border-[rgb(59,72,49)]/10 shadow-lg">
-            <div id="square-bookings-embed">
-              {/* Square embed code will be inserted here */}
-              <div className="p-12 text-center text-[rgb(107,85,64)]">
-                Square booking widget will appear here once configured
+            <div className="mt-6 bg-[rgb(252,249,244)] rounded-2xl p-6 border border-[rgb(59,72,49)]/10 shadow-lg">
+              <strong className="text-[rgb(59,72,49)]">Before you book:</strong>
+              <div className="mt-2 text-[rgb(27,27,27)] leading-relaxed">
+                Sauna + rainshower are available pre or post treatment for maximum results. Rehydrate + refresh with mineral water,
+                organic teas, and snacks in the butler's pantry before returning to the real world.
               </div>
             </div>
+          </header>
+
+          {/* Booking widget wrapper */}
+          <div className="bg-[rgb(252,249,244)] rounded-2xl overflow-hidden border border-[rgb(59,72,49)]/10 shadow-lg">
+            <div className="p-4 pt-4 pb-0">
+              <div className="flex flex-wrap gap-3 items-center justify-between p-3 rounded-2xl bg-[rgb(240,232,221)]/65 border border-[rgb(59,72,49)]/8">
+                <div className="flex flex-col gap-0.5">
+                  <div className="font-bold text-[rgb(27,27,27)]">Secure booking + payment</div>
+                  <div className="text-sm text-[rgb(59,72,49)]">You'll select your service, time, and complete payment in one flow.</div>
+                </div>
+                <Link 
+                  to={createPageUrl('Treatments')}
+                  className="bg-[rgb(197,124,93)] text-[rgb(252,249,244)] px-4 py-2.5 rounded-2xl font-bold whitespace-nowrap hover:bg-[rgb(177,104,73)] transition-colors"
+                >
+                  Back to Treatments
+                </Link>
+              </div>
+            </div>
+
+            <div className="px-3 pb-4">
+              {/* Square Appointments Embed */}
+              <script src='https://square.site/appointments/buyer/widget/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/9Y1N836Q82W1V.js'></script>
+            </div>
           </div>
 
-          <div className="mt-6 bg-[rgb(196,165,92)]/18 rounded-2xl p-6 border border-[rgb(59,72,49)]/10">
-            <strong className="text-[rgb(59,72,49)]">Need help?</strong>
+          <div className="mt-6 p-6 rounded-2xl bg-[rgb(196,165,92)]/18 border border-[rgb(59,72,49)]/10">
+            <strong className="text-[rgb(59,72,49)]">Need help choosing?</strong>
             <div className="mt-2 text-[rgb(27,27,27)] leading-relaxed">
-              If you can't find the perfect time, tap "Ask Concierge" below and we'll help you schedule quickly.
+              Tap "Ask Concierge" on the site and tell us your goal (sleep, stress relief, detox, glow, emotional reset). We'll recommend the best ritual.
             </div>
           </div>
         </motion.div>
