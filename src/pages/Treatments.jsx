@@ -281,11 +281,13 @@ export default function Treatments() {
                     )}
                   </div>
 
-                  <div className="bg-[rgb(235,225,213)] p-4 rounded-lg text-center">
-                    <p className="text-sm text-[rgb(45,45,45)] font-light">
-                      Ready to book? Scroll down to use our secure Square booking system below.
-                    </p>
-                  </div>
+                  <Link 
+                    to={createPageUrl('TreatmentCheckout') + `?treatment=${selectedTreatment.id}`}
+                    className="flex items-center justify-center gap-2 w-full py-4 bg-[rgb(150,170,155)] text-white tracking-widest text-sm hover:bg-[rgb(130,150,135)] transition-all"
+                  >
+                    BOOK THIS TREATMENT
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
                 </div>
               </>
             )}

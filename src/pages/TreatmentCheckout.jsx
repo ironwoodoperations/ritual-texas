@@ -16,7 +16,9 @@ export default function TreatmentCheckout() {
   const initialTreatmentId = urlParams.get('treatment');
 
   const [stayType, setStayType] = useState(''); // 'hotel' or 'daytrip'
-  const [selectedRoomId, setSelectedRoomId] = useState('');
+  const [roomNumber, setRoomNumber] = useState('');
+  const [checkInDate, setCheckInDate] = useState('');
+  const [checkOutDate, setCheckOutDate] = useState('');
   const [cart, setCart] = useState([]);
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
@@ -76,10 +78,9 @@ export default function TreatmentCheckout() {
     }
   };
 
-  const selectedRoom = rooms?.find(r => r.id === selectedRoomId);
   const cartTotal = cart.reduce((sum, item) => sum + item.price, 0);
   const allDatesSelected = cart.every(item => item.date);
-  const canProceed = stayType && (stayType === 'daytrip' || selectedRoomId) && cart.length > 0 && allDatesSelected && guestName && guestEmail;
+  const canProceed = stayType && (stayType === 'daytrip' || (roomNumber && checkInDate && checkOutDate)) && cart.length > 0 && allDatesSelected && guestName && guestEmail;
 
   return (
     <div className="min-h-screen py-16 px-6">
@@ -121,37 +122,55 @@ export default function TreatmentCheckout() {
           </RadioGroup>
         </div>
 
-        {/* Room Selection (if hotel guest) */}
+        {/* Room/Stay Details (if hotel guest) */}
         {stayType === 'hotel' && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             className="bg-[rgb(248,246,242)] p-6 mb-8"
           >
-            <h3 className="text-sm tracking-widest text-[rgb(150,170,155)] mb-4">
-              SELECT YOUR ROOM
+            <h3 className="text-sm tracking-widest text-[rgb(150,170,155)] mb-6">
+              YOUR STAY DETAILS
             </h3>
-            <div className="grid md:grid-cols-2 gap-4">
-              {rooms?.map(room => (
-                <div
-                  key={room.id}
-                  onClick={() => setSelectedRoomId(room.id)}
-                  className={`cursor-pointer p-4 border-2 transition-all ${
-                    selectedRoomId === room.id
-                      ? 'border-[rgb(150,170,155)] bg-white'
-                      : 'border-[rgb(235,225,213)] bg-white hover:border-[rgb(198,182,165)]'
-                  }`}
-                >
-                  <h4 className="font-light text-[rgb(107,85,64)] mb-1">{room.name}</h4>
-                  <p className="text-sm text-[rgb(45,45,45)]">${room.price_per_night}/night</p>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-[rgb(45,45,45)] block mb-2">Room Number *</label>
+                <Input
+                  value={roomNumber}
+                  onChange={(e) => setRoomNumber(e.target.value)}
+                  className="border-[rgb(235,225,213)]"
+                  placeholder="e.g., Suite 1, Suite 3, etc."
+                />
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-[rgb(45,45,45)] block mb-2">Check-in Date *</label>
+                  <Input
+                    type="date"
+                    value={checkInDate}
+                    onChange={(e) => setCheckInDate(e.target.value)}
+                    className="border-[rgb(235,225,213)]"
+                  />
                 </div>
-              ))}
+                <div>
+                  <label className="text-sm text-[rgb(45,45,45)] block mb-2">Check-out Date *</label>
+                  <Input
+                    type="date"
+                    value={checkOutDate}
+                    onChange={(e) => setCheckOutDate(e.target.value)}
+                    className="border-[rgb(235,225,213)]"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-[rgb(45,45,45)] italic">
+                Treatments will be performed in your suite during your stay.
+              </p>
             </div>
           </motion.div>
         )}
 
         {/* Treatment Cart */}
-        {(stayType === 'daytrip' || selectedRoomId) && (
+        {(stayType === 'daytrip' || roomNumber) && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -270,7 +289,7 @@ export default function TreatmentCheckout() {
         </div>
 
         {/* Checkout */}
-        {cart.length > 0 && (stayType === 'daytrip' || selectedRoomId) && (
+        {cart.length > 0 && (stayType === 'daytrip' || roomNumber) && (
           <div className="bg-[rgb(235,225,213)] p-8">
             <h3 className="text-lg font-light text-[rgb(107,85,64)] mb-6 text-center">
               Complete Your Booking
@@ -280,10 +299,19 @@ export default function TreatmentCheckout() {
             <div className="max-w-2xl mx-auto bg-white border border-[rgb(198,182,165)] p-6 mb-6">
               <h4 className="text-sm tracking-widest text-[rgb(150,170,155)] mb-4">BOOKING SUMMARY</h4>
               
-              {stayType === 'hotel' && selectedRoom && (
+              {stayType === 'hotel' && roomNumber && (
                 <div className="pb-4 mb-4 border-b border-[rgb(235,225,213)]">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-[rgb(45,45,45)]">Room: {selectedRoom.name}</span>
+                  <div className="text-sm space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-[rgb(45,45,45)]">Room:</span>
+                      <span className="text-[rgb(107,85,64)]">{roomNumber}</span>
+                    </div>
+                    {checkInDate && checkOutDate && (
+                      <div className="flex justify-between">
+                        <span className="text-[rgb(45,45,45)]">Stay:</span>
+                        <span className="text-[rgb(107,85,64)]">{format(new Date(checkInDate), 'MMM d')} - {format(new Date(checkOutDate), 'MMM d, yyyy')}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -330,8 +358,8 @@ export default function TreatmentCheckout() {
                     guest_email: guestEmail,
                     guest_phone: guestPhone,
                     stay_type: stayType,
-                    room_id: selectedRoomId || null,
-                    room_name: selectedRoom?.name || null,
+                    room_id: roomNumber || null,
+                    room_name: roomNumber || null,
                     treatments: cart.map(item => ({
                       treatment_id: item.treatmentId,
                       treatment_name: item.treatmentName,
@@ -348,7 +376,9 @@ export default function TreatmentCheckout() {
                   setConfirmedBooking({
                     confirmationCode,
                     stayType,
-                    roomName: selectedRoom?.name,
+                    roomNumber,
+                    checkInDate,
+                    checkOutDate,
                     treatments: cart,
                     total: cartTotal,
                     guestName,
@@ -409,10 +439,15 @@ export default function TreatmentCheckout() {
                   </p>
                 </div>
 
-                {confirmedBooking.stayType === 'hotel' && confirmedBooking.roomName && (
+                {confirmedBooking.stayType === 'hotel' && confirmedBooking.roomNumber && (
                   <div className="mb-4">
-                    <p className="text-xs tracking-widest text-[rgb(150,170,155)] mb-1">ROOM</p>
-                    <p className="text-[rgb(45,45,45)]">{confirmedBooking.roomName}</p>
+                    <p className="text-xs tracking-widest text-[rgb(150,170,155)] mb-1">ROOM & STAY</p>
+                    <p className="text-[rgb(45,45,45)]">{confirmedBooking.roomNumber}</p>
+                    {confirmedBooking.checkInDate && confirmedBooking.checkOutDate && (
+                      <p className="text-sm text-[rgb(45,45,45)] mt-1">
+                        {format(new Date(confirmedBooking.checkInDate), 'MMM d')} - {format(new Date(confirmedBooking.checkOutDate), 'MMM d, yyyy')}
+                      </p>
+                    )}
                   </div>
                 )}
 
