@@ -207,7 +207,7 @@ export default function Treatments() {
                       className="flex items-center gap-2 text-[rgb(107,85,64)] hover:text-[rgb(150,170,155)] transition-colors text-sm"
                     >
                       <Info className="w-4 h-4" />
-                      <span>Book Treatment</span>
+                      <span>View Details</span>
                     </button>
                   </div>
                 </motion.div>
@@ -281,13 +281,11 @@ export default function Treatments() {
                     )}
                   </div>
 
-                  <Link 
-                    to={createPageUrl('TreatmentCheckout') + `?treatment=${selectedTreatment.id}`}
-                    className="flex items-center justify-center gap-2 w-full py-4 bg-[rgb(150,170,155)] text-white tracking-widest text-sm hover:bg-[rgb(130,150,135)] transition-all"
-                  >
-                    BOOK THIS TREATMENT
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  <div className="bg-[rgb(235,225,213)] p-4 rounded-lg text-center">
+                    <p className="text-sm text-[rgb(45,45,45)] font-light">
+                      Ready to book? Scroll down to use our secure Square booking system below.
+                    </p>
+                  </div>
                 </div>
               </>
             )}
