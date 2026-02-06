@@ -22,6 +22,22 @@ export default function Treatments() {
   const [selectedTreatment, setSelectedTreatment] = useState(null);
   const [activeCategory, setActiveCategory] = useState('all');
 
+  // Load Square booking widget
+  React.useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://square.site/appointments/buyer/widget/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/9Y1N836Q82W1V.js';
+    script.async = true;
+    const container = document.getElementById('square-appointments-embed');
+    if (container && !container.querySelector('script')) {
+      container.appendChild(script);
+    }
+    return () => {
+      if (container && script.parentNode === container) {
+        container.removeChild(script);
+      }
+    };
+  }, []);
+
   const { data: treatments, isLoading } = useQuery({
     queryKey: ['treatments'],
     queryFn: () => base44.entities.Treatment.filter({ is_available: true }, 'sort_order'),
@@ -319,9 +335,8 @@ export default function Treatments() {
               </div>
             </div>
 
-            <div className="px-3 pb-4">
-              {/* Square Appointments Embed */}
-              <script src='https://square.site/appointments/buyer/widget/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/9Y1N836Q82W1V.js'></script>
+            <div className="px-3 pb-4" id="square-appointments-embed">
+              {/* Square widget loads here via useEffect */}
             </div>
           </div>
 
