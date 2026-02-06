@@ -82,6 +82,24 @@ export default function TreatmentCheckout() {
   const allDatesSelected = cart.every(item => item.date);
   const canProceed = stayType && (stayType === 'daytrip' || (roomNumber && checkInDate && checkOutDate)) && cart.length > 0 && allDatesSelected && guestName && guestEmail;
 
+  // Load Square booking widget for checkout
+  useEffect(() => {
+    if (canProceed) {
+      const script = document.createElement('script');
+      script.src = 'https://square.site/appointments/buyer/widget/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/9Y1N836Q82W1V.js';
+      script.async = true;
+      const container = document.getElementById('square-treatment-checkout-embed');
+      if (container && !container.querySelector('script')) {
+        container.appendChild(script);
+      }
+      return () => {
+        if (container && script.parentNode === container) {
+          container.removeChild(script);
+        }
+      };
+    }
+  }, [canProceed]);
+
   return (
     <div className="min-h-screen py-16 px-6">
       <div className="max-w-4xl mx-auto">
