@@ -278,11 +278,50 @@ export default function Treatments() {
           </DialogContent>
         </Dialog>
 
+        {/* Square Booking Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="mt-24 bg-[rgb(240,232,221)] rounded-2xl p-8"
+        >
+          <h2 className="text-3xl font-light text-[rgb(59,72,49)] mb-4">
+            Book a Treatment
+          </h2>
+          <p className="text-[rgb(27,27,27)] leading-relaxed max-w-3xl mb-6">
+            Choose your ritual, pick a time, and confirm securely. Gift cards are accepted for treatments.
+          </p>
+
+          <div className="bg-[rgb(252,249,244)] rounded-2xl p-6 mb-6 border border-[rgb(59,72,49)]/10 shadow-lg">
+            <strong className="text-[rgb(59,72,49)]">Before you book:</strong>
+            <div className="mt-2 text-[rgb(27,27,27)] leading-relaxed">
+              Sauna + rainshower are available pre or post treatment. Rehydrate with mineral water, organic teas, and snacks in the butler's pantry.
+            </div>
+          </div>
+
+          {/* Square Booking Embed */}
+          <div className="bg-[rgb(252,249,244)] rounded-2xl overflow-hidden border border-[rgb(59,72,49)]/10 shadow-lg">
+            <div id="square-bookings-embed">
+              {/* Square embed code will be inserted here */}
+              <div className="p-12 text-center text-[rgb(107,85,64)]">
+                Square booking widget will appear here once configured
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 bg-[rgb(196,165,92)]/18 rounded-2xl p-6 border border-[rgb(59,72,49)]/10">
+            <strong className="text-[rgb(59,72,49)]">Need help?</strong>
+            <div className="mt-2 text-[rgb(27,27,27)] leading-relaxed">
+              If you can't find the perfect time, tap "Ask Concierge" below and we'll help you schedule quickly.
+            </div>
+          </div>
+        </motion.div>
+
         {/* CTA */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.7 }}
           className="mt-20 text-center"
         >
           <p className="text-[rgb(45,45,45)] font-light mb-6">
@@ -296,7 +335,7 @@ export default function Treatments() {
             <ArrowRight className="w-4 h-4" />
           </Link>
         </motion.div>
-      </div>
-    </div>
-  );
-}
+        </div>
+        </div>
+        );
+        }
