@@ -134,13 +134,19 @@ export default function TreatmentCheckout() {
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-[rgb(45,45,45)] block mb-2">Room Number *</label>
-                <Input
+                <label className="text-sm text-[rgb(45,45,45)] block mb-2">Select Your Suite *</label>
+                <select
                   value={roomNumber}
                   onChange={(e) => setRoomNumber(e.target.value)}
-                  className="border-[rgb(235,225,213)]"
-                  placeholder="e.g., Suite 1, Suite 3, etc."
-                />
+                  className="w-full px-4 py-3 border border-[rgb(235,225,213)] bg-white text-[rgb(45,45,45)] focus:border-[rgb(150,170,155)] focus:outline-none"
+                >
+                  <option value="">Choose your suite...</option>
+                  {rooms?.map(room => (
+                    <option key={room.id} value={room.name}>
+                      {room.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
@@ -233,7 +239,16 @@ export default function TreatmentCheckout() {
                         disabled={(date) => {
                           const today = new Date();
                           today.setHours(0, 0, 0, 0);
-                          return date < today;
+                          if (date < today) return true;
+                          // If hotel guest with dates selected, limit to stay dates
+                          if (stayType === 'hotel' && checkInDate && checkOutDate) {
+                            const checkIn = new Date(checkInDate);
+                            const checkOut = new Date(checkOutDate);
+                            checkIn.setHours(0, 0, 0, 0);
+                            checkOut.setHours(0, 0, 0, 0);
+                            return date < checkIn || date > checkOut;
+                          }
+                          return false;
                         }}
                         className="border border-[rgb(235,225,213)] bg-[rgb(248,246,242)]"
                       />
@@ -338,62 +353,17 @@ export default function TreatmentCheckout() {
               </div>
             </div>
 
-            <p className="text-[rgb(45,45,45)] mb-6 max-w-md mx-auto text-center text-sm">
-              Square payment integration coming soon. You'll receive a payment link via email to complete your booking.
-            </p>
+            <div className="bg-white border border-[rgb(59,72,49)]/10 rounded-2xl overflow-hidden mb-6">
+              <div className="px-3 py-4" id="square-treatment-checkout-embed">
+                {/* Square widget loads here */}
+                <div className="p-8 text-center text-[rgb(107,85,64)]">
+                  Complete secure payment below
+                </div>
+              </div>
+            </div>
 
-            <button
-              disabled={!canProceed}
-              className={`flex items-center justify-center gap-2 px-8 py-4 mx-auto text-sm tracking-widest transition-all ${
-                canProceed
-                  ? 'bg-[rgb(150,170,155)] text-white hover:bg-[rgb(130,150,135)]'
-                  : 'bg-[rgb(198,182,165)] text-white cursor-not-allowed'
-              }`}
-              onClick={async () => {
-                if (canProceed) {
-                  const confirmationCode = 'SPA' + Date.now().toString(36).toUpperCase();
-                  await base44.entities.TreatmentBooking.create({
-                    confirmation_code: confirmationCode,
-                    guest_name: guestName,
-                    guest_email: guestEmail,
-                    guest_phone: guestPhone,
-                    stay_type: stayType,
-                    room_id: roomNumber || null,
-                    room_name: roomNumber || null,
-                    treatments: cart.map(item => ({
-                      treatment_id: item.treatmentId,
-                      treatment_name: item.treatmentName,
-                      price: item.price,
-                      duration: item.duration,
-                      scheduled_date: item.date,
-                      status: 'pending'
-                    })),
-                    total_amount: cartTotal,
-                    payment_status: 'pending',
-                    booking_status: 'pending'
-                  });
-                  
-                  setConfirmedBooking({
-                    confirmationCode,
-                    stayType,
-                    roomNumber,
-                    checkInDate,
-                    checkOutDate,
-                    treatments: cart,
-                    total: cartTotal,
-                    guestName,
-                    guestEmail
-                  });
-                  setShowConfirmation(true);
-                }
-              }}
-            >
-              CONFIRM BOOKING
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <p className="text-xs text-[rgb(45,45,45)] mt-4 text-center">
-              By confirming, you agree to receive booking details and payment instructions via email.
+            <p className="text-xs text-[rgb(45,45,45)] text-center">
+              Payment processed securely through Square. You'll receive confirmation via email.
             </p>
           </div>
         )}
