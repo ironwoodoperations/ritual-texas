@@ -18,7 +18,28 @@ export default function AskWhitneyWidget() {
     queryKey: ['knowledge-base'],
     queryFn: () => base44.entities.KnowledgeBaseArticles.filter({ isActive: true }),
     initialData: [],
-    enabled: isOpen, // Only fetch when widget is opened
+    enabled: isOpen,
+  });
+
+  const { data: knowledgeBaseOld = [] } = useQuery({
+    queryKey: ['knowledge-base-old'],
+    queryFn: () => base44.entities.KnowledgeBase.filter({ is_active: true }),
+    initialData: [],
+    enabled: isOpen,
+  });
+
+  const { data: treatments = [] } = useQuery({
+    queryKey: ['treatments'],
+    queryFn: () => base44.entities.Treatment.list(),
+    initialData: [],
+    enabled: isOpen,
+  });
+
+  const { data: rooms = [] } = useQuery({
+    queryKey: ['rooms'],
+    queryFn: () => base44.entities.Room.list(),
+    initialData: [],
+    enabled: isOpen,
   });
 
   useEffect(() => {
@@ -82,27 +103,48 @@ export default function AskWhitneyWidget() {
     setIsLoading(true);
 
     try {
-      const kbContext = knowledgeBase.map(kb => `Q: ${kb.question}\nA: ${kb.answer}`).join('\n\n');
+      let context = `You are Whitney, the virtual concierge for Hotel RITUAL, a boutique hotel and spa in Jacksonville, Texas.
+Your tone is calm, warm, and helpful. Never be pushy or salesy. Be concise but thorough.
+Never make medical claims about treatments. If unsure, suggest the guest contact us directly.
+
+PROPERTY INFORMATION:
+- Check-in: 3:00 PM (self-guided, key at entrance)
+- Check-out: 11:00 AM (leave key in room)
+- Quiet hours: 7:30 PM onwards
+- All rooms include: organic robes, sauna access, light breakfast
+
+`;
+
+      if (knowledgeBase?.length > 0) {
+        context += "\nKNOWLEDGE BASE (Q&A):\n";
+        knowledgeBase.forEach(kb => {
+          context += `Q: ${kb.question}\nA: ${kb.answer}\n\n`;
+        });
+      }
+
+      if (knowledgeBaseOld?.length > 0) {
+        context += "\nAPPROVED KNOWLEDGE BASE:\n";
+        knowledgeBaseOld.forEach(kb => {
+          context += `${kb.category?.toUpperCase()}: ${kb.title}\n${kb.content}\n\n`;
+        });
+      }
+
+      if (treatments?.length > 0) {
+        context += "\nAVAILABLE TREATMENTS:\n";
+        treatments.forEach(t => {
+          context += `- ${t.name} (${t.duration_minutes} min, $${t.price}): ${t.what_it_is || ''}\n`;
+        });
+      }
+
+      if (rooms?.length > 0) {
+        context += "\nROOMS:\n";
+        rooms.forEach(r => {
+          context += `- ${r.name}: $${r.price_per_night}/night, max ${r.max_occupancy} guests. ${r.description || ''}\n`;
+        });
+      }
 
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are Whitney, the virtual concierge for Hotel RITUAL, a luxury wellness retreat in Jacksonville, Texas. 
-
-Your role is to provide warm, helpful, and accurate information about the hotel, spa treatments, amenities, and guest services.
-
-KNOWLEDGE BASE:
-${kbContext}
-
-GUEST QUESTION: ${q}
-
-INSTRUCTIONS:
-- Answer based ONLY on the knowledge base provided above
-- If the question is about booking details, itinerary, or confirmation numbers, direct them to visit /itinerary or /AskRitual
-- Be warm, professional, and concise
-- If you cannot answer from the knowledge base, say: "I'd be happy to connect you with our concierge team who can assist with that. Please use the 'Message Concierge' button."
-- Never make up information
-- Keep responses under 100 words when possible
-
-Respond as Whitney:`,
+        prompt: `${context}\n\nGuest question: ${q}\n\nProvide a helpful, warm response. Keep it concise but complete. If the question is about specific booking details or itinerary times, direct them to visit their itinerary page.`,
       });
 
       setMessages(prev => [...prev, {
