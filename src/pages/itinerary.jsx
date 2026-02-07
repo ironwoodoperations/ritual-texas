@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
 
 export default function Itinerary() {
   const [hotelConf, setHotelConf] = useState('');
   const [contact, setContact] = useState('');
   const [showItinerary, setShowItinerary] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [reservationData, setReservationData] = useState(null);
 
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem('ritual_itinerary_lookup') || '{}');
@@ -12,16 +16,47 @@ export default function Itinerary() {
     if (saved.hotelConf || saved.contact) setShowItinerary(true);
   }, []);
 
-  const handleSave = () => {
-    const payload = {
-      hotelConf: (hotelConf || '').trim(),
-      contact: (contact || '').trim()
-    };
-    localStorage.setItem('ritual_itinerary_lookup', JSON.stringify(payload));
-    setShowItinerary(true);
-    setTimeout(() => {
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    }, 100);
+  const handleSave = async () => {
+    const trimmedConf = (hotelConf || '').trim();
+    const trimmedContact = (contact || '').trim();
+
+    if (!trimmedConf || !trimmedContact) {
+      setError('Please enter both confirmation code and email/phone');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await base44.functions.invoke('getCloudbeds', {
+        confirmationCode: trimmedConf,
+        email: trimmedContact
+      });
+
+      if (response.data.error) {
+        setError(response.data.message || 'Could not fetch reservation details');
+        setLoading(false);
+        return;
+      }
+
+      setReservationData(response.data);
+      
+      const payload = {
+        hotelConf: trimmedConf,
+        contact: trimmedContact
+      };
+      localStorage.setItem('ritual_itinerary_lookup', JSON.stringify(payload));
+      setShowItinerary(true);
+      
+      setTimeout(() => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      }, 100);
+    } catch (err) {
+      setError('Failed to load reservation. Please check your details and try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClear = () => {
@@ -79,12 +114,19 @@ export default function Itinerary() {
             </label>
           </div>
 
+          {error && (
+            <div style={{ marginTop: '12px', padding: '12px', borderRadius: '14px', background: 'rgba(197,124,93,.15)', border: '1px solid rgba(197,124,93,.3)', color: '#C57C5D', lineHeight: '1.6' }}>
+              {error}
+            </div>
+          )}
+
           <div style={{ marginTop: '12px', display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             <button
               onClick={handleSave}
-              style={{ background: '#C57C5D', color: '#FCF9F4', border: 'none', padding: '12px 14px', borderRadius: '14px', fontWeight: 900, cursor: 'pointer' }}
+              disabled={loading}
+              style={{ background: loading ? '#999' : '#C57C5D', color: '#FCF9F4', border: 'none', padding: '12px 14px', borderRadius: '14px', fontWeight: 900, cursor: loading ? 'not-allowed' : 'pointer' }}
             >
-              Save & View Itinerary
+              {loading ? 'Loading...' : 'Save & View Itinerary'}
             </button>
             <button
               onClick={handleClear}
@@ -129,13 +171,18 @@ export default function Itinerary() {
               <div style={{ background: '#FCF9F4', borderRadius: '18px', padding: '16px', boxShadow: '0 10px 30px rgba(0,0,0,.08)', border: '1px solid rgba(59,72,49,.10)' }}>
                 <div style={{ color: '#3B4831', fontWeight: 900 }}>Hotel Stay</div>
                 <div style={{ marginTop: '8px', color: '#1B1B1B', lineHeight: '1.6' }}>
-                  <div><b>Confirmation:</b> <span>{hotelConf || '—'}</span></div>
-                  <div><b>Check-in:</b> 3:00 PM (or per your confirmation)</div>
-                  <div><b>Check-out:</b> 11:00 AM (or per your confirmation)</div>
+                  <div><b>Guest:</b> {reservationData?.guestName || '—'}</div>
+                  <div><b>Confirmation:</b> {reservationData?.confirmationCode || hotelConf || '—'}</div>
+                  <div><b>Room:</b> {reservationData?.roomName || '—'}</div>
+                  <div><b>Check-in:</b> {reservationData?.checkInDate ? new Date(reservationData.checkInDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'} at 3:00 PM</div>
+                  <div><b>Check-out:</b> {reservationData?.checkOutDate ? new Date(reservationData.checkOutDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'} at 11:00 AM</div>
+                  <div><b>Guests:</b> {reservationData?.numGuests || '—'}</div>
                 </div>
-                <div style={{ marginTop: '10px', color: '#1B1B1B', opacity: 0.85, fontSize: '12px', lineHeight: '1.5' }}>
-                  We'll auto-pull room + dates in the next upgrade (Cloudbeds sync).
-                </div>
+                {!reservationData && (
+                  <div style={{ marginTop: '10px', color: '#1B1B1B', opacity: 0.85, fontSize: '12px', lineHeight: '1.5' }}>
+                    Connected to Cloudbeds — enter your details above to load reservation.
+                  </div>
+                )}
               </div>
 
               <div style={{ background: '#FCF9F4', borderRadius: '18px', padding: '16px', boxShadow: '0 10px 30px rgba(0,0,0,.08)', border: '1px solid rgba(59,72,49,.10)' }}>
