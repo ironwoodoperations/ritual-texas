@@ -38,8 +38,7 @@ export default function Treatments() {
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 800, color: '#1B1B1B' }}>60 min</div>
-              <a href="https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/HLBJAKGW6OVLZOP6D7GFJQMO"
-                 target="_top" rel="nofollow"
+              <a href="/spa/booking?service=royal"
                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                 Book Now
               </a>
@@ -56,8 +55,7 @@ export default function Treatments() {
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 800, color: '#1B1B1B' }}>120 min</div>
-              <a href="https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/7HLQNBFV7DDE3C4SSMWYWTAL"
-                 target="_top" rel="nofollow"
+              <a href="/spa/booking?service=aura"
                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                 Book Now
               </a>
@@ -74,8 +72,7 @@ export default function Treatments() {
             <div style={{ display: 'grid', gap: '10px', marginTop: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', padding: '12px', borderRadius: '14px', background: 'rgba(240,232,221,.65)', border: '1px solid rgba(59,72,49,.08)' }}>
                 <div style={{ fontWeight: 800, color: '#1B1B1B' }}>60 min</div>
-                <a href="https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/YPVKZMCL7BLIMNTW4KYBLGXM"
-                   target="_top" rel="nofollow"
+                <a href="/spa/booking?service=swedish60"
                    style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                   Book 60
                 </a>
@@ -83,8 +80,7 @@ export default function Treatments() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', padding: '12px', borderRadius: '14px', background: 'rgba(240,232,221,.65)', border: '1px solid rgba(59,72,49,.08)' }}>
                 <div style={{ fontWeight: 800, color: '#1B1B1B' }}>90 min</div>
-                <a href="https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/DKOTRCVJPAU4YZPJNI7PENAC"
-                   target="_top" rel="nofollow"
+                <a href="/spa/booking?service=swedish90"
                    style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                   Book 90
                 </a>
@@ -101,8 +97,7 @@ export default function Treatments() {
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 800, color: '#1B1B1B' }}>90 min</div>
-              <a href="https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/PMSGEU5VO76MMFGT2K4BIFF4"
-                 target="_top" rel="nofollow"
+              <a href="/spa/booking?service=lymphatic"
                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                 Book Now
               </a>
@@ -117,8 +112,7 @@ export default function Treatments() {
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 800, color: '#1B1B1B' }}>1 hr</div>
-              <a href="https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/QRVGKSUAYAPN7TVOD6MGMWOZ"
-                 target="_top" rel="nofollow"
+              <a href="/spa/booking?service=shirodhara"
                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                 Book Now
               </a>
@@ -135,8 +129,7 @@ export default function Treatments() {
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 800, color: '#1B1B1B' }}>120 min</div>
-              <a href="https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/ZLVRPJR6VVQZO4C63JEQPGKV"
-                 target="_top" rel="nofollow"
+              <a href="/spa/booking?service=shiroglow"
                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                 Book Now
               </a>
@@ -152,8 +145,7 @@ export default function Treatments() {
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 800, color: '#1B1B1B' }}>1 hr</div>
-              <a href="https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/4LXL6H4CETPOG24Y73BQYYW3"
-                 target="_top" rel="nofollow"
+              <a href="/spa/booking?service=forgiveness"
                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                 Book Now
               </a>
@@ -169,8 +161,7 @@ export default function Treatments() {
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 800, color: '#1B1B1B' }}>1 hr</div>
-              <a href="https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/VIJZXOZCLRSXRDXOO3KPSVEV"
-                 target="_top" rel="nofollow"
+              <a href="/spa/booking?service=reiki"
                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                 Book Now
               </a>
@@ -188,8 +179,7 @@ export default function Treatments() {
             <div style={{ display: 'grid', gap: '10px', marginTop: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', padding: '12px', borderRadius: '14px', background: 'rgba(240,232,221,.65)', border: '1px solid rgba(59,72,49,.08)' }}>
                 <div style={{ fontWeight: 800, color: '#1B1B1B' }}>Private 60 min session</div>
-                <a href="https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/HFJVSRHBCZGF2DIJQVY2UXQ3"
-                   target="_top" rel="nofollow"
+                <a href="/spa/booking?service=soundprivate"
                    style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                   Book Private
                 </a>
@@ -197,8 +187,7 @@ export default function Treatments() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', padding: '12px', borderRadius: '14px', background: 'rgba(240,232,221,.65)', border: '1px solid rgba(59,72,49,.08)' }}>
                 <div style={{ fontWeight: 800, color: '#1B1B1B' }}>Group class</div>
-                <a href="https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/IQKEIFVAI4PYG4DIDKC5TCRA"
-                   target="_top" rel="nofollow"
+                <a href="/spa/booking?service=soundgroup"
                    style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                   Book Group
                 </a>
@@ -217,8 +206,7 @@ export default function Treatments() {
             <div style={{ display: 'grid', gap: '10px', marginTop: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', padding: '12px', borderRadius: '14px', background: 'rgba(240,232,221,.65)', border: '1px solid rgba(59,72,49,.08)' }}>
                 <div style={{ fontWeight: 800, color: '#1B1B1B' }}>Private class</div>
-                <a href="https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/4KH2D3DUU7PSEMTCCKEQUCK6"
-                   target="_top" rel="nofollow"
+                <a href="/spa/booking?service=yogaprivate"
                    style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                   Book Private
                 </a>
@@ -226,8 +214,7 @@ export default function Treatments() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', padding: '12px', borderRadius: '14px', background: 'rgba(240,232,221,.65)', border: '1px solid rgba(59,72,49,.08)' }}>
                 <div style={{ fontWeight: 800, color: '#1B1B1B' }}>Group class</div>
-                <a href="https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/KP4V3SG3R3CYMYCAD3GNDILC"
-                   target="_top" rel="nofollow"
+                <a href="/spa/booking?service=yogagroup"
                    style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                   Book Group
                 </a>
@@ -243,8 +230,7 @@ export default function Treatments() {
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 800, color: '#1B1B1B' }}>By donation</div>
-              <a href="https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/KQC3YJ6KP5JFD4S4QGDUVJB5"
-                 target="_top" rel="nofollow"
+              <a href="/spa/booking?service=drpark"
                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                 Book Now
               </a>

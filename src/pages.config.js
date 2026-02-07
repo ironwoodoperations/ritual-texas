@@ -62,13 +62,13 @@ import AskRitual from './pages/AskRitual';
 import BookRooms from './pages/BookRooms';
 import BookingConfirmation from './pages/BookingConfirmation';
 import BookingFlow from './pages/BookingFlow';
+import BookingRedirect from './pages/BookingRedirect';
 import Home from './pages/Home';
 import MyBooking from './pages/MyBooking';
 import Press from './pages/Press';
 import Rooms from './pages/Rooms';
 import StaffDashboard from './pages/StaffDashboard';
 import Treatments from './pages/Treatments';
-import BookingRedirect from './pages/BookingRedirect';
 import __Layout from './Layout.jsx';
 
 
@@ -88,13 +88,13 @@ export const PAGES = {
     "BookRooms": BookRooms,
     "BookingConfirmation": BookingConfirmation,
     "BookingFlow": BookingFlow,
+    "BookingRedirect": BookingRedirect,
     "Home": Home,
     "MyBooking": MyBooking,
     "Press": Press,
     "Rooms": Rooms,
     "StaffDashboard": StaffDashboard,
     "Treatments": Treatments,
-    "BookingRedirect": BookingRedirect,
 }
 
 export const pagesConfig = {
