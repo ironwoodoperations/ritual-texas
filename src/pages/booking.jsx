@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-export default function BookingRedirect() {
+export default function Booking() {
   useEffect(() => {
     const links = {
       royal: "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/HLBJAKGW6OVLZOP6D7GFJQMO",
@@ -52,7 +52,7 @@ export default function BookingRedirect() {
         </div>
 
         <div style={{ marginTop: '16px', display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <a href="/spa" style={{ textDecoration: 'none', padding: '12px 14px', borderRadius: '14px', fontWeight: 900, border: '1px solid rgba(59,72,49,.18)', color: '#3B4831' }}>
+          <a href="/Treatments" style={{ textDecoration: 'none', padding: '12px 14px', borderRadius: '14px', fontWeight: 900, border: '1px solid rgba(59,72,49,.18)', color: '#3B4831' }}>
             Back
           </a>
         </div>
