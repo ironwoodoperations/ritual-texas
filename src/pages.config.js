@@ -68,6 +68,7 @@ import Press from './pages/Press';
 import Rooms from './pages/Rooms';
 import StaffDashboard from './pages/StaffDashboard';
 import Treatments from './pages/Treatments';
+import BookingRedirect from './pages/BookingRedirect';
 import __Layout from './Layout.jsx';
 
 
@@ -93,6 +94,7 @@ export const PAGES = {
     "Rooms": Rooms,
     "StaffDashboard": StaffDashboard,
     "Treatments": Treatments,
+    "BookingRedirect": BookingRedirect,
 }
 
 export const pagesConfig = {
