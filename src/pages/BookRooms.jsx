@@ -33,7 +33,7 @@ export default function BookRooms() {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col bg-white overflow-hidden">
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'white', display: 'flex', flexDirection: 'column', zIndex: 99999 }}>
       {/* Navigation Tabs */}
       <div className="flex items-center gap-6 px-6 py-4 border-b border-[rgb(235,225,213)] bg-white flex-shrink-0">
         <div className="flex items-center gap-2 opacity-60 pointer-events-none">
