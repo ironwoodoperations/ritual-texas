@@ -180,29 +180,7 @@ PROPERTY INFORMATION:
   };
 
   if (!isOpen) {
-    return (
-      <div style={{ position: 'fixed', right: '18px', bottom: '18px', zIndex: 9999 }}>
-        <button
-          onClick={() => setIsOpen(true)}
-          style={{
-            background: '#3B4831',
-            color: '#FCF9F4',
-            padding: '8px 14px 8px 8px',
-            borderRadius: '999px',
-            fontWeight: 900,
-            boxShadow: '0 12px 30px rgba(0,0,0,.18)',
-            border: '1px solid rgba(196,165,92,.25)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            cursor: 'pointer'
-          }}
-        >
-          <img src={whitneyImage} alt="Whitney" style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }} />
-          <span>Ask Whitney</span>
-        </button>
-      </div>
-    );
+    return null;
   }
 
   return (
