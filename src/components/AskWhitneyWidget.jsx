@@ -3,8 +3,19 @@ import { X, Mic, MicOff } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 
-export default function AskWhitneyWidget() {
+export default function AskWhitneyWidget({ isOpen: isOpenProp, onClose }) {
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (isOpenProp !== undefined) {
+      setIsOpen(isOpenProp);
+    }
+  }, [isOpenProp]);
+
+  const handleClose = () => {
+    setIsOpen(false);
+    if (onClose) onClose();
+  };
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -227,7 +238,7 @@ PROPERTY INFORMATION:
             <div style={{ fontSize: '12px', color: 'rgba(252,249,244,.75)' }}>Virtual Concierge</div>
           </div>
         </div>
-        <button onClick={() => setIsOpen(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#FCF9F4', padding: '4px' }}>
+        <button onClick={handleClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#FCF9F4', padding: '4px' }}>
           <X size={20} />
         </button>
       </div>

@@ -10,6 +10,7 @@ export default function Layout({ children, currentPageName }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showWhitney, setShowWhitney] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -107,10 +108,10 @@ export default function Layout({ children, currentPageName }) {
                 <Link to={createPageUrl('Press')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   Press
                 </Link>
-                <Link to={createPageUrl('concierge')} className="flex items-center gap-2 text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
+                <button onClick={() => setShowWhitney(true)} className="flex items-center gap-2 text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/424e86f0a_generated-image1.jpeg" alt="Whitney" className="w-6 h-6 rounded-full object-cover" />
                   Ask Whitney
-                </Link>
+                </button>
                 <Link 
                   to={createPageUrl('BookRooms')} 
                   className="px-6 py-2.5 bg-[rgb(150,170,155)] text-white text-sm tracking-wide rounded-none hover:bg-[rgb(130,150,135)] transition-all"
@@ -145,10 +146,10 @@ export default function Layout({ children, currentPageName }) {
                   <Link to={createPageUrl('Press')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
                     Press
                   </Link>
-                  <Link to={createPageUrl('concierge')} className="flex items-center gap-2 text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
+                  <button onClick={() => { setShowWhitney(true); setIsMenuOpen(false); }} className="flex items-center gap-2 text-[rgb(45,45,45)] py-2 w-full text-left">
                     <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/424e86f0a_generated-image1.jpeg" alt="Whitney" className="w-6 h-6 rounded-full object-cover" />
                     Ask Whitney
-                  </Link>
+                  </button>
                 <Link 
                   to={createPageUrl('BookRooms')} 
                   className="mt-2 px-6 py-3 bg-[rgb(150,170,155)] text-white text-center"
@@ -168,7 +169,7 @@ export default function Layout({ children, currentPageName }) {
       </main>
 
       {/* Whitney AI Widget */}
-      {!isAdminPage && <AskWhitneyWidget />}
+      {!isAdminPage && <AskWhitneyWidget isOpen={showWhitney} onClose={() => setShowWhitney(false)} />}
 
       {/* Footer */}
       {!isAdminPage && (

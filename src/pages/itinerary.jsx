@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 
 export default function Itinerary() {
-  const [hotelConf, setHotelConf] = useState('');
-  const [contact, setContact] = useState('');
+  const [phone, setPhone] = useState('');
   const [showItinerary, setShowItinerary] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -11,17 +10,15 @@ export default function Itinerary() {
 
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem('ritual_itinerary_lookup') || '{}');
-    if (saved.hotelConf) setHotelConf(saved.hotelConf);
-    if (saved.contact) setContact(saved.contact);
-    if (saved.hotelConf || saved.contact) setShowItinerary(true);
+    if (saved.phone) setPhone(saved.phone);
+    if (saved.phone) setShowItinerary(true);
   }, []);
 
   const handleSave = async () => {
-    const trimmedConf = (hotelConf || '').trim();
-    const trimmedContact = (contact || '').trim();
+    const trimmedPhone = (phone || '').trim();
 
-    if (!trimmedConf || !trimmedContact) {
-      setError('Please enter both confirmation code and email/phone');
+    if (!trimmedPhone) {
+      setError('Please enter your phone number');
       return;
     }
 
@@ -30,8 +27,7 @@ export default function Itinerary() {
 
     try {
       const response = await base44.functions.invoke('getCloudbeds', {
-        confirmationCode: trimmedConf,
-        email: trimmedContact
+        phone: trimmedPhone
       });
 
       if (response.data.error) {
@@ -42,10 +38,7 @@ export default function Itinerary() {
 
       setReservationData(response.data);
       
-      const payload = {
-        hotelConf: trimmedConf,
-        contact: trimmedContact
-      };
+      const payload = { phone: trimmedPhone };
       localStorage.setItem('ritual_itinerary_lookup', JSON.stringify(payload));
       setShowItinerary(true);
       
@@ -61,8 +54,7 @@ export default function Itinerary() {
 
   const handleClear = () => {
     localStorage.removeItem('ritual_itinerary_lookup');
-    setHotelConf('');
-    setContact('');
+    setPhone('');
     setShowItinerary(false);
   };
 
@@ -89,26 +81,16 @@ export default function Itinerary() {
         <div style={{ marginTop: '14px', background: '#FCF9F4', borderRadius: '18px', padding: '16px', boxShadow: '0 10px 30px rgba(0,0,0,.08)', border: '1px solid rgba(59,72,49,.10)' }}>
           <h2 style={{ margin: 0, color: '#3B4831', fontFamily: 'serif', fontSize: '22px' }}>Find your itinerary</h2>
           <p style={{ margin: '8px 0 0', color: '#1B1B1B', lineHeight: '1.6' }}>
-            Enter the details you used when booking. (This is optional for now — it helps you keep everything in one place.)
+            Enter your phone number to view your booking details.
           </p>
 
-          <div style={{ marginTop: '12px', display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+          <div style={{ marginTop: '12px' }}>
             <label style={{ display: 'block' }}>
-              <div style={{ fontWeight: 900, color: '#1B1B1B', marginBottom: '6px' }}>Hotel confirmation # (Cloudbeds)</div>
+              <div style={{ fontWeight: 900, color: '#1B1B1B', marginBottom: '6px' }}>Phone number</div>
               <input
-                value={hotelConf}
-                onChange={(e) => setHotelConf(e.target.value)}
-                placeholder="Example: CB-123456"
-                style={{ width: '100%', padding: '12px', borderRadius: '14px', border: '1px solid rgba(59,72,49,.22)', background: '#fff', fontSize: '16px', outline: 'none' }}
-              />
-            </label>
-
-            <label style={{ display: 'block' }}>
-              <div style={{ fontWeight: 900, color: '#1B1B1B', marginBottom: '6px' }}>Email or phone used to book</div>
-              <input
-                value={contact}
-                onChange={(e) => setContact(e.target.value)}
-                placeholder="you@email.com or (903) 555-1234"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="(903) 555-1234"
                 style={{ width: '100%', padding: '12px', borderRadius: '14px', border: '1px solid rgba(59,72,49,.22)', background: '#fff', fontSize: '16px', outline: 'none' }}
               />
             </label>
@@ -172,7 +154,7 @@ export default function Itinerary() {
                 <div style={{ color: '#3B4831', fontWeight: 900 }}>Hotel Stay</div>
                 <div style={{ marginTop: '8px', color: '#1B1B1B', lineHeight: '1.6' }}>
                   <div><b>Guest:</b> {reservationData?.guestName || '—'}</div>
-                  <div><b>Confirmation:</b> {reservationData?.confirmationCode || hotelConf || '—'}</div>
+                  <div><b>Confirmation:</b> {reservationData?.confirmationCode || '—'}</div>
                   <div><b>Room:</b> {reservationData?.roomName || '—'}</div>
                   <div><b>Check-in:</b> {reservationData?.checkInDate ? new Date(reservationData.checkInDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'} at 3:00 PM</div>
                   <div><b>Check-out:</b> {reservationData?.checkOutDate ? new Date(reservationData.checkOutDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'} at 11:00 AM</div>
