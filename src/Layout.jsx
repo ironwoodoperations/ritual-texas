@@ -167,8 +167,9 @@ export default function Layout({ children, currentPageName }) {
       {/* Whitney Concierge Bubble */}
       {!isAdminPage && (
         <div style={{ position: 'fixed', right: '18px', bottom: '18px', zIndex: 9999, display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <a href={createPageUrl('concierge')} style={{ textDecoration: 'none', background: '#3B4831', color: '#FCF9F4', padding: '12px 14px', borderRadius: '999px', fontWeight: 900, boxShadow: '0 12px 30px rgba(0,0,0,.18)', border: '1px solid rgba(196,165,92,.25)' }}>
-            Ask Whitney
+          <a href={createPageUrl('concierge')} style={{ textDecoration: 'none', background: '#3B4831', color: '#FCF9F4', padding: '8px 14px 8px 8px', borderRadius: '999px', fontWeight: 900, boxShadow: '0 12px 30px rgba(0,0,0,.18)', border: '1px solid rgba(196,165,92,.25)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/424e86f0a_generated-image1.jpeg" alt="Whitney" style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }} />
+            <span>Ask Whitney</span>
           </a>
         </div>
       )}

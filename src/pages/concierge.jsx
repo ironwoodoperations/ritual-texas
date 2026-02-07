@@ -4,7 +4,7 @@ export default function Concierge() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
 
-  const whitneyImage = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/674b866df_file_000000007e8871fd9aef365d1a217a0e.png';
+  const whitneyImage = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/424e86f0a_generated-image1.jpeg';
 
   useEffect(() => {
     setMessages([{
@@ -109,6 +109,11 @@ export default function Concierge() {
   return (
     <section style={{ background: '#F0E8DD', minHeight: '100vh', padding: '22px' }}>
       <div style={{ maxWidth: '980px', margin: '0 auto' }}>
+
+        {/* Large Whitney Image */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+          <img src={whitneyImage} alt="Whitney" style={{ width: '300px', height: '300px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 12px 40px rgba(0,0,0,.15)', border: '4px solid rgba(196,165,92,.3)' }} />
+        </div>
 
         <header style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
           <div>
