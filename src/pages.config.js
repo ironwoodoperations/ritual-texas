@@ -69,6 +69,7 @@ import Rooms from './pages/Rooms';
 import StaffDashboard from './pages/StaffDashboard';
 import Treatments from './pages/Treatments';
 import booking from './pages/booking';
+import afterBooking from './pages/afterBooking';
 import __Layout from './Layout.jsx';
 
 
@@ -95,6 +96,7 @@ export const PAGES = {
     "StaffDashboard": StaffDashboard,
     "Treatments": Treatments,
     "booking": booking,
+    "afterBooking": afterBooking,
 }
 
 export const pagesConfig = {
