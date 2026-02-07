@@ -164,6 +164,15 @@ export default function Layout({ children, currentPageName }) {
         {children}
       </main>
 
+      {/* Whitney Concierge Bubble */}
+      {!isAdminPage && (
+        <div style={{ position: 'fixed', right: '18px', bottom: '18px', zIndex: 9999, display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <a href={createPageUrl('concierge')} style={{ textDecoration: 'none', background: '#3B4831', color: '#FCF9F4', padding: '12px 14px', borderRadius: '999px', fontWeight: 900, boxShadow: '0 12px 30px rgba(0,0,0,.18)', border: '1px solid rgba(196,165,92,.25)' }}>
+            Ask Whitney
+          </a>
+        </div>
+      )}
+
       {/* Footer */}
       {!isAdminPage && (
         <footer className="bg-[rgb(235,225,213)] mt-20 py-16 px-6">
