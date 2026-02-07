@@ -68,10 +68,10 @@ import Press from './pages/Press';
 import Rooms from './pages/Rooms';
 import StaffDashboard from './pages/StaffDashboard';
 import Treatments from './pages/Treatments';
-import booking from './pages/booking';
 import afterBooking from './pages/afterBooking';
-import itinerary from './pages/itinerary';
+import booking from './pages/booking';
 import concierge from './pages/concierge';
+import itinerary from './pages/itinerary';
 import __Layout from './Layout.jsx';
 
 
@@ -97,10 +97,10 @@ export const PAGES = {
     "Rooms": Rooms,
     "StaffDashboard": StaffDashboard,
     "Treatments": Treatments,
-    "booking": booking,
     "afterBooking": afterBooking,
-    "itinerary": itinerary,
+    "booking": booking,
     "concierge": concierge,
+    "itinerary": itinerary,
 }
 
 export const pagesConfig = {
