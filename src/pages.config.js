@@ -67,7 +67,6 @@ import MyBooking from './pages/MyBooking';
 import Press from './pages/Press';
 import Rooms from './pages/Rooms';
 import StaffDashboard from './pages/StaffDashboard';
-import TreatmentCheckout from './pages/TreatmentCheckout';
 import Treatments from './pages/Treatments';
 import __Layout from './Layout.jsx';
 
@@ -93,7 +92,6 @@ export const PAGES = {
     "Press": Press,
     "Rooms": Rooms,
     "StaffDashboard": StaffDashboard,
-    "TreatmentCheckout": TreatmentCheckout,
     "Treatments": Treatments,
 }
 
