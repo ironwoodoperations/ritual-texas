@@ -18,6 +18,7 @@ export default function AskWhitneyWidget() {
     queryKey: ['knowledge-base'],
     queryFn: () => base44.entities.KnowledgeBaseArticles.filter({ isActive: true }),
     initialData: [],
+    enabled: isOpen, // Only fetch when widget is opened
   });
 
   useEffect(() => {
