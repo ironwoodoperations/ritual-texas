@@ -1,0 +1,31 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    
+    if (user?.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    }
+
+    const clientId = Deno.env.get("Client_ID");
+    const redirectUri = "https://hotel-ritual-experience-automation-a6e982ce.base44.app/api/cloudbeds/oauth/callback";
+    
+    // Generate random state for CSRF protection
+    const state = crypto.randomUUID();
+    
+    // Store state in session or database for verification in callback
+    await base44.asServiceRole.entities.SiteSettings.create({
+      key: `OAUTH_STATE_${state}`,
+      value: new Date().toISOString(),
+      description: "OAuth state for CSRF protection"
+    });
+    
+    const authUrl = `https://hotels.cloudbeds.com/api/v1.1/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
+    
+    return Response.json({ authUrl });
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+});
