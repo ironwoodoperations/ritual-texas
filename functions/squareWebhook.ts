@@ -63,15 +63,17 @@ Deno.serve(async (req) => {
 
     const event = JSON.parse(rawBody);
     const eventType = event?.type || "unknown";
-    const bookingId = event?.data?.id || event?.data?.object?.booking?.id;
+    
+    // Get booking ID from the correct location (without :0 suffix)
+    const booking = event?.data?.object?.booking;
+    const bookingId = booking?.id;
 
     if (!bookingId) {
       return Response.json({ received: true, warning: "No booking id in event payload", eventType }, { status: 200 });
     }
 
-    // Fetch full booking details from Square
-    const bookingResp = await squareApi(`/v2/bookings/${encodeURIComponent(bookingId)}`, accessToken);
-    const booking = bookingResp?.booking;
+    // Use booking data from webhook payload (already complete)
+    // No need to fetch again - webhook includes full booking object
 
     // Fetch customer details for email/phone
     let email = "";
@@ -92,19 +94,20 @@ Deno.serve(async (req) => {
     const durationMinutes = booking?.appointment_segments?.[0]?.duration_minutes ?? 0;
     const teamMemberId = booking?.appointment_segments?.[0]?.team_member_id || "";
     const serviceVariationId = booking?.appointment_segments?.[0]?.service_variation_id || "";
+    const serviceClientId = booking?.appointment_segments?.[0]?.service_variation_client_id || "";
 
     const spaBookingPayload = {
       source: "square",
       squareBookingId: bookingId,
       status: eventType,
-      service: serviceVariationId,
+      service: serviceClientId || serviceVariationId,
       staff: teamMemberId,
       startAt,
       durationMinutes,
       price: 0,
       email,
       phone,
-      raw: { event, bookingResp },
+      raw: { event, booking },
       createdAt: new Date().toISOString(),
     };
 
