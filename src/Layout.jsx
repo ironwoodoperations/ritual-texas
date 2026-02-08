@@ -144,14 +144,7 @@ export default function Layout({ children, currentPageName }) {
                     </div>
                   )}
                 </div>
-
-                <Link 
-                  to={createPageUrl('BookRooms')} 
-                  className="px-6 py-2.5 bg-[rgb(150,170,155)] text-white text-sm tracking-wide rounded-none hover:bg-[rgb(130,150,135)] transition-all"
-                >
-                  Book Your Stay
-                </Link>
-              </div>
+                </div>
 
               {/* Mobile Menu Button */}
               <button 
