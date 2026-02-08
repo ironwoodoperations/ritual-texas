@@ -159,6 +159,13 @@ export default function Restaurant() {
             ))}
           </div>
         </section>
+
+        {/* Tagline at bottom */}
+        <section style={{ marginTop: '80px', padding: '40px 20px', textAlign: 'center', background: 'linear-gradient(135deg, rgba(59,72,49,0.05) 0%, rgba(150,170,155,0.05) 100%)', borderRadius: '18px' }}>
+          <p style={{ margin: 0, fontSize: '24px', color: '#3B4831', fontWeight: 300, fontStyle: 'italic' }}>
+            Feed your soul with food, libations, and music.
+          </p>
+        </section>
       </div>
     </div>
   );
