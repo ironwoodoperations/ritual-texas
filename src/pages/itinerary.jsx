@@ -80,10 +80,10 @@ export default function ItineraryPage() {
 
       // Fetch spa bookings if checked
       if (spaChecked) {
-        const response = await fetch(
-          `/functions/spaBookingsLookup?email=${encodeURIComponent(spaEmail.trim().toLowerCase())}`
-        );
-        const data = await response.json();
+        const response = await base44.functions.invoke('spaBookingsLookup', {
+          email: spaEmail.trim().toLowerCase()
+        });
+        const data = response.data;
 
         if (data.success) {
           setSpaBookings(data.spaBookings || []);
