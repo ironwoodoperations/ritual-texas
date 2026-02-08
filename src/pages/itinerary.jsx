@@ -139,7 +139,7 @@ export default function ItineraryPage() {
         </div>
 
         {/* Lookup Card */}
-        {!reservation && spaBookings.length === 0 && (
+        {(!reservation || reservation === null) && (!spaBookings || spaBookings.length === 0) && (
           <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
             <h2 className="text-2xl font-light mb-6" style={{ color: '#3B4831' }}>
               View Your Itinerary
