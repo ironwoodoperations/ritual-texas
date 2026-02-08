@@ -139,7 +139,7 @@ export default function ItineraryPage() {
         </div>
 
         {/* Lookup Card */}
-        {(!reservation || reservation === null) && (!spaBookings || spaBookings.length === 0) && (
+        {!reservation && spaBookings.length === 0 && (
           <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
             <h2 className="text-2xl font-light mb-6" style={{ color: '#3B4831' }}>
               View Your Itinerary
@@ -239,6 +239,63 @@ export default function ItineraryPage() {
                 {loading ? 'Loading…' : 'View My Itinerary'}
               </Button>
             </div>
+          </Card>
+        )}
+
+        {/* Spa Bookings (standalone, no hotel required) */}
+        {spaBookings.length > 0 && (
+          <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
+            <h2 className="text-2xl font-light mb-4" style={{ color: '#3B4831' }}>
+              Your Spa Appointments
+            </h2>
+            <div className="space-y-4 mb-6">
+              {spaBookings.map((booking) => (
+                <div
+                  key={booking.id || booking.squareBookingId}
+                  className="p-4 rounded-lg border"
+                  style={{ borderColor: '#F0E8DD', backgroundColor: 'white' }}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-medium" style={{ color: '#3B4831' }}>
+                      {booking.service || 'Spa Service'}
+                    </h3>
+                    {booking.status && (
+                      <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: '#C4A55C', color: 'white' }}>
+                        {booking.status.replace('booking.', '')}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm space-y-1" style={{ color: '#1B1B1B' }}>
+                    {booking.startAt && (
+                      <p>
+                        <Clock className="w-3 h-3 inline mr-1" />
+                        {new Date(booking.startAt).toLocaleString('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    )}
+                    {booking.durationMinutes && (
+                      <p>{booking.durationMinutes} minutes</p>
+                    )}
+                    {booking.staff && (
+                      <p className="text-xs opacity-70">Staff ID: {booking.staff}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Button
+              onClick={() => window.open(SQUARE_SERVICES_URL, '_blank')}
+              className="w-full text-white font-medium py-6"
+              style={{ backgroundColor: '#C57C5D' }}
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              Book Another Treatment
+            </Button>
           </Card>
         )}
 
@@ -400,62 +457,7 @@ export default function ItineraryPage() {
               </div>
             </Card>
 
-            {/* Spa Bookings Section */}
-            {spaBookings.length > 0 && (
-              <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
-                <h2 className="text-2xl font-light mb-4" style={{ color: '#3B4831' }}>
-                  Your Spa Appointments
-                </h2>
-                <div className="space-y-4 mb-6">
-                  {spaBookings.map((booking) => (
-                    <div
-                      key={booking.id || booking.squareBookingId}
-                      className="p-4 rounded-lg border"
-                      style={{ borderColor: '#F0E8DD', backgroundColor: 'white' }}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-medium" style={{ color: '#3B4831' }}>
-                          {booking.service || 'Spa Service'}
-                        </h3>
-                        {booking.status && (
-                          <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: '#C4A55C', color: 'white' }}>
-                            {booking.status.replace('booking.', '')}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-sm space-y-1" style={{ color: '#1B1B1B' }}>
-                        {booking.startAt && (
-                          <p>
-                            <Clock className="w-3 h-3 inline mr-1" />
-                            {new Date(booking.startAt).toLocaleString('en-US', {
-                              weekday: 'short',
-                              month: 'short',
-                              day: 'numeric',
-                              hour: 'numeric',
-                              minute: '2-digit'
-                            })}
-                          </p>
-                        )}
-                        {booking.durationMinutes && (
-                          <p>{booking.durationMinutes} minutes</p>
-                        )}
-                        {booking.staff && (
-                          <p className="text-xs opacity-70">Staff ID: {booking.staff}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <Button
-                  onClick={() => window.open(SQUARE_SERVICES_URL, '_blank')}
-                  className="w-full text-white font-medium py-6"
-                  style={{ backgroundColor: '#C57C5D' }}
-                >
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Book Another Treatment
-                </Button>
-              </Card>
-            )}
+
 
             {/* Spa CTA (if no bookings yet) */}
             {spaBookings.length === 0 && (
