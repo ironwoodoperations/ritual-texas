@@ -154,14 +154,11 @@ export default function Restaurant() {
           </div>
         </section>
 
-        {/* Gallery */}
+        {/* Gallery Placeholder */}
         <section style={{ marginBottom: '60px' }}>
           <h2 style={{ margin: 0, fontFamily: 'serif', fontSize: '32px', color: '#3B4831', marginBottom: '24px' }}>Gallery</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
-            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/7ac79d09b_2024-11-27.jpg" alt="Restaurant dish" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: '12px' }} />
-            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/a790494a9_2024-11-271.jpg" alt="Restaurant dessert" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: '12px' }} />
-            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/a3fe627bb_2024-11-272.jpg" alt="Restaurant toast" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: '12px' }} />
-            {[4, 5, 6, 7, 8].map(i => (
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
               <div key={i} style={{ aspectRatio: '1', background: 'rgba(59,72,49,.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3B4831', fontSize: '14px' }}>
                 Gallery {i}
               </div>
