@@ -51,8 +51,8 @@ export default function Booking() {
           </a>
           <a
             href={bookingUrl}
-            target="_top"
-            rel="nofollow"
+            target="_blank"
+            rel="noopener noreferrer"
             style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '12px 16px', borderRadius: '14px', fontWeight: 900 }}
           >
             Continue to Booking
