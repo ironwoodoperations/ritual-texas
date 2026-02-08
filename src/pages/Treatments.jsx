@@ -38,7 +38,7 @@ export default function Treatments() {
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 800, color: '#1B1B1B' }}>60 min</div>
-              <a href="/booking?service=royal"
+              <a href="/spa/booking?service=royal"
                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                 Book Now
               </a>
@@ -55,7 +55,7 @@ export default function Treatments() {
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 800, color: '#1B1B1B' }}>120 min</div>
-              <a href="/booking?service=aura"
+              <a href="/spa/booking?service=aura"
                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                 Book Now
               </a>
@@ -72,7 +72,7 @@ export default function Treatments() {
             <div style={{ display: 'grid', gap: '10px', marginTop: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', padding: '12px', borderRadius: '14px', background: 'rgba(240,232,221,.65)', border: '1px solid rgba(59,72,49,.08)' }}>
                 <div style={{ fontWeight: 800, color: '#1B1B1B' }}>60 min</div>
-                <a href="/booking?service=swedish60"
+                <a href="/spa/booking?service=swedish60"
                    style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                   Book 60
                 </a>
@@ -80,7 +80,7 @@ export default function Treatments() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', padding: '12px', borderRadius: '14px', background: 'rgba(240,232,221,.65)', border: '1px solid rgba(59,72,49,.08)' }}>
                 <div style={{ fontWeight: 800, color: '#1B1B1B' }}>90 min</div>
-                <a href="/booking?service=swedish90"
+                <a href="/spa/booking?service=swedish90"
                    style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                   Book 90
                 </a>
@@ -97,7 +97,7 @@ export default function Treatments() {
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 800, color: '#1B1B1B' }}>90 min</div>
-              <a href="/booking?service=lymphatic"
+              <a href="/spa/booking?service=lymphatic"
                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                 Book Now
               </a>
@@ -112,7 +112,7 @@ export default function Treatments() {
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 800, color: '#1B1B1B' }}>1 hr</div>
-              <a href="/booking?service=shirodhara"
+              <a href="/spa/booking?service=shirodhara"
                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                 Book Now
               </a>
@@ -129,7 +129,7 @@ export default function Treatments() {
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 800, color: '#1B1B1B' }}>120 min</div>
-              <a href="/booking?service=shiroglow"
+              <a href="/spa/booking?service=shiroglow"
                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                 Book Now
               </a>
@@ -145,7 +145,7 @@ export default function Treatments() {
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 800, color: '#1B1B1B' }}>1 hr</div>
-              <a href="/booking?service=forgiveness"
+              <a href="/spa/booking?service=forgiveness"
                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                 Book Now
               </a>
@@ -161,7 +161,7 @@ export default function Treatments() {
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 800, color: '#1B1B1B' }}>1 hr</div>
-              <a href="/booking?service=reiki"
+              <a href="/spa/booking?service=reiki"
                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                 Book Now
               </a>
@@ -179,7 +179,7 @@ export default function Treatments() {
             <div style={{ display: 'grid', gap: '10px', marginTop: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', padding: '12px', borderRadius: '14px', background: 'rgba(240,232,221,.65)', border: '1px solid rgba(59,72,49,.08)' }}>
                 <div style={{ fontWeight: 800, color: '#1B1B1B' }}>Private 60 min session</div>
-                <a href="/booking?service=soundprivate"
+                <a href="/spa/booking?service=soundprivate"
                    style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                   Book Private
                 </a>
@@ -187,7 +187,7 @@ export default function Treatments() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', padding: '12px', borderRadius: '14px', background: 'rgba(240,232,221,.65)', border: '1px solid rgba(59,72,49,.08)' }}>
                 <div style={{ fontWeight: 800, color: '#1B1B1B' }}>Group class</div>
-                <a href="/booking?service=soundgroup"
+                <a href="/spa/booking?service=soundgroup"
                    style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                   Book Group
                 </a>
@@ -206,7 +206,7 @@ export default function Treatments() {
             <div style={{ display: 'grid', gap: '10px', marginTop: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', padding: '12px', borderRadius: '14px', background: 'rgba(240,232,221,.65)', border: '1px solid rgba(59,72,49,.08)' }}>
                 <div style={{ fontWeight: 800, color: '#1B1B1B' }}>Private class</div>
-                <a href="/booking?service=yogaprivate"
+                <a href="/spa/booking?service=yogaprivate"
                    style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                   Book Private
                 </a>
@@ -214,7 +214,7 @@ export default function Treatments() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', padding: '12px', borderRadius: '14px', background: 'rgba(240,232,221,.65)', border: '1px solid rgba(59,72,49,.08)' }}>
                 <div style={{ fontWeight: 800, color: '#1B1B1B' }}>Group class</div>
-                <a href="/booking?service=yogagroup"
+                <a href="/spa/booking?service=yogagroup"
                    style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                   Book Group
                 </a>
@@ -230,7 +230,7 @@ export default function Treatments() {
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 800, color: '#1B1B1B' }}>By donation</div>
-              <a href="/booking?service=drpark"
+              <a href="/spa/booking?service=drpark"
                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}>
                 Book Now
               </a>
