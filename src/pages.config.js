@@ -78,6 +78,7 @@ import RestaurantOrder from './pages/RestaurantOrder';
 import RestaurantReservations from './pages/RestaurantReservations';
 import RestaurantEvents from './pages/RestaurantEvents';
 import RestaurantContact from './pages/RestaurantContact';
+import AdminRestaurant from './pages/AdminRestaurant';
 import __Layout from './Layout.jsx';
 
 
@@ -113,6 +114,7 @@ export const PAGES = {
     "RestaurantReservations": RestaurantReservations,
     "RestaurantEvents": RestaurantEvents,
     "RestaurantContact": RestaurantContact,
+    "AdminRestaurant": AdminRestaurant,
 }
 
 export const pagesConfig = {

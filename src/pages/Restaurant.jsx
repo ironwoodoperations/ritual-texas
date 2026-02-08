@@ -3,7 +3,51 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, MapPin, Phone, Mail } from 'lucide-react';
+import { Calendar, MapPin, Phone, Mail, Sparkles } from 'lucide-react';
+
+function DailySpecialsSection() {
+  const { data: specials = [] } = useQuery({
+    queryKey: ['active-specials'],
+    queryFn: async () => {
+      const all = await base44.entities.RestaurantDailySpecials.list();
+      return all.filter(s => s.isActiveToday && !s.isArchived);
+    },
+  });
+
+  return (
+    <section style={{ marginBottom: '60px', background: '#FCF9F4', padding: '40px', borderRadius: '18px', border: '1px solid rgba(59,72,49,.1)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+        <Sparkles className="w-8 h-8" style={{ color: '#C57C5D' }} />
+        <h2 style={{ margin: 0, fontFamily: 'serif', fontSize: '32px', color: '#3B4831' }}>Daily Specials</h2>
+      </div>
+      
+      {specials.length > 0 ? (
+        <div style={{ display: 'grid', gap: '16px' }}>
+          {specials.map(special => (
+            <div key={special.id} style={{ padding: '20px', background: 'white', borderRadius: '12px', border: '1px solid rgba(59,72,49,.1)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                <h3 style={{ margin: 0, fontSize: '20px', color: '#3B4831', fontWeight: 700 }}>{special.title}</h3>
+                {special.price && (
+                  <span style={{ fontSize: '20px', color: '#C57C5D', fontWeight: 700 }}>${special.price}</span>
+                )}
+              </div>
+              <p style={{ margin: '8px 0 0 0', color: '#1B1B1B', lineHeight: '1.7' }}>{special.description}</p>
+              {special.category && (
+                <span style={{ display: 'inline-block', marginTop: '8px', padding: '4px 10px', background: 'rgba(197,124,93,.15)', color: '#C57C5D', fontSize: '12px', borderRadius: '4px', fontWeight: 600 }}>
+                  {special.category}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p style={{ margin: 0, color: '#1B1B1B', lineHeight: '1.7', fontSize: '16px' }}>
+          Daily specials updated each morning — check back soon or call us at (903) 284-6880.
+        </p>
+      )}
+    </section>
+  );
+}
 
 export default function Restaurant() {
   const { data: hours = [] } = useQuery({
@@ -48,15 +92,8 @@ export default function Restaurant() {
           </p>
         </section>
 
-        {/* Today at Ritual */}
-        <section style={{ marginBottom: '60px', background: '#FCF9F4', padding: '40px', borderRadius: '18px', border: '1px solid rgba(59,72,49,.1)' }}>
-          <h2 style={{ margin: 0, fontFamily: 'serif', fontSize: '32px', color: '#3B4831' }}>Today at Ritual</h2>
-          <div style={{ marginTop: '20px', lineHeight: '1.8', color: '#1B1B1B', fontSize: '16px' }}>
-            <p><strong>Daily Specials:</strong> Check with us for today's fresh features</p>
-            <p><strong>Live Music:</strong> Select evenings - follow us for schedule updates</p>
-            <p><strong>Happy Hour:</strong> Craft cocktails and local brews</p>
-          </div>
-        </section>
+        {/* Daily Specials */}
+        <DailySpecialsSection />
 
         {/* Hours & Location */}
         <section style={{ marginBottom: '60px' }}>

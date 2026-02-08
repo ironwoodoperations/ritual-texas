@@ -20,7 +20,7 @@ export default function RestaurantMenu() {
   const menuPdfUrl = settings.find(s => s.key === 'MENU_PDF_URL')?.value || 'https://static1.squarespace.com/static/58571ab2bebafb3c0ff83706/t/65a1576ac3a65005bffbfa6c/1705072490251/RITUAL%2BMenu.pdf';
   const toastMenuUrl = settings.find(s => s.key === 'TOAST_MENU_URL')?.value;
 
-  const categories = ['Lunch', 'Dinner', 'Drinks', 'Dessert'];
+  const categories = ['Lunch', 'Bar', 'Dinner', 'Dessert', 'Espresso', 'Drinks'];
   const filteredItems = menuItems
     .filter(item => item.category === activeCategory)
     .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
