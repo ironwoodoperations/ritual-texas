@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     }
 
     const clientId = Deno.env.get("Client_ID");
-    const redirectUri = "https://hotel-ritual-experience-automation-a6e982ce.base44.app/api/cloudbeds/oauth/callback";
+    const redirectUri = "https://hotel-ritual-experience-automation-a6e982ce.base44.app/functions/cloudbedsOAuthCallback";
     
     // Generate random state for CSRF protection
     const state = crypto.randomUUID();
