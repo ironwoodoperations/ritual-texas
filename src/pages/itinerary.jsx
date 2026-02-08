@@ -125,6 +125,29 @@ export default function ItineraryPage() {
     window.print();
   };
 
+  const handleEmailItinerary = async () => {
+    if (!reservation?.guestEmail) {
+      alert('No email on file');
+      return;
+    }
+    try {
+      await base44.functions.invoke('sendItineraryEmail', {
+        guestName: reservation.guestName,
+        guestEmail: reservation.guestEmail,
+        confirmationCode: reservation.confirmationCode,
+        checkIn: reservation.checkIn,
+        checkOut: reservation.checkOut,
+        roomType: reservation.roomType,
+        totalAmount: reservation.totalAmount,
+        spaBookings: spaBookings
+      });
+      alert('Itinerary emailed successfully!');
+    } catch (err) {
+      console.error('Email error:', err);
+      alert('Failed to send email. Please try again.');
+    }
+  };
+
   return (
     <div style={{ backgroundColor: '#F0E8DD' }} className="min-h-screen py-12 px-4">
       <div className="max-w-3xl mx-auto">
