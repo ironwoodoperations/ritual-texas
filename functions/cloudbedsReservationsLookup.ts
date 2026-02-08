@@ -16,42 +16,13 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    let body = {};
-    if (req.method === 'POST') {
-      body = await req.json().catch(() => ({}));
-    } else {
-      const url = new URL(req.url);
-      body = {
-        confirmation: url.searchParams.get('confirmation'),
-        contact: url.searchParams.get('contact'),
-      };
-    }
-    
-    // Normalize inputs with aliases
-    const confirmation = (
-      body.confirmation ||
-      body.confirmationNumber ||
-      body.confirmation_number ||
-      body.reservationId ||
-      body.reservation_id ||
-      ""
-    ).toString().trim();
-
-    const contact = (
-      body.email ||
-      body.contact ||
-      body.guestEmail ||
-      body.guest_email ||
-      ""
-    ).toString().trim();
+    const url = new URL(req.url);
+    const confirmation = url.searchParams.get('confirmation');
+    const contact = url.searchParams.get('contact');
     
     if (!confirmation || !contact) {
       return Response.json({ 
-        error: 'Missing required parameters: confirmation and contact',
-        received: {
-          confirmationPresent: !!confirmation,
-          contactPresent: !!contact,
-        }
+        error: 'Missing required parameters: confirmation and contact' 
       }, { status: 400 });
     }
     
