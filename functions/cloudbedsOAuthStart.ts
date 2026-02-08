@@ -4,6 +4,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
+    // Using rotated Client_Secret - 2026-02-08
     const clientId = Deno.env.get("Client_ID");
     const redirectUri = "https://hotel-ritual-experience-automation-a6e982ce.base44.app/functions/cloudbedsOAuthCallback";
     
