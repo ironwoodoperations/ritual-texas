@@ -105,19 +105,46 @@ export default function Layout({ children, currentPageName }) {
                 <Link to={createPageUrl('Restaurant')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   Restaurant
                 </Link>
-                <Link to={createPageUrl('Amenities')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
-                  Amenities
-                </Link>
-                <Link to={createPageUrl('Press')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
-                  Press
-                </Link>
-                <Link to={createPageUrl('itinerary')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
-                  Itinerary
-                </Link>
                 <button onClick={() => setShowWhitney(true)} className="flex items-center gap-2 text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/424e86f0a_generated-image1.jpeg" alt="Whitney" className="w-6 h-6 rounded-full object-cover" />
                   Ask Whitney
                 </button>
+
+                {/* Desktop More Menu */}
+                <div className="relative">
+                  <button 
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="p-2 hover:bg-[rgb(235,225,213)] rounded-md transition-colors"
+                  >
+                    <Menu className="w-5 h-5 text-[rgb(45,45,45)]" />
+                  </button>
+                  {isMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-[rgb(248,246,242)] border border-[rgb(235,225,213)] rounded-md shadow-lg py-2 z-50">
+                      <Link 
+                        to={createPageUrl('Amenities')} 
+                        className="block px-4 py-2 text-sm text-[rgb(45,45,45)] hover:bg-[rgb(235,225,213)] transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Amenities
+                      </Link>
+                      <Link 
+                        to={createPageUrl('Press')} 
+                        className="block px-4 py-2 text-sm text-[rgb(45,45,45)] hover:bg-[rgb(235,225,213)] transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Press
+                      </Link>
+                      <Link 
+                        to={createPageUrl('itinerary')} 
+                        className="block px-4 py-2 text-sm text-[rgb(45,45,45)] hover:bg-[rgb(235,225,213)] transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        My Itinerary
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
                 <Link 
                   to={createPageUrl('BookRooms')} 
                   className="px-6 py-2.5 bg-[rgb(150,170,155)] text-white text-sm tracking-wide rounded-none hover:bg-[rgb(130,150,135)] transition-all"
