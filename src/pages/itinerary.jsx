@@ -412,9 +412,9 @@ export default function ItineraryPage() {
           </Card>
         )}
 
-        {/* Timeline */}
+        {/* Timeline & Actions */}
         {reservation && (
-
+          <>
             <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
               <h2 className="text-2xl font-light mb-8" style={{ color: '#3B4831' }}>
                 Your Stay Timeline
@@ -491,8 +491,6 @@ export default function ItineraryPage() {
               </div>
             </Card>
 
-
-
             {/* Spa CTA (if no bookings yet) */}
             {spaBookings.length === 0 && (
               <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
@@ -500,7 +498,7 @@ export default function ItineraryPage() {
                   Spa & Wellness
                 </h2>
                 <p className="text-sm mb-6" style={{ color: '#1B1B1B' }}>
-                  {spaChecked ? 'No spa appointments found for that email yet.' : 'Book a treatment any time. Add-ons are confirmed instantly in Square.'}
+                  Book a treatment any time. Add-ons are confirmed instantly in Square.
                 </p>
                 <Button
                   onClick={() => window.open(SQUARE_SERVICES_URL, '_blank')}
@@ -513,7 +511,7 @@ export default function ItineraryPage() {
               </Card>
             )}
 
-            {/* Actions */}
+            {/* Save & Share */}
             <Card className="p-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
               <h2 className="text-2xl font-light mb-4" style={{ color: '#3B4831' }}>
                 Save & Share
@@ -528,11 +526,11 @@ export default function ItineraryPage() {
                   Print Itinerary
                 </Button>
                 <Button
+                  onClick={() => handleEmailItinerary()}
                   variant="outline"
                   style={{ borderColor: '#3B4831', color: '#3B4831' }}
-                  disabled
                 >
-                  Email Me This Itinerary
+                  Email This Itinerary
                 </Button>
               </div>
             </Card>
