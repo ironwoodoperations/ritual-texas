@@ -138,7 +138,16 @@ export default function ItineraryPage() {
     const res = await fetch("/functions/cloudbedsReservationsLookup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ confirmation: confirmation.trim(), contact: contact.trim() }),
+      body: JSON.stringify({
+        // NEW UI names
+        confirmation: (confirmation || "").trim(),
+        contact: (contact || "").trim(),
+        // ALIASES (backward compatible)
+        confirmationNumber: (confirmation || "").trim(),
+        email: (contact || "").trim(),
+        confirmation_number: (confirmation || "").trim(),
+        guestEmail: (contact || "").trim(),
+      }),
     });
 
     const data = await res.json().catch(() => ({}));
