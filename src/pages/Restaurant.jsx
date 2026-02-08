@@ -62,25 +62,31 @@ export default function Restaurant() {
     <div style={{ background: '#F0E8DD', minHeight: '100vh' }}>
       {/* Hero */}
       <section style={{ 
-        padding: '120px 20px', 
+        padding: '180px 20px 60px 20px', 
         textAlign: 'center', 
         backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/ee7b68055_unnamed1.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        minHeight: '300px'
+        minHeight: '400px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-end'
       }}>
-        <div style={{ marginTop: '32px', display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '24px' }}>
           <Link to={createPageUrl('RestaurantMenu')} style={{ padding: '14px 28px', background: '#C57C5D', color: '#FCF9F4', textDecoration: 'none', borderRadius: '8px', fontWeight: 700 }}>
             View Menu
           </Link>
           <Link to={createPageUrl('RestaurantOrder')} style={{ padding: '14px 28px', background: '#3B4831', color: '#FCF9F4', textDecoration: 'none', borderRadius: '8px', fontWeight: 700 }}>
             Order Online
           </Link>
-          <Link to={createPageUrl('RestaurantReservations')} style={{ padding: '14px 28px', background: 'transparent', border: '2px solid #3B4831', color: '#3B4831', textDecoration: 'none', borderRadius: '8px', fontWeight: 700 }}>
+          <Link to={createPageUrl('RestaurantReservations')} style={{ padding: '14px 28px', background: '#D4C4A8', color: '#3B4831', textDecoration: 'none', borderRadius: '8px', fontWeight: 700 }}>
             Reservations
           </Link>
         </div>
+        <p style={{ margin: '0', fontSize: '24px', color: '#FCF9F4', fontWeight: 300, fontStyle: 'italic', textShadow: '1px 1px 3px rgba(0,0,0,0.7)' }}>
+          Feed your soul with food, libations, and music.
+        </p>
       </section>
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
@@ -160,12 +166,6 @@ export default function Restaurant() {
           </div>
         </section>
 
-        {/* Tagline at bottom */}
-        <section style={{ marginTop: '80px', padding: '40px 20px', textAlign: 'center', background: 'linear-gradient(135deg, rgba(59,72,49,0.05) 0%, rgba(150,170,155,0.05) 100%)', borderRadius: '18px' }}>
-          <p style={{ margin: 0, fontSize: '24px', color: '#3B4831', fontWeight: 300, fontStyle: 'italic' }}>
-            Feed your soul with food, libations, and music.
-          </p>
-        </section>
       </div>
     </div>
   );
