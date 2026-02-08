@@ -31,14 +31,25 @@ Deno.serve(async (req) => {
     
     const authUrl = `https://hotels.cloudbeds.com/api/v1.1/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
     
-    // Debug output in case redirect fails
+    // Debug output
     console.log('Redirecting to:', authUrl);
     
-    // Redirect directly to Cloudbeds authorization
+    // Check if debugging mode
+    const url = new URL(req.url);
+    if (url.searchParams.get('debug') === 'true') {
+      return Response.json({ 
+        authUrl: authUrl,
+        message: "Manual redirect needed - click the authUrl"
+      });
+    }
+    
+    // Attempt redirect with explicit headers
     return new Response(null, {
       status: 302,
       headers: {
-        'Location': authUrl
+        'Location': authUrl,
+        'Cache-Control': 'no-store',
+        'Content-Type': 'text/plain'
       }
     });
   } catch (error) {
