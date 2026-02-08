@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 
 const SQUARE_EMBED_SNIPPET = `
 <!-- Start Square Appointments Embed Code -->
-<script src="https://square.site/appointments/buyer/widget/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/9Y1N836Q82W1V.js"></script>
+<script src="https://app.squareup.com/appointments/buyer/widget/zs9b0b2tpmomxw/9Y1N836Q82W1V.js"></script>
 <!-- End Square Appointments Embed Code -->
 `;
 
