@@ -1,135 +1,64 @@
 import React, { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Sparkles, Calendar, MessageCircle, Phone } from 'lucide-react';
 
 export default function Booking() {
-  useEffect(() => {
-    // Load Square widget script
-    const script = document.createElement('script');
-    script.src = 'https://square.site/appointments/buyer/widget/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/9Y1N836Q82W1V.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  const scrollToNextSteps = () => {
-    const element = document.getElementById('next-steps');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+  const links = {
+    royal: "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/HLBJAKGW6OVLZOP6D7GFJQMO",
+    aura: "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/7HLQNBFV7DDE3C4SSMWYWTAL",
+    swedish60: "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/YPVKZMCL7BLIMNTW4KYBLGXM",
+    swedish90: "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/DKOTRCVJPAU4YZPJNI7PENAC",
+    lymphatic: "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/PMSGEU5VO76MMFGT2K4BIFF4",
+    shirodhara: "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/QRVGKSUAYAPN7TVOD6MGMWOZ",
+    shiroglow: "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/ZLVRPJR6VVQZO4C63JEQPGKV",
+    forgiveness: "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/4LXL6H4CETPOG24Y73BQYYW3",
+    reiki: "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/VIJZXOZCLRSXRDXOO3KPSVEV",
+    soundprivate: "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/HFJVSRHBCZGF2DIJQVY2UXQ3",
+    soundgroup: "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/IQKEIFVAI4PYG4DIDKC5TCRA",
+    yogaprivate: "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/4KH2D3DUU7PSEMTCCKEQUCK6",
+    yogagroup: "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/KP4V3SG3R3CYMYCAD3GNDILC",
+    drpark: "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services/KQC3YJ6KP5JFD4S4QGDUVJB5"
   };
 
+  const params = new URLSearchParams(window.location.search);
+  const service = (params.get("service") || "").toLowerCase();
+  const fallback = "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services";
+  const bookingUrl = links[service] || fallback;
+
   return (
-    <div style={{ backgroundColor: '#F0E8DD' }} className="min-h-screen py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Title Section */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-light mb-4" style={{ color: '#3B4831' }}>
-            Book Your Treatment
-          </h1>
-          <p className="text-lg" style={{ color: '#1B1B1B' }}>
-            Select your service and preferred time below.
-          </p>
+    <section style={{ background: '#F0E8DD', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      <div style={{ maxWidth: '620px', width: '100%', background: '#FCF9F4', borderRadius: '18px', padding: '22px', boxShadow: '0 10px 30px rgba(0,0,0,.10)', border: '1px solid rgba(59,72,49,.10)' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+          <div>
+            <h1 style={{ margin: 0, color: '#3B4831', fontFamily: 'serif', fontSize: '30px' }}>Preparing Your Booking</h1>
+            <p style={{ marginTop: '10px', color: '#1B1B1B', lineHeight: '1.65' }}>
+              You're being securely redirected to select your time and complete your booking.
+            </p>
+          </div>
+          <div style={{ padding: '6px 10px', borderRadius: '999px', background: 'rgba(196,165,92,.18)', border: '1px solid rgba(59,72,49,.10)', color: '#3B4831', fontWeight: 800, fontSize: '12px' }}>
+            Secure Checkout
+          </div>
         </div>
 
-        {/* Square Embed Container */}
-        <Card className="mb-8 p-6" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
-          <div id="square-appointments-embed"></div>
-        </Card>
+        <div style={{ marginTop: '14px', padding: '12px', borderRadius: '14px', background: 'rgba(240,232,221,.65)', border: '1px solid rgba(59,72,49,.08)' }}>
+          <div style={{ fontWeight: 900, color: '#1B1B1B' }}>Tip for best results</div>
+          <div style={{ marginTop: '6px', color: '#1B1B1B', lineHeight: '1.6' }}>
+            Sauna + rainshower are available pre or post treatment for maximum results. Rehydrate with mineral water, organic teas, and snacks in the butler's pantry.
+          </div>
+        </div>
 
-        {/* Helper Button */}
-        <div className="text-center mb-8">
-          <Button
-            onClick={scrollToNextSteps}
-            variant="outline"
-            style={{ borderColor: '#3B4831', color: '#3B4831' }}
+        <div style={{ marginTop: '16px', display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <a href="/Treatments" style={{ textDecoration: 'none', padding: '12px 14px', borderRadius: '14px', fontWeight: 900, border: '1px solid rgba(59,72,49,.18)', color: '#3B4831' }}>
+            Back
+          </a>
+          <a
+            href={bookingUrl}
+            target="_top"
+            rel="nofollow"
+            style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '12px 16px', borderRadius: '14px', fontWeight: 900 }}
           >
-            I finished booking — show next steps
-          </Button>
-        </div>
-
-        {/* After You Book Panel */}
-        <div id="next-steps">
-          <Card className="p-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
-            <div className="flex items-start justify-between mb-6">
-              <div>
-                <h2 className="text-3xl font-light mb-3" style={{ color: '#3B4831' }}>
-                  Want to add another treatment?
-                </h2>
-                <p className="text-base leading-relaxed" style={{ color: '#1B1B1B' }}>
-                  Square books one service at a time. After you complete a booking, tap below to add another service, or jump to your full itinerary.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid gap-4 mb-6">
-              {/* Tip Card */}
-              <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(240,232,221,0.65)', border: '1px solid rgba(59,72,49,0.08)' }}>
-                <div className="font-bold mb-2" style={{ color: '#1B1B1B' }}>
-                  Pro Tip
-                </div>
-                <p className="text-sm leading-relaxed" style={{ color: '#1B1B1B' }}>
-                  Most guests pair a body reset (massage, lymphatic) with a facial or sound work. Build your perfect wellness day.
-                </p>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3">
-              <Button
-                onClick={() => window.open('https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services', '_blank')}
-                className="text-white font-medium"
-                style={{ backgroundColor: '#C57C5D' }}
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Book Another Treatment
-              </Button>
-              
-              <Button
-                onClick={() => window.location.href = '/itinerary'}
-                variant="outline"
-                style={{ borderColor: '#3B4831', color: '#3B4831' }}
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                View My Full Itinerary
-              </Button>
-              
-              <Button
-                onClick={() => window.open('sms:+19038106695?&body=Hi%20RITUAL%20Concierge%20—%20I%20just%20booked%20a%20treatment%20and%20want%20to%20add%20another.%20Can%20you%20help%3F', '_blank')}
-                variant="outline"
-                style={{ borderColor: '#3B4831', color: '#3B4831' }}
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Text Concierge
-              </Button>
-              
-              <Button
-                onClick={() => window.open('tel:9038106695', '_blank')}
-                variant="outline"
-                style={{ borderColor: '#3B4831', color: '#3B4831' }}
-              >
-                <Phone className="w-4 h-4 mr-2" />
-                Call Hotel
-              </Button>
-            </div>
-          </Card>
-        </div>
-
-        {/* Back Link */}
-        <div className="text-center mt-8">
-          <a 
-            href="/Treatments" 
-            className="text-sm" 
-            style={{ color: '#3B4831', textDecoration: 'underline' }}
-          >
-            ← Back to All Treatments
+            Continue to Booking
           </a>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

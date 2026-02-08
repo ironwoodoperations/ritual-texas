@@ -1,141 +1,103 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Sparkles, Calendar, MessageCircle, CheckCircle } from 'lucide-react';
 
 export default function AfterBooking() {
   return (
-    <div style={{ backgroundColor: '#F0E8DD' }} className="min-h-screen py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Success Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <CheckCircle className="w-16 h-16" style={{ color: '#C4A55C' }} />
+    <section style={{ background: '#F0E8DD', minHeight: '100vh', padding: '22px' }}>
+      <div style={{ maxWidth: '980px', margin: '0 auto' }}>
+
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+          <div>
+            <h1 style={{ margin: 0, color: '#3B4831', fontFamily: 'serif', fontSize: '34px' }}>
+              You're All Set.
+            </h1>
+            <p style={{ marginTop: '10px', color: '#1B1B1B', lineHeight: '1.65', maxWidth: '720px' }}>
+              Your treatment request is booked (or in progress). Want to elevate your stay?
+              Add another ritual below — most guests pair a body reset with a facial or sound work.
+            </p>
           </div>
-          <h1 className="text-4xl md:text-5xl font-light mb-4" style={{ color: '#3B4831' }}>
-            You're Booked.
-          </h1>
-          <p className="text-lg max-w-2xl mx-auto" style={{ color: '#1B1B1B' }}>
-            Your treatment is confirmed. Want to elevate your stay? Add another ritual below — most guests pair a body reset with a facial or sound work.
-          </p>
+
+          <div style={{ padding: '6px 10px', borderRadius: '999px', background: 'rgba(196,165,92,.18)', border: '1px solid rgba(59,72,49,.10)', color: '#3B4831', fontWeight: 800, fontSize: '12px' }}>
+            Concierge Pick
+          </div>
         </div>
 
-        {/* Concierge Pick */}
-        <Card className="mb-8 p-6" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
-          <div className="flex items-start gap-3">
-            <div className="px-3 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: 'rgba(196,165,92,0.18)', border: '1px solid rgba(59,72,49,0.1)', color: '#3B4831' }}>
-              Concierge Pick
+        <div style={{ marginTop: '14px', display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
+          <div style={{ background: '#FCF9F4', borderRadius: '18px', padding: '16px', boxShadow: '0 10px 30px rgba(0,0,0,.08)', border: '1px solid rgba(59,72,49,.10)' }}>
+            <div style={{ fontWeight: 900, color: '#1B1B1B' }}>Pairing that books out fastest</div>
+            <div style={{ marginTop: '6px', color: '#1B1B1B', lineHeight: '1.6' }}>
+              <b>Sound Bath</b> (private or group) + <b>Swedish Massage</b> is a favorite for deep nervous-system calm.
             </div>
           </div>
-          <div className="mt-4">
-            <p className="font-bold mb-2" style={{ color: '#1B1B1B' }}>
-              Pairing that books out fastest
-            </p>
-            <p className="leading-relaxed" style={{ color: '#1B1B1B' }}>
-              <strong>Sound Bath</strong> (private or group) + <strong>Swedish Massage</strong> is a favorite for deep nervous-system calm.
-            </p>
-          </div>
-        </Card>
+        </div>
 
-        {/* Main Actions */}
-        <Card className="mb-8 p-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
-          <h2 className="text-2xl font-light mb-6" style={{ color: '#3B4831' }}>
-            What's Next?
-          </h2>
+        <h2 style={{ margin: '18px 0 10px', color: '#3B4831', fontFamily: 'serif', fontSize: '26px' }}>
+          Add Another Treatment
+        </h2>
 
-          <div className="grid gap-4 mb-6">
-            {/* Tip */}
-            <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(240,232,221,0.65)', border: '1px solid rgba(59,72,49,0.08)' }}>
-              <p className="text-sm leading-relaxed" style={{ color: '#1B1B1B' }}>
-                <strong>Square books one service at a time.</strong> To add another treatment, use the button below. Your itinerary will show all your bookings in one place.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            <Button
-              onClick={() => window.open('https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services', '_blank')}
-              className="text-white font-medium"
-              style={{ backgroundColor: '#C57C5D' }}
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Book Another Treatment
-            </Button>
-            
-            <Button
-              onClick={() => window.location.href = '/itinerary'}
-              variant="outline"
-              style={{ borderColor: '#3B4831', color: '#3B4831' }}
-            >
-              <Calendar className="w-4 h-4 mr-2" />
-              View My Itinerary
-            </Button>
-            
-            <Button
-              onClick={() => window.location.href = '/Treatments'}
-              variant="outline"
-              style={{ borderColor: '#3B4831', color: '#3B4831' }}
-            >
-              Back to All Treatments
-            </Button>
-          </div>
-        </Card>
-
-        {/* Quick Treatment Cards */}
-        <div className="mb-8">
-          <h3 className="text-xl font-light mb-4" style={{ color: '#3B4831' }}>
-            Popular Add-Ons
-          </h3>
-          <div className="grid md:grid-cols-2 gap-4">
-            <Card 
-              className="p-6 cursor-pointer hover:shadow-lg transition-shadow" 
-              style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}
-              onClick={() => window.location.href = '/booking?service=royal'}
-            >
-              <h4 className="font-bold mb-2" style={{ color: '#3B4831' }}>
-                Royal Treatment Facial
-              </h4>
-              <p className="text-sm mb-4" style={{ color: '#1B1B1B' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+          <a href="/booking?service=royal" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div style={{ background: '#FCF9F4', borderRadius: '18px', padding: '16px', boxShadow: '0 10px 30px rgba(0,0,0,.08)', border: '1px solid rgba(59,72,49,.10)' }}>
+              <div style={{ color: '#3B4831', fontWeight: 900 }}>Royal Treatment Facial</div>
+              <div style={{ marginTop: '6px', color: '#1B1B1B', lineHeight: '1.55', fontSize: '14px' }}>
                 Instant radiance with zero downtime.
-              </p>
-              <span className="inline-block px-4 py-2 rounded-lg font-bold text-sm text-white" style={{ backgroundColor: '#C57C5D' }}>
+              </div>
+              <div style={{ marginTop: '10px', display: 'inline-block', background: '#C57C5D', color: '#FCF9F4', padding: '10px 12px', borderRadius: '14px', fontWeight: 900 }}>
                 Book Now
-              </span>
-            </Card>
+              </div>
+            </div>
+          </a>
 
-            <Card 
-              className="p-6 cursor-pointer hover:shadow-lg transition-shadow" 
-              style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}
-              onClick={() => window.location.href = '/booking?service=soundprivate'}
-            >
-              <h4 className="font-bold mb-2" style={{ color: '#3B4831' }}>
-                Sound Bath (Private)
-              </h4>
-              <p className="text-sm mb-4" style={{ color: '#1B1B1B' }}>
+          <a href="/booking?service=aura" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div style={{ background: '#FCF9F4', borderRadius: '18px', padding: '16px', boxShadow: '0 10px 30px rgba(0,0,0,.08)', border: '1px solid rgba(59,72,49,.10)' }}>
+              <div style={{ color: '#3B4831', fontWeight: 900 }}>Aura Glow</div>
+              <div style={{ marginTop: '6px', color: '#1B1B1B', lineHeight: '1.55', fontSize: '14px' }}>
+                A full mind + body reset ritual.
+              </div>
+              <div style={{ marginTop: '10px', display: 'inline-block', background: '#C57C5D', color: '#FCF9F4', padding: '10px 12px', borderRadius: '14px', fontWeight: 900 }}>
+                Book Now
+              </div>
+            </div>
+          </a>
+
+          <a href="/booking?service=swedish60" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div style={{ background: '#FCF9F4', borderRadius: '18px', padding: '16px', boxShadow: '0 10px 30px rgba(0,0,0,.08)', border: '1px solid rgba(59,72,49,.10)' }}>
+              <div style={{ color: '#3B4831', fontWeight: 900 }}>Swedish Massage (60)</div>
+              <div style={{ marginTop: '6px', color: '#1B1B1B', lineHeight: '1.55', fontSize: '14px' }}>
+                Flowing strokes to melt away stress.
+              </div>
+              <div style={{ marginTop: '10px', display: 'inline-block', background: '#C57C5D', color: '#FCF9F4', padding: '10px 12px', borderRadius: '14px', fontWeight: 900 }}>
+                Book Now
+              </div>
+            </div>
+          </a>
+
+          <a href="/booking?service=soundprivate" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div style={{ background: '#FCF9F4', borderRadius: '18px', padding: '16px', boxShadow: '0 10px 30px rgba(0,0,0,.08)', border: '1px solid rgba(59,72,49,.10)' }}>
+              <div style={{ color: '#3B4831', fontWeight: 900 }}>Sound Bath (Private)</div>
+              <div style={{ marginTop: '6px', color: '#1B1B1B', lineHeight: '1.55', fontSize: '14px' }}>
                 A full-body frequency reset.
-              </p>
-              <span className="inline-block px-4 py-2 rounded-lg font-bold text-sm text-white" style={{ backgroundColor: '#C57C5D' }}>
+              </div>
+              <div style={{ marginTop: '10px', display: 'inline-block', background: '#C57C5D', color: '#FCF9F4', padding: '10px 12px', borderRadius: '14px', fontWeight: 900 }}>
                 Book Now
-              </span>
-            </Card>
-          </div>
+              </div>
+            </div>
+          </a>
         </div>
 
-        {/* Need Help */}
-        <div className="text-center">
-          <p className="text-sm mb-4" style={{ color: '#1B1B1B' }}>
-            Need help building your perfect wellness day?
-          </p>
-          <Button
-            onClick={() => window.open('sms:+19038106695?&body=Hi%20RITUAL%20Concierge%20—%20I%20just%20booked%20and%20want%20help%20adding%20more%20treatments.', '_blank')}
-            variant="outline"
-            style={{ borderColor: '#3B4831', color: '#3B4831' }}
-          >
-            <MessageCircle className="w-4 h-4 mr-2" />
-            Text Concierge
-          </Button>
+        <div style={{ marginTop: '18px', display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <a href="/Treatments" style={{ textDecoration: 'none', padding: '12px 14px', borderRadius: '14px', fontWeight: 900, border: '1px solid rgba(59,72,49,.18)', color: '#3B4831', background: 'transparent' }}>
+            Browse All Treatments
+          </a>
+          <a href="/AskRitual" style={{ textDecoration: 'none', padding: '12px 14px', borderRadius: '14px', fontWeight: 900, background: '#3B4831', color: '#FCF9F4' }}>
+            Message Concierge
+          </a>
         </div>
+
+        <p style={{ marginTop: '14px', color: '#1B1B1B', opacity: 0.75, fontSize: '12px', lineHeight: '1.5' }}>
+          Tip: Add this link to your Square confirmation email as "Want to add another treatment?": <span style={{ fontWeight: 900 }}>/afterBooking</span>
+        </p>
+
       </div>
-    </div>
+    </section>
   );
 }
