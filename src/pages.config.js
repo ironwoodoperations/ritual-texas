@@ -75,11 +75,11 @@ import RestaurantOrder from './pages/RestaurantOrder';
 import RestaurantReservations from './pages/RestaurantReservations';
 import Rooms from './pages/Rooms';
 import StaffDashboard from './pages/StaffDashboard';
+import Treatments from './pages/Treatments';
 import afterBooking from './pages/afterBooking';
 import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
-import Treatments from './pages/Treatments';
 import __Layout from './Layout.jsx';
 
 
@@ -112,11 +112,11 @@ export const PAGES = {
     "RestaurantReservations": RestaurantReservations,
     "Rooms": Rooms,
     "StaffDashboard": StaffDashboard,
+    "Treatments": Treatments,
     "afterBooking": afterBooking,
     "booking": booking,
     "concierge": concierge,
     "itinerary": itinerary,
-    "Treatments": Treatments,
 }
 
 export const pagesConfig = {

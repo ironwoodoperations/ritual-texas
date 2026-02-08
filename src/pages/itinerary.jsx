@@ -10,11 +10,17 @@ const CONCIERGE_PHONE = "9038106695";
 const CONCIERGE_SMS = "+19038106695";
 
 export default function ItineraryPage() {
+  const [hotelChecked, setHotelChecked] = useState(true);
+  const [spaChecked, setSpaChecked] = useState(false);
+  
   const [confirmationCode, setConfirmationCode] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
+  const [spaEmail, setSpaEmail] = useState('');
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [reservation, setReservation] = useState(null);
+  const [spaBookings, setSpaBookings] = useState([]);
 
   useEffect(() => {
     // Check URL params
@@ -37,35 +43,58 @@ export default function ItineraryPage() {
     }
   }, []);
 
-  const handleLookup = async (code = confirmationCode, email = guestEmail) => {
-    if (!code || !email) {
-      setError('Please enter both confirmation code and email.');
+  const canSubmit = () => {
+    if (!hotelChecked && !spaChecked) return false;
+    if (hotelChecked && (!confirmationCode.trim() || !guestEmail.trim())) return false;
+    if (spaChecked && !spaEmail.trim()) return false;
+    return true;
+  };
+
+  const handleLookup = async () => {
+    if (!canSubmit()) {
+      setError('Please fill in all required fields.');
       return;
     }
 
     setLoading(true);
     setError('');
+    setReservation(null);
+    setSpaBookings([]);
 
     try {
-      const response = await fetch(
-        `/functions/cloudbedsReservationsLookup?confirmation=${encodeURIComponent(code)}&contact=${encodeURIComponent(email)}`
-      );
-      const data = await response.json();
+      // Fetch hotel reservation if checked
+      if (hotelChecked) {
+        const response = await fetch(
+          `/functions/cloudbedsReservationsLookup?confirmation=${encodeURIComponent(confirmationCode)}&contact=${encodeURIComponent(guestEmail)}`
+        );
+        const data = await response.json();
 
-      if (data.success && data.reservation) {
-        setReservation(data.reservation);
-        // Save to localStorage
-        localStorage.setItem('ritual_confirmation', code);
-        localStorage.setItem('ritual_email', email);
-        const expiry = new Date().getTime() + (30 * 24 * 60 * 60 * 1000); // 30 days
-        localStorage.setItem('ritual_expiry', expiry);
-      } else {
-        setError('We couldn\'t find that reservation. Double-check your confirmation code and email.');
-        setReservation(null);
+        if (data.success && data.reservation) {
+          setReservation(data.reservation);
+          localStorage.setItem('ritual_confirmation', confirmationCode);
+          localStorage.setItem('ritual_email', guestEmail);
+        } else {
+          setError('We couldn\'t find that hotel reservation. Double-check your confirmation code and email.');
+        }
+      }
+
+      // Fetch spa bookings if checked
+      if (spaChecked) {
+        const response = await fetch(
+          `/functions/spaBookingsLookup?email=${encodeURIComponent(spaEmail.trim().toLowerCase())}`
+        );
+        const data = await response.json();
+
+        if (data.success) {
+          setSpaBookings(data.spaBookings || []);
+        } else {
+          if (!hotelChecked) {
+            setError('We couldn\'t find spa bookings for that email.');
+          }
+        }
       }
     } catch (err) {
       setError('We\'re having trouble loading your itinerary. Please try again or text concierge.');
-      setReservation(null);
     } finally {
       setLoading(false);
     }
@@ -109,48 +138,104 @@ export default function ItineraryPage() {
         </div>
 
         {/* Lookup Card */}
-        {!reservation && (
+        {!reservation && spaBookings.length === 0 && (
           <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
             <h2 className="text-2xl font-light mb-6" style={{ color: '#3B4831' }}>
-              View Your Reservation
+              View Your Itinerary
             </h2>
+            
+            {/* Checkboxes */}
+            <div className="flex gap-6 mb-6">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={hotelChecked}
+                  onChange={(e) => setHotelChecked(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <span style={{ color: '#3B4831' }}>Hotel Stay</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={spaChecked}
+                  onChange={(e) => setSpaChecked(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <span style={{ color: '#3B4831' }}>Spa Bookings</span>
+              </label>
+            </div>
+
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#1B1B1B' }}>
-                  Confirmation Code
-                </label>
-                <Input
-                  type="text"
-                  value={confirmationCode}
-                  onChange={(e) => setConfirmationCode(e.target.value)}
-                  placeholder="Enter confirmation code"
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#1B1B1B' }}>
-                  Guest Email
-                </label>
-                <Input
-                  type="email"
-                  value={guestEmail}
-                  onChange={(e) => setGuestEmail(e.target.value)}
-                  placeholder="email@example.com"
-                  className="w-full"
-                />
-              </div>
+              {/* Hotel Fields */}
+              {hotelChecked && (
+                <div className="p-4 rounded-lg" style={{ backgroundColor: '#F0E8DD' }}>
+                  <h3 className="text-sm font-medium mb-3" style={{ color: '#3B4831' }}>
+                    Hotel Reservation
+                  </h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: '#1B1B1B' }}>
+                        Confirmation Code
+                      </label>
+                      <Input
+                        type="text"
+                        value={confirmationCode}
+                        onChange={(e) => setConfirmationCode(e.target.value)}
+                        placeholder="e.g. 9771730958512"
+                        className="w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: '#1B1B1B' }}>
+                        Email or Phone
+                      </label>
+                      <Input
+                        type="text"
+                        value={guestEmail}
+                        onChange={(e) => setGuestEmail(e.target.value)}
+                        placeholder="email@example.com or 903-555-1212"
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Spa Fields */}
+              {spaChecked && (
+                <div className="p-4 rounded-lg" style={{ backgroundColor: '#F0E8DD' }}>
+                  <h3 className="text-sm font-medium mb-3" style={{ color: '#3B4831' }}>
+                    Spa Appointments
+                  </h3>
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: '#1B1B1B' }}>
+                      Email (used when booking spa)
+                    </label>
+                    <Input
+                      type="email"
+                      value={spaEmail}
+                      onChange={(e) => setSpaEmail(e.target.value)}
+                      placeholder="email@example.com"
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              )}
+
               {error && (
                 <div className="text-red-600 text-sm p-3 bg-red-50 rounded-lg">
                   {error}
                 </div>
               )}
+              
               <Button
-                onClick={() => handleLookup()}
-                disabled={loading}
+                onClick={handleLookup}
+                disabled={loading || !canSubmit()}
                 className="w-full text-white font-medium py-6"
-                style={{ backgroundColor: '#C57C5D' }}
+                style={{ backgroundColor: '#C57C5D', opacity: (!canSubmit() || loading) ? 0.6 : 1 }}
               >
-                {loading ? 'Retrieving your reservation…' : 'View My Itinerary'}
+                {loading ? 'Loading…' : 'View My Itinerary'}
               </Button>
             </div>
           </Card>
@@ -314,15 +399,72 @@ export default function ItineraryPage() {
               </div>
             </Card>
 
-            {/* Spa Section */}
-            <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
-              <h2 className="text-2xl font-light mb-4" style={{ color: '#3B4831' }}>
-                Spa & Wellness
-              </h2>
-              <p className="text-sm mb-6" style={{ color: '#1B1B1B' }}>
-                Book a treatment any time. Add-ons are confirmed instantly in Square.
-              </p>
-              <div className="space-y-3">
+            {/* Spa Bookings Section */}
+            {spaBookings.length > 0 && (
+              <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
+                <h2 className="text-2xl font-light mb-4" style={{ color: '#3B4831' }}>
+                  Your Spa Appointments
+                </h2>
+                <div className="space-y-4 mb-6">
+                  {spaBookings.map((booking) => (
+                    <div
+                      key={booking.id || booking.squareBookingId}
+                      className="p-4 rounded-lg border"
+                      style={{ borderColor: '#F0E8DD', backgroundColor: 'white' }}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-medium" style={{ color: '#3B4831' }}>
+                          {booking.service || 'Spa Service'}
+                        </h3>
+                        {booking.status && (
+                          <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: '#C4A55C', color: 'white' }}>
+                            {booking.status.replace('booking.', '')}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-sm space-y-1" style={{ color: '#1B1B1B' }}>
+                        {booking.startAt && (
+                          <p>
+                            <Clock className="w-3 h-3 inline mr-1" />
+                            {new Date(booking.startAt).toLocaleString('en-US', {
+                              weekday: 'short',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        )}
+                        {booking.durationMinutes && (
+                          <p>{booking.durationMinutes} minutes</p>
+                        )}
+                        {booking.staff && (
+                          <p className="text-xs opacity-70">Staff ID: {booking.staff}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Button
+                  onClick={() => window.open(SQUARE_SERVICES_URL, '_blank')}
+                  className="w-full text-white font-medium py-6"
+                  style={{ backgroundColor: '#C57C5D' }}
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Book Another Treatment
+                </Button>
+              </Card>
+            )}
+
+            {/* Spa CTA (if no bookings yet) */}
+            {spaBookings.length === 0 && (
+              <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
+                <h2 className="text-2xl font-light mb-4" style={{ color: '#3B4831' }}>
+                  Spa & Wellness
+                </h2>
+                <p className="text-sm mb-6" style={{ color: '#1B1B1B' }}>
+                  {spaChecked ? 'No spa appointments found for that email yet.' : 'Book a treatment any time. Add-ons are confirmed instantly in Square.'}
+                </p>
                 <Button
                   onClick={() => window.open(SQUARE_SERVICES_URL, '_blank')}
                   className="w-full text-white font-medium py-6"
@@ -331,16 +473,8 @@ export default function ItineraryPage() {
                   <Sparkles className="w-5 h-5 mr-2" />
                   View All Treatments
                 </Button>
-                <Button
-                  onClick={() => window.open(SQUARE_SERVICES_URL, '_blank')}
-                  variant="outline"
-                  className="w-full py-6"
-                  style={{ borderColor: '#3B4831', color: '#3B4831' }}
-                >
-                  Book Another Treatment
-                </Button>
-              </div>
-            </Card>
+              </Card>
+            )}
 
             {/* Actions */}
             <Card className="p-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
