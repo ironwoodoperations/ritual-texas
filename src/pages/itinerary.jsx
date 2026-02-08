@@ -128,6 +128,20 @@ export default function ItineraryPage() {
   return (
     <div style={{ backgroundColor: '#F0E8DD' }} className="min-h-screen py-12 px-4">
       <div className="max-w-3xl mx-auto">
+        {/* DEBUG BLOCK — remove after fixed */}
+        <div style={{padding: 12, margin: '12px 0', border: '1px solid #ccc', borderRadius: 12, backgroundColor: '#fff9e6'}}>
+          <div style={{fontWeight: 700, fontSize: 14}}>Itinerary Debug</div>
+          <div style={{fontSize: 12, opacity: 0.75, marginTop: 4}}>Rendered: {new Date().toISOString()}</div>
+          <div style={{fontSize: 12, marginTop: 6, fontFamily: 'monospace', whiteSpace: 'pre-wrap'}}>
+            hotelChecked: {String(hotelChecked)}{'\n'}
+            spaChecked: {String(spaChecked)}{'\n'}
+            reservation: {JSON.stringify(reservation ? 'exists' : 'null')}{'\n'}
+            spaBookings.length: {spaBookings.length}{'\n'}
+            loading: {String(loading)}{'\n'}
+            error: {error || 'none'}
+          </div>
+        </div>
+
         {/* Hero */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-light mb-4" style={{ color: '#3B4831' }}>
