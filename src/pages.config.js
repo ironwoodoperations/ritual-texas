@@ -53,6 +53,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminImages from './pages/AdminImages';
 import AdminKnowledge from './pages/AdminKnowledge';
 import AdminMedia from './pages/AdminMedia';
+import AdminRestaurant from './pages/AdminRestaurant';
 import AdminRooms from './pages/AdminRooms';
 import AdminSeedData from './pages/AdminSeedData';
 import AdminTreatmentBookings from './pages/AdminTreatmentBookings';
@@ -65,6 +66,12 @@ import BookingFlow from './pages/BookingFlow';
 import Home from './pages/Home';
 import MyBooking from './pages/MyBooking';
 import Press from './pages/Press';
+import Restaurant from './pages/Restaurant';
+import RestaurantContact from './pages/RestaurantContact';
+import RestaurantEvents from './pages/RestaurantEvents';
+import RestaurantMenu from './pages/RestaurantMenu';
+import RestaurantOrder from './pages/RestaurantOrder';
+import RestaurantReservations from './pages/RestaurantReservations';
 import Rooms from './pages/Rooms';
 import StaffDashboard from './pages/StaffDashboard';
 import Treatments from './pages/Treatments';
@@ -72,13 +79,7 @@ import afterBooking from './pages/afterBooking';
 import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
-import RestaurantMenu from './pages/RestaurantMenu';
-import RestaurantOrder from './pages/RestaurantOrder';
-import RestaurantReservations from './pages/RestaurantReservations';
-import RestaurantEvents from './pages/RestaurantEvents';
-import RestaurantContact from './pages/RestaurantContact';
-import AdminRestaurant from './pages/AdminRestaurant';
-import Restaurant from './pages/Restaurant';
+import AdminCloudbeds from './pages/AdminCloudbeds';
 import __Layout from './Layout.jsx';
 
 
@@ -89,6 +90,7 @@ export const PAGES = {
     "AdminImages": AdminImages,
     "AdminKnowledge": AdminKnowledge,
     "AdminMedia": AdminMedia,
+    "AdminRestaurant": AdminRestaurant,
     "AdminRooms": AdminRooms,
     "AdminSeedData": AdminSeedData,
     "AdminTreatmentBookings": AdminTreatmentBookings,
@@ -101,6 +103,12 @@ export const PAGES = {
     "Home": Home,
     "MyBooking": MyBooking,
     "Press": Press,
+    "Restaurant": Restaurant,
+    "RestaurantContact": RestaurantContact,
+    "RestaurantEvents": RestaurantEvents,
+    "RestaurantMenu": RestaurantMenu,
+    "RestaurantOrder": RestaurantOrder,
+    "RestaurantReservations": RestaurantReservations,
     "Rooms": Rooms,
     "StaffDashboard": StaffDashboard,
     "Treatments": Treatments,
@@ -108,13 +116,7 @@ export const PAGES = {
     "booking": booking,
     "concierge": concierge,
     "itinerary": itinerary,
-    "RestaurantMenu": RestaurantMenu,
-    "RestaurantOrder": RestaurantOrder,
-    "RestaurantReservations": RestaurantReservations,
-    "RestaurantEvents": RestaurantEvents,
-    "RestaurantContact": RestaurantContact,
-    "AdminRestaurant": AdminRestaurant,
-    "Restaurant": Restaurant,
+    "AdminCloudbeds": AdminCloudbeds,
 }
 
 export const pagesConfig = {
