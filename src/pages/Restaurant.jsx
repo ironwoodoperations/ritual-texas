@@ -154,13 +154,20 @@ export default function Restaurant() {
           </div>
         </section>
 
-        {/* Gallery Placeholder */}
+        {/* Gallery */}
         <section style={{ marginBottom: '60px' }}>
           <h2 style={{ margin: 0, fontFamily: 'serif', fontSize: '32px', color: '#3B4831', marginBottom: '24px' }}>Gallery</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-              <div key={i} style={{ aspectRatio: '1', background: 'rgba(59,72,49,.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3B4831', fontSize: '14px' }}>
-                Gallery {i}
+            {[
+              'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/373223234_2024-11-271.jpg',
+              'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/d4719c55c_2024-11-272.jpg',
+              'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/ac03f879d_unnamed3.jpg',
+              'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/32fac0b18_7943D54E-8A3E-4EA8-A5DF-E6AE747F92B2-A880AB4F-1C32-4BA9-AEDB-1C923985D89D.JPG',
+              'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/57c09d2f7_B043AFB5-1DFD-404F-9581-966F7435BED3-7B17CC40-3FFC-421B-8FD1-8E173B70D93D.JPG',
+              'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/cb1ec329f_2024-11-273.jpg'
+            ].map((img, i) => (
+              <div key={i} style={{ aspectRatio: '1', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
+                <img src={img} alt={`Gallery ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
             ))}
           </div>
