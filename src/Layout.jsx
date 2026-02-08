@@ -111,6 +111,9 @@ export default function Layout({ children, currentPageName }) {
                 <Link to={createPageUrl('Press')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   Press
                 </Link>
+                <Link to={createPageUrl('itinerary')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
+                  Itinerary
+                </Link>
                 <button onClick={() => setShowWhitney(true)} className="flex items-center gap-2 text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/424e86f0a_generated-image1.jpeg" alt="Whitney" className="w-6 h-6 rounded-full object-cover" />
                   Ask Whitney
@@ -151,6 +154,9 @@ export default function Layout({ children, currentPageName }) {
                   </Link>
                   <Link to={createPageUrl('Press')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
                     Press
+                  </Link>
+                  <Link to={createPageUrl('itinerary')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
+                    Itinerary
                   </Link>
                   <button onClick={() => { setShowWhitney(true); setIsMenuOpen(false); }} className="flex items-center gap-2 text-[rgb(45,45,45)] py-2 w-full text-left">
                     <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/424e86f0a_generated-image1.jpeg" alt="Whitney" className="w-6 h-6 rounded-full object-cover" />
@@ -203,7 +209,7 @@ export default function Layout({ children, currentPageName }) {
                 <h4 className="text-sm tracking-widest mb-4 text-[rgb(107,85,64)]">CONNECT</h4>
                 <div className="flex flex-col gap-2 text-sm text-[rgb(45,45,45)]">
                   <Link to={createPageUrl('concierge')} className="hover:text-[rgb(107,85,64)]">Ask Whitney</Link>
-                  <Link to={createPageUrl('MyBooking')} className="hover:text-[rgb(107,85,64)]">My Itinerary</Link>
+                  <Link to={createPageUrl('itinerary')} className="hover:text-[rgb(107,85,64)]">My Itinerary</Link>
                 </div>
               </div>
               <div>
