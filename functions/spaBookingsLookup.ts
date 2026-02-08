@@ -3,10 +3,20 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const url = new URL(req.url);
     
-    const email = (url.searchParams.get('email') || '').trim().toLowerCase();
-    const phone = (url.searchParams.get('phone') || '').trim();
+    let email = "";
+    let phone = "";
+    
+    // Support both GET (query params) and POST (JSON body)
+    if (req.method === 'POST') {
+      const body = await req.json();
+      email = (body.email || '').trim().toLowerCase();
+      phone = (body.phone || '').trim();
+    } else {
+      const url = new URL(req.url);
+      email = (url.searchParams.get('email') || '').trim().toLowerCase();
+      phone = (url.searchParams.get('phone') || '').trim();
+    }
 
     if (!email && !phone) {
       return Response.json({ error: "Missing email or phone" }, { status: 400 });
