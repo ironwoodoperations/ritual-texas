@@ -61,11 +61,18 @@ export default function Restaurant() {
   return (
     <div style={{ background: '#F0E8DD', minHeight: '100vh' }}>
       {/* Hero */}
-      <section style={{ padding: '80px 20px', textAlign: 'center', background: 'linear-gradient(135deg, rgba(59,72,49,0.05) 0%, rgba(150,170,155,0.05) 100%)' }}>
-        <h1 style={{ margin: 0, fontFamily: 'serif', fontSize: '48px', color: '#3B4831', letterSpacing: '2px' }}>
+      <section style={{ 
+        padding: '120px 20px', 
+        textAlign: 'center', 
+        backgroundImage: 'linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/ee7b68055_unnamed1.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}>
+        <h1 style={{ margin: 0, fontFamily: 'serif', fontSize: '48px', color: '#FCF9F4', letterSpacing: '2px', textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
           RITUAL
         </h1>
-        <p style={{ marginTop: '16px', fontSize: '20px', color: '#1B1B1B', fontWeight: 300 }}>
+        <p style={{ marginTop: '16px', fontSize: '20px', color: '#FCF9F4', fontWeight: 300, textShadow: '1px 1px 3px rgba(0,0,0,0.5)' }}>
           Feed your soul with food, libations, and music.
         </p>
         <div style={{ marginTop: '32px', display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
