@@ -42,6 +42,7 @@ Deno.serve(async (req) => {
     await base44.asServiceRole.entities.SiteSettings.delete(stateRecords[0].id);
     
     // Exchange code for access token
+    // Using rotated Client_Secret - 2026-02-08
     const clientId = Deno.env.get("Client_ID");
     const clientSecret = Deno.env.get("Client_Secret");
     const redirectUri = "https://hotel-ritual-experience-automation-a6e982ce.base44.app/functions/cloudbedsOAuthCallback";
