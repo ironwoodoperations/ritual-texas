@@ -64,17 +64,12 @@ export default function Restaurant() {
       <section style={{ 
         padding: '120px 20px', 
         textAlign: 'center', 
-        backgroundImage: 'linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/ee7b68055_unnamed1.jpg)',
+        backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/ee7b68055_unnamed1.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
+        minHeight: '300px'
       }}>
-        <h1 style={{ margin: 0, fontFamily: 'serif', fontSize: '48px', color: '#FCF9F4', letterSpacing: '2px', textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
-          RITUAL
-        </h1>
-        <p style={{ marginTop: '16px', fontSize: '20px', color: '#FCF9F4', fontWeight: 300, textShadow: '1px 1px 3px rgba(0,0,0,0.5)' }}>
-          Feed your soul with food, libations, and music.
-        </p>
         <div style={{ marginTop: '32px', display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link to={createPageUrl('RestaurantMenu')} style={{ padding: '14px 28px', background: '#C57C5D', color: '#FCF9F4', textDecoration: 'none', borderRadius: '8px', fontWeight: 700 }}>
             View Menu
