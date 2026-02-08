@@ -102,6 +102,9 @@ export default function Layout({ children, currentPageName }) {
                 <Link to={createPageUrl('Treatments')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   Spa & Wellness
                 </Link>
+                <Link to={createPageUrl('Restaurant')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
+                  Restaurant
+                </Link>
                 <Link to={createPageUrl('Amenities')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   Amenities
                 </Link>
@@ -139,6 +142,9 @@ export default function Layout({ children, currentPageName }) {
                   </Link>
                   <Link to={createPageUrl('Treatments')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
                     Spa & Wellness
+                  </Link>
+                  <Link to={createPageUrl('Restaurant')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
+                    Restaurant
                   </Link>
                   <Link to={createPageUrl('Amenities')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
                     Amenities
