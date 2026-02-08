@@ -94,6 +94,7 @@ export default function ItineraryPage() {
         }
       }
     } catch (err) {
+      console.error('Itinerary lookup error:', err);
       setError('We\'re having trouble loading your itinerary. Please try again or text concierge.');
     } finally {
       setLoading(false);
