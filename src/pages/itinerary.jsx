@@ -126,20 +126,24 @@ export default function ItineraryPage() {
   };
 
   const handleEmailItinerary = async () => {
-    if (!reservation?.guestEmail) {
+    let emailAddress = reservation?.guestEmail || guestEmail || spaEmail;
+
+    if (!emailAddress) {
       alert('No email on file');
       return;
     }
+
     try {
       await base44.functions.invoke('sendItineraryEmail', {
-        guestName: reservation.guestName,
-        guestEmail: reservation.guestEmail,
-        confirmationCode: reservation.confirmationCode,
-        checkIn: reservation.checkIn,
-        checkOut: reservation.checkOut,
-        roomType: reservation.roomType,
-        totalAmount: reservation.totalAmount,
-        spaBookings: spaBookings
+        guestName: reservation?.guestName || 'Guest',
+        guestEmail: emailAddress,
+        confirmationCode: reservation?.confirmationCode || 'N/A',
+        checkIn: reservation?.checkIn || null,
+        checkOut: reservation?.checkOut || null,
+        roomType: reservation?.roomType || null,
+        totalAmount: reservation?.totalAmount || null,
+        spaBookings: spaBookings,
+        spaOnly: !reservation
       });
       alert('Itinerary emailed successfully!');
     } catch (err) {
@@ -535,6 +539,32 @@ export default function ItineraryPage() {
               </div>
             </Card>
           </>
+        )}
+
+        {/* Save & Share for Spa-Only */}
+        {!reservation && spaBookings.length > 0 && (
+          <Card className="p-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
+            <h2 className="text-2xl font-light mb-4" style={{ color: '#3B4831' }}>
+              Save & Share
+            </h2>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                onClick={handlePrint}
+                variant="outline"
+                style={{ borderColor: '#3B4831', color: '#3B4831' }}
+              >
+                <Printer className="w-4 h-4 mr-2" />
+                Print Itinerary
+              </Button>
+              <Button
+                onClick={() => handleEmailItinerary()}
+                variant="outline"
+                style={{ borderColor: '#3B4831', color: '#3B4831' }}
+              >
+                Email This Itinerary
+              </Button>
+            </div>
+          </Card>
         )}
       </div>
     </div>
