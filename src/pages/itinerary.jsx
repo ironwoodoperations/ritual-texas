@@ -128,19 +128,21 @@ export default function ItineraryPage() {
   return (
     <div style={{ backgroundColor: '#F0E8DD' }} className="min-h-screen py-12 px-4">
       <div className="max-w-3xl mx-auto">
-        {/* DEBUG BLOCK — remove after fixed */}
-        <div style={{padding: 12, margin: '12px 0', border: '1px solid #ccc', borderRadius: 12, backgroundColor: '#fff9e6'}}>
-          <div style={{fontWeight: 700, fontSize: 14}}>Itinerary Debug</div>
-          <div style={{fontSize: 12, opacity: 0.75, marginTop: 4}}>Rendered: {new Date().toISOString()}</div>
-          <div style={{fontSize: 12, marginTop: 6, fontFamily: 'monospace', whiteSpace: 'pre-wrap'}}>
-            hotelChecked: {String(hotelChecked)}{'\n'}
-            spaChecked: {String(spaChecked)}{'\n'}
-            reservation: {JSON.stringify(reservation ? 'exists' : 'null')}{'\n'}
-            spaBookings.length: {spaBookings.length}{'\n'}
-            loading: {String(loading)}{'\n'}
-            error: {error || 'none'}
+        {/* DEBUG BLOCK — hidden, uncomment to troubleshoot */}
+        {false && (
+          <div style={{padding: 12, margin: '12px 0', border: '1px solid #ccc', borderRadius: 12, backgroundColor: '#fff9e6'}}>
+            <div style={{fontWeight: 700, fontSize: 14}}>Itinerary Debug</div>
+            <div style={{fontSize: 12, opacity: 0.75, marginTop: 4}}>Rendered: {new Date().toISOString()}</div>
+            <div style={{fontSize: 12, marginTop: 6, fontFamily: 'monospace', whiteSpace: 'pre-wrap'}}>
+              hotelChecked: {String(hotelChecked)}{'\n'}
+              spaChecked: {String(spaChecked)}{'\n'}
+              reservation: {JSON.stringify(reservation ? 'exists' : 'null')}{'\n'}
+              spaBookings.length: {spaBookings.length}{'\n'}
+              loading: {String(loading)}{'\n'}
+              error: {error || 'none'}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Hero */}
         <div className="text-center mb-12">
@@ -256,10 +258,53 @@ export default function ItineraryPage() {
           </Card>
         )}
 
-        {/* Spa Bookings (standalone, no hotel required) */}
+        {/* Customer Info Card — at top */}
+        {reservation && (
+          <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-light mb-2" style={{ color: '#3B4831' }}>
+                  {reservation.guestName}
+                </h2>
+                <p className="text-sm font-medium mb-4" style={{ color: '#1B1B1B' }}>
+                  Confirmation Code: <span style={{ fontFamily: 'monospace', color: '#3B4831' }}>{reservation.confirmationCode}</span>
+                </p>
+              </div>
+              {getStatusBadge(reservation.status)}
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              <div>
+                <p className="text-xs uppercase tracking-wide" style={{ color: '#1B1B1B' }}>Check-In</p>
+                <p className="font-medium text-lg" style={{ color: '#3B4831' }}>
+                  {formatDate(reservation.checkIn)}
+                </p>
+                <p className="text-xs mt-1" style={{ color: '#1B1B1B' }}>3:00 PM</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide" style={{ color: '#1B1B1B' }}>Check-Out</p>
+                <p className="font-medium text-lg" style={{ color: '#3B4831' }}>
+                  {formatDate(reservation.checkOut)}
+                </p>
+                <p className="text-xs mt-1" style={{ color: '#1B1B1B' }}>11:00 AM</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide" style={{ color: '#1B1B1B' }}>Total Amount</p>
+                <p className="font-medium text-lg" style={{ color: '#3B4831' }}>
+                  ${reservation.totalAmount?.toFixed(2) || '—'}
+                </p>
+                {reservation.roomType && (
+                  <p className="text-xs mt-1" style={{ color: '#1B1B1B' }}>{reservation.roomType}</p>
+                )}
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Spa Bookings — 2nd section */}
         {spaBookings.length > 0 && (
           <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
-            <h2 className="text-2xl font-light mb-4" style={{ color: '#3B4831' }}>
+            <h2 className="text-2xl font-light mb-6" style={{ color: '#3B4831' }}>
               Your Spa Appointments
             </h2>
             <div className="space-y-4 mb-6">
@@ -269,20 +314,27 @@ export default function ItineraryPage() {
                   className="p-4 rounded-lg border"
                   style={{ borderColor: '#F0E8DD', backgroundColor: 'white' }}
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-medium" style={{ color: '#3B4831' }}>
-                      {booking.service || 'Spa Service'}
-                    </h3>
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="font-medium text-lg" style={{ color: '#3B4831' }}>
+                        {booking.serviceName || booking.service || 'Spa Service'}
+                      </h3>
+                      {booking.staffName && (
+                        <p className="text-sm mt-1" style={{ color: '#1B1B1B' }}>
+                          Therapist: {booking.staffName}
+                        </p>
+                      )}
+                    </div>
                     {booking.status && (
-                      <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: '#C4A55C', color: 'white' }}>
+                      <span className="text-xs px-3 py-1 rounded-full whitespace-nowrap" style={{ backgroundColor: '#C4A55C', color: 'white' }}>
                         {booking.status.replace('booking.', '')}
                       </span>
                     )}
                   </div>
-                  <div className="text-sm space-y-1" style={{ color: '#1B1B1B' }}>
+                  <div className="text-sm space-y-2" style={{ color: '#1B1B1B' }}>
                     {booking.startAt && (
                       <p>
-                        <Clock className="w-3 h-3 inline mr-1" />
+                        <Clock className="w-4 h-4 inline mr-2" style={{ color: '#3B4831' }} />
                         {new Date(booking.startAt).toLocaleString('en-US', {
                           weekday: 'short',
                           month: 'short',
@@ -293,10 +345,10 @@ export default function ItineraryPage() {
                       </p>
                     )}
                     {booking.durationMinutes && (
-                      <p>{booking.durationMinutes} minutes</p>
-                    )}
-                    {booking.staff && (
-                      <p className="text-xs opacity-70">Staff ID: {booking.staff}</p>
+                      <p>
+                        <Clock className="w-4 h-4 inline mr-2" style={{ color: '#3B4831' }} />
+                        {booking.durationMinutes} minutes
+                      </p>
                     )}
                   </div>
                 </div>
@@ -313,88 +365,33 @@ export default function ItineraryPage() {
           </Card>
         )}
 
-        {/* Reservation Summary */}
+        {/* Show contact options when there's a reservation */}
         {reservation && (
-          <>
-            <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-light mb-2" style={{ color: '#3B4831' }}>
-                    {reservation.guestName}
-                  </h2>
-                  <p className="text-sm" style={{ color: '#1B1B1B' }}>
-                    Confirmation: {reservation.confirmationCode}
-                  </p>
-                </div>
-                {getStatusBadge(reservation.status)}
-              </div>
+          <Card className="p-6 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                onClick={() => window.open(`sms:${CONCIERGE_SMS}?&body=Hi RITUAL Concierge — I need help with my itinerary. My confirmation is ${reservation.confirmationCode}`, '_blank')}
+                variant="outline"
+                style={{ borderColor: '#3B4831', color: '#3B4831' }}
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Text Concierge
+              </Button>
+              <Button
+                onClick={() => window.open(`tel:${CONCIERGE_PHONE}`, '_blank')}
+                variant="outline"
+                style={{ borderColor: '#3B4831', color: '#3B4831' }}
+              >
+                <Phone className="w-4 h-4 mr-2" />
+                Call Hotel
+              </Button>
+            </div>
+          </Card>
+        )}
 
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
-                <div className="flex items-center gap-3">
-                  <CalendarDays className="w-5 h-5" style={{ color: '#3B4831' }} />
-                  <div>
-                    <p className="text-xs" style={{ color: '#1B1B1B' }}>Check-In</p>
-                    <p className="font-medium" style={{ color: '#3B4831' }}>
-                      {formatDate(reservation.checkIn)}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CalendarDays className="w-5 h-5" style={{ color: '#3B4831' }} />
-                  <div>
-                    <p className="text-xs" style={{ color: '#1B1B1B' }}>Check-Out</p>
-                    <p className="font-medium" style={{ color: '#3B4831' }}>
-                      {formatDate(reservation.checkOut)}
-                    </p>
-                  </div>
-                </div>
-              </div>
+        {/* Timeline */}
+        {reservation && (
 
-              {reservation.roomType && (
-                <div className="mb-6 pb-6 border-b" style={{ borderColor: '#F0E8DD' }}>
-                  <p className="text-sm" style={{ color: '#1B1B1B' }}>Room Type</p>
-                  <p className="font-medium" style={{ color: '#3B4831' }}>{reservation.roomType}</p>
-                </div>
-              )}
-
-              {reservation.totalAmount && (
-                <div className="mb-6">
-                  <p className="text-sm" style={{ color: '#1B1B1B' }}>Total Amount</p>
-                  <p className="text-2xl font-light" style={{ color: '#3B4831' }}>
-                    ${reservation.totalAmount.toFixed(2)}
-                  </p>
-                </div>
-              )}
-
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  onClick={() => window.open(SQUARE_SERVICES_URL, '_blank')}
-                  className="text-white font-medium"
-                  style={{ backgroundColor: '#C57C5D' }}
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Book Another Treatment
-                </Button>
-                <Button
-                  onClick={() => window.open(`sms:${CONCIERGE_SMS}?&body=Hi RITUAL Concierge — I need help with my itinerary. My confirmation is ${reservation.confirmationCode}`, '_blank')}
-                  variant="outline"
-                  style={{ borderColor: '#3B4831', color: '#3B4831' }}
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Text Concierge
-                </Button>
-                <Button
-                  onClick={() => window.open(`tel:${CONCIERGE_PHONE}`, '_blank')}
-                  variant="outline"
-                  style={{ borderColor: '#3B4831', color: '#3B4831' }}
-                >
-                  <Phone className="w-4 h-4 mr-2" />
-                  Call Hotel
-                </Button>
-              </div>
-            </Card>
-
-            {/* Timeline */}
             <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
               <h2 className="text-2xl font-light mb-8" style={{ color: '#3B4831' }}>
                 Your Stay Timeline
