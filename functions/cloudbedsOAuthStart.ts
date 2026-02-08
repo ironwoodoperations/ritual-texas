@@ -42,16 +42,9 @@ Deno.serve(async (req) => {
         message: "Manual redirect needed - click the authUrl"
       });
     }
-    
-    // Attempt redirect with explicit headers
-    return new Response(null, {
-      status: 302,
-      headers: {
-        'Location': authUrl,
-        'Cache-Control': 'no-store',
-        'Content-Type': 'text/plain'
-      }
-    });
+
+    // Use Response.redirect for proper browser redirect
+    return Response.redirect(authUrl, 302);
   } catch (error) {
     return Response.json({ 
       error: error.message,
