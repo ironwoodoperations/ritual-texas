@@ -96,12 +96,36 @@ Deno.serve(async (req) => {
     const serviceVariationId = booking?.appointment_segments?.[0]?.service_variation_id || "";
     const serviceClientId = booking?.appointment_segments?.[0]?.service_variation_client_id || "";
 
+    // Fetch service name
+    let serviceName = "";
+    if (serviceVariationId) {
+      try {
+        const serviceResp = await squareApi(`/v2/catalog/object/${encodeURIComponent(serviceVariationId)}`, accessToken);
+        serviceName = serviceResp?.object?.item_variation_data?.name || "";
+      } catch (e) {
+        console.error("Failed to fetch service name:", e.message);
+      }
+    }
+
+    // Fetch staff name
+    let staffName = "";
+    if (teamMemberId) {
+      try {
+        const staffResp = await squareApi(`/v2/team_members/${encodeURIComponent(teamMemberId)}`, accessToken);
+        staffName = staffResp?.team_member?.display_name || "";
+      } catch (e) {
+        console.error("Failed to fetch staff name:", e.message);
+      }
+    }
+
     const spaBookingPayload = {
       source: "square",
       squareBookingId: bookingId,
       status: eventType,
       service: serviceClientId || serviceVariationId,
+      serviceName: serviceName,
       staff: teamMemberId,
+      staffName: staffName,
       startAt,
       durationMinutes,
       price: 0,
