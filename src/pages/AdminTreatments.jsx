@@ -118,7 +118,6 @@ export default function AdminTreatments() {
       not_for: treatment.not_for || '',
       duration_minutes: treatment.duration_minutes || 60,
       price: treatment.price || 0,
-      image_url: treatment.image_url || '',
       is_available: treatment.is_available !== false
     });
     setIsFormOpen(true);
