@@ -42,7 +42,7 @@ function DailySpecialsSection() {
         </div>
       ) : (
         <p style={{ margin: 0, color: '#1B1B1B', lineHeight: '1.7', fontSize: '16px' }}>
-          Daily specials updated each morning — check back soon or call us at (903) 810-6695.
+          Daily specials updated each morning — check back soon or call us at (903) 284-6880.
         </p>
       )}
     </section>
@@ -127,23 +127,23 @@ export default function Restaurant() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(59,72,49,.08)' }}>
                 <span style={{ fontWeight: 600, color: '#1B1B1B' }}>Tuesday</span>
-                <span style={{ color: '#1B1B1B' }}>10:30 AM - 3:00 PM</span>
+                <span style={{ color: '#1B1B1B' }}>10:30 AM - 2:00 PM</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(59,72,49,.08)' }}>
                 <span style={{ fontWeight: 600, color: '#1B1B1B' }}>Wednesday</span>
-                <span style={{ color: '#1B1B1B' }}>10:30 AM - 3:00 PM</span>
+                <span style={{ color: '#1B1B1B' }}>10:30 AM - 2:00 PM</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(59,72,49,.08)' }}>
                 <span style={{ fontWeight: 600, color: '#1B1B1B' }}>Thursday</span>
-                <span style={{ color: '#1B1B1B' }}>10:30 AM - 3:00 PM</span>
+                <span style={{ color: '#1B1B1B' }}>10:30 AM - 2:00 PM</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(59,72,49,.08)' }}>
                 <span style={{ fontWeight: 600, color: '#1B1B1B' }}>Friday</span>
-                <span style={{ color: '#1B1B1B' }}>10:30 AM - 3:00 PM</span>
+                <span style={{ color: '#1B1B1B' }}>10:30 AM - 2:00 PM</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(59,72,49,.08)' }}>
                 <span style={{ fontWeight: 600, color: '#1B1B1B' }}>Saturday</span>
-                <span style={{ color: '#1B1B1B' }}>10:30 AM - 3:00 PM</span>
+                <span style={{ color: '#1B1B1B' }}>10:30 AM - 2:00 PM</span>
               </div>
             </div>
 
@@ -162,7 +162,7 @@ export default function Restaurant() {
                 </p>
                 <p style={{ margin: '8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Phone className="w-4 h-4" />
-                  <a href="tel:9038106695" style={{ color: '#1B1B1B', textDecoration: 'none' }}>(903) 810-6695</a>
+                  <a href="tel:9032846880" style={{ color: '#1B1B1B', textDecoration: 'none' }}>(903) 284-6880</a>
                 </p>
                 <p style={{ margin: '8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Mail className="w-4 h-4" />
