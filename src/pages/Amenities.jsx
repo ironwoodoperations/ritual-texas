@@ -16,7 +16,7 @@ export default function Amenities() {
       icon: Droplets,
       title: "Jacuzzi",
       description: "Private outdoor jacuzzi for deep relaxation",
-      image: "https://base44.app/api/apps/6952b5de56519adda6e982ce/files/public/6952b5de56519adda6e982ce/f42315e15_pool.webp"
+      image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/8fcf6591d_IMG_20260209_093700.jpg"
     },
     {
       icon: Flame,
@@ -34,7 +34,7 @@ export default function Amenities() {
       icon: Coffee,
       title: "Breakfast Included",
       description: "Gourmet breakfast served fresh each morning",
-      image: "https://base44.app/api/apps/6952b5de56519adda6e982ce/files/public/6952b5de56519adda6e982ce/b9e983c16_IMG_0105.jpg"
+      image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/afb220366_IMG_20260209_093626.jpg"
     },
     {
       icon: Home,
