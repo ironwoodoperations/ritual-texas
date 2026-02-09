@@ -70,6 +70,8 @@ export default function ItineraryPage() {
         const data = await response.json();
 
         if (data.success && data.reservation) {
+          // Store debug data too
+          data.reservation._debug = data.debug;
           setReservation(data.reservation);
           localStorage.setItem('ritual_confirmation', confirmationCode);
           localStorage.setItem('ritual_email', guestEmail);
