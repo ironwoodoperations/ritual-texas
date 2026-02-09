@@ -373,10 +373,6 @@ export default function ItineraryPage() {
                       </p>
                     )}
                     <p>
-                      <Sparkles className="w-4 h-4 inline mr-2" style={{ color: '#3B4831' }} />
-                      <strong>Service Provider:</strong> Your service provider will greet you
-                    </p>
-                    <p>
                       <Coffee className="w-4 h-4 inline mr-2" style={{ color: '#3B4831' }} />
                       <strong>Treatment Room:</strong> {booking.roomName || 'Ask Concierge'}
                     </p>
