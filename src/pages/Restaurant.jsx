@@ -180,8 +180,8 @@ export default function Restaurant() {
             {[
               'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/373223234_2024-11-271.jpg',
               'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/d4719c55c_2024-11-272.jpg',
-              'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/ac03f879d_unnamed3.jpg',
-              'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/32fac0b18_7943D54E-8A3E-4EA8-A5DF-E6AE747F92B2-A880AB4F-1C32-4BA9-AEDB-1C923985D89D.JPG',
+              'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/5212e8832_IMG_20260209_095826.jpg',
+              'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/1605432aa_IMG_20260209_095454.jpg',
               'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/57c09d2f7_B043AFB5-1DFD-404F-9581-966F7435BED3-7B17CC40-3FFC-421B-8FD1-8E173B70D93D.JPG',
               'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/cb1ec329f_2024-11-273.jpg',
               'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/d431348ae_IMG_20260209_094315.jpg',

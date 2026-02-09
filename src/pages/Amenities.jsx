@@ -10,7 +10,7 @@ export default function Amenities() {
       icon: Droplets,
       title: "Pool",
       description: "Outdoor heated pool surrounded by palms and loungers",
-      image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/cdc8017fc_IMG_20260209_093959.jpg"
+      image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/2066d91a2_IMG_20260209_095832.jpg"
     },
     {
       icon: Droplets,
