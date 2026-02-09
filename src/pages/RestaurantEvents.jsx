@@ -62,10 +62,36 @@ export default function RestaurantEvents() {
           <h1 style={{ margin: '20px 0 0 0', fontFamily: 'serif', fontSize: '42px', color: '#3B4831' }}>
             Events & Private Dining
           </h1>
-          <p style={{ marginTop: '12px', color: '#1B1B1B', fontSize: '16px' }}>
-            Host your special occasion at RITUAL on Main
+          <p style={{ marginTop: '12px', color: '#1B1B1B', fontSize: '18px', lineHeight: '1.7', maxWidth: '700px', margin: '12px auto 0' }}>
+            Create unforgettable moments in our intimate, wellness-inspired space. From corporate gatherings to milestone celebrations, 
+            RITUAL on Main offers the perfect backdrop for your special event with farm-to-table cuisine and personalized service.
           </p>
         </div>
+
+        {/* Why Choose RITUAL */}
+        <section style={{ background: '#FCF9F4', padding: '40px', borderRadius: '18px', border: '1px solid rgba(59,72,49,.1)', marginBottom: '60px' }}>
+          <h2 style={{ margin: '0 0 24px 0', fontFamily: 'serif', fontSize: '28px', color: '#3B4831', textAlign: 'center' }}>
+            Why Choose RITUAL for Your Event
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '32px' }}>
+            <div style={{ textAlign: 'center' }}>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '18px', color: '#3B4831', fontWeight: 700 }}>Intimate Atmosphere</h4>
+              <p style={{ margin: 0, color: '#1B1B1B', fontSize: '14px' }}>Thoughtfully designed space perfect for groups up to 20 guests</p>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '18px', color: '#3B4831', fontWeight: 700 }}>Custom Menus</h4>
+              <p style={{ margin: 0, color: '#1B1B1B', fontSize: '14px' }}>Locally-sourced, organic ingredients tailored to your preferences</p>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '18px', color: '#3B4831', fontWeight: 700 }}>Full Buyout Available</h4>
+              <p style={{ margin: 0, color: '#1B1B1B', fontSize: '14px' }}>Private access to our entire café for exclusive experiences</p>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '18px', color: '#3B4831', fontWeight: 700 }}>Dedicated Service</h4>
+              <p style={{ margin: 0, color: '#1B1B1B', fontSize: '14px' }}>Personalized attention to every detail of your event</p>
+            </div>
+          </div>
+        </section>
 
         {/* Event Packages */}
         <section style={{ marginBottom: '60px' }}>
@@ -163,8 +189,29 @@ export default function RestaurantEvents() {
             <Button type="submit" style={{ width: '100%', background: '#C57C5D', color: '#FCF9F4', padding: '14px', fontSize: '16px', fontWeight: 700 }}>
               Submit Event Inquiry
             </Button>
+
+            <div style={{ marginTop: '24px', padding: '20px', background: 'rgba(59,72,49,.05)', borderRadius: '12px', textAlign: 'center' }}>
+              <p style={{ margin: '0 0 8px 0', color: '#1B1B1B', fontSize: '14px' }}>
+                <strong>Prefer to call?</strong>
+              </p>
+              <a href="tel:9032846880" style={{ color: '#C57C5D', textDecoration: 'none', fontSize: '20px', fontWeight: 700 }}>
+                (903) 284-6880
+              </a>
+            </div>
           </div>
         </form>
+
+        {/* Additional Info */}
+        <div style={{ marginTop: '40px', padding: '32px', background: 'rgba(197,124,93,.1)', borderRadius: '18px', textAlign: 'center' }}>
+          <h3 style={{ margin: '0 0 12px 0', fontSize: '22px', color: '#3B4831', fontWeight: 700 }}>
+            Planning Ahead?
+          </h3>
+          <p style={{ margin: 0, color: '#1B1B1B', lineHeight: '1.7', fontSize: '15px' }}>
+            We recommend booking at least 2-3 weeks in advance for private events. 
+            Custom pricing available based on your group size, menu selections, and event requirements. 
+            Contact us to discuss availability and create a personalized experience for your guests.
+          </p>
+        </div>
       </div>
     </div>
   );
