@@ -243,11 +243,15 @@ export default function Layout({ children, currentPageName }) {
                   >
                     540 El Paso Street<br />
                     Jacksonville, Texas 75766
-                  </a>
-                  <br />
-                  <br />
-                  Check-in: 3:00 PM<br />
-                  Check-out: 11:00 AM
+                    </a>
+                    <br />
+                    <a href="tel:9038106695" className="hover:text-[rgb(107,85,64)] transition-colors">
+                    (903) 810-6695
+                    </a>
+                    <br />
+                    <br />
+                    Check-in: 3:00 PM<br />
+                    Check-out: 11:00 AM
                 </p>
               </div>
             </div>

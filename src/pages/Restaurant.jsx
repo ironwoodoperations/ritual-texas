@@ -42,7 +42,7 @@ function DailySpecialsSection() {
         </div>
       ) : (
         <p style={{ margin: 0, color: '#1B1B1B', lineHeight: '1.7', fontSize: '16px' }}>
-          Daily specials updated each morning — check back soon or call us at (903) 284-6880.
+          Daily specials updated each morning — check back soon or call us at (903) 810-6695.
         </p>
       )}
     </section>
@@ -162,7 +162,7 @@ export default function Restaurant() {
                 </p>
                 <p style={{ margin: '8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Phone className="w-4 h-4" />
-                  <a href="tel:9032846880" style={{ color: '#1B1B1B', textDecoration: 'none' }}>(903) 284-6880</a>
+                  <a href="tel:9038106695" style={{ color: '#1B1B1B', textDecoration: 'none' }}>(903) 810-6695</a>
                 </p>
                 <p style={{ margin: '8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Mail className="w-4 h-4" />
