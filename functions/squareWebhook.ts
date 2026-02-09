@@ -121,13 +121,28 @@ Deno.serve(async (req) => {
 
     // Fetch staff name
     let staffName = "";
+    let staffDebugData = null;
     if (teamMemberId) {
       try {
         const staffResp = await squareApi(`/v2/team_members/${encodeURIComponent(teamMemberId)}`, accessToken);
+        staffDebugData = staffResp; // Store for debugging
         const member = staffResp?.team_member;
-        staffName = member?.given_name && member?.family_name 
-          ? `${member.given_name} ${member.family_name}`.trim()
-          : (member?.given_name || member?.family_name || "");
+
+        // Try multiple possible name fields
+        if (member?.given_name && member?.family_name) {
+          staffName = `${member.given_name} ${member.family_name}`.trim();
+        } else if (member?.given_name) {
+          staffName = member.given_name;
+        } else if (member?.family_name) {
+          staffName = member.family_name;
+        } else if (member?.display_name) {
+          staffName = member.display_name;
+        } else if (member?.email_address) {
+          staffName = member.email_address.split('@')[0];
+        }
+
+        console.log("Staff API Response:", JSON.stringify(staffResp, null, 2));
+        console.log("Extracted staff name:", staffName);
       } catch (e) {
         console.error("Failed to fetch staff name:", e.message);
       }
