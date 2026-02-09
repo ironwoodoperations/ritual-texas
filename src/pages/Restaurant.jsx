@@ -83,6 +83,9 @@ export default function Restaurant() {
           <Link to={createPageUrl('RestaurantReservations')} style={{ padding: '14px 28px', background: '#D4C4A8', color: '#3B4831', textDecoration: 'none', borderRadius: '8px', fontWeight: 700 }}>
             Reservations
           </Link>
+          <Link to={createPageUrl('RestaurantEvents')} style={{ padding: '14px 28px', background: 'transparent', color: '#FCF9F4', textDecoration: 'none', borderRadius: '8px', fontWeight: 700, border: '2px solid #FCF9F4' }}>
+            Plan Your Event
+          </Link>
         </div>
         <p style={{ margin: '0', fontSize: '24px', color: '#FCF9F4', fontWeight: 300, fontStyle: 'italic', textShadow: '1px 1px 3px rgba(0,0,0,0.7)' }}>
           Feed your soul with food, libations, and music.
