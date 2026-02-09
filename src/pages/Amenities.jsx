@@ -48,13 +48,6 @@ export default function Amenities() {
       description: "Full-service spa with massage, facials, and healing rituals",
       image: "https://images.squarespace-cdn.com/content/v1/5f28ea4d05e06334e017a510/8becffb7-f1ca-4af9-ad75-5706b45baed5/shirodhara.jpg"
     },
-    {
-      icon: TreePine,
-      title: "RITUAL Wonderland",
-      description: "Outdoor nature space for grounding and reflection",
-      image: "https://base44.app/api/apps/6952b5de56519adda6e982ce/files/public/6952b5de56519adda6e982ce/aaced5997_IMG_0093.jpg"
-    },
-
   ];
 
   return (
