@@ -28,7 +28,7 @@ export default function Amenities() {
       icon: Droplets,
       title: "Rain Shower",
       description: "Luxurious rain shower experience for ultimate relaxation",
-      image: "https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=800&q=80"
+      image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/f36ad538e_Screenshot_20260209_101258_Gallery.jpg"
     },
     {
       icon: Coffee,
