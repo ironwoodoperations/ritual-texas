@@ -8,7 +8,7 @@ import {
   Calendar, Users, Sparkles, Home, ArrowRight, 
   Clock, MapPin, ChevronRight, Settings, LogOut,
   BedDouble, Menu, X, LayoutDashboard, CalendarDays,
-  ClipboardList, FileText, Leaf, Bell
+  ClipboardList, FileText, Leaf, Bell, UtensilsCrossed
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -33,31 +33,56 @@ export default function AdminDashboard() {
     loadUser();
   }, []);
 
-  const { data: bookings, isLoading: bookingsLoading } = useQuery({
-    queryKey: ['admin-bookings'],
-    queryFn: () => base44.entities.Booking.list('-created_date', 100),
+  // Spa bookings from Square
+  const { data: spaBookings = [] } = useQuery({
+    queryKey: ['spa-bookings'],
+    queryFn: () => base44.entities.SpaBooking.list('-created_date', 100),
   });
 
-  const { data: rooms } = useQuery({
-    queryKey: ['rooms'],
-    queryFn: () => base44.entities.Room.list(),
+  // Restaurant data
+  const { data: restaurantSpecials = [] } = useQuery({
+    queryKey: ['restaurant-specials-admin'],
+    queryFn: () => base44.entities.RestaurantDailySpecials.filter({ isArchived: false }),
+  });
+
+  const { data: restaurantReservations = [] } = useQuery({
+    queryKey: ['restaurant-reservations-admin'],
+    queryFn: () => base44.entities.RestaurantReservationRequests.list('-created_date', 50),
+  });
+
+  const { data: eventLeads = [] } = useQuery({
+    queryKey: ['event-leads-admin'],
+    queryFn: () => base44.entities.RestaurantEventLeads.list('-created_date', 50),
+  });
+
+  const { data: treatments = [] } = useQuery({
+    queryKey: ['treatments-admin'],
+    queryFn: () => base44.entities.Treatment.list(),
+  });
+
+  const { data: knowledgeBase = [] } = useQuery({
+    queryKey: ['knowledge-base-admin'],
+    queryFn: () => base44.entities.KnowledgeBase.list(),
   });
 
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
 
-  const todayArrivals = bookings?.filter(b => b.check_in_date === todayStr && b.booking_status !== 'cancelled') || [];
-  const todayDepartures = bookings?.filter(b => b.check_out_date === todayStr && b.booking_status !== 'cancelled') || [];
-  const todayTreatments = bookings?.flatMap(b => 
-    (b.treatments || []).filter(t => t.scheduled_datetime?.startsWith(todayStr))
-  ) || [];
+  // Spa bookings for today
+  const todaySpaBookings = spaBookings.filter(b => {
+    if (!b.startAt) return false;
+    const bookingDate = format(new Date(b.startAt), 'yyyy-MM-dd');
+    return bookingDate === todayStr;
+  });
 
-  const upcomingBookings = bookings?.filter(b => {
-    const checkIn = new Date(b.check_in_date);
-    return checkIn >= today && b.booking_status !== 'cancelled';
-  }).slice(0, 5) || [];
+  // Restaurant stats
+  const activeSpecials = restaurantSpecials.filter(s => s.isActiveToday);
+  const pendingReservations = restaurantReservations.filter(r => r.status === 'pending');
+  const pendingEvents = eventLeads.filter(e => e.status === 'pending');
 
-  const totalRevenue = bookings?.reduce((sum, b) => sum + (b.grand_total || 0), 0) || 0;
+  // Active content stats
+  const activeTreatments = treatments.filter(t => t.is_available);
+  const activeKnowledgeBase = knowledgeBase.filter(k => k.is_active);
 
   const handleLogout = () => {
     base44.auth.logout(createPageUrl('Home'));
@@ -174,10 +199,11 @@ export default function AdminDashboard() {
               className="bg-white p-6 border border-[rgb(235,225,213)]"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-[rgb(45,45,45)]">Today's Arrivals</span>
-                <Users className="w-5 h-5 text-[rgb(150,170,155)]" />
+                <span className="text-sm text-[rgb(45,45,45)]">Today's Spa Bookings</span>
+                <Sparkles className="w-5 h-5 text-[rgb(150,170,155)]" />
               </div>
-              <p className="text-3xl font-light text-[rgb(107,85,64)]">{todayArrivals.length}</p>
+              <p className="text-3xl font-light text-[rgb(107,85,64)]">{todaySpaBookings.length}</p>
+              <p className="text-xs text-[rgb(45,45,45)] mt-1">From Square</p>
             </motion.div>
 
             <motion.div 
@@ -187,10 +213,11 @@ export default function AdminDashboard() {
               className="bg-white p-6 border border-[rgb(235,225,213)]"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-[rgb(45,45,45)]">Today's Departures</span>
-                <Home className="w-5 h-5 text-[rgb(196,155,145)]" />
+                <span className="text-sm text-[rgb(45,45,45)]">Active Specials</span>
+                <UtensilsCrossed className="w-5 h-5 text-[rgb(196,155,145)]" />
               </div>
-              <p className="text-3xl font-light text-[rgb(107,85,64)]">{todayDepartures.length}</p>
+              <p className="text-3xl font-light text-[rgb(107,85,64)]">{activeSpecials.length}</p>
+              <p className="text-xs text-[rgb(45,45,45)] mt-1">Today's menu</p>
             </motion.div>
 
             <motion.div 
@@ -200,10 +227,11 @@ export default function AdminDashboard() {
               className="bg-white p-6 border border-[rgb(235,225,213)]"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-[rgb(45,45,45)]">Today's Treatments</span>
-                <Sparkles className="w-5 h-5 text-[rgb(198,182,165)]" />
+                <span className="text-sm text-[rgb(45,45,45)]">Pending Requests</span>
+                <Bell className="w-5 h-5 text-[rgb(198,182,165)]" />
               </div>
-              <p className="text-3xl font-light text-[rgb(107,85,64)]">{todayTreatments.length}</p>
+              <p className="text-3xl font-light text-[rgb(107,85,64)]">{pendingReservations.length + pendingEvents.length}</p>
+              <p className="text-xs text-[rgb(45,45,45)] mt-1">Reservations & events</p>
             </motion.div>
 
             <motion.div 
@@ -213,15 +241,16 @@ export default function AdminDashboard() {
               className="bg-white p-6 border border-[rgb(235,225,213)]"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-[rgb(45,45,45)]">Total Revenue</span>
-                <Calendar className="w-5 h-5 text-[rgb(150,170,155)]" />
+                <span className="text-sm text-[rgb(45,45,45)]">Active Treatments</span>
+                <Sparkles className="w-5 h-5 text-[rgb(150,170,155)]" />
               </div>
-              <p className="text-3xl font-light text-[rgb(107,85,64)]">${totalRevenue.toLocaleString()}</p>
+              <p className="text-3xl font-light text-[rgb(107,85,64)]">{activeTreatments.length}</p>
+              <p className="text-xs text-[rgb(45,45,45)] mt-1">Available services</p>
             </motion.div>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-6">
-            {/* Today's Arrivals */}
+            {/* Today's Spa Bookings */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -229,27 +258,29 @@ export default function AdminDashboard() {
               className="bg-white border border-[rgb(235,225,213)]"
             >
               <div className="p-4 border-b border-[rgb(235,225,213)] flex items-center justify-between">
-                <h2 className="font-light text-[rgb(107,85,64)]">Today's Arrivals</h2>
-                <Badge className="bg-[rgb(150,170,155)]">{todayArrivals.length}</Badge>
+                <h2 className="font-light text-[rgb(107,85,64)]">Today's Spa Bookings</h2>
+                <Badge className="bg-[rgb(150,170,155)]">{todaySpaBookings.length}</Badge>
               </div>
               <div className="divide-y divide-[rgb(235,225,213)]">
-                {todayArrivals.length === 0 ? (
-                  <p className="p-6 text-center text-[rgb(45,45,45)]">No arrivals today</p>
+                {todaySpaBookings.length === 0 ? (
+                  <p className="p-6 text-center text-[rgb(45,45,45)]">No spa bookings today</p>
                 ) : (
-                  todayArrivals.map(booking => (
+                  todaySpaBookings.map(booking => (
                     <div key={booking.id} className="p-4 hover:bg-[rgb(248,246,242)]">
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="font-medium text-[rgb(107,85,64)]">{booking.guest_name}</p>
-                          <p className="text-sm text-[rgb(45,45,45)]">{booking.room_name}</p>
+                          <p className="font-medium text-[rgb(107,85,64)]">{booking.serviceName || 'Spa Service'}</p>
+                          <p className="text-sm text-[rgb(45,45,45)]">{booking.email}</p>
                           <p className="text-xs text-[rgb(150,170,155)] mt-1">
-                            {booking.arrival_window === 'early_afternoon' ? '3-4 PM' :
-                             booking.arrival_window === 'late_afternoon' ? '4-6 PM' : 'After 6 PM'}
+                            {booking.startAt && format(new Date(booking.startAt), 'h:mm a')}
+                            {booking.durationMinutes && ` • ${booking.durationMinutes} min`}
                           </p>
                         </div>
-                        <span className="text-xs bg-[rgb(235,225,213)] px-2 py-1">
-                          {booking.confirmation_code}
-                        </span>
+                        {booking.staffName && (
+                          <span className="text-xs bg-[rgb(235,225,213)] px-2 py-1">
+                            {booking.staffName}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))
@@ -257,7 +288,7 @@ export default function AdminDashboard() {
               </div>
             </motion.div>
 
-            {/* Today's Departures */}
+            {/* Pending Restaurant Requests */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -265,76 +296,90 @@ export default function AdminDashboard() {
               className="bg-white border border-[rgb(235,225,213)]"
             >
               <div className="p-4 border-b border-[rgb(235,225,213)] flex items-center justify-between">
-                <h2 className="font-light text-[rgb(107,85,64)]">Today's Departures (Cleaning Needed)</h2>
-                <Badge className="bg-[rgb(196,155,145)]">{todayDepartures.length}</Badge>
+                <h2 className="font-light text-[rgb(107,85,64)]">Pending Requests</h2>
+                <Badge className="bg-[rgb(196,155,145)]">{pendingReservations.length + pendingEvents.length}</Badge>
               </div>
               <div className="divide-y divide-[rgb(235,225,213)]">
-                {todayDepartures.length === 0 ? (
-                  <p className="p-6 text-center text-[rgb(45,45,45)]">No departures today</p>
+                {pendingReservations.length === 0 && pendingEvents.length === 0 ? (
+                  <p className="p-6 text-center text-[rgb(45,45,45)]">No pending requests</p>
                 ) : (
-                  todayDepartures.map(booking => (
-                    <div key={booking.id} className="p-4 hover:bg-[rgb(248,246,242)]">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-medium text-[rgb(107,85,64)]">{booking.room_name}</p>
-                          <p className="text-sm text-[rgb(45,45,45)]">{booking.guest_name}</p>
-                          <p className="text-xs text-[rgb(196,155,145)] mt-1">
-                            Checkout by 11:00 AM
-                          </p>
+                  <>
+                    {pendingReservations.slice(0, 3).map(req => (
+                      <div key={req.id} className="p-4 hover:bg-[rgb(248,246,242)]">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-medium text-[rgb(107,85,64)]">{req.name}</p>
+                            <p className="text-sm text-[rgb(45,45,45)]">
+                              {req.dateTimeRequested && format(new Date(req.dateTimeRequested), 'MMM d, h:mm a')}
+                            </p>
+                            <p className="text-xs text-[rgb(150,170,155)] mt-1">
+                              Party of {req.partySize}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="text-[rgb(196,155,145)] border-[rgb(196,155,145)]">
+                            Reservation
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="text-[rgb(196,155,145)] border-[rgb(196,155,145)]">
-                          Needs Cleaning
-                        </Badge>
                       </div>
-                    </div>
-                  ))
+                    ))}
+                    {pendingEvents.slice(0, 2).map(event => (
+                      <div key={event.id} className="p-4 hover:bg-[rgb(248,246,242)]">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-medium text-[rgb(107,85,64)]">{event.name}</p>
+                            <p className="text-sm text-[rgb(45,45,45)]">
+                              {event.dateRequested && format(new Date(event.dateRequested), 'MMM d, yyyy')}
+                            </p>
+                            <p className="text-xs text-[rgb(150,170,155)] mt-1">
+                              {event.eventType} • {event.partySize} guests
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="text-[rgb(196,155,145)] border-[rgb(196,155,145)]">
+                            Event
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </>
                 )}
               </div>
             </motion.div>
 
-            {/* Upcoming Bookings */}
+            {/* Quick Links */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
               className="bg-white border border-[rgb(235,225,213)] lg:col-span-2"
             >
-              <div className="p-4 border-b border-[rgb(235,225,213)] flex items-center justify-between">
-                <h2 className="font-light text-[rgb(107,85,64)]">Next 7 Days</h2>
-                <Link 
-                  to={createPageUrl('AdminBookings')}
-                  className="text-sm text-[rgb(150,170,155)] hover:underline flex items-center gap-1"
-                >
-                  View All <ChevronRight className="w-4 h-4" />
-                </Link>
+              <div className="p-4 border-b border-[rgb(235,225,213)]">
+                <h2 className="font-light text-[rgb(107,85,64)]">Quick Actions</h2>
               </div>
-              <div className="divide-y divide-[rgb(235,225,213)]">
-                {upcomingBookings.length === 0 ? (
-                  <p className="p-6 text-center text-[rgb(45,45,45)]">No upcoming bookings</p>
-                ) : (
-                  upcomingBookings.map(booking => (
-                    <div key={booking.id} className="p-4 hover:bg-[rgb(248,246,242)] flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-[rgb(235,225,213)] flex items-center justify-center">
-                          <span className="text-xs text-[rgb(107,85,64)]">
-                            {format(new Date(booking.check_in_date), 'MMM')}<br/>
-                            {format(new Date(booking.check_in_date), 'd')}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-medium text-[rgb(107,85,64)]">{booking.guest_name}</p>
-                          <p className="text-sm text-[rgb(45,45,45)]">
-                            {booking.room_name} • {booking.num_guests} {booking.num_guests === 1 ? 'guest' : 'guests'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[rgb(107,85,64)]">${booking.grand_total}</p>
-                        <p className="text-xs text-[rgb(45,45,45)]">{booking.confirmation_code}</p>
-                      </div>
-                    </div>
-                  ))
-                )}
+              <div className="p-6 grid md:grid-cols-3 gap-4">
+                <Link
+                  to={createPageUrl('AdminRestaurant')}
+                  className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors"
+                >
+                  <UtensilsCrossed className="w-6 h-6 text-[rgb(150,170,155)] mb-2" />
+                  <h3 className="font-medium text-[rgb(107,85,64)] mb-1">Update Menu</h3>
+                  <p className="text-xs text-[rgb(45,45,45)]">Manage specials & sections</p>
+                </Link>
+                <Link
+                  to={createPageUrl('AdminTreatments')}
+                  className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors"
+                >
+                  <Sparkles className="w-6 h-6 text-[rgb(150,170,155)] mb-2" />
+                  <h3 className="font-medium text-[rgb(107,85,64)] mb-1">Spa Services</h3>
+                  <p className="text-xs text-[rgb(45,45,45)]">Manage treatments</p>
+                </Link>
+                <Link
+                  to={createPageUrl('AdminKnowledge')}
+                  className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors"
+                >
+                  <ClipboardList className="w-6 h-6 text-[rgb(150,170,155)] mb-2" />
+                  <h3 className="font-medium text-[rgb(107,85,64)] mb-1">Knowledge Base</h3>
+                  <p className="text-xs text-[rgb(45,45,45)]">{activeKnowledgeBase.length} active articles</p>
+                </Link>
               </div>
             </motion.div>
           </div>
