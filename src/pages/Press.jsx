@@ -25,6 +25,15 @@ export default function Press() {
         {/* CTA Buttons */}
         <div className="flex flex-wrap gap-3 mb-12">
           <a
+            href="https://www.google.com/search?q=Hotel+RITUAL+Jacksonville+TX+reviews"
+            target="_blank"
+            rel="noopener"
+            className="px-6 py-3 bg-[rgb(150,170,155)] text-white rounded-full hover:bg-[rgb(130,150,135)] transition-all text-sm font-medium flex items-center gap-2"
+          >
+            Google Reviews
+            <ExternalLink className="w-4 h-4" />
+          </a>
+          <a
             href="https://hotels.cloudbeds.com/"
             target="_blank"
             rel="noopener"
