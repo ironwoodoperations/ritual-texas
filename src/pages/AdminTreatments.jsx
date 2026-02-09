@@ -39,7 +39,6 @@ export default function AdminTreatments() {
     not_for: '',
     duration_minutes: 60,
     price: 0,
-    image_url: '',
     is_available: true
   });
 
