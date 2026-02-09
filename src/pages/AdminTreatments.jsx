@@ -248,9 +248,15 @@ export default function AdminTreatments() {
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
-            </motion.div>
-          ))}
-        </div>
+              </motion.div>
+              )}
+              </Draggable>
+              ))}
+              {provided.placeholder}
+              </div>
+              )}
+              </Droppable>
+              </DragDropContext>
 
         {treatments?.length === 0 && (
           <div className="text-center py-16 bg-white border border-[rgb(235,225,213)]">
