@@ -94,9 +94,11 @@ Deno.serve(async (req) => {
         checkIn: reservation.startDate,
         checkOut: reservation.endDate,
         roomType: reservation.roomTypeName,
+        roomNumber: reservation.roomName || reservation.assignedRoom || null,
         status: reservation.status,
         totalAmount: reservation.balance
-      }
+      },
+      debug: reservation // Log full response to see what fields are available
     });
     
   } catch (error) {
