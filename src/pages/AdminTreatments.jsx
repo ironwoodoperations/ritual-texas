@@ -337,18 +337,12 @@ export default function AdminTreatments() {
               />
             </div>
 
-            <ImageSelector
-              label="Treatment Image"
-              value={formData.image_url}
-              onChange={(url) => setFormData({...formData, image_url: url})}
-            />
-
             <div className="flex items-center gap-2">
               <Switch
                 checked={formData.is_available}
                 onCheckedChange={(checked) => setFormData({...formData, is_available: checked})}
               />
-              <Label>Available for booking</Label>
+              <Label>Show on website</Label>
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
