@@ -8,24 +8,7 @@ export default function Treatments() {
           <h1 style={{ margin: 0, color: '#3B4831', fontFamily: 'serif', fontSize: '34px', letterSpacing: '.2px' }}>
             Spa Treatments
           </h1>
-          <p style={{ marginTop: '10px', color: '#1B1B1B', lineHeight: '1.65', maxWidth: '760px' }}>
-            These are the only treatments currently available at Hotel RITUAL. Choose your ritual and book in minutes.
-          </p>
 
-          <div style={{
-            marginTop: '14px',
-            background: '#FCF9F4',
-            borderRadius: '18px',
-            padding: '14px',
-            boxShadow: '0 10px 30px rgba(0,0,0,.10)',
-            border: '1px solid rgba(59,72,49,.10)'
-          }}>
-            <strong style={{ color: '#3B4831' }}>Before you book:</strong>
-            <div style={{ marginTop: '6px', color: '#1B1B1B', lineHeight: '1.6' }}>
-              Sauna + rainshower are available pre or post treatment for maximum results. Rehydrate + refresh with mineral water,
-              organic teas, and snacks in the butler's pantry before returning to the real world.
-            </div>
-          </div>
         </header>
 
         <div style={{ display: 'grid', gap: '14px' }}>
