@@ -182,14 +182,24 @@ export default function AdminTreatments() {
       </header>
 
       <main className="max-w-6xl mx-auto p-6">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {treatments?.map(treatment => (
-            <motion.div
-              key={treatment.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white border border-[rgb(235,225,213)] p-4"
-            >
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="treatments" type="TREATMENT">
+            {(provided, snapshot) => (
+              <div
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                className="space-y-4"
+              >
+                {treatments?.map((treatment, index) => (
+                  <Draggable key={treatment.id} draggableId={treatment.id} index={index}>
+                    {(provided, snapshot) => (
+                      <motion.div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`bg-white border border-[rgb(235,225,213)] p-4 ${snapshot.isDragging ? 'shadow-lg' : ''}`}
+                      >
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <Badge className="mb-2 bg-[rgb(235,225,213)] text-[rgb(107,85,64)]">
