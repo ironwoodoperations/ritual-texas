@@ -114,18 +114,34 @@ export default function Restaurant() {
                 <Calendar className="w-5 h-5" style={{ color: '#3B4831' }} />
                 <h3 style={{ margin: 0, fontSize: '20px', color: '#3B4831', fontWeight: 700 }}>Hours</h3>
               </div>
-              {sortedHours.length > 0 ? (
-                sortedHours.map(h => (
-                  <div key={h.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(59,72,49,.08)' }}>
-                    <span style={{ fontWeight: 600, color: '#1B1B1B' }}>{h.dayOfWeek}</span>
-                    <span style={{ color: '#1B1B1B' }}>
-                      {h.isClosed ? 'Closed' : `${h.openTime} - ${h.closeTime}`}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <p style={{ color: '#1B1B1B' }}>Hours coming soon</p>
-              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(59,72,49,.08)' }}>
+                <span style={{ fontWeight: 600, color: '#1B1B1B' }}>Sunday</span>
+                <span style={{ color: '#1B1B1B' }}>Closed</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(59,72,49,.08)' }}>
+                <span style={{ fontWeight: 600, color: '#1B1B1B' }}>Monday</span>
+                <span style={{ color: '#1B1B1B' }}>Closed</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(59,72,49,.08)' }}>
+                <span style={{ fontWeight: 600, color: '#1B1B1B' }}>Tuesday</span>
+                <span style={{ color: '#1B1B1B' }}>10:30 AM - 3:00 PM</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(59,72,49,.08)' }}>
+                <span style={{ fontWeight: 600, color: '#1B1B1B' }}>Wednesday</span>
+                <span style={{ color: '#1B1B1B' }}>10:30 AM - 3:00 PM</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(59,72,49,.08)' }}>
+                <span style={{ fontWeight: 600, color: '#1B1B1B' }}>Thursday</span>
+                <span style={{ color: '#1B1B1B' }}>10:30 AM - 3:00 PM</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(59,72,49,.08)' }}>
+                <span style={{ fontWeight: 600, color: '#1B1B1B' }}>Friday</span>
+                <span style={{ color: '#1B1B1B' }}>10:30 AM - 3:00 PM</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(59,72,49,.08)' }}>
+                <span style={{ fontWeight: 600, color: '#1B1B1B' }}>Saturday</span>
+                <span style={{ color: '#1B1B1B' }}>10:30 AM - 3:00 PM</span>
+              </div>
             </div>
 
             {/* Location */}
