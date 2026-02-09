@@ -300,7 +300,7 @@ export default function ItineraryPage() {
               {getStatusBadge(reservation.status)}
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-4 gap-6">
               <div>
                 <p className="text-xs uppercase tracking-wide" style={{ color: '#1B1B1B' }}>Check-In</p>
                 <p className="font-medium text-lg" style={{ color: '#3B4831' }}>
@@ -316,13 +316,19 @@ export default function ItineraryPage() {
                 <p className="text-xs mt-1" style={{ color: '#1B1B1B' }}>11:00 AM</p>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-wide" style={{ color: '#1B1B1B' }}>Total Amount</p>
+                <p className="text-xs uppercase tracking-wide" style={{ color: '#1B1B1B' }}>Room</p>
                 <p className="font-medium text-lg" style={{ color: '#3B4831' }}>
-                  ${reservation.totalAmount?.toFixed(2) || '—'}
+                  {reservation.roomNumber || 'Assigned at check-in'}
                 </p>
                 {reservation.roomType && (
                   <p className="text-xs mt-1" style={{ color: '#1B1B1B' }}>{reservation.roomType}</p>
                 )}
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide" style={{ color: '#1B1B1B' }}>Total Amount</p>
+                <p className="font-medium text-lg" style={{ color: '#3B4831' }}>
+                  ${reservation.totalAmount?.toFixed(2) || '—'}
+                </p>
               </div>
             </div>
           </Card>
