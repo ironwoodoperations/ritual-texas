@@ -95,13 +95,15 @@ export default function ItineraryPage() {
           }
         }
       }
+    // Scroll to top to show results
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
-      console.error('Itinerary lookup error:', err);
-      setError('We\'re having trouble loading your itinerary. Please try again or text concierge.');
+    console.error('Itinerary lookup error:', err);
+    setError('We\'re having trouble loading your itinerary. Please try again or text concierge.');
     } finally {
-      setLoading(false);
+    setLoading(false);
     }
-  };
+    };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
