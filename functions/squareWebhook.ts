@@ -119,32 +119,47 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Fetch staff name
+    // Fetch staff name - try retrieving full booking first which may include team member details
     let staffName = "";
     let staffDebugData = null;
     if (teamMemberId) {
       try {
-        const staffResp = await squareApi(`/v2/team_members/${encodeURIComponent(teamMemberId)}`, accessToken);
-        staffDebugData = staffResp; // Store for debugging
-        const member = staffResp?.team_member;
+        // Try getting full booking details with team member info
+        const bookingResp = await squareApi(`/v2/bookings/${encodeURIComponent(bookingId)}`, accessToken);
+        staffDebugData = { bookingResp };
 
-        // Try multiple possible name fields
-        if (member?.given_name && member?.family_name) {
-          staffName = `${member.given_name} ${member.family_name}`.trim();
-        } else if (member?.given_name) {
-          staffName = member.given_name;
-        } else if (member?.family_name) {
-          staffName = member.family_name;
-        } else if (member?.display_name) {
-          staffName = member.display_name;
-        } else if (member?.email_address) {
-          staffName = member.email_address.split('@')[0];
+        // Check if team member name is in the appointment segments
+        const segments = bookingResp?.booking?.appointment_segments || [];
+        const segment = segments[0];
+        if (segment?.team_member_name) {
+          staffName = segment.team_member_name;
         }
 
-        console.log("Staff API Response:", JSON.stringify(staffResp, null, 2));
+        // If not found, try the team members API
+        if (!staffName) {
+          const staffResp = await squareApi(`/v2/team_members/${encodeURIComponent(teamMemberId)}`, accessToken);
+          staffDebugData.staffResp = staffResp;
+          const member = staffResp?.team_member;
+
+          // Try multiple possible name fields
+          if (member?.given_name && member?.family_name) {
+            staffName = `${member.given_name} ${member.family_name}`.trim();
+          } else if (member?.given_name) {
+            staffName = member.given_name;
+          } else if (member?.family_name) {
+            staffName = member.family_name;
+          } else if (member?.display_name) {
+            staffName = member.display_name;
+          } else if (member?.email_address) {
+            staffName = member.email_address.split('@')[0];
+          }
+        }
+
+        console.log("Staff Debug Data:", JSON.stringify(staffDebugData, null, 2));
         console.log("Extracted staff name:", staffName);
       } catch (e) {
-        console.error("Failed to fetch staff name:", e.message);
+        console.error("Failed to fetch staff name:", e.message, e);
+        staffDebugData = { error: String(e.message || e) };
       }
     }
 
