@@ -96,12 +96,24 @@ Deno.serve(async (req) => {
     const serviceVariationId = booking?.appointment_segments?.[0]?.service_variation_id || "";
     const serviceClientId = booking?.appointment_segments?.[0]?.service_variation_client_id || "";
 
-    // Fetch service name
+    // Fetch service name (get parent item, not variation)
     let serviceName = "";
     if (serviceVariationId) {
       try {
-        const serviceResp = await squareApi(`/v2/catalog/object/${encodeURIComponent(serviceVariationId)}`, accessToken);
-        serviceName = serviceResp?.object?.item_variation_data?.name || "";
+        const serviceResp = await squareApi(`/v2/catalog/object/${encodeURIComponent(serviceVariationId)}?include_related_objects=true`, accessToken);
+        const variation = serviceResp?.object;
+        const parentItemId = variation?.item_variation_data?.item_id;
+
+        // Get parent item name from related objects
+        if (parentItemId && serviceResp?.related_objects) {
+          const parentItem = serviceResp.related_objects.find(obj => obj.id === parentItemId);
+          serviceName = parentItem?.item_data?.name || "";
+        }
+
+        // Fallback to variation name if parent not found
+        if (!serviceName) {
+          serviceName = variation?.item_variation_data?.name || "";
+        }
       } catch (e) {
         console.error("Failed to fetch service name:", e.message);
       }
@@ -112,7 +124,10 @@ Deno.serve(async (req) => {
     if (teamMemberId) {
       try {
         const staffResp = await squareApi(`/v2/team_members/${encodeURIComponent(teamMemberId)}`, accessToken);
-        staffName = staffResp?.team_member?.display_name || "";
+        const member = staffResp?.team_member;
+        staffName = member?.given_name && member?.family_name 
+          ? `${member.given_name} ${member.family_name}`.trim()
+          : (member?.given_name || member?.family_name || "");
       } catch (e) {
         console.error("Failed to fetch staff name:", e.message);
       }
