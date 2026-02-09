@@ -194,8 +194,8 @@ export default function RestaurantEvents() {
               <p style={{ margin: '0 0 8px 0', color: '#1B1B1B', fontSize: '14px' }}>
                 <strong>Prefer to call?</strong>
               </p>
-              <a href="tel:9032846880" style={{ color: '#C57C5D', textDecoration: 'none', fontSize: '20px', fontWeight: 700 }}>
-                (903) 284-6880
+              <a href="tel:9038106695" style={{ color: '#C57C5D', textDecoration: 'none', fontSize: '20px', fontWeight: 700 }}>
+                (903) 810-6695
               </a>
             </div>
           </div>
