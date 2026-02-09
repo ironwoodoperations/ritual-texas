@@ -99,16 +99,7 @@ Deno.serve(async (req) => {
         totalAmount: reservation.balance
       },
       debug: {
-        allFields: Object.keys(reservation),
-        roomRelated: {
-          roomName: reservation.roomName,
-          assignedRoom: reservation.assignedRoom,
-          roomAssignment: reservation.roomAssignment,
-          propertyRoomName: reservation.propertyRoomName,
-          roomTypeName: reservation.roomTypeName,
-          propertyRoomID: reservation.propertyRoomID,
-          roomTypeID: reservation.roomTypeID
-        }
+        fullCloudbedsResponse: reservation
       }
     });
     
