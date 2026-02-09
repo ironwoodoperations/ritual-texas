@@ -162,8 +162,17 @@ export default function ItineraryPage() {
           <div style={{padding: 12, margin: '12px 0', border: '1px solid #ccc', borderRadius: 12, backgroundColor: '#fff9e6'}}>
             <div style={{fontWeight: 700, fontSize: 14}}>Cloudbeds Debug</div>
             <div style={{fontSize: 12, opacity: 0.75, marginTop: 4}}>Rendered: {new Date().toISOString()}</div>
-            <div style={{fontSize: 12, marginTop: 6, fontFamily: 'monospace', whiteSpace: 'pre-wrap'}}>
+            <div style={{fontSize: 12, marginTop: 6, fontFamily: 'monospace', whiteSpace: 'pre-wrap', maxHeight: 400, overflow: 'auto'}}>
+              <strong>What we're showing:</strong>
               {JSON.stringify(reservation, null, 2)}
+              {reservation._debug && (
+                <>
+                  {'\n\n'}
+                  <strong>Raw API fields available:</strong>
+                  {'\n'}
+                  {JSON.stringify(reservation._debug, null, 2)}
+                </>
+              )}
             </div>
           </div>
         )}
