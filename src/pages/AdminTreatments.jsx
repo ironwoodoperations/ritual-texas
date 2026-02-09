@@ -60,7 +60,10 @@ export default function AdminTreatments() {
 
   const { data: treatments, isLoading } = useQuery({
     queryKey: ['admin-treatments'],
-    queryFn: () => base44.entities.Treatment.list(),
+    queryFn: async () => {
+      const all = await base44.entities.Treatment.list();
+      return all.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    },
   });
 
   const createMutation = useMutation({
