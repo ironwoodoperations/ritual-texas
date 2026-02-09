@@ -136,6 +136,20 @@ export default function AdminTreatments() {
     }
   };
 
+  const handleDragEnd = (result) => {
+    const { source, destination, draggableId } = result;
+    if (!destination) return;
+    if (source.index === destination.index) return;
+
+    const reorderedTreatments = Array.from(treatments);
+    const [movedTreatment] = reorderedTreatments.splice(source.index, 1);
+    reorderedTreatments.splice(destination.index, 0, movedTreatment);
+
+    reorderedTreatments.forEach((treatment, idx) => {
+      updateMutation.mutate({ id: treatment.id, data: { ...treatment, sort_order: idx } });
+    });
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[rgb(248,246,242)]">
