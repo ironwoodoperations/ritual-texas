@@ -83,6 +83,10 @@ Deno.serve(async (req) => {
       }, { status: 403 });
     }
     
+    // Extract room name from assigned array or fall back to roomTypeName
+    const assignedRoom = reservation.assigned?.[0];
+    const roomDisplay = assignedRoom?.roomName || assignedRoom?.roomTypeName || reservation.roomTypeName || "Assigned at check-in";
+
     // Return reservation details
     return Response.json({
       success: true,
@@ -94,7 +98,7 @@ Deno.serve(async (req) => {
         checkIn: reservation.startDate,
         checkOut: reservation.endDate,
         roomType: reservation.roomTypeName,
-        roomNumber: reservation.roomName || reservation.assignedRoom || reservation.roomAssignment || reservation.propertyRoomName || null,
+        roomNumber: roomDisplay,
         status: reservation.status,
         totalAmount: reservation.balance
       },
