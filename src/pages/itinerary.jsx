@@ -20,6 +20,7 @@ export default function ItineraryPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [reservation, setReservation] = useState(null);
+  const [cloudbedsDebug, setCloudbedsDebug] = useState(null);
   const [spaBookings, setSpaBookings] = useState([]);
 
   useEffect(() => {
@@ -71,6 +72,7 @@ export default function ItineraryPage() {
 
         if (data.success && data.reservation) {
           setReservation(data.reservation);
+          setCloudbedsDebug(data.debug);
           localStorage.setItem('ritual_confirmation', confirmationCode);
           localStorage.setItem('ritual_email', guestEmail);
         } else {
@@ -156,12 +158,12 @@ export default function ItineraryPage() {
     <div style={{ backgroundColor: '#F0E8DD' }} className="min-h-screen py-12 px-4">
       <div className="max-w-3xl mx-auto">
         {/* DEBUG BLOCK — hidden, uncomment to troubleshoot */}
-        {true && reservation && (
+        {true && cloudbedsDebug && (
           <div style={{padding: 12, margin: '12px 0', border: '1px solid #ccc', borderRadius: 12, backgroundColor: '#fff9e6'}}>
-            <div style={{fontWeight: 700, fontSize: 14}}>Cloudbeds Debug</div>
-            <div style={{fontSize: 12, opacity: 0.75, marginTop: 4}}>Rendered: {new Date().toISOString()}</div>
-            <div style={{fontSize: 12, marginTop: 6, fontFamily: 'monospace', whiteSpace: 'pre-wrap'}}>
-              {JSON.stringify(reservation, null, 2)}
+            <div style={{fontWeight: 700, fontSize: 14}}>Full Raw Cloudbeds Response</div>
+            <div style={{fontSize: 12, opacity: 0.75, marginTop: 4}}>Every field from Cloudbeds API:</div>
+            <div style={{fontSize: 11, marginTop: 6, fontFamily: 'monospace', whiteSpace: 'pre-wrap', maxHeight: '400px', overflow: 'auto'}}>
+              {JSON.stringify(cloudbedsDebug.fullCloudbedsResponse, null, 2)}
             </div>
           </div>
         )}
