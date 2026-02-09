@@ -89,21 +89,6 @@ export default function Restaurant() {
         </p>
       </section>
 
-      {/* Event Rental Banner */}
-      <div style={{ maxWidth: '1200px', margin: '-30px auto 40px', padding: '0 20px' }}>
-        <div style={{ background: 'linear-gradient(135deg, #3B4831 0%, #C57C5D 100%)', padding: '32px', borderRadius: '18px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '20px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)' }}>
-          <h3 style={{ margin: 0, color: '#FCF9F4', fontSize: '28px', fontWeight: 700, fontFamily: 'serif' }}>
-            Host Your Special Event at RITUAL
-          </h3>
-          <p style={{ margin: 0, color: '#FCF9F4', fontSize: '16px', maxWidth: '600px', lineHeight: '1.6' }}>
-            Private dining, corporate gatherings, celebrations & more. Our intimate space is perfect for your next event.
-          </p>
-          <Link to={createPageUrl('RestaurantEvents')} style={{ padding: '14px 32px', background: '#FCF9F4', color: '#3B4831', textDecoration: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '16px' }}>
-            Plan Your Event
-          </Link>
-        </div>
-      </div>
-
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
         {/* The Luncheonette */}
         <section style={{ marginBottom: '60px', background: '#FCF9F4', padding: '40px', borderRadius: '18px', border: '1px solid rgba(59,72,49,.1)' }}>
