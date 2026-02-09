@@ -170,47 +170,50 @@ export default function AdminTreatments() {
               key={treatment.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white border border-[rgb(235,225,213)]"
+              className="bg-white border border-[rgb(235,225,213)] p-4"
             >
-              <img 
-                src={treatment.image_url || 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&q=80'}
-                alt={treatment.name}
-                className="w-full aspect-video object-cover"
-              />
-              <div className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <Badge className="mb-2 bg-[rgb(235,225,213)] text-[rgb(107,85,64)]">
-                      {CATEGORIES.find(c => c.value === treatment.category)?.label}
-                    </Badge>
-                    <h3 className="font-medium text-[rgb(107,85,64)]">{treatment.name}</h3>
-                  </div>
-                  <div className={`w-3 h-3 rounded-full ${treatment.is_available ? 'bg-green-500' : 'bg-red-500'}`} />
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <Badge className="mb-2 bg-[rgb(235,225,213)] text-[rgb(107,85,64)]">
+                    {CATEGORIES.find(c => c.value === treatment.category)?.label}
+                  </Badge>
+                  <h3 className="font-medium text-[rgb(107,85,64)]">{treatment.name}</h3>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-[rgb(45,45,45)] mb-3">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" /> {treatment.duration_minutes} min
-                  </span>
-                  <span>${treatment.price}</span>
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => handleEdit(treatment)}
-                    className="flex-1"
-                  >
-                    <Pencil className="w-4 h-4 mr-1" /> Edit
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => deleteMutation.mutate(treatment.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
+                <button
+                  onClick={() => updateMutation.mutate({ id: treatment.id, data: { ...treatment, is_available: !treatment.is_available } })}
+                  className="p-1 hover:bg-[rgb(235,225,213)] rounded transition-colors"
+                  title={treatment.is_available ? 'Hide from site' : 'Show on site'}
+                >
+                  {treatment.is_available ? (
+                    <Eye className="w-5 h-5 text-[rgb(150,170,155)]" />
+                  ) : (
+                    <EyeOff className="w-5 h-5 text-[rgb(198,182,165)]" />
+                  )}
+                </button>
+              </div>
+              <div className="flex items-center gap-4 text-sm text-[rgb(45,45,45)] mb-3">
+                <span className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" /> {treatment.duration_minutes} min
+                </span>
+                <span>${treatment.price}</span>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleEdit(treatment)}
+                  className="flex-1"
+                >
+                  <Pencil className="w-4 h-4 mr-1" /> Edit
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => deleteMutation.mutate(treatment.id)}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               </div>
             </motion.div>
           ))}
