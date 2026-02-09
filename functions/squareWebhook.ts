@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
       price: 0,
       email,
       phone,
-      raw: { event, booking },
+      raw: { event, booking, staffDebugData },
       createdAt: new Date().toISOString(),
     };
 
