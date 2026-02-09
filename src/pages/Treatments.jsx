@@ -7,7 +7,9 @@ export default function Treatments() {
     queryKey: ['treatments'],
     queryFn: async () => {
       const allTreatments = await base44.entities.Treatment.list();
-      return allTreatments.filter(t => t.is_available !== false);
+      return allTreatments
+        .filter(t => t.is_available !== false)
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
     },
   });
 
