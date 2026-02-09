@@ -346,11 +346,6 @@ export default function ItineraryPage() {
                       <h3 className="font-medium text-lg" style={{ color: '#3B4831' }}>
                         {booking.serviceName || booking.service || 'Spa Service'}
                       </h3>
-                      {booking.staffName && (
-                        <p className="text-sm mt-1" style={{ color: '#1B1B1B' }}>
-                          Therapist: {booking.staffName}
-                        </p>
-                      )}
                     </div>
                     {booking.status && (
                       <span className="text-xs px-3 py-1 rounded-full whitespace-nowrap" style={{ backgroundColor: '#C4A55C', color: 'white' }}>
@@ -361,8 +356,8 @@ export default function ItineraryPage() {
                   <div className="text-sm space-y-2" style={{ color: '#1B1B1B' }}>
                     {booking.startAt && (
                       <p>
-                        <Clock className="w-4 h-4 inline mr-2" style={{ color: '#3B4831' }} />
-                        {new Date(booking.startAt).toLocaleString('en-US', {
+                        <CalendarDays className="w-4 h-4 inline mr-2" style={{ color: '#3B4831' }} />
+                        <strong>Date & Time:</strong> {new Date(booking.startAt).toLocaleString('en-US', {
                           weekday: 'short',
                           month: 'short',
                           day: 'numeric',
@@ -374,9 +369,17 @@ export default function ItineraryPage() {
                     {booking.durationMinutes && (
                       <p>
                         <Clock className="w-4 h-4 inline mr-2" style={{ color: '#3B4831' }} />
-                        {booking.durationMinutes} minutes
+                        <strong>Duration:</strong> {booking.durationMinutes} minutes
                       </p>
                     )}
+                    <p>
+                      <Sparkles className="w-4 h-4 inline mr-2" style={{ color: '#3B4831' }} />
+                      <strong>Service Provider:</strong> {booking.staffName || 'Staff'}
+                    </p>
+                    <p>
+                      <Coffee className="w-4 h-4 inline mr-2" style={{ color: '#3B4831' }} />
+                      <strong>Treatment Room:</strong> {booking.roomName || 'Ask Concierge'}
+                    </p>
                   </div>
                 </div>
               ))}
