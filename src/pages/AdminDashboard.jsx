@@ -72,6 +72,7 @@ export default function AdminDashboard() {
     { icon: FileText, label: 'Packages', page: 'AdminPackages' },
     { icon: ClipboardList, label: 'Knowledge Base', page: 'AdminKnowledge' },
     { icon: MapPin, label: 'Image Library', page: 'AdminImages' },
+    { icon: Settings, label: 'Restaurant', page: 'AdminRestaurant' },
   ];
 
   if (!user) {

@@ -51,6 +51,20 @@ export default function AdminRestaurant() {
             Menu Items
           </button>
           <button
+            onClick={() => setActiveTab('categories')}
+            style={{
+              padding: '10px 20px',
+              background: activeTab === 'categories' ? '#3B4831' : 'transparent',
+              color: activeTab === 'categories' ? '#FCF9F4' : '#3B4831',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+          >
+            Menu Sections
+          </button>
+          <button
             onClick={() => setActiveTab('hours')}
             style={{
               padding: '10px 20px',
@@ -68,6 +82,7 @@ export default function AdminRestaurant() {
 
         {activeTab === 'specials' && <SpecialsManager />}
         {activeTab === 'menu' && <MenuManager />}
+        {activeTab === 'categories' && <CategoryManager />}
         {activeTab === 'hours' && <HoursManager />}
       </div>
     </div>
@@ -359,7 +374,7 @@ function MenuManager() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {['all', 'Lunch', 'Bar', 'Dinner', 'Dessert', 'Espresso', 'Drinks'].map(cat => (
+          {['all', 'Lunch', 'Bar', 'Dinner', 'Dessert', 'Espresso', 'Cocktails', 'Wine'].map(cat => (
             <button
               key={cat}
               onClick={() => setFilterCategory(cat)}
@@ -449,7 +464,8 @@ function MenuManager() {
                     <SelectItem value="Dinner">Dinner</SelectItem>
                     <SelectItem value="Dessert">Dessert</SelectItem>
                     <SelectItem value="Espresso">Espresso</SelectItem>
-                    <SelectItem value="Drinks">Drinks</SelectItem>
+                    <SelectItem value="Cocktails">Cocktails</SelectItem>
+                    <SelectItem value="Wine">Wine</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -486,6 +502,95 @@ function MenuManager() {
           </form>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function CategoryManager() {
+  const queryClient = useQueryClient();
+  const { data: settings = [] } = useQuery({
+    queryKey: ['site-settings'],
+    queryFn: () => base44.entities.SiteSettings.list(),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.SiteSettings.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['site-settings'] });
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.SiteSettings.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['site-settings'] });
+    },
+  });
+
+  const categories = ['Lunch', 'Dinner', 'Bar', 'Dessert', 'Espresso', 'Cocktails', 'Wine'];
+  
+  const getSettingForCategory = (cat) => {
+    return settings.find(s => s.key === `MENU_${cat.toUpperCase()}_ENABLED`);
+  };
+
+  const toggleCategory = (category) => {
+    const setting = getSettingForCategory(category);
+    if (setting) {
+      updateMutation.mutate({ 
+        id: setting.id, 
+        data: { ...setting, value: setting.value === 'true' ? 'false' : 'true' } 
+      });
+    } else {
+      createMutation.mutate({ 
+        key: `MENU_${category.toUpperCase()}_ENABLED`, 
+        value: 'true',
+        description: `Enable/disable ${category} menu section`
+      });
+    }
+  };
+
+  return (
+    <div>
+      <h2 style={{ margin: '0 0 12px 0', fontSize: '24px', color: '#3B4831' }}>Menu Sections</h2>
+      <p style={{ margin: '0 0 24px 0', color: '#1B1B1B', fontSize: '14px' }}>
+        Control which menu sections appear on your restaurant menu page. Turn off sections you're not currently serving.
+      </p>
+      <div style={{ display: 'grid', gap: '12px' }}>
+        {categories.map(cat => {
+          const setting = getSettingForCategory(cat);
+          const isEnabled = !setting || setting.value === 'true';
+          return (
+            <div 
+              key={cat}
+              style={{ 
+                background: '#FCF9F4', 
+                padding: '20px', 
+                borderRadius: '12px',
+                border: isEnabled ? '2px solid #C57C5D' : '1px solid rgba(59,72,49,.1)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <div>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: '#3B4831', fontWeight: 700 }}>{cat}</h3>
+                <p style={{ margin: 0, fontSize: '13px', color: '#1B1B1B' }}>
+                  {isEnabled ? 'Visible on menu' : 'Hidden from menu'}
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '13px', color: '#1B1B1B', fontWeight: 600 }}>
+                  {isEnabled ? 'Enabled' : 'Disabled'}
+                </span>
+                <Switch 
+                  checked={isEnabled}
+                  onCheckedChange={() => toggleCategory(cat)}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
