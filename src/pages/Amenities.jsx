@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
-import { Droplets, Flame, Coffee, Home, Sparkles, Leaf, TreePine, Music } from 'lucide-react';
+import { Droplets, Flame, Coffee, Home, Sparkles, Leaf, TreePine, Music, MapPin } from 'lucide-react';
 
 export default function Amenities() {
   const amenities = [
@@ -10,7 +10,7 @@ export default function Amenities() {
       icon: Droplets,
       title: "Pool",
       description: "Outdoor heated pool surrounded by palms and loungers",
-      image: "https://images.squarespace-cdn.com/content/v1/5f28ea4d05e06334e017a510/1748650067284-0B3HBUUEXAC8UNICUEUB/pool.jpg"
+      image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/cdc8017fc_IMG_20260209_093959.jpg"
     },
     {
       icon: Droplets,
@@ -47,6 +47,12 @@ export default function Amenities() {
       title: "Spa Treatments",
       description: "Full-service spa with massage, facials, and healing rituals",
       image: "https://images.squarespace-cdn.com/content/v1/5f28ea4d05e06334e017a510/8becffb7-f1ca-4af9-ad75-5706b45baed5/shirodhara.jpg"
+    },
+    {
+      icon: MapPin,
+      title: "Property Map",
+      description: "Easy navigation of our beautiful grounds and amenities",
+      image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/373728481_IMG_20260209_094256.jpg"
     },
   ];
 
