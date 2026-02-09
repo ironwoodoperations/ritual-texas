@@ -137,28 +137,6 @@ export default function Rooms() {
             <PressStrip limit={4} compact />
           </motion.div>
 
-          {/* Connecting Suites Callout */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-[rgb(235,225,213)] border border-[rgb(198,182,165)] p-6 mb-10 rounded-sm"
-          >
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-light text-[rgb(107,85,64)] mb-2">Traveling with a Group?</h3>
-                <p className="text-sm text-[rgb(45,45,45)] font-light">Book connecting suites for shared space and privacy.</p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                {connectingPairs.map((pair, idx) => (
-                  <div key={idx} className="flex items-center gap-2 px-3 py-2 bg-white border border-[rgb(198,182,165)] rounded-sm">
-                    <span className="text-xs font-medium text-[rgb(107,85,64)]">{pair.suites[0]} + {pair.suites[1]}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-
           <h2 className="text-2xl font-light text-[rgb(107,85,64)] mb-6">Our Suites</h2>
 
           {/* Suites Grid */}
@@ -232,6 +210,28 @@ export default function Rooms() {
               ))}
             </div>
           )}
+
+          {/* Connecting Suites Callout */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="bg-[rgb(235,225,213)] border border-[rgb(198,182,165)] p-6 mt-10 rounded-sm"
+          >
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-light text-[rgb(107,85,64)] mb-2">Traveling with a Group?</h3>
+                <p className="text-sm text-[rgb(45,45,45)] font-light">Book connecting suites for shared space and privacy.</p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {connectingPairs.map((pair, idx) => (
+                  <div key={idx} className="flex items-center gap-2 px-3 py-2 bg-white border border-[rgb(198,182,165)] rounded-sm">
+                    <span className="text-xs font-medium text-[rgb(107,85,64)]">{pair.suites[0]} + {pair.suites[1]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
