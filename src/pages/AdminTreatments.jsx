@@ -200,25 +200,30 @@ export default function AdminTreatments() {
                         animate={{ opacity: 1, y: 0 }}
                         className={`bg-white border border-[rgb(235,225,213)] p-4 ${snapshot.isDragging ? 'shadow-lg' : ''}`}
                       >
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <Badge className="mb-2 bg-[rgb(235,225,213)] text-[rgb(107,85,64)]">
-                    {CATEGORIES.find(c => c.value === treatment.category)?.label}
-                  </Badge>
-                  <h3 className="font-medium text-[rgb(107,85,64)]">{treatment.name}</h3>
-                </div>
-                <button
-                  onClick={() => updateMutation.mutate({ id: treatment.id, data: { ...treatment, is_available: !treatment.is_available } })}
-                  className="p-1 hover:bg-[rgb(235,225,213)] rounded transition-colors"
-                  title={treatment.is_available ? 'Hide from site' : 'Show on site'}
-                >
-                  {treatment.is_available ? (
-                    <Eye className="w-5 h-5 text-[rgb(150,170,155)]" />
-                  ) : (
-                    <EyeOff className="w-5 h-5 text-[rgb(198,182,165)]" />
-                  )}
-                </button>
-              </div>
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start gap-3 flex-1">
+                            <div {...provided.dragHandleProps} className="mt-1 cursor-grab active:cursor-grabbing">
+                              <GripVertical className="w-5 h-5 text-[rgb(198,182,165)]" />
+                            </div>
+                            <div>
+                              <Badge className="mb-2 bg-[rgb(235,225,213)] text-[rgb(107,85,64)]">
+                                {CATEGORIES.find(c => c.value === treatment.category)?.label}
+                              </Badge>
+                              <h3 className="font-medium text-[rgb(107,85,64)]">{treatment.name}</h3>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => updateMutation.mutate({ id: treatment.id, data: { ...treatment, is_available: !treatment.is_available } })}
+                            className="p-1 hover:bg-[rgb(235,225,213)] rounded transition-colors"
+                            title={treatment.is_available ? 'Hide from site' : 'Show on site'}
+                          >
+                            {treatment.is_available ? (
+                              <Eye className="w-5 h-5 text-[rgb(150,170,155)]" />
+                            ) : (
+                              <EyeOff className="w-5 h-5 text-[rgb(198,182,165)]" />
+                            )}
+                          </button>
+                        </div>
               <div className="flex items-center gap-4 text-sm text-[rgb(45,45,45)] mb-3">
                 <span className="flex items-center gap-1">
                   <Clock className="w-4 h-4" /> {treatment.duration_minutes} min
