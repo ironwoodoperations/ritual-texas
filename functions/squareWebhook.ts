@@ -95,6 +95,8 @@ Deno.serve(async (req) => {
     const teamMemberId = booking?.appointment_segments?.[0]?.team_member_id || "";
     const serviceVariationId = booking?.appointment_segments?.[0]?.service_variation_id || "";
     const serviceClientId = booking?.appointment_segments?.[0]?.service_variation_client_id || "";
+    const resourceIds = booking?.appointment_segments?.[0]?.resource_ids || [];
+    const roomId = resourceIds[0] || "";
 
     // Fetch service name (get parent item, not variation)
     let serviceName = "";
@@ -133,6 +135,17 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Fetch room name
+    let roomName = "";
+    if (roomId) {
+      try {
+        const roomResp = await squareApi(`/v2/bookings/booking-custom-attributes/${encodeURIComponent(roomId)}`, accessToken);
+        roomName = roomResp?.booking_custom_attribute?.value || "";
+      } catch (e) {
+        console.error("Failed to fetch room name:", e.message);
+      }
+    }
+
     const spaBookingPayload = {
       source: "square",
       squareBookingId: bookingId,
@@ -141,6 +154,8 @@ Deno.serve(async (req) => {
       serviceName: serviceName,
       staff: teamMemberId,
       staffName: staffName,
+      roomId: roomId,
+      roomName: roomName,
       startAt,
       durationMinutes,
       price: 0,
