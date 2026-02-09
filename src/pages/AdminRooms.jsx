@@ -21,13 +21,15 @@ export default function AdminRooms() {
 
   const [formData, setFormData] = useState({
     name: '',
+    slug: '',
+    headline: '',
     description: '',
-    detailed_description: '',
-    best_for: '',
-    max_occupancy: 2,
-    price_per_night: 0,
-    amenities: [],
+    level: '',
+    features: [],
     images: [],
+    price_per_night: 0,
+    max_occupancy: 2,
+    sort_order: 0,
     is_available: true
   });
 
@@ -47,25 +49,23 @@ export default function AdminRooms() {
   }, []);
 
   const { data: rooms, isLoading } = useQuery({
-    queryKey: ['admin-rooms'],
-    queryFn: () => base44.entities.Room.list(),
+    queryKey: ['suites'],
+    queryFn: () => base44.entities.Suite.list('sort_order'),
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Room.create(data),
+    mutationFn: (data) => base44.entities.Suite.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-rooms']);
-      queryClient.invalidateQueries(['rooms']);
+      queryClient.invalidateQueries(['suites']);
       setIsFormOpen(false);
       resetForm();
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Room.update(id, data),
+    mutationFn: ({ id, data }) => base44.entities.Suite.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-rooms']);
-      queryClient.invalidateQueries(['rooms']);
+      queryClient.invalidateQueries(['suites']);
       setIsFormOpen(false);
       setEditingRoom(null);
       resetForm();
@@ -73,23 +73,24 @@ export default function AdminRooms() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Room.delete(id),
+    mutationFn: (id) => base44.entities.Suite.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-rooms']);
-      queryClient.invalidateQueries(['rooms']);
+      queryClient.invalidateQueries(['suites']);
     },
   });
 
   const resetForm = () => {
     setFormData({
       name: '',
+      slug: '',
+      headline: '',
       description: '',
-      detailed_description: '',
-      best_for: '',
-      max_occupancy: 2,
-      price_per_night: 0,
-      amenities: [],
+      level: '',
+      features: [],
       images: [],
+      price_per_night: 0,
+      max_occupancy: 2,
+      sort_order: 0,
       is_available: true
     });
   };
@@ -98,13 +99,15 @@ export default function AdminRooms() {
     setEditingRoom(room);
     setFormData({
       name: room.name || '',
+      slug: room.slug || '',
+      headline: room.headline || '',
       description: room.description || '',
-      detailed_description: room.detailed_description || '',
-      best_for: room.best_for || '',
-      max_occupancy: room.max_occupancy || 2,
-      price_per_night: room.price_per_night || 0,
-      amenities: room.amenities || [],
+      level: room.level || '',
+      features: room.features || [],
       images: room.images || [],
+      price_per_night: room.price_per_night || 0,
+      max_occupancy: room.max_occupancy || 2,
+      sort_order: room.sort_order || 0,
       is_available: room.is_available !== false
     });
     setIsFormOpen(true);
@@ -119,23 +122,23 @@ export default function AdminRooms() {
     }
   };
 
-  const handleAddAmenity = () => {
+  const handleAddFeature = () => {
     setFormData({
       ...formData,
-      amenities: [...formData.amenities, '']
+      features: [...formData.features, '']
     });
   };
 
-  const handleAmenityChange = (index, value) => {
-    const newAmenities = [...formData.amenities];
-    newAmenities[index] = value;
-    setFormData({ ...formData, amenities: newAmenities });
+  const handleFeatureChange = (index, value) => {
+    const newFeatures = [...formData.features];
+    newFeatures[index] = value;
+    setFormData({ ...formData, features: newFeatures });
   };
 
-  const handleRemoveAmenity = (index) => {
+  const handleRemoveFeature = (index) => {
     setFormData({
       ...formData,
-      amenities: formData.amenities.filter((_, i) => i !== index)
+      features: formData.features.filter((_, i) => i !== index)
     });
   };
 
@@ -192,7 +195,7 @@ export default function AdminRooms() {
                   </div>
                   <div className={`w-3 h-3 rounded-full ${room.is_available ? 'bg-green-500' : 'bg-red-500'}`} />
                 </div>
-                <p className="text-sm text-[rgb(45,45,45)] mb-3 line-clamp-2">{room.description}</p>
+                <p className="text-sm text-[rgb(45,45,45)] mb-3 line-clamp-2">{room.headline || room.description}</p>
                 <div className="flex gap-2">
                   <Button 
                     variant="outline" 
@@ -235,53 +238,50 @@ export default function AdminRooms() {
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <Label>Room Name *</Label>
+                <Label>Suite Name *</Label>
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  placeholder="The Garden Suite"
+                  placeholder="Suite 1 or Suite 7 — The Carriage House"
                   required
                 />
               </div>
               <div>
-                <Label>Price per Night *</Label>
+                <Label>Slug (URL-friendly)</Label>
                 <Input
-                  type="number"
-                  value={formData.price_per_night}
-                  onChange={(e) => setFormData({...formData, price_per_night: parseFloat(e.target.value)})}
-                  min="0"
-                  required
+                  value={formData.slug}
+                  onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                  placeholder="suite-1 or carriage-house"
                 />
               </div>
             </div>
 
             <div>
-              <Label>Short Description</Label>
-              <Textarea
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
+              <Label>Headline (Short description)</Label>
+              <Input
+                value={formData.headline}
+                onChange={(e) => setFormData({...formData, headline: e.target.value})}
                 placeholder="A peaceful retreat overlooking the garden..."
-                rows={2}
               />
             </div>
 
             <div>
-              <Label>Detailed Description</Label>
+              <Label>Full Description</Label>
               <Textarea
-                value={formData.detailed_description}
-                onChange={(e) => setFormData({...formData, detailed_description: e.target.value})}
-                placeholder="Full description of the room, what's included..."
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                placeholder="Full description of the suite, atmosphere, what makes it special..."
                 rows={4}
               />
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <Label>Best For</Label>
+                <Label>Level/Location</Label>
                 <Input
-                  value={formData.best_for}
-                  onChange={(e) => setFormData({...formData, best_for: e.target.value})}
-                  placeholder="Couples, solo travelers..."
+                  value={formData.level}
+                  onChange={(e) => setFormData({...formData, level: e.target.value})}
+                  placeholder="First level, Carriage House..."
                 />
               </div>
               <div>
@@ -292,6 +292,15 @@ export default function AdminRooms() {
                   onChange={(e) => setFormData({...formData, max_occupancy: parseInt(e.target.value)})}
                   min="1"
                   max="10"
+                />
+              </div>
+              <div>
+                <Label>Sort Order</Label>
+                <Input
+                  type="number"
+                  value={formData.sort_order}
+                  onChange={(e) => setFormData({...formData, sort_order: parseInt(e.target.value)})}
+                  min="0"
                 />
               </div>
             </div>
@@ -310,20 +319,20 @@ export default function AdminRooms() {
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <Label>Amenities</Label>
-                <Button type="button" variant="outline" size="sm" onClick={handleAddAmenity}>
+                <Label>Features & Amenities</Label>
+                <Button type="button" variant="outline" size="sm" onClick={handleAddFeature}>
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
               <div className="space-y-2">
-                {formData.amenities.map((amenity, i) => (
+                {formData.features.map((feature, i) => (
                   <div key={i} className="flex gap-2">
                     <Input
-                      value={amenity}
-                      onChange={(e) => handleAmenityChange(i, e.target.value)}
-                      placeholder="Sauna access, King bed..."
+                      value={feature}
+                      onChange={(e) => handleFeatureChange(i, e.target.value)}
+                      placeholder="King bed, Private bathroom, Garden view..."
                     />
-                    <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveAmenity(i)}>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveFeature(i)}>
                       <X className="w-4 h-4" />
                     </Button>
                   </div>
@@ -348,7 +357,7 @@ export default function AdminRooms() {
                 className="bg-[rgb(150,170,155)] hover:bg-[rgb(130,150,135)]"
                 disabled={createMutation.isPending || updateMutation.isPending}
               >
-                {editingRoom ? 'Save Changes' : 'Create Room'}
+                {editingRoom ? 'Save Changes' : 'Create Suite'}
               </Button>
             </div>
           </form>
