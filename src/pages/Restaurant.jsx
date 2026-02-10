@@ -62,32 +62,32 @@ export default function Restaurant() {
     <div style={{ background: '#F0E8DD', minHeight: '100vh' }}>
       {/* Hero */}
       <section style={{ 
-        padding: '180px 20px 60px 20px', 
+        padding: '80px 20px 60px 20px', 
         textAlign: 'center', 
         backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/75adb6665_galaxy_ai_1770762058526.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        minHeight: '400px',
+        minHeight: '600px',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end'
       }}>
-        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '24px' }}>
-          <Link to={createPageUrl('RestaurantMenu')} style={{ padding: '14px 28px', background: '#C57C5D', color: '#FCF9F4', textDecoration: 'none', borderRadius: '8px', fontWeight: 700 }}>
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '24px' }}>
+          <Link to={createPageUrl('RestaurantMenu')} style={{ padding: '10px 20px', background: '#C57C5D', color: '#FCF9F4', textDecoration: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '14px' }}>
             View Menu
           </Link>
-          <Link to={createPageUrl('RestaurantOrder')} style={{ padding: '14px 28px', background: '#3B4831', color: '#FCF9F4', textDecoration: 'none', borderRadius: '8px', fontWeight: 700 }}>
+          <Link to={createPageUrl('RestaurantOrder')} style={{ padding: '10px 20px', background: '#3B4831', color: '#FCF9F4', textDecoration: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '14px' }}>
             Order Online
           </Link>
-          <Link to={createPageUrl('RestaurantReservations')} style={{ padding: '14px 28px', background: '#D4C4A8', color: '#3B4831', textDecoration: 'none', borderRadius: '8px', fontWeight: 700 }}>
+          <Link to={createPageUrl('RestaurantReservations')} style={{ padding: '10px 20px', background: '#D4C4A8', color: '#3B4831', textDecoration: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '14px' }}>
             Reservations
           </Link>
-          <Link to={createPageUrl('RestaurantEvents')} style={{ padding: '14px 28px', background: 'transparent', color: '#FCF9F4', textDecoration: 'none', borderRadius: '8px', fontWeight: 700, border: '2px solid #FCF9F4' }}>
+          <Link to={createPageUrl('RestaurantEvents')} style={{ padding: '10px 20px', background: '#3B4831', color: '#FCF9F4', textDecoration: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '14px' }}>
             Plan Your Event
           </Link>
         </div>
-        <p style={{ margin: '0', fontSize: '24px', color: '#FCF9F4', fontWeight: 300, fontStyle: 'italic', textShadow: '1px 1px 3px rgba(0,0,0,0.7)' }}>
+        <p style={{ margin: '0', fontSize: '20px', color: '#FCF9F4', fontWeight: 300, fontStyle: 'italic', textShadow: '1px 1px 3px rgba(0,0,0,0.7)' }}>
           Feed your soul with food, libations, and music.
         </p>
       </section>
