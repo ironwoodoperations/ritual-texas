@@ -74,20 +74,20 @@ export default function Restaurant() {
         justifyContent: 'flex-end'
       }}>
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '32px' }}>
-          <Link to={createPageUrl('RestaurantMenu')} style={{ padding: '10px 18px', background: '#C57C5D', color: '#FCF9F4', textDecoration: 'none', borderRadius: '6px', fontWeight: 600, fontSize: '13px' }}>
+          <Link to={createPageUrl('RestaurantMenu')} style={{ padding: '10px 18px', background: 'rgba(231, 212, 188, 0.95)', color: '#3B4831', textDecoration: 'none', borderRadius: '6px', fontWeight: 600, fontSize: '13px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
             View Menu
           </Link>
-          <Link to={createPageUrl('RestaurantOrder')} style={{ padding: '10px 18px', background: '#3B4831', color: '#FCF9F4', textDecoration: 'none', borderRadius: '6px', fontWeight: 600, fontSize: '13px' }}>
+          <Link to={createPageUrl('RestaurantOrder')} style={{ padding: '10px 18px', background: 'rgba(231, 212, 188, 0.95)', color: '#3B4831', textDecoration: 'none', borderRadius: '6px', fontWeight: 600, fontSize: '13px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
             Order Online
           </Link>
-          <Link to={createPageUrl('RestaurantReservations')} style={{ padding: '10px 18px', background: '#D4C4A8', color: '#3B4831', textDecoration: 'none', borderRadius: '6px', fontWeight: 600, fontSize: '13px' }}>
+          <Link to={createPageUrl('RestaurantReservations')} style={{ padding: '10px 18px', background: 'rgba(231, 212, 188, 0.95)', color: '#3B4831', textDecoration: 'none', borderRadius: '6px', fontWeight: 600, fontSize: '13px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
             Reservations
           </Link>
-          <Link to={createPageUrl('RestaurantEvents')} style={{ padding: '10px 18px', background: '#C4A55C', color: '#FCF9F4', textDecoration: 'none', borderRadius: '6px', fontWeight: 600, fontSize: '13px' }}>
+          <Link to={createPageUrl('RestaurantEvents')} style={{ padding: '10px 18px', background: 'rgba(231, 212, 188, 0.95)', color: '#3B4831', textDecoration: 'none', borderRadius: '6px', fontWeight: 600, fontSize: '13px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
             Plan Your Event
           </Link>
         </div>
-        <p style={{ margin: '0', fontSize: '18px', color: '#FCF9F4', fontWeight: 300, fontStyle: 'italic', textShadow: '1px 1px 3px rgba(0,0,0,0.7)' }}>
+        <p style={{ margin: '0', fontSize: '18px', color: '#FCF9F4', fontWeight: 300, fontStyle: 'italic', textShadow: '2px 2px 8px rgba(0,0,0,0.9)', background: 'rgba(0,0,0,0.3)', padding: '8px 20px', borderRadius: '4px', display: 'inline-block' }}>
           Feed your soul with food, libations, and music.
         </p>
       </section>
