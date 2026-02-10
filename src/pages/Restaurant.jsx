@@ -66,7 +66,7 @@ export default function Restaurant() {
         textAlign: 'center', 
         backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/75adb6665_galaxy_ai_1770762058526.jpg)',
         backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundPosition: '35% center',
         backgroundRepeat: 'no-repeat',
         minHeight: '600px',
         display: 'flex',
