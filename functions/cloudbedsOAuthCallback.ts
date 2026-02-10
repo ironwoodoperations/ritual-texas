@@ -45,7 +45,8 @@ Deno.serve(async (req) => {
     // Using rotated Client_Secret - 2026-02-08
     const clientId = Deno.env.get("Client_ID");
     const clientSecret = Deno.env.get("Client_Secret");
-    const redirectUri = "https://hotel-ritual-experience-automation-a6e982ce.base44.app/functions/cloudbedsOAuthCallback";
+    const publicBaseUrl = Deno.env.get("PUBLIC_BASE_URL") || "https://ritualtexas.com";
+    const redirectUri = `${publicBaseUrl}/functions/cloudbedsOAuthCallback`;
     
     const tokenResponse = await fetch('https://hotels.cloudbeds.com/api/v1.1/access_token', {
       method: 'POST',

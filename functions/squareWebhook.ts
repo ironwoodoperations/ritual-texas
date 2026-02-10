@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
   try {
     const signatureKey = Deno.env.get("SQUARE_WEBHOOK_SIGNATURE_KEY");
     const accessToken = Deno.env.get("SQUARE_ACCESS_TOKEN");
-    const publicBaseUrl = Deno.env.get("PUBLIC_BASE_URL") || "https://hotel-ritual-experience-automation-a6e982ce.base44.app";
+    const publicBaseUrl = Deno.env.get("PUBLIC_BASE_URL") || "https://ritualtexas.com";
 
     if (!signatureKey || !accessToken) {
       return Response.json({ error: "Missing secrets: SQUARE_WEBHOOK_SIGNATURE_KEY or SQUARE_ACCESS_TOKEN" }, { status: 500 });
