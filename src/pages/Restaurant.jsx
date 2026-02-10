@@ -64,7 +64,7 @@ export default function Restaurant() {
       <section style={{ 
         padding: '180px 20px 60px 20px', 
         textAlign: 'center', 
-        backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/ee7b68055_unnamed1.jpg)',
+        backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/75adb6665_galaxy_ai_1770762058526.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
