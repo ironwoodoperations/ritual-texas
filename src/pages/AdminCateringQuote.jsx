@@ -790,7 +790,7 @@ export default function AdminCateringQuote() {
         </div>
 
         {/* RIGHT: Totals & Profit */}
-        <div style={{ position: 'sticky', top: '24px' }}>
+        <div className="cq-totals" style={{ position: 'sticky', top: '24px' }}>
           {/* Rate Settings */}
           <div style={{ background: 'rgba(245,240,232,.04)', border: '1px solid rgba(198,168,94,.15)', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
             <p style={{ ...S.sectionTitle, marginBottom: '16px' }}>PRICING RATES</p>
