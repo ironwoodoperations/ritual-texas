@@ -49,6 +49,9 @@
  */
 import About from './pages/About';
 import AdminBookings from './pages/AdminBookings';
+import AdminCatering from './pages/AdminCatering';
+import AdminCateringMenu from './pages/AdminCateringMenu';
+import AdminCateringQuote from './pages/AdminCateringQuote';
 import AdminCloudbeds from './pages/AdminCloudbeds';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminImages from './pages/AdminImages';
@@ -84,15 +87,15 @@ import afterBooking from './pages/afterBooking';
 import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
-import AdminCatering from './pages/AdminCatering';
-import AdminCateringMenu from './pages/AdminCateringMenu';
-import AdminCateringQuote from './pages/AdminCateringQuote';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "About": About,
     "AdminBookings": AdminBookings,
+    "AdminCatering": AdminCatering,
+    "AdminCateringMenu": AdminCateringMenu,
+    "AdminCateringQuote": AdminCateringQuote,
     "AdminCloudbeds": AdminCloudbeds,
     "AdminDashboard": AdminDashboard,
     "AdminImages": AdminImages,
@@ -128,9 +131,6 @@ export const PAGES = {
     "booking": booking,
     "concierge": concierge,
     "itinerary": itinerary,
-    "AdminCatering": AdminCatering,
-    "AdminCateringMenu": AdminCateringMenu,
-    "AdminCateringQuote": AdminCateringQuote,
 }
 
 export const pagesConfig = {
