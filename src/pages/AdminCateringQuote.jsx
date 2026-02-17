@@ -792,6 +792,7 @@ export default function AdminCateringQuote() {
             {[
               ['Food Subtotal', totals.food_subtotal],
               totals.labor_cost > 0 && [`Labor (${(form.staffing||[]).reduce((s,r)=>s+(r.count||0),0)} staff)`, totals.labor_cost],
+              form.is_onsite && totals.venue_total > 0 && ['Venue Rental', totals.venue_total],
               form.bar_package && ['Bar Package', totals.bar_total],
               form.rentals_needed && ['Rentals (est.)', totals.rentals_total],
               [`Service Charge (${form.service_charge_rate}%)`, totals.service_charge_amount],
