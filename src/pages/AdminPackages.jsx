@@ -55,6 +55,31 @@ export default function AdminPackages() {
     onSuccess: () => qc.invalidateQueries(['admin-packages'])
   });
 
+  const saveOrderMutation = useMutation({
+    mutationFn: async () => {
+      setSavingOrder(true);
+      const updates = ordered.map((p, idx) =>
+        base44.entities.Package.update(p.id, { sort_order: (idx + 1) * 10 })
+      );
+      await Promise.all(updates);
+    },
+    onSuccess: () => { qc.invalidateQueries(['admin-packages']); setDirtyOrder(false); setSavingOrder(false); },
+    onError: () => setSavingOrder(false)
+  });
+
+  const moveItem = (fromId, toId) => {
+    setOrdered(prev => {
+      const next = [...prev];
+      const fromIdx = next.findIndex(p => p.id === fromId);
+      const toIdx = next.findIndex(p => p.id === toId);
+      if (fromIdx === -1 || toIdx === -1) return prev;
+      const [moved] = next.splice(fromIdx, 1);
+      next.splice(toIdx, 0, moved);
+      return next;
+    });
+    setDirtyOrder(true);
+  };
+
   const moveMutation = useMutation({
     mutationFn: async ({ pkg, direction }) => {
       const sorted = [...packages].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
