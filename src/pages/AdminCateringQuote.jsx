@@ -503,6 +503,102 @@ export default function AdminCateringQuote() {
                 </select>
               </div>
             </div>
+            {/* On-site / Off-site toggle */}
+            <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(198,168,94,.1)' }}>
+              <p style={{ ...S.label, marginBottom: '10px' }}>EVENT LOCATION TYPE</p>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button onClick={() => setForm(f => ({ ...f, is_onsite: false }))} style={{ ...S.toggle(!form.is_onsite), flex: 1, justifyContent: 'center' }}>
+                  🚗 Off-Site
+                </button>
+                <button onClick={() => setForm(f => ({ ...f, is_onsite: true }))} style={{ ...S.toggle(!!form.is_onsite), flex: 1, justifyContent: 'center' }}>
+                  🏛️ On-Site (Ritual Venue)
+                </button>
+              </div>
+            </div>
+
+            {/* Venue Pricing — only shown when onsite */}
+            {form.is_onsite && (
+              <div style={{ marginTop: '16px', background: 'rgba(198,168,94,.05)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '12px', padding: '18px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                  <p style={{ ...S.label, margin: 0, color: '#C6A85E' }}>VENUE PRICING</p>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button
+                      onClick={() => setForm(f => ({ ...f, venue_pricing_mode: 'individual' }))}
+                      style={{ padding: '5px 12px', borderRadius: '6px', border: form.venue_pricing_mode === 'individual' ? '1px solid #C6A85E' : '1px solid rgba(198,168,94,.2)', background: form.venue_pricing_mode === 'individual' ? 'rgba(198,168,94,.2)' : 'transparent', color: form.venue_pricing_mode === 'individual' ? '#C6A85E' : '#9AA8B5', cursor: 'pointer', fontSize: '12px', fontFamily: 'sans-serif' }}
+                    >
+                      Individual Sections
+                    </button>
+                    <button
+                      onClick={() => setForm(f => ({ ...f, venue_pricing_mode: 'bundle', venue_front_enabled: true, venue_bar_enabled: true, venue_upstairs_enabled: true }))}
+                      style={{ padding: '5px 12px', borderRadius: '6px', border: form.venue_pricing_mode === 'bundle' ? '1px solid #C6A85E' : '1px solid rgba(198,168,94,.2)', background: form.venue_pricing_mode === 'bundle' ? 'rgba(198,168,94,.2)' : 'transparent', color: form.venue_pricing_mode === 'bundle' ? '#C6A85E' : '#9AA8B5', cursor: 'pointer', fontSize: '12px', fontFamily: 'sans-serif' }}
+                    >
+                      Bundle (All 3)
+                    </button>
+                  </div>
+                </div>
+
+                {form.venue_pricing_mode === 'bundle' ? (
+                  <div>
+                    <p style={{ color: '#9AA8B5', fontSize: '12px', fontFamily: 'sans-serif', marginBottom: '8px' }}>Full Venue — Front Section + Bar + Upstairs</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ color: '#9AA8B5', fontSize: '14px' }}>$</span>
+                      <input
+                        style={{ ...S.input, maxWidth: '180px' }}
+                        type="number" min="0" step="50"
+                        placeholder="Bundle price"
+                        value={form.venue_bundle || ''}
+                        onChange={e => setForm(f => ({ ...f, venue_bundle: parseFloat(e.target.value) || 0 }))}
+                      />
+                      <span style={{ color: '#C6A85E', fontSize: '14px', fontWeight: 700, fontFamily: 'sans-serif' }}>
+                        = ${(form.venue_bundle || 0).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {[
+                      { key: 'venue_front', enableKey: 'venue_front_enabled', label: 'Front Section' },
+                      { key: 'venue_bar', enableKey: 'venue_bar_enabled', label: 'Bar Section' },
+                      { key: 'venue_upstairs', enableKey: 'venue_upstairs_enabled', label: 'Upstairs Section' },
+                    ].map(({ key, enableKey, label }) => (
+                      <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', minWidth: '160px' }}>
+                          <input
+                            type="checkbox"
+                            checked={!!form[enableKey]}
+                            onChange={e => setForm(f => ({ ...f, [enableKey]: e.target.checked }))}
+                            style={{ accentColor: '#C6A85E' }}
+                          />
+                          <span style={{ color: form[enableKey] ? '#F5F0E8' : '#9AA8B5', fontSize: '13px', fontFamily: 'sans-serif' }}>{label}</span>
+                        </label>
+                        {form[enableKey] && (
+                          <>
+                            <span style={{ color: '#9AA8B5', fontSize: '14px' }}>$</span>
+                            <input
+                              style={{ ...S.input, maxWidth: '130px', padding: '7px 10px' }}
+                              type="number" min="0" step="50"
+                              placeholder="Price"
+                              value={form[key] || ''}
+                              onChange={e => setForm(f => ({ ...f, [key]: parseFloat(e.target.value) || 0 }))}
+                            />
+                          </>
+                        )}
+                      </div>
+                    ))}
+                    {(form.venue_front_enabled || form.venue_bar_enabled || form.venue_upstairs_enabled) && (
+                      <div style={{ textAlign: 'right', paddingTop: '8px', borderTop: '1px solid rgba(198,168,94,.1)', color: '#C6A85E', fontSize: '13px', fontFamily: 'sans-serif', fontWeight: 700 }}>
+                        Venue Total: ${(
+                          (form.venue_front_enabled ? form.venue_front || 0 : 0) +
+                          (form.venue_bar_enabled ? form.venue_bar || 0 : 0) +
+                          (form.venue_upstairs_enabled ? form.venue_upstairs || 0 : 0)
+                        ).toFixed(2)}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div style={{ display: 'flex', gap: '12px', marginTop: '16px', flexWrap: 'wrap' }}>
               {[
                 ['staffing_needed', '👥 Staffing Needed'],
