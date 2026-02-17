@@ -44,6 +44,23 @@ export default function AdminPackages() {
     onSuccess: () => qc.invalidateQueries(['admin-packages'])
   });
 
+  const moveMutation = useMutation({
+    mutationFn: async ({ pkg, direction }) => {
+      const sorted = [...packages].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      const idx = sorted.findIndex(p => p.id === pkg.id);
+      const neighborIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (neighborIdx < 0 || neighborIdx >= sorted.length) return;
+      const neighbor = sorted[neighborIdx];
+      const aOrder = pkg.sort_order || 0;
+      const bOrder = neighbor.sort_order || 0;
+      await Promise.all([
+        base44.entities.Package.update(pkg.id, { sort_order: bOrder }),
+        base44.entities.Package.update(neighbor.id, { sort_order: aOrder })
+      ]);
+    },
+    onSuccess: () => qc.invalidateQueries(['admin-packages'])
+  });
+
   const resetForm = () => { setForm(blank); setEditing(null); setIncludesText(''); };
 
   const startEdit = (pkg) => {
