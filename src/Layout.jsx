@@ -188,9 +188,7 @@ export default function Layout({ children, currentPageName }) {
                     <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/424e86f0a_generated-image1.jpeg" alt="Whitney" className="w-6 h-6 rounded-full object-cover" />
                     Ask Whitney
                   </button>
-                  <Link to={createPageUrl('AdminDashboard')} className="text-[rgb(107,85,64)] py-2 font-medium opacity-60" onClick={() => setIsMenuOpen(false)}>
-                    Admin
-                  </Link>
+
                   <Link 
                   to={createPageUrl('BookRooms')} 
                   className="mt-2 px-6 py-3 bg-[rgb(150,170,155)] text-white text-center"
