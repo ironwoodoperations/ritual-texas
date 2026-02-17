@@ -85,6 +85,7 @@ import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
 import AdminCatering from './pages/AdminCatering';
+import AdminCateringMenu from './pages/AdminCateringMenu';
 import __Layout from './Layout.jsx';
 
 
@@ -127,6 +128,7 @@ export const PAGES = {
     "concierge": concierge,
     "itinerary": itinerary,
     "AdminCatering": AdminCatering,
+    "AdminCateringMenu": AdminCateringMenu,
 }
 
 export const pagesConfig = {
