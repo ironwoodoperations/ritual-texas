@@ -700,7 +700,7 @@ export default function AdminCateringQuote() {
             <p style={{ ...S.sectionTitle, marginBottom: '16px' }}>PROFIT SNAPSHOT</p>
             {[
               ['Food Cost %', `${totals.food_cost_percent}%`, totals.food_cost_percent < 35 ? '#4CAF50' : totals.food_cost_percent < 45 ? '#FF9800' : '#F44336'],
-              ['Labor %', form.staffing_needed ? `${Math.round((totals.labor_cost / totals.grand_total) * 100)}%` : 'N/A', '#9AA8B5'],
+              ['Labor %', totals.labor_cost > 0 ? `${Math.round((totals.labor_cost / totals.grand_total) * 100)}%` : 'N/A', '#9AA8B5'],
               ['Projected Margin', `${totals.projected_margin}%`, totals.projected_margin > 40 ? '#4CAF50' : totals.projected_margin > 25 ? '#FF9800' : '#F44336'],
               ['Guests', String(form.guest_count), '#D4C9B8'],
               ['Price / Person', form.guest_count > 0 ? `$${(totals.grand_total / form.guest_count).toFixed(0)}` : '$0', '#D4C9B8'],
