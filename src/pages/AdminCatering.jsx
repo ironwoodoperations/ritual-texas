@@ -53,33 +53,43 @@ export default function AdminCatering() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0C1C2C', fontFamily: "'Georgia', serif" }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .catering-header { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
+          .catering-header-btns { flex-wrap: wrap !important; }
+          .catering-stats { grid-template-columns: repeat(2, 1fr) !important; }
+          .catering-table-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+          .catering-table { min-width: 600px !important; }
+          .catering-pad { padding: 16px !important; }
+        }
+      `}</style>
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #0C1C2C 0%, #132336 100%)', borderBottom: '1px solid rgba(198,168,94,.2)', padding: '28px 32px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ background: 'linear-gradient(135deg, #0C1C2C 0%, #132336 100%)', borderBottom: '1px solid rgba(198,168,94,.2)', padding: '20px 16px' }}>
+        <div className="catering-header" style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <p style={{ color: '#C6A85E', fontSize: '12px', letterSpacing: '3px', margin: '0 0 6px' }}>HOTEL RITUAL</p>
-            <h1 style={{ color: '#F5F0E8', fontSize: '32px', fontWeight: 300, margin: 0 }}>Catering</h1>
+            <h1 style={{ color: '#F5F0E8', fontSize: '28px', fontWeight: 300, margin: 0 }}>Catering</h1>
           </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div className="catering-header-btns" style={{ display: 'flex', gap: '10px' }}>
             <Link
               to={createPageUrl('AdminCateringQuote')}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', background: '#C6A85E', color: '#0C1C2C', borderRadius: '8px', textDecoration: 'none', fontWeight: 700, fontSize: '14px' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: '#C6A85E', color: '#0C1C2C', borderRadius: '8px', textDecoration: 'none', fontWeight: 700, fontSize: '13px' }}
             >
-              <Plus size={16} /> New Quote
+              <Plus size={15} /> New Quote
             </Link>
             <Link
               to={createPageUrl('AdminCateringMenu')}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', background: 'rgba(198,168,94,.15)', color: '#C6A85E', border: '1px solid rgba(198,168,94,.3)', borderRadius: '8px', textDecoration: 'none', fontSize: '14px' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: 'rgba(198,168,94,.15)', color: '#C6A85E', border: '1px solid rgba(198,168,94,.3)', borderRadius: '8px', textDecoration: 'none', fontSize: '13px' }}
             >
-              <ChefHat size={16} /> Menu Manager
+              <ChefHat size={15} /> Menu Manager
             </Link>
           </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px' }}>
+      <div className="catering-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>
         {/* Stats Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+        <div className="catering-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
           {[
             { label: 'Total Quotes', value: quotes.length, icon: FileText },
             { label: 'Active', value: quotes.filter(q => ['sent','accepted','deposit_paid'].includes(q.status)).length, icon: CheckCircle },
