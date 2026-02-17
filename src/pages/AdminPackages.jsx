@@ -92,15 +92,19 @@ export default function AdminPackages() {
               <p style={{ color: '#6B7B5A', fontSize: '15px' }}>No packages yet. Create one →</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {packages.map(pkg => (
+                {[...packages].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map((pkg, idx, arr) => (
                   <div key={pkg.id} style={{ padding: '16px', borderRadius: '12px', border: '1px solid rgba(59,72,49,.1)', background: editing?.id === pkg.id ? 'rgba(59,72,49,.06)' : 'white' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                      <div>
+                      <div style={{ flex: 1 }}>
                         <p style={{ margin: 0, fontWeight: 700, color: '#3B4831', fontSize: '16px' }}>{pkg.title}</p>
                         <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#C57C5D', fontWeight: 600 }}>${pkg.price?.toLocaleString()}</p>
                         <span style={{ display: 'inline-block', marginTop: '6px', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600, background: pkg.is_active ? 'rgba(90,107,71,.15)' : 'rgba(0,0,0,.08)', color: pkg.is_active ? '#3B4831' : '#888' }}>
-                          {pkg.is_active ? 'Active' : 'Hidden'}
+                          {pkg.is_active ? 'Live' : 'Hidden'}
                         </span>
+                        <div style={{ display: 'flex', gap: '6px', marginTop: '10px', flexWrap: 'wrap' }}>
+                          <button onClick={() => moveMutation.mutate({ pkg, direction: 'up' })} disabled={idx === 0} style={{ padding: '4px 10px', background: 'none', border: '1px solid rgba(59,72,49,.2)', borderRadius: '8px', cursor: idx === 0 ? 'not-allowed' : 'pointer', opacity: idx === 0 ? 0.4 : 1, fontSize: '13px' }}>↑</button>
+                          <button onClick={() => moveMutation.mutate({ pkg, direction: 'down' })} disabled={idx === arr.length - 1} style={{ padding: '4px 10px', background: 'none', border: '1px solid rgba(59,72,49,.2)', borderRadius: '8px', cursor: idx === arr.length - 1 ? 'not-allowed' : 'pointer', opacity: idx === arr.length - 1 ? 0.4 : 1, fontSize: '13px' }}>↓</button>
+                        </div>
                       </div>
                       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                         <button onClick={() => toggleMutation.mutate({ id: pkg.id, is_active: !pkg.is_active })} title={pkg.is_active ? 'Hide' : 'Show'} style={{ padding: '6px', background: 'none', border: '1px solid rgba(59,72,49,.2)', borderRadius: '8px', cursor: 'pointer' }}>
