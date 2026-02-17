@@ -499,6 +499,71 @@ export default function AdminCateringQuote() {
             </div>
           </div>
 
+          {/* Staffing Section */}
+          <div style={S.section}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <p style={{ ...S.sectionTitle, margin: 0 }}>STAFFING</p>
+              <button
+                onClick={() => setForm(f => ({ ...f, staffing: [...(f.staffing || []), { role: 'server', label: 'Servers', count: 1, hours: 4, rate: 18 }] }))}
+                style={{ padding: '7px 14px', background: '#C6A85E', border: 'none', borderRadius: '8px', color: '#0C1C2C', cursor: 'pointer', fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'sans-serif' }}
+              >
+                <Plus size={13} /> Add Staff Role
+              </button>
+            </div>
+
+            {(!form.staffing || form.staffing.length === 0) ? (
+              <div style={{ textAlign: 'center', padding: '32px', color: '#9AA8B5', border: '1px dashed rgba(198,168,94,.2)', borderRadius: '10px', fontSize: '13px', fontFamily: 'sans-serif' }}>
+                No staff added. Click "Add Staff Role" to build your staffing plan.
+              </div>
+            ) : (
+              <div>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 80px 80px 100px 90px 36px', gap: '8px', padding: '0 10px 8px', marginBottom: '4px' }}>
+                  {['Role', '# Staff', 'Hours', 'Rate/Hr', 'Subtotal', ''].map(h => (
+                    <div key={h} style={{ color: '#9AA8B5', fontSize: '10px', letterSpacing: '1px', fontFamily: 'sans-serif' }}>{h}</div>
+                  ))}
+                </div>
+                {(form.staffing || []).map((s, idx) => {
+                  const subtotal = (s.count || 0) * (s.hours || 0) * (s.rate || 0);
+                  return (
+                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 80px 80px 100px 90px 36px', gap: '8px', padding: '8px 10px', background: 'rgba(245,240,232,.03)', border: '1px solid rgba(198,168,94,.1)', borderRadius: '8px', marginBottom: '6px', alignItems: 'center' }}>
+                      <select
+                        style={{ ...S.input, padding: '7px 10px', fontSize: '13px' }}
+                        value={s.role}
+                        onChange={e => {
+                          const found = STAFF_ROLES.find(r => r.role === e.target.value);
+                          setForm(f => {
+                            const staffing = [...(f.staffing || [])];
+                            staffing[idx] = { ...staffing[idx], role: e.target.value, label: found?.label || e.target.value };
+                            return { ...f, staffing };
+                          });
+                        }}
+                      >
+                        {STAFF_ROLES.map(r => <option key={r.role} value={r.role}>{r.label}</option>)}
+                      </select>
+                      <input style={{ ...S.input, padding: '7px 8px', fontSize: '13px', textAlign: 'center' }} type="number" min="1" value={s.count}
+                        onChange={e => setForm(f => { const st = [...(f.staffing||[])]; st[idx] = { ...st[idx], count: parseInt(e.target.value)||0 }; return { ...f, staffing: st }; })} />
+                      <input style={{ ...S.input, padding: '7px 8px', fontSize: '13px', textAlign: 'center' }} type="number" min="0.5" step="0.5" value={s.hours}
+                        onChange={e => setForm(f => { const st = [...(f.staffing||[])]; st[idx] = { ...st[idx], hours: parseFloat(e.target.value)||0 }; return { ...f, staffing: st }; })} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ color: '#9AA8B5', fontSize: '13px', fontFamily: 'sans-serif' }}>$</span>
+                        <input style={{ ...S.input, padding: '7px 8px', fontSize: '13px' }} type="number" min="0" step="0.5" value={s.rate}
+                          onChange={e => setForm(f => { const st = [...(f.staffing||[])]; st[idx] = { ...st[idx], rate: parseFloat(e.target.value)||0 }; return { ...f, staffing: st }; })} />
+                      </div>
+                      <span style={{ color: '#C6A85E', fontSize: '13px', fontWeight: 600, fontFamily: 'sans-serif' }}>${subtotal.toFixed(0)}</span>
+                      <button onClick={() => setForm(f => ({ ...f, staffing: (f.staffing||[]).filter((_,i) => i !== idx) }))} style={{ padding: '6px', background: 'none', border: 'none', cursor: 'pointer', color: '#C57C5D' }}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  );
+                })}
+                <div style={{ textAlign: 'right', marginTop: '8px', padding: '8px 10px', borderTop: '1px solid rgba(198,168,94,.15)' }}>
+                  <span style={{ color: '#9AA8B5', fontSize: '12px', fontFamily: 'sans-serif' }}>Total Labor: </span>
+                  <span style={{ color: '#C6A85E', fontSize: '15px', fontWeight: 700, fontFamily: 'sans-serif' }}>${calcLaborTotal(form.staffing).toFixed(2)}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Menu Selection */}
           <div style={S.section}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
