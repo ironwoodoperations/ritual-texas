@@ -123,41 +123,57 @@ export default function AdminPackages() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '24px', alignItems: 'start' }}>
           {/* List */}
           <div style={{ background: '#FCF9F4', borderRadius: '18px', padding: '24px', border: '1px solid rgba(59,72,49,.1)' }}>
-            <h2 style={{ margin: '0 0 20px', fontSize: '20px', color: '#3B4831' }}>All Packages</h2>
-            {isLoading ? <p style={{ color: '#3B4831' }}>Loading…</p> : packages.length === 0 ? (
-              <p style={{ color: '#6B7B5A', fontSize: '15px' }}>No packages yet. Create one →</p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {[...packages].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map((pkg, idx, arr) => (
-                  <div key={pkg.id} style={{ padding: '16px', borderRadius: '12px', border: '1px solid rgba(59,72,49,.1)', background: editing?.id === pkg.id ? 'rgba(59,72,49,.06)' : 'white' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                      <div style={{ flex: 1 }}>
-                        <p style={{ margin: 0, fontWeight: 700, color: '#3B4831', fontSize: '16px' }}>{pkg.title}</p>
-                        <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#C57C5D', fontWeight: 600 }}>${pkg.price?.toLocaleString()}</p>
-                        <span style={{ display: 'inline-block', marginTop: '6px', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600, background: pkg.is_active ? 'rgba(90,107,71,.15)' : 'rgba(0,0,0,.08)', color: pkg.is_active ? '#3B4831' : '#888' }}>
-                          {pkg.is_active ? 'Live' : 'Hidden'}
-                        </span>
-                        <div style={{ display: 'flex', gap: '6px', marginTop: '10px', flexWrap: 'wrap' }}>
-                          <button onClick={() => moveMutation.mutate({ pkg, direction: 'up' })} disabled={idx === 0} style={{ padding: '4px 10px', background: 'none', border: '1px solid rgba(59,72,49,.2)', borderRadius: '8px', cursor: idx === 0 ? 'not-allowed' : 'pointer', opacity: idx === 0 ? 0.4 : 1, fontSize: '13px' }}>↑</button>
-                          <button onClick={() => moveMutation.mutate({ pkg, direction: 'down' })} disabled={idx === arr.length - 1} style={{ padding: '4px 10px', background: 'none', border: '1px solid rgba(59,72,49,.2)', borderRadius: '8px', cursor: idx === arr.length - 1 ? 'not-allowed' : 'pointer', opacity: idx === arr.length - 1 ? 0.4 : 1, fontSize: '13px' }}>↓</button>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                        <button onClick={() => toggleMutation.mutate({ id: pkg.id, is_active: !pkg.is_active })} title={pkg.is_active ? 'Hide' : 'Show'} style={{ padding: '6px', background: 'none', border: '1px solid rgba(59,72,49,.2)', borderRadius: '8px', cursor: 'pointer' }}>
-                          {pkg.is_active ? <EyeOff className="w-4 h-4" style={{ color: '#3B4831' }} /> : <Eye className="w-4 h-4" style={{ color: '#3B4831' }} />}
-                        </button>
-                        <button onClick={() => startEdit(pkg)} style={{ padding: '6px', background: 'none', border: '1px solid rgba(59,72,49,.2)', borderRadius: '8px', cursor: 'pointer' }}>
-                          <Pencil className="w-4 h-4" style={{ color: '#3B4831' }} />
-                        </button>
-                        <button onClick={() => { if (confirm('Delete this package?')) deleteMutation.mutate(pkg.id); }} style={{ padding: '6px', background: 'none', border: '1px solid rgba(197,124,93,.3)', borderRadius: '8px', cursor: 'pointer' }}>
-                          <Trash2 className="w-4 h-4" style={{ color: '#C57C5D' }} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+               <h2 style={{ margin: 0, fontSize: '20px', color: '#3B4831' }}>All Packages</h2>
+               {dirtyOrder && (
+                 <button onClick={() => saveOrderMutation.mutate()} disabled={savingOrder} style={{ padding: '7px 16px', background: '#3B4831', color: '#FCF9F4', border: 'none', borderRadius: '999px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', opacity: savingOrder ? 0.7 : 1 }}>
+                   {savingOrder ? 'Saving…' : 'Save Order'}
+                 </button>
+               )}
+             </div>
+             {isLoading ? <p style={{ color: '#3B4831' }}>Loading…</p> : ordered.length === 0 ? (
+               <p style={{ color: '#6B7B5A', fontSize: '15px' }}>No packages yet. Create one →</p>
+             ) : (
+               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                 {ordered.map((pkg) => (
+                   <div
+                     key={pkg.id}
+                     draggable
+                     onDragStart={() => setDragId(pkg.id)}
+                     onDragOver={e => e.preventDefault()}
+                     onDrop={() => { if (dragId && dragId !== pkg.id) { moveItem(dragId, pkg.id); setDragId(null); } }}
+                     onDragEnd={() => setDragId(null)}
+                     style={{ padding: '14px', borderRadius: '12px', border: '1px solid rgba(59,72,49,.1)', background: dragId === pkg.id ? 'rgba(59,72,49,.06)' : editing?.id === pkg.id ? 'rgba(59,72,49,.04)' : 'white', cursor: 'default', transition: 'background 0.15s' }}
+                   >
+                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', flex: 1 }}>
+                         <div draggable={false} style={{ cursor: 'grab', padding: '4px', marginTop: '2px', color: '#aaa', flexShrink: 0 }}>
+                           <GripVertical className="w-4 h-4" />
+                         </div>
+                         <div style={{ flex: 1 }}>
+                           <p style={{ margin: 0, fontWeight: 700, color: '#3B4831', fontSize: '15px' }}>{pkg.title}</p>
+                           <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#C57C5D', fontWeight: 600 }}>${pkg.price?.toLocaleString()}</p>
+                           <span style={{ display: 'inline-block', marginTop: '5px', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600, background: pkg.is_active ? 'rgba(90,107,71,.15)' : 'rgba(0,0,0,.08)', color: pkg.is_active ? '#3B4831' : '#888' }}>
+                             {pkg.is_active ? 'Live' : 'Hidden'}
+                           </span>
+                         </div>
+                       </div>
+                       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                         <button onClick={() => toggleMutation.mutate({ id: pkg.id, is_active: !pkg.is_active })} title={pkg.is_active ? 'Hide' : 'Show'} style={{ padding: '6px', background: 'none', border: '1px solid rgba(59,72,49,.2)', borderRadius: '8px', cursor: 'pointer' }}>
+                           {pkg.is_active ? <EyeOff className="w-4 h-4" style={{ color: '#3B4831' }} /> : <Eye className="w-4 h-4" style={{ color: '#3B4831' }} />}
+                         </button>
+                         <button onClick={() => startEdit(pkg)} style={{ padding: '6px', background: 'none', border: '1px solid rgba(59,72,49,.2)', borderRadius: '8px', cursor: 'pointer' }}>
+                           <Pencil className="w-4 h-4" style={{ color: '#3B4831' }} />
+                         </button>
+                         <button onClick={() => { if (confirm('Delete this package?')) deleteMutation.mutate(pkg.id); }} style={{ padding: '6px', background: 'none', border: '1px solid rgba(197,124,93,.3)', borderRadius: '8px', cursor: 'pointer' }}>
+                           <Trash2 className="w-4 h-4" style={{ color: '#C57C5D' }} />
+                         </button>
+                       </div>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             )}
           </div>
 
           {/* Form */}
