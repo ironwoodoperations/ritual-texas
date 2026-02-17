@@ -95,6 +95,7 @@ export default function AdminDashboard() {
     { icon: BedDouble, label: 'Rooms', page: 'AdminRooms' },
     { icon: Sparkles, label: 'Treatments', page: 'AdminTreatments' },
     { icon: FileText, label: 'Packages', page: 'AdminPackages' },
+    { icon: Bell, label: 'Package Inquiries', page: 'AdminPackageInquiries' },
     { icon: ClipboardList, label: 'Knowledge Base', page: 'AdminKnowledge' },
     { icon: MapPin, label: 'Image Library', page: 'AdminImages' },
     { icon: Settings, label: 'Restaurant', page: 'AdminRestaurant' },
