@@ -65,6 +65,7 @@ const BLANK = {
   indoor_outdoor: 'indoor', guest_count: 50,
   service_style: 'buffet',
   staffing_needed: false, bar_package: false, rentals_needed: false,
+  staffing: [],
   notes: '', selected_items: [],
   tax_rate: 8.25, service_charge_rate: 20, deposit_rate: 30,
   terms: 'A 30% non-refundable deposit is required to secure your event date. Remaining balance is due 7 days prior to the event. Cancellations within 72 hours forfeit the full deposit.'
