@@ -40,7 +40,19 @@ function calcTotals(state) {
   const labor_cost = calcLaborTotal(state.staffing || []);
   const bar_total = state.bar_package ? guestCount * 25 : 0;
   const rentals_total = state.rentals_needed ? 500 : 0;
-  const subtotal = food_subtotal + labor_cost + bar_total + rentals_total;
+
+  let venue_total = 0;
+  if (state.is_onsite) {
+    if (state.venue_pricing_mode === 'bundle') {
+      venue_total = state.venue_bundle || 0;
+    } else {
+      if (state.venue_front_enabled) venue_total += state.venue_front || 0;
+      if (state.venue_bar_enabled) venue_total += state.venue_bar || 0;
+      if (state.venue_upstairs_enabled) venue_total += state.venue_upstairs || 0;
+    }
+  }
+
+  const subtotal = food_subtotal + labor_cost + bar_total + rentals_total + venue_total;
   const service_charge_amount = subtotal * ((state.service_charge_rate || 20) / 100);
   const tax_amount = (subtotal + service_charge_amount) * ((state.tax_rate || 8.25) / 100);
   const grand_total = subtotal + service_charge_amount + tax_amount;
