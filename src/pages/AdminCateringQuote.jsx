@@ -660,7 +660,7 @@ export default function AdminCateringQuote() {
                 {(form.staffing || []).map((s, idx) => {
                   const subtotal = (s.count || 0) * (s.hours || 0) * (s.rate || 0);
                   return (
-                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 80px 80px 100px 90px 36px', gap: '8px', padding: '8px 10px', background: 'rgba(245,240,232,.03)', border: '1px solid rgba(198,168,94,.1)', borderRadius: '8px', marginBottom: '6px', alignItems: 'center' }}>
+                    <div key={idx} className="cq-staff-row" style={{ display: 'grid', gridTemplateColumns: '2fr 80px 80px 100px 90px 36px', gap: '8px', padding: '8px 10px', background: 'rgba(245,240,232,.03)', border: '1px solid rgba(198,168,94,.1)', borderRadius: '8px', marginBottom: '6px', alignItems: 'center' }}>
                       <select
                         style={{ ...S.input, padding: '7px 10px', fontSize: '13px' }}
                         value={s.role}
