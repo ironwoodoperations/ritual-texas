@@ -54,6 +54,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminImages from './pages/AdminImages';
 import AdminKnowledge from './pages/AdminKnowledge';
 import AdminMedia from './pages/AdminMedia';
+import AdminPackageInquiries from './pages/AdminPackageInquiries';
+import AdminPackages from './pages/AdminPackages';
 import AdminRestaurant from './pages/AdminRestaurant';
 import AdminRooms from './pages/AdminRooms';
 import AdminSeedData from './pages/AdminSeedData';
@@ -66,6 +68,8 @@ import BookingConfirmation from './pages/BookingConfirmation';
 import BookingFlow from './pages/BookingFlow';
 import Home from './pages/Home';
 import MyBooking from './pages/MyBooking';
+import PackageDetail from './pages/PackageDetail';
+import Packages from './pages/Packages';
 import Press from './pages/Press';
 import Restaurant from './pages/Restaurant';
 import RestaurantContact from './pages/RestaurantContact';
@@ -80,10 +84,7 @@ import afterBooking from './pages/afterBooking';
 import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
-import Packages from './pages/Packages';
-import PackageDetail from './pages/PackageDetail';
-import AdminPackages from './pages/AdminPackages';
-import AdminPackageInquiries from './pages/AdminPackageInquiries';
+import AdminCatering from './pages/AdminCatering';
 import __Layout from './Layout.jsx';
 
 
@@ -95,6 +96,8 @@ export const PAGES = {
     "AdminImages": AdminImages,
     "AdminKnowledge": AdminKnowledge,
     "AdminMedia": AdminMedia,
+    "AdminPackageInquiries": AdminPackageInquiries,
+    "AdminPackages": AdminPackages,
     "AdminRestaurant": AdminRestaurant,
     "AdminRooms": AdminRooms,
     "AdminSeedData": AdminSeedData,
@@ -107,6 +110,8 @@ export const PAGES = {
     "BookingFlow": BookingFlow,
     "Home": Home,
     "MyBooking": MyBooking,
+    "PackageDetail": PackageDetail,
+    "Packages": Packages,
     "Press": Press,
     "Restaurant": Restaurant,
     "RestaurantContact": RestaurantContact,
@@ -121,10 +126,7 @@ export const PAGES = {
     "booking": booking,
     "concierge": concierge,
     "itinerary": itinerary,
-    "Packages": Packages,
-    "PackageDetail": PackageDetail,
-    "AdminPackages": AdminPackages,
-    "AdminPackageInquiries": AdminPackageInquiries,
+    "AdminCatering": AdminCatering,
 }
 
 export const pagesConfig = {
