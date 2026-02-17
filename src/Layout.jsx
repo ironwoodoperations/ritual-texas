@@ -236,6 +236,9 @@ export default function Layout({ children, currentPageName }) {
                 <div className="flex flex-col gap-2 text-sm text-[rgb(45,45,45)]">
                   <Link to={createPageUrl('concierge')} className="hover:text-[rgb(107,85,64)]">Ask Whitney</Link>
                   <Link to={createPageUrl('itinerary')} className="hover:text-[rgb(107,85,64)]">My Itinerary</Link>
+                  {isAdmin && (
+                    <Link to={createPageUrl('AdminDashboard')} className="hover:text-[rgb(107,85,64)] opacity-60">Admin</Link>
+                  )}
                 </div>
               </div>
               <div>
