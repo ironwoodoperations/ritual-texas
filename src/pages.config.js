@@ -83,6 +83,7 @@ import itinerary from './pages/itinerary';
 import Packages from './pages/Packages';
 import PackageDetail from './pages/PackageDetail';
 import AdminPackages from './pages/AdminPackages';
+import AdminPackageInquiries from './pages/AdminPackageInquiries';
 import __Layout from './Layout.jsx';
 
 
@@ -123,6 +124,7 @@ export const PAGES = {
     "Packages": Packages,
     "PackageDetail": PackageDetail,
     "AdminPackages": AdminPackages,
+    "AdminPackageInquiries": AdminPackageInquiries,
 }
 
 export const pagesConfig = {
