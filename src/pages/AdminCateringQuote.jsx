@@ -723,7 +723,7 @@ export default function AdminCateringQuote() {
                     </button>
                   ))}
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+                <div className="cq-menu-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
                   {(grouped[pickerCategory] || []).map(item => {
                     const added = form.selected_items.some(i => i.item_id === item.id);
                     return (
