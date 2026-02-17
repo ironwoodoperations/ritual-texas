@@ -105,6 +105,9 @@ export default function Layout({ children, currentPageName }) {
                 <Link to={createPageUrl('Restaurant')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   Restaurant
                 </Link>
+                <Link to={createPageUrl('Packages')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
+                  Packages
+                </Link>
                 <button onClick={() => setShowWhitney(true)} className="flex items-center gap-2 text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/424e86f0a_generated-image1.jpeg" alt="Whitney" className="w-6 h-6 rounded-full object-cover" />
                   Ask Whitney
