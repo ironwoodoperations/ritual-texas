@@ -164,8 +164,24 @@ PROPERTY INFORMATION:
         });
       }
 
+      if (packages?.length > 0) {
+        context += "\nACTIVE PACKAGES (curated stays with room + treatments):\n";
+        context += "IMPORTANT: Packages CANNOT be booked online. Guests must use the 'Request this package' form on the package page, or call the front desk. No online payment is collected.\n\n";
+        packages.forEach(p => {
+          context += `PACKAGE: ${p.title} — $${p.price?.toLocaleString()}\n`;
+          if (p.subtitle) context += `  Tagline: ${p.subtitle}\n`;
+          if (p.short_description) context += `  About: ${p.short_description}\n`;
+          if (p.includes?.length > 0) context += `  Includes: ${p.includes.join(', ')}\n`;
+          if (p.fine_print) context += `  Good to know: ${p.fine_print}\n`;
+          context += `  Page: /packages/${p.slug}\n\n`;
+        });
+        context += `All packages overview: /packages\n`;
+      } else {
+        context += "\nPACKAGES: No active packages at this time.\n";
+      }
+
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `${context}\n\nGuest question: ${q}\n\nProvide a helpful, warm response. Keep it concise but complete. If the question is about specific booking details or itinerary times, direct them to visit their itinerary page.`,
+        prompt: `${context}\n\nGuest question: ${q}\n\nProvide a helpful, warm response. Keep it concise but complete. If asked about packages, describe what's available and direct them to the package page to use the "Request this package" form — make clear no booking or payment happens online. If the question is about specific booking details or itinerary times, direct them to visit their itinerary page.`,
       });
 
       setMessages(prev => [...prev, {
