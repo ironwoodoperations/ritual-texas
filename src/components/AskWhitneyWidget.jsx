@@ -53,6 +53,16 @@ export default function AskWhitneyWidget({ isOpen: isOpenProp, onClose }) {
     enabled: isOpen,
   });
 
+  const { data: packages = [] } = useQuery({
+    queryKey: ['packages-whitney'],
+    queryFn: async () => {
+      const all = await base44.entities.Package.list('sort_order', 20);
+      return all.filter(p => p.is_active);
+    },
+    initialData: [],
+    enabled: isOpen,
+  });
+
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       setMessages([{
