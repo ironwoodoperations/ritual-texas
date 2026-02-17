@@ -104,20 +104,35 @@ export default function PackageDetail() {
           </section>
         )}
 
-        {/* CTA */}
-        <div style={{ background: 'linear-gradient(135deg, #3B4831, #5a6b47)', borderRadius: '18px', padding: '36px', textAlign: 'center' }}>
-          <Leaf className="w-8 h-8" style={{ color: 'rgba(252,249,244,0.6)', margin: '0 auto 16px' }} />
-          <h3 style={{ margin: '0 0 10px', fontFamily: 'serif', fontSize: '26px', color: '#FCF9F4', fontWeight: 300 }}>Ready to book?</h3>
-          <p style={{ margin: '0 0 24px', color: 'rgba(252,249,244,0.8)', fontSize: '15px' }}>
-            Call us to reserve this package — our team will arrange every detail.
-          </p>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="tel:9038106695" style={{ padding: '14px 28px', background: '#C57C5D', color: '#FCF9F4', textDecoration: 'none', borderRadius: '999px', fontWeight: 600, fontSize: '15px' }}>
-              (903) 810-6695
-            </a>
-            <Link to={createPageUrl('BookRooms')} style={{ padding: '14px 28px', background: 'rgba(252,249,244,0.15)', color: '#FCF9F4', textDecoration: 'none', borderRadius: '999px', fontWeight: 600, fontSize: '15px', border: '1px solid rgba(252,249,244,0.3)' }}>
-              Book Your Stay
-            </Link>
+        {/* Request Form + Contact */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+          <div style={{ background: '#FCF9F4', borderRadius: '18px', padding: '28px', border: '1px solid rgba(59,72,49,.1)' }}>
+            <h3 style={{ margin: '0 0 6px', fontFamily: 'serif', fontSize: '22px', color: '#3B4831', fontWeight: 400 }}>Request this package</h3>
+            <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#6B7B5A', lineHeight: 1.5 }}>
+              Not charged online. A team member will confirm availability and finalize details.
+            </p>
+            <PackageRequestForm packageSlug={pkg.slug} packageTitle={pkg.title} />
+          </div>
+
+          <div style={{ background: 'linear-gradient(135deg, #3B4831, #5a6b47)', borderRadius: '18px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <Leaf className="w-7 h-7" style={{ color: 'rgba(252,249,244,0.5)' }} />
+            <div>
+              <h3 style={{ margin: '0 0 8px', fontFamily: 'serif', fontSize: '20px', color: '#FCF9F4', fontWeight: 300 }}>Need help fast?</h3>
+              <p style={{ margin: 0, color: 'rgba(252,249,244,0.8)', lineHeight: 1.6, fontSize: '14px' }}>
+                Call the front desk for same-day availability or special requests.
+              </p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: 'auto' }}>
+              <a href="tel:9038106695" style={{ padding: '12px 20px', background: '#C57C5D', color: '#FCF9F4', textDecoration: 'none', borderRadius: '999px', fontWeight: 600, fontSize: '15px', textAlign: 'center' }}>
+                (903) 810-6695
+              </a>
+              <Link to={createPageUrl('Treatments')} style={{ padding: '12px 20px', background: 'rgba(252,249,244,0.12)', color: '#FCF9F4', textDecoration: 'none', borderRadius: '999px', fontWeight: 600, fontSize: '14px', textAlign: 'center', border: '1px solid rgba(252,249,244,0.25)' }}>
+                View Spa Treatments
+              </Link>
+            </div>
+            <p style={{ margin: 0, fontSize: '12px', color: 'rgba(252,249,244,0.5)', lineHeight: 1.5 }}>
+              Guests can also add treatments à la carte to any package.
+            </p>
           </div>
         </div>
       </div>
