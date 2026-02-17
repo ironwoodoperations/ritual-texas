@@ -66,7 +66,7 @@ function calcTotals(state) {
   const food_cost_percent = food_subtotal > 0 ? Math.round((food_cost / food_subtotal) * 100) : 0;
   const projected_margin = grand_total > 0 ? Math.round(((grand_total - food_cost - labor_cost) / grand_total) * 100) : 0;
 
-  return { food_subtotal, labor_cost, bar_total, rentals_total, service_charge_amount, tax_amount, grand_total, deposit_amount, food_cost_percent, projected_margin };
+  return { food_subtotal, labor_cost, bar_total, rentals_total, venue_total, service_charge_amount, tax_amount, grand_total, deposit_amount, food_cost_percent, projected_margin };
 }
 
 const BLANK = {
