@@ -8,7 +8,7 @@ import {
   Calendar, Users, Sparkles, Home, ArrowRight, 
   Clock, MapPin, ChevronRight, Settings, LogOut,
   BedDouble, Menu, X, LayoutDashboard, CalendarDays,
-  ClipboardList, FileText, Leaf, Bell, UtensilsCrossed
+  ClipboardList, FileText, Leaf, Bell, UtensilsCrossed, ChefHat
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
