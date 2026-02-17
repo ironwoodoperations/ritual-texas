@@ -129,7 +129,7 @@ export default function AdminCatering() {
         </div>
 
         {/* Quotes Table */}
-        <div style={{ background: 'rgba(245,240,232,.04)', border: '1px solid rgba(198,168,94,.15)', borderRadius: '16px', overflow: 'hidden' }}>
+        <div className="catering-table-wrap" style={{ background: 'rgba(245,240,232,.04)', border: '1px solid rgba(198,168,94,.15)', borderRadius: '16px', overflow: 'hidden' }}>
           {filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px', color: '#9AA8B5' }}>
               <FileText size={48} style={{ margin: '0 auto 16px', opacity: 0.3 }} />
