@@ -444,7 +444,7 @@ export default function AdminCateringQuote() {
               <h1 style={{ color: '#F5F0E8', fontSize: '22px', fontWeight: 300, margin: 0 }}>{editId ? 'Edit Quote' : 'New Quote'}</h1>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div className="cq-header-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             {saved && <span style={{ color: '#C6A85E', fontSize: '13px', fontFamily: 'sans-serif' }}>✓ Saved</span>}
             <button onClick={generateShoppingListPDF} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', background: 'rgba(198,168,94,.1)', border: '1px solid rgba(198,168,94,.3)', borderRadius: '8px', color: '#C6A85E', cursor: 'pointer', fontSize: '13px', fontFamily: 'sans-serif' }}>
               <ShoppingCart size={15} /> Shopping List
