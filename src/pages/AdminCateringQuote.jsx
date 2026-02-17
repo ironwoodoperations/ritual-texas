@@ -465,7 +465,7 @@ export default function AdminCateringQuote() {
           {/* Event Details */}
           <div style={S.section}>
             <p style={S.sectionTitle}>EVENT DETAILS</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="cq-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
                 <label style={S.label}>CLIENT NAME *</label>
                 <input style={S.input} value={form.client_name} onChange={e => setForm(f => ({ ...f, client_name: e.target.value }))} />
