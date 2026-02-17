@@ -5,6 +5,85 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { CheckCircle2, Leaf, ArrowLeft } from 'lucide-react';
 
+function PackageRequestForm({ packageSlug, packageTitle }) {
+  const [form, setForm] = useState({ full_name: '', email: '', phone: '', preferred_checkin: '', preferred_checkout: '', guests: 1, message: '' });
+  const [status, setStatus] = useState('idle');
+  const [error, setError] = useState('');
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setStatus('sending');
+    setError('');
+    try {
+      await base44.entities.PackageInquiry.create({ package_slug: packageSlug, package_title: packageTitle, ...form });
+      await base44.integrations.Core.SendEmail({
+        to: 'ritualonmain@gmail.com',
+        subject: `New Package Request: ${packageTitle}`,
+        body: `New package inquiry:\n\nPackage: ${packageTitle}\nName: ${form.full_name}\nEmail: ${form.email}\nPhone: ${form.phone || 'N/A'}\nCheck-in: ${form.preferred_checkin || 'N/A'}\nCheck-out: ${form.preferred_checkout || 'N/A'}\nGuests: ${form.guests}\n\nMessage:\n${form.message || 'None'}`
+      });
+      setStatus('sent');
+    } catch (err) {
+      setStatus('error');
+      setError(err?.message || 'Something went wrong. Please try again.');
+    }
+  };
+
+  if (status === 'sent') {
+    return (
+      <div style={{ padding: '20px', borderRadius: '14px', background: 'rgba(90,107,71,.1)', border: '1px solid rgba(90,107,71,.25)' }}>
+        <p style={{ margin: '0 0 6px', fontWeight: 700, color: '#3B4831', fontSize: '16px' }}>Request received!</p>
+        <p style={{ margin: 0, color: '#1B1B1B', lineHeight: 1.6, fontSize: '14px' }}>
+          We'll reach out shortly to confirm availability and finalize your package details.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} style={{ display: 'grid', gap: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        <div>
+          <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 600, color: '#3B4831' }}>Full Name *</label>
+          <input required value={form.full_name} onChange={e => setForm(s => ({ ...s, full_name: e.target.value }))} style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(59,72,49,.25)', fontSize: '14px', boxSizing: 'border-box' }} />
+        </div>
+        <div>
+          <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 600, color: '#3B4831' }}>Email *</label>
+          <input required type="email" value={form.email} onChange={e => setForm(s => ({ ...s, email: e.target.value }))} style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(59,72,49,.25)', fontSize: '14px', boxSizing: 'border-box' }} />
+        </div>
+      </div>
+      <div>
+        <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 600, color: '#3B4831' }}>Phone</label>
+        <input value={form.phone} onChange={e => setForm(s => ({ ...s, phone: e.target.value }))} style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(59,72,49,.25)', fontSize: '14px', boxSizing: 'border-box' }} />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 80px', gap: '10px' }}>
+        <div>
+          <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 600, color: '#3B4831' }}>Check-in</label>
+          <input type="date" value={form.preferred_checkin} onChange={e => setForm(s => ({ ...s, preferred_checkin: e.target.value }))} style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(59,72,49,.25)', fontSize: '14px', boxSizing: 'border-box' }} />
+        </div>
+        <div>
+          <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 600, color: '#3B4831' }}>Check-out</label>
+          <input type="date" value={form.preferred_checkout} onChange={e => setForm(s => ({ ...s, preferred_checkout: e.target.value }))} style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(59,72,49,.25)', fontSize: '14px', boxSizing: 'border-box' }} />
+        </div>
+        <div>
+          <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 600, color: '#3B4831' }}>Guests</label>
+          <input type="number" min="1" max="10" value={form.guests} onChange={e => setForm(s => ({ ...s, guests: parseInt(e.target.value) || 1 }))} style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(59,72,49,.25)', fontSize: '14px', boxSizing: 'border-box' }} />
+        </div>
+      </div>
+      <div>
+        <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 600, color: '#3B4831' }}>Notes</label>
+        <textarea value={form.message} onChange={e => setForm(s => ({ ...s, message: e.target.value }))} rows={3} placeholder="Timing preferences, add-on treatments, dietary notes…" style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(59,72,49,.25)', fontSize: '14px', resize: 'vertical', boxSizing: 'border-box' }} />
+      </div>
+      {status === 'error' && (
+        <div style={{ padding: '10px 14px', borderRadius: '10px', background: 'rgba(197,124,93,.1)', border: '1px solid rgba(197,124,93,.3)', color: '#C57C5D', fontSize: '13px' }}>{error}</div>
+      )}
+      <button type="submit" disabled={status === 'sending'} style={{ padding: '12px 20px', background: '#3B4831', color: '#FCF9F4', border: 'none', borderRadius: '999px', fontWeight: 700, fontSize: '14px', cursor: status === 'sending' ? 'not-allowed' : 'pointer', opacity: status === 'sending' ? 0.7 : 1 }}>
+        {status === 'sending' ? 'Sending…' : 'Request Package'}
+      </button>
+      <p style={{ margin: 0, fontSize: '11px', color: '#6B7B5A', lineHeight: 1.5 }}>No payment collected online. We'll contact you to confirm availability.</p>
+    </form>
+  );
+}
+
 export default function PackageDetail() {
   const params = new URLSearchParams(window.location.search);
   const slug = params.get('slug');
