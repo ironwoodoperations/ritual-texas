@@ -19,6 +19,10 @@ export default function AdminPackages() {
   const [form, setForm] = useState(blank);
   const [editing, setEditing] = useState(null);
   const [includesText, setIncludesText] = useState('');
+  const [ordered, setOrdered] = useState([]);
+  const [dirtyOrder, setDirtyOrder] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const [dragId, setDragId] = useState(null);
 
   const { data: packages = [], isLoading } = useQuery({
     queryKey: ['admin-packages'],
