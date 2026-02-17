@@ -748,7 +748,7 @@ export default function AdminCateringQuote() {
               </div>
             ) : (
               <div>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 80px 40px', gap: '8px', padding: '8px 12px', marginBottom: '8px' }}>
+                <div className="cq-item-row-head" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 80px 40px', gap: '8px', padding: '8px 12px', marginBottom: '8px' }}>
                   {['Item', 'Qty / Per Person', 'Unit Price', 'Override', 'Total', ''].map(h => (
                     <div key={h} style={{ color: '#9AA8B5', fontSize: '10px', letterSpacing: '1px', fontFamily: 'sans-serif' }}>{h}</div>
                   ))}
