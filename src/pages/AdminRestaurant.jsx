@@ -8,6 +8,8 @@ import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Archive } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import InventoryManager from '@/components/restaurant/InventoryManager';
+import WeeklyReportManager from '@/components/restaurant/WeeklyReportManager';
 
 export default function AdminRestaurant() {
   const [activeTab, setActiveTab] = useState('specials');
