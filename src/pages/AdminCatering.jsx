@@ -137,7 +137,7 @@ export default function AdminCatering() {
               <Link to={createPageUrl('AdminCateringQuote')} style={{ display: 'inline-block', marginTop: '16px', color: '#C6A85E', textDecoration: 'none' }}>Create your first quote →</Link>
             </div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table className="catering-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(198,168,94,.15)' }}>
                   {['Client', 'Event', 'Date', 'Guests', 'Total', 'Status', 'Actions'].map(h => (
