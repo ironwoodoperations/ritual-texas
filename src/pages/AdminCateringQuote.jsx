@@ -758,7 +758,7 @@ export default function AdminCateringQuote() {
                   const qty = item.per_person ? form.guest_count : item.quantity;
                   const lineTotal = price * qty;
                   return (
-                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 80px 40px', gap: '8px', padding: '10px 12px', background: 'rgba(245,240,232,.03)', border: '1px solid rgba(198,168,94,.1)', borderRadius: '8px', marginBottom: '6px', alignItems: 'center' }}>
+                    <div key={idx} className="cq-item-row" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 80px 40px', gap: '8px', padding: '10px 12px', background: 'rgba(245,240,232,.03)', border: '1px solid rgba(198,168,94,.1)', borderRadius: '8px', marginBottom: '6px', alignItems: 'center' }}>
                       <input style={{ ...S.input, padding: '7px 10px', fontSize: '13px' }} value={item.item_name} onChange={e => updateItem(idx, 'item_name', e.target.value)} />
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
