@@ -29,6 +29,13 @@ export default function AdminPackages() {
     queryFn: () => base44.entities.Package.list('sort_order')
   });
 
+  useEffect(() => {
+    if (packages.length > 0) {
+      setOrdered([...packages].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
+      setDirtyOrder(false);
+    }
+  }, [packages]);
+
   const saveMutation = useMutation({
     mutationFn: async (data) => {
       const payload = { ...data, includes: includesText.split('\n').map(x => x.trim()).filter(Boolean) };
