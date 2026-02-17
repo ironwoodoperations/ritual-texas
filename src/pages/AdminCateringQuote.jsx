@@ -414,6 +414,23 @@ export default function AdminCateringQuote() {
 
   return (
     <div style={S.page}>
+      <style>{`
+        @media (max-width: 768px) {
+          .cq-header { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+          .cq-header-actions { flex-wrap: wrap !important; gap: 8px !important; }
+          .cq-layout { grid-template-columns: 1fr !important; }
+          .cq-totals { position: static !important; }
+          .cq-grid-2 { grid-template-columns: 1fr !important; }
+          .cq-grid-3 { grid-template-columns: 1fr 1fr !important; }
+          .cq-menu-grid { grid-template-columns: 1fr !important; }
+          .cq-item-row { grid-template-columns: 1fr 1fr 1fr 60px !important; }
+          .cq-item-row-head { display: none !important; }
+          .cq-staff-row { grid-template-columns: 1fr 60px 60px 80px 70px 32px !important; }
+        }
+        @media (max-width: 480px) {
+          .cq-grid-3 { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #0C1C2C 0%, #132336 100%)', borderBottom: '1px solid rgba(198,168,94,.2)', padding: '20px 32px' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
