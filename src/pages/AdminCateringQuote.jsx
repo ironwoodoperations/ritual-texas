@@ -64,8 +64,17 @@ const BLANK = {
   event_name: '', event_date: '', event_location: '',
   indoor_outdoor: 'indoor', guest_count: 50,
   service_style: 'buffet',
+  is_onsite: false,
   staffing_needed: false, bar_package: false, rentals_needed: false,
   staffing: [],
+  venue_pricing_mode: 'individual', // 'individual' or 'bundle'
+  venue_front: 0,
+  venue_bar: 0,
+  venue_upstairs: 0,
+  venue_bundle: 0,
+  venue_front_enabled: false,
+  venue_bar_enabled: false,
+  venue_upstairs_enabled: false,
   notes: '', selected_items: [],
   tax_rate: 8.25, service_charge_rate: 20, deposit_rate: 30,
   terms: 'A 30% non-refundable deposit is required to secure your event date. Remaining balance is due 7 days prior to the event. Cancellations within 72 hours forfeit the full deposit.'
