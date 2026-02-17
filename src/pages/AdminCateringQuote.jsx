@@ -251,7 +251,7 @@ export default function AdminCateringQuote() {
 
     const totalsRows = [
       ['Food Subtotal', t.food_subtotal],
-      form.staffing_needed && ['Labor', t.labor_cost],
+      t.labor_cost > 0 && ['Labor', t.labor_cost],
       form.bar_package && ['Bar Package', t.bar_total],
       form.rentals_needed && ['Rentals', t.rentals_total],
       [`Service Charge (${form.service_charge_rate}%)`, t.service_charge_amount],
