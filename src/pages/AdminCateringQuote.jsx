@@ -10,6 +10,23 @@ const SERVICE_STYLES = ['plated','buffet','passed_appetizers','family_style','co
 const ING_CATS = ['proteins','produce','dry_goods','dairy','alcohol','paper_disposables','rentals','other'];
 const CATEGORIES = ['starters','salads','entrees','sides','desserts','bar_packages','add_ons','chef_specials'];
 
+const STAFF_ROLES = [
+  { role: 'bartender', label: 'Bartenders' },
+  { role: 'server', label: 'Servers' },
+  { role: 'busboy', label: 'Bussers / Busboys' },
+  { role: 'setup_crew', label: 'Setup Crew' },
+  { role: 'breakdown_crew', label: 'Breakdown Crew' },
+  { role: 'chef', label: 'Chef / Cook' },
+  { role: 'kitchen_helper', label: 'Kitchen Helpers' },
+  { role: 'event_captain', label: 'Event Captain' },
+  { role: 'host', label: 'Host / Greeter' },
+  { role: 'security', label: 'Security' },
+];
+
+function calcLaborTotal(staffing = []) {
+  return staffing.reduce((sum, s) => sum + ((s.count || 0) * (s.hours || 0) * (s.rate || 0)), 0);
+}
+
 function calcTotals(state) {
   const items = state.selected_items || [];
   const guestCount = state.guest_count || 1;
@@ -20,7 +37,7 @@ function calcTotals(state) {
     return sum + (price * qty);
   }, 0);
 
-  const labor_cost = state.staffing_needed ? food_subtotal * 0.2 : 0;
+  const labor_cost = calcLaborTotal(state.staffing || []);
   const bar_total = state.bar_package ? guestCount * 25 : 0;
   const rentals_total = state.rentals_needed ? 500 : 0;
   const subtotal = food_subtotal + labor_cost + bar_total + rentals_total;
