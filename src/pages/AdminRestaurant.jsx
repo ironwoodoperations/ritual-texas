@@ -80,12 +80,26 @@ export default function AdminRestaurant() {
           >
             Hours
           </button>
+          <button
+            onClick={() => setActiveTab('inventory')}
+            style={{ padding: '10px 20px', background: activeTab === 'inventory' ? '#3B4831' : 'transparent', color: activeTab === 'inventory' ? '#FCF9F4' : '#3B4831', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' }}
+          >
+            Inventory
+          </button>
+          <button
+            onClick={() => setActiveTab('weekly')}
+            style={{ padding: '10px 20px', background: activeTab === 'weekly' ? '#3B4831' : 'transparent', color: activeTab === 'weekly' ? '#FCF9F4' : '#3B4831', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' }}
+          >
+            Weekly Reports
+          </button>
         </div>
 
         {activeTab === 'specials' && <SpecialsManager />}
         {activeTab === 'menu' && <MenuManager />}
         {activeTab === 'categories' && <CategoryManager />}
         {activeTab === 'hours' && <HoursManager />}
+        {activeTab === 'inventory' && <InventoryManager />}
+        {activeTab === 'weekly' && <WeeklyReportManager />}
       </div>
     </div>
   );
