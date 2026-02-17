@@ -99,6 +99,7 @@ export default function AdminDashboard() {
     { icon: ClipboardList, label: 'Knowledge Base', page: 'AdminKnowledge' },
     { icon: MapPin, label: 'Image Library', page: 'AdminImages' },
     { icon: Settings, label: 'Restaurant', page: 'AdminRestaurant' },
+    { icon: ChefHat, label: 'Catering', page: 'AdminCatering' },
   ];
 
   if (!user) {
