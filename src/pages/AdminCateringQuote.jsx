@@ -459,7 +459,7 @@ export default function AdminCateringQuote() {
         </div>
       </div>
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px', display: 'grid', gridTemplateColumns: '1fr 360px', gap: '28px', alignItems: 'start' }}>
+      <div className="cq-layout" style={{ maxWidth: '1200px', margin: '0 auto', padding: '16px', display: 'grid', gridTemplateColumns: '1fr 360px', gap: '24px', alignItems: 'start' }}>
         {/* LEFT */}
         <div>
           {/* Event Details */}
