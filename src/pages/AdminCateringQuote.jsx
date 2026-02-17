@@ -674,7 +674,7 @@ export default function AdminCateringQuote() {
             <p style={{ ...S.sectionTitle, marginBottom: '16px' }}>QUOTE SUMMARY</p>
             {[
               ['Food Subtotal', totals.food_subtotal],
-              form.staffing_needed && [`Labor (est.)`, totals.labor_cost],
+              totals.labor_cost > 0 && [`Labor (${(form.staffing||[]).reduce((s,r)=>s+(r.count||0),0)} staff)`, totals.labor_cost],
               form.bar_package && ['Bar Package', totals.bar_total],
               form.rentals_needed && ['Rentals (est.)', totals.rentals_total],
               [`Service Charge (${form.service_charge_rate}%)`, totals.service_charge_amount],
