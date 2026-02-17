@@ -383,15 +383,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Admin Link */}
-      <div className="py-4 text-center">
-        <Link 
-          to={createPageUrl('AdminDashboard')}
-          className="text-xs text-[rgb(198,182,165)] hover:text-[rgb(107,85,64)] transition-colors opacity-40 hover:opacity-100"
-        >
-          ↗ admin
-        </Link>
-      </div>
+      
 
       </div>
       );
