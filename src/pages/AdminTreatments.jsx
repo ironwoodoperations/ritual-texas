@@ -404,6 +404,20 @@ export default function AdminTreatments() {
               />
             </div>
 
+            <div>
+              <Label>Booking Mode</Label>
+              <Select value={formData.booking_mode} onValueChange={(val) => setFormData({...formData, booking_mode: val})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="book_online">🟢 Book Online — guests can book directly</SelectItem>
+                  <SelectItem value="request_info">🟡 Request Info — guests submit an inquiry</SelectItem>
+                  <SelectItem value="call_to_book">🔵 Call to Book — guests must call to schedule</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="flex items-center gap-2">
               <Switch
                 checked={formData.is_available}
