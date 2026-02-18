@@ -106,6 +106,7 @@ export default function AdminTreatments() {
       not_for: '',
       duration_minutes: 60,
       price: 0,
+      booking_mode: 'book_online',
       is_available: true
     });
   };
@@ -122,6 +123,7 @@ export default function AdminTreatments() {
       not_for: treatment.not_for || '',
       duration_minutes: treatment.duration_minutes || 60,
       price: treatment.price || 0,
+      booking_mode: treatment.booking_mode || 'book_online',
       is_available: treatment.is_available !== false
     });
     setIsFormOpen(true);
