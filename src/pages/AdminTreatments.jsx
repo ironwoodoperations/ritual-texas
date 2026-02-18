@@ -232,6 +232,32 @@ export default function AdminTreatments() {
                 </span>
                 <span>${treatment.price}</span>
               </div>
+              {/* Booking mode quick-select */}
+              <div className="flex gap-2 mb-3">
+                {[
+                  { value: 'book_online', label: '🟢 Book Online', color: 'rgb(150,170,155)' },
+                  { value: 'request_info', label: '🟡 Request Info', color: 'rgb(198,168,94)' },
+                  { value: 'call_to_book', label: '🔵 Call to Book', color: 'rgb(107,85,64)' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => updateMutation.mutate({ id: treatment.id, data: { ...treatment, booking_mode: opt.value } })}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '20px',
+                      border: (treatment.booking_mode || 'book_online') === opt.value ? `2px solid ${opt.color}` : '1px solid rgb(235,225,213)',
+                      background: (treatment.booking_mode || 'book_online') === opt.value ? `${opt.color}22` : 'transparent',
+                      color: (treatment.booking_mode || 'book_online') === opt.value ? opt.color : 'rgb(150,150,150)',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      fontWeight: (treatment.booking_mode || 'book_online') === opt.value ? 700 : 400,
+                      transition: 'all 0.15s'
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
               <div className="flex gap-2">
                 <Button 
                   variant="outline" 
