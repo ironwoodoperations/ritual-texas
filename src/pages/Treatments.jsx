@@ -4,6 +4,8 @@ import { base44 } from '@/api/base44Client';
 import TreatmentRequestForm from '@/components/TreatmentRequestForm';
 
 export default function Treatments() {
+  const [requestTreatment, setRequestTreatment] = useState(null);
+
   const { data: treatments, isLoading } = useQuery({
     queryKey: ['treatments'],
     queryFn: async () => {
