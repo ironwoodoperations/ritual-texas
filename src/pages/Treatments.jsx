@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import TreatmentRequestForm from '@/components/TreatmentRequestForm';
 
 export default function Treatments() {
   const { data: treatments, isLoading } = useQuery({
