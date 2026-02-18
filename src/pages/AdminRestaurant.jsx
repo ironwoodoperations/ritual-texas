@@ -17,73 +17,41 @@ export default function AdminRestaurant() {
   const queryClient = useQueryClient();
 
   return (
-    <div style={{ background: '#F0E8DD', minHeight: '100vh', padding: '40px 20px' }}>
+    <div style={{ background: '#F0E8DD', minHeight: '100vh', padding: '24px 16px', overflowX: 'hidden' }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-          <Link to={createPageUrl('AdminDashboard')} style={{ color: '#3B4831', display: 'flex', padding: '6px' }}><ArrowLeft size={20} /></Link>
-          <h1 style={{ margin: 0, fontFamily: 'serif', fontSize: '42px', color: '#3B4831' }}>
+          <Link to={createPageUrl('AdminDashboard')} style={{ color: '#3B4831', display: 'flex', padding: '6px', flexShrink: 0 }}><ArrowLeft size={20} /></Link>
+          <h1 style={{ margin: 0, fontFamily: 'serif', fontSize: '28px', color: '#3B4831' }}>
             Restaurant Admin
           </h1>
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '32px', borderBottom: '2px solid rgba(59,72,49,.1)', paddingBottom: '12px' }}>
-          <button
-            onClick={() => setActiveTab('specials')}
-            style={{
-              padding: '10px 20px',
-              background: activeTab === 'specials' ? '#3B4831' : 'transparent',
-              color: activeTab === 'specials' ? '#FCF9F4' : '#3B4831',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            Daily Specials
-          </button>
-          <button
-            onClick={() => setActiveTab('menu')}
-            style={{
-              padding: '10px 20px',
-              background: activeTab === 'menu' ? '#3B4831' : 'transparent',
-              color: activeTab === 'menu' ? '#FCF9F4' : '#3B4831',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            Menu Items
-          </button>
-          <button
-            onClick={() => setActiveTab('categories')}
-            style={{
-              padding: '10px 20px',
-              background: activeTab === 'categories' ? '#3B4831' : 'transparent',
-              color: activeTab === 'categories' ? '#FCF9F4' : '#3B4831',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            Menu Sections
-          </button>
-          <button
-            onClick={() => setActiveTab('hours')}
-            style={{
-              padding: '10px 20px',
-              background: activeTab === 'hours' ? '#3B4831' : 'transparent',
-              color: activeTab === 'hours' ? '#FCF9F4' : '#3B4831',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            Hours
-          </button>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', borderBottom: '2px solid rgba(59,72,49,.1)', paddingBottom: '12px', flexWrap: 'wrap' }}>
+          {[
+            { key: 'specials', label: 'Daily Specials' },
+            { key: 'menu', label: 'Menu Items' },
+            { key: 'categories', label: 'Menu Sections' },
+            { key: 'hours', label: 'Hours' },
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                padding: '8px 14px',
+                background: activeTab === tab.key ? '#3B4831' : 'transparent',
+                color: activeTab === tab.key ? '#FCF9F4' : '#3B4831',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontSize: '14px',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {activeTab === 'specials' && <SpecialsManager />}
@@ -194,47 +162,44 @@ function SpecialsManager() {
       <div style={{ display: 'grid', gap: '16px' }}>
         {sortedSpecials.map(special => (
           <div key={special.id} style={{
-            background: '#FCF9F4',
-            padding: '20px',
-            borderRadius: '12px',
-            border: special.isActiveToday ? '2px solid #C57C5D' : '1px solid rgba(59,72,49,.1)'
+          background: '#FCF9F4',
+          padding: '16px',
+          borderRadius: '12px',
+          border: special.isActiveToday ? '2px solid #C57C5D' : '1px solid rgba(59,72,49,.1)'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                  <h3 style={{ margin: 0, fontSize: '18px', color: '#3B4831', fontWeight: 700 }}>{special.title}</h3>
-                  {special.isActiveToday && (
-                    <span style={{ padding: '4px 10px', background: '#C57C5D', color: '#FCF9F4', fontSize: '12px', borderRadius: '4px', fontWeight: 700 }}>
-                      ACTIVE TODAY
-                    </span>
-                  )}
-                  {special.category && (
-                    <span style={{ padding: '4px 10px', background: 'rgba(59,72,49,.1)', color: '#3B4831', fontSize: '12px', borderRadius: '4px' }}>
-                      {special.category}
-                    </span>
-                  )}
-                </div>
-                <p style={{ margin: '8px 0', color: '#1B1B1B', lineHeight: '1.6' }}>{special.description}</p>
-                {special.price && (
-                  <p style={{ margin: '8px 0', color: '#C57C5D', fontWeight: 700, fontSize: '16px' }}>${special.price}</p>
-                )}
-              </div>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '13px', color: '#1B1B1B' }}>Active</span>
-                  <Switch
-                    checked={special.isActiveToday}
-                    onCheckedChange={(checked) => toggleActiveMutation.mutate({ id: special.id, isActiveToday: checked })}
-                  />
-                </div>
-                <Button variant="outline" size="sm" onClick={() => handleEdit(special)}>
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => deleteMutation.mutate(special.id)}>
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+          {/* Top row: badges + actions */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {special.isActiveToday && (
+                <span style={{ padding: '4px 10px', background: '#C57C5D', color: '#FCF9F4', fontSize: '12px', borderRadius: '4px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                  ACTIVE TODAY
+                </span>
+              )}
+              {special.category && (
+                <span style={{ padding: '4px 10px', background: 'rgba(59,72,49,.1)', color: '#3B4831', fontSize: '12px', borderRadius: '4px' }}>
+                  {special.category}
+                </span>
+              )}
             </div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
+              <span style={{ fontSize: '13px', color: '#1B1B1B' }}>Active</span>
+              <Switch
+                checked={special.isActiveToday}
+                onCheckedChange={(checked) => toggleActiveMutation.mutate({ id: special.id, isActiveToday: checked })}
+              />
+              <Button variant="outline" size="sm" onClick={() => handleEdit(special)}>
+                <Edit className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => deleteMutation.mutate(special.id)}>
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+          <h3 style={{ margin: '0 0 6px', fontSize: '17px', color: '#3B4831', fontWeight: 700 }}>{special.title}</h3>
+          <p style={{ margin: '0 0 6px', color: '#1B1B1B', lineHeight: '1.6', fontSize: '14px' }}>{special.description}</p>
+          {special.price && (
+            <p style={{ margin: 0, color: '#C57C5D', fontWeight: 700, fontSize: '16px' }}>${special.price}</p>
+          )}
           </div>
         ))}
         {specials.length === 0 && (
@@ -405,8 +370,8 @@ function MenuManager() {
         </Button>
       </div>
 
-      <div style={{ background: '#FCF9F4', borderRadius: '12px', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div style={{ background: '#FCF9F4', borderRadius: '12px', overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '500px' }}>
           <thead>
             <tr style={{ background: 'rgba(59,72,49,.1)' }}>
               <th style={{ padding: '12px', textAlign: 'left', fontWeight: 700, color: '#3B4831' }}>Name</th>
