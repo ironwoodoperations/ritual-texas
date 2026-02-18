@@ -49,6 +49,7 @@ export default function AdminPackageInquiries() {
             <div>
             <h1 style={{ margin: 0, fontFamily: 'serif', fontSize: '34px', color: '#3B4831' }}>Package Inquiries</h1>
             <p style={{ margin: '4px 0 0', color: '#6B7B5A', fontSize: '14px' }}>All "Request Package" submissions from the website</p>
+            </div>
           </div>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             <select

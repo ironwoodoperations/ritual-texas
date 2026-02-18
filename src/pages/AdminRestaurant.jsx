@@ -19,9 +19,12 @@ export default function AdminRestaurant() {
   return (
     <div style={{ background: '#F0E8DD', minHeight: '100vh', padding: '40px 20px' }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        <h1 style={{ margin: '0 0 24px 0', fontFamily: 'serif', fontSize: '42px', color: '#3B4831' }}>
-          Restaurant Admin
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+          <Link to={createPageUrl('AdminDashboard')} style={{ color: '#3B4831', display: 'flex', padding: '6px' }}><ArrowLeft size={20} /></Link>
+          <h1 style={{ margin: 0, fontFamily: 'serif', fontSize: '42px', color: '#3B4831' }}>
+            Restaurant Admin
+          </h1>
+        </div>
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: '12px', marginBottom: '32px', borderBottom: '2px solid rgba(59,72,49,.1)', paddingBottom: '12px' }}>
