@@ -51,6 +51,7 @@ export default function AdminPackageInquiries() {
             <p style={{ margin: '4px 0 0', color: '#6B7B5A', fontSize: '14px' }}>All "Request Package" submissions from the website</p>
             </div>
           </div>
+          </div>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             <select
               value={filter}
