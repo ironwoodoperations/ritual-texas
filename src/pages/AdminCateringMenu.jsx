@@ -83,7 +83,7 @@ export default function AdminCateringMenu() {
         </div>
       </div>
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.4fr)', gap: '28px', alignItems: 'start' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: '28px', alignItems: 'start' }}>
         {/* Left: grouped list */}
         <div>
           {CATEGORIES.map(cat => {

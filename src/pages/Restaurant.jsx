@@ -59,10 +59,10 @@ export default function Restaurant() {
   const sortedHours = hours.sort((a, b) => dayOrder.indexOf(a.dayOfWeek) - dayOrder.indexOf(b.dayOfWeek));
 
   return (
-    <div style={{ background: '#F0E8DD', minHeight: '100vh' }}>
+    <div style={{ background: '#F0E8DD', minHeight: '100vh', overflowX: 'hidden' }}>
       {/* Hero */}
       <section style={{ 
-        padding: '80px 20px 80px 20px', 
+        padding: '80px 16px 80px 16px', 
         textAlign: 'center', 
         backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/75adb6665_galaxy_ai_1770762058526.jpg)',
         backgroundSize: 'cover',

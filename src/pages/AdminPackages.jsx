@@ -125,7 +125,7 @@ export default function AdminPackages() {
           </Button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '24px', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 380px), 1fr))', gap: '24px', alignItems: 'start' }}>
           {/* List */}
           <div style={{ background: '#FCF9F4', borderRadius: '18px', padding: '24px', border: '1px solid rgba(59,72,49,.1)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
