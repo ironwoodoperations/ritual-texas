@@ -54,13 +54,31 @@ export default function Treatments() {
                 {treatment.what_it_is}
               </p>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ fontWeight: 800, color: '#1B1B1B' }}>{treatment.duration_minutes} min</div>
-                <a 
-                  href={`/booking?treatment=${treatment.slug || treatment.name.toLowerCase().replace(/\s+/g, '-')}`}
-                  style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}
-                >
-                  Book Now
-                </a>
+                <div style={{ fontWeight: 800, color: '#1B1B1B' }}>{treatment.duration_minutes} min · ${treatment.price}</div>
+                {(!treatment.booking_mode || treatment.booking_mode === 'book_online') && (
+                  <a 
+                    href={`/booking?treatment=${treatment.slug || treatment.name.toLowerCase().replace(/\s+/g, '-')}`}
+                    style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}
+                  >
+                    Book Now
+                  </a>
+                )}
+                {treatment.booking_mode === 'request_info' && (
+                  <button
+                    onClick={() => setRequestTreatment(treatment)}
+                    style={{ background: '#8B7355', color: '#FCF9F4', border: 'none', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, cursor: 'pointer', fontSize: '14px' }}
+                  >
+                    Request Info
+                  </button>
+                )}
+                {treatment.booking_mode === 'call_to_book' && (
+                  <a
+                    href="tel:9038106695"
+                    style={{ textDecoration: 'none', background: '#3B4831', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}
+                  >
+                    Call to Book
+                  </a>
+                )}
               </div>
             </article>
           ))}
