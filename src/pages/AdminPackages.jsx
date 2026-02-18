@@ -116,7 +116,10 @@ export default function AdminPackages() {
     <div style={{ background: '#F0E8DD', minHeight: '100vh', padding: '32px 20px' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '12px' }}>
-          <h1 style={{ margin: 0, fontFamily: 'serif', fontSize: '36px', color: '#3B4831' }}>Packages</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Link to={createPageUrl('AdminDashboard')} style={{ color: '#3B4831', display: 'flex', padding: '6px' }}><ArrowLeft size={20} /></Link>
+            <h1 style={{ margin: 0, fontFamily: 'serif', fontSize: '36px', color: '#3B4831' }}>Packages</h1>
+          </div>
           <Button onClick={resetForm} style={{ background: '#3B4831', color: '#FCF9F4' }}>
             <Plus className="w-4 h-4 mr-2" /> New Package
           </Button>

@@ -44,7 +44,9 @@ export default function AdminPackageInquiries() {
     <div style={{ background: '#F0E8DD', minHeight: '100vh', padding: '32px 20px' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Link to={createPageUrl('AdminDashboard')} style={{ color: '#3B4831', display: 'flex', padding: '6px' }}><ArrowLeft size={20} /></Link>
+            <div>
             <h1 style={{ margin: 0, fontFamily: 'serif', fontSize: '34px', color: '#3B4831' }}>Package Inquiries</h1>
             <p style={{ margin: '4px 0 0', color: '#6B7B5A', fontSize: '14px' }}>All "Request Package" submissions from the website</p>
           </div>
