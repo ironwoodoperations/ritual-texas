@@ -90,6 +90,13 @@ export default function Treatments() {
           </div>
         )}
       </div>
+
+      {requestTreatment && (
+        <TreatmentRequestForm
+          treatment={requestTreatment}
+          onClose={() => setRequestTreatment(null)}
+        />
+      )}
     </section>
   );
 }
