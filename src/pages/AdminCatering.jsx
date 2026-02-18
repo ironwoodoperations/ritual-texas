@@ -52,7 +52,7 @@ export default function AdminCatering() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0C1C2C', fontFamily: "'Georgia', serif" }}>
+    <div style={{ minHeight: '100vh', background: '#0C1C2C', fontFamily: "'Georgia', serif", overflowX: 'hidden' }}>
       <style>{`
         @media (max-width: 768px) {
           .catering-header { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }

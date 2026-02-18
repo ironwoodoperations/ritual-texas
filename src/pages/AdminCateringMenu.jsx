@@ -75,7 +75,7 @@ export default function AdminCateringMenu() {
   };
 
   return (
-    <div style={S.page}>
+    <div style={{ ...S.page, overflowX: 'hidden' }}>
       <div style={S.header}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <p style={{ color: '#C6A85E', fontSize: '12px', letterSpacing: '3px', margin: '0 0 6px', fontFamily: 'sans-serif' }}>CATERING</p>
@@ -83,7 +83,7 @@ export default function AdminCateringMenu() {
         </div>
       </div>
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px', display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '28px', alignItems: 'start' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.4fr)', gap: '28px', alignItems: 'start' }}>
         {/* Left: grouped list */}
         <div>
           {CATEGORIES.map(cat => {

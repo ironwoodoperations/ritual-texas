@@ -632,7 +632,7 @@ function HoursManager() {
         {sortedHours.map(hour => {
           const editing = editingHours[hour.id] || hour;
           return (
-            <div key={hour.id} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr auto auto', gap: '16px', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid rgba(59,72,49,.08)' }}>
+            <div key={hour.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(80px,120px) minmax(0,1fr) minmax(0,1fr) auto auto', gap: '8px', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid rgba(59,72,49,.08)', flexWrap: 'wrap' }}>
               <div style={{ fontWeight: 700, color: '#3B4831' }}>{hour.dayOfWeek}</div>
               <Input
                 type="time"
