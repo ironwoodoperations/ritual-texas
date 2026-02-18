@@ -8,8 +8,6 @@ import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Archive } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import InventoryManager from '@/components/restaurant/InventoryManager';
-import WeeklyReportManager from '@/components/restaurant/WeeklyReportManager';
 
 export default function AdminRestaurant() {
   const [activeTab, setActiveTab] = useState('specials');
@@ -80,26 +78,12 @@ export default function AdminRestaurant() {
           >
             Hours
           </button>
-          <button
-            onClick={() => setActiveTab('inventory')}
-            style={{ padding: '10px 20px', background: activeTab === 'inventory' ? '#3B4831' : 'transparent', color: activeTab === 'inventory' ? '#FCF9F4' : '#3B4831', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' }}
-          >
-            Inventory
-          </button>
-          <button
-            onClick={() => setActiveTab('weekly')}
-            style={{ padding: '10px 20px', background: activeTab === 'weekly' ? '#3B4831' : 'transparent', color: activeTab === 'weekly' ? '#FCF9F4' : '#3B4831', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' }}
-          >
-            Weekly Reports
-          </button>
         </div>
 
         {activeTab === 'specials' && <SpecialsManager />}
         {activeTab === 'menu' && <MenuManager />}
         {activeTab === 'categories' && <CategoryManager />}
         {activeTab === 'hours' && <HoursManager />}
-        {activeTab === 'inventory' && <InventoryManager />}
-        {activeTab === 'weekly' && <WeeklyReportManager />}
       </div>
     </div>
   );
