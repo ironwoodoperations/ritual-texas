@@ -98,8 +98,10 @@ Deno.serve(async (req) => {
     if (req.method === 'POST') {
       try {
         const body = await req.json();
-        reservationID = body.confirmation;
-        contact = body.contact;
+        // base44.functions.invoke wraps params under a "payload" key
+        const params = body.payload || body;
+        reservationID = params.confirmation;
+        contact = params.contact;
       } catch (_) {}
     }
 
