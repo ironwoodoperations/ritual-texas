@@ -4,8 +4,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Using rotated Client_Secret - 2026-02-08
-    const clientId = Deno.env.get("Client_ID");
+    const clientId = Deno.env.get("CLOUDBEDS_CLIENT_ID");
     const publicBaseUrl = Deno.env.get("PUBLIC_BASE_URL") || "https://ritualtexas.com";
     const redirectUri = `${publicBaseUrl}/functions/cloudbedsOAuthCallback`;
     
