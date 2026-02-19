@@ -28,14 +28,20 @@ export default function AdminCloudbeds() {
   };
 
   const testLookup = async () => {
+    setLookupResult({ status: 'loading...' });
     try {
       const result = await base44.functions.invoke('cloudbedsReservationsLookup', {
         confirmation: lookupConfirmation,
         contact: lookupContact
       });
-      setLookupResult(result.data);
+      setLookupResult({ httpStatus: result.status, data: result.data });
     } catch (error) {
-      setLookupResult({ error: error.message });
+      setLookupResult({
+        error: error.message,
+        response: error.response?.data,
+        httpStatus: error.response?.status,
+        fullError: String(error)
+      });
     }
   };
 
