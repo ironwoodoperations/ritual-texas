@@ -156,11 +156,8 @@ Deno.serve(async (req) => {
         error: 'Contact does not match reservation.',
         debug: {
           inputContact: contact,
-          reservationGuestEmail: reservation?.guestEmail,
-          reservationEmail: reservation?.email,
-          reservationGuestPhone: reservation?.guestPhone,
-          reservationPhone: reservation?.phone,
-          reservationGuestName: reservation?.guestName,
+          reservationReturned: reservation || null,
+          reservationKeys: reservation ? Object.keys(reservation) : [],
         }
       }, { status: 200 });
     }
