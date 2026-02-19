@@ -138,6 +138,12 @@ Deno.serve(async (req) => {
         upstreamStatus: result.status,
         requestUrl: result.requestUrl,
         upstreamBody: result.bodyText,
+        debug: {
+          reservationID,
+          contact,
+          propertyId,
+          hasAccessToken: !!accessToken,
+        },
       }, { status: 200 });
     }
 
