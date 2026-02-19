@@ -326,7 +326,7 @@ export default function ItineraryPage() {
               <div>
                 <p className="text-xs uppercase tracking-wide" style={{ color: '#1B1B1B' }}>Total Amount</p>
                 <p className="font-medium text-lg" style={{ color: '#3B4831' }}>
-                  ${reservation.totalAmount?.toFixed(2) || '—'}
+                  ${(reservation.total ?? reservation.totalAmount)?.toFixed(2) || '—'}
                 </p>
               </div>
             </div>
