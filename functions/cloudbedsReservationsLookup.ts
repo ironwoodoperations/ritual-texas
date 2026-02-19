@@ -148,11 +148,20 @@ Deno.serve(async (req) => {
     }
 
     const resJson = JSON.parse(result.bodyText);
-    const reservation = resJson?.data;
+    // Cloudbeds may return reservation at top-level, under .data, or under .reservation
+    const reservation = resJson?.data ?? resJson?.reservation ?? (resJson?.success !== undefined ? resJson : null);
+
+    if (!reservation) {
+      return Response.json({
+        success: false,
+        error: 'Could not parse reservation from Cloudbeds response.',
+        debug: { rawResponse: resJson }
+      }, { status: 200 });
+    }
 
     // Contact match check (email or phone)
-    const guestEmail = (reservation?.guestEmail || '').toLowerCase();
-    const guestPhone = (reservation?.guestPhone || '').replace(/\D/g, '');
+    const guestEmail = (reservation?.guestEmail || reservation?.email || '').toLowerCase();
+    const guestPhone = (reservation?.guestPhone || reservation?.phone || '').replace(/\D/g, '');
     const contactLower = contact.toLowerCase();
     const contactDigits = contact.replace(/\D/g, '');
 
@@ -162,8 +171,9 @@ Deno.serve(async (req) => {
         error: 'Contact does not match reservation.',
         debug: {
           inputContact: contact,
-          reservationReturned: reservation || null,
-          reservationKeys: reservation ? Object.keys(reservation) : [],
+          guestEmailFound: reservation?.guestEmail || reservation?.email,
+          guestPhoneFound: reservation?.guestPhone || reservation?.phone,
+          reservationKeys: Object.keys(reservation),
         }
       }, { status: 200 });
     }
