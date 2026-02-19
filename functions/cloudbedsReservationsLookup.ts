@@ -151,7 +151,18 @@ Deno.serve(async (req) => {
     const contactDigits = contact.replace(/\D/g, '');
 
     if (guestEmail !== contactLower && guestPhone !== contactDigits) {
-      return Response.json({ success: false, error: 'Contact does not match reservation.' }, { status: 200 });
+      return Response.json({
+        success: false,
+        error: 'Contact does not match reservation.',
+        debug: {
+          inputContact: contact,
+          reservationGuestEmail: reservation?.guestEmail,
+          reservationEmail: reservation?.email,
+          reservationGuestPhone: reservation?.guestPhone,
+          reservationPhone: reservation?.phone,
+          reservationGuestName: reservation?.guestName,
+        }
+      }, { status: 200 });
     }
 
     const assignedRoom = reservation?.assigned?.[0];
