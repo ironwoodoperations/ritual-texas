@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     return Response.json({ 
       error: error.message,
       stack: error.stack,
-      clientId: Deno.env.get("Client_ID") ? "SET" : "NOT SET"
+      clientId: Deno.env.get("CLOUDBEDS_CLIENT_ID") ? "SET" : "NOT SET"
     }, { status: 500 });
   }
 });
