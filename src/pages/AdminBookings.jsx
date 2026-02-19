@@ -300,11 +300,10 @@ export default function AdminBookings() {
               </tbody>
             </table>
           </div>
-          
           {filteredBookings.length === 0 && (
             <p className="p-8 text-center text-[rgb(45,45,45)]">No bookings found</p>
           )}
-        </div>
+        </div>}
       </main>
 
       {/* Booking Detail Modal */}
