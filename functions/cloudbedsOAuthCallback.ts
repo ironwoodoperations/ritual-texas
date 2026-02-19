@@ -42,9 +42,8 @@ Deno.serve(async (req) => {
     await base44.asServiceRole.entities.SiteSettings.delete(stateRecords[0].id);
     
     // Exchange code for access token
-    // Using rotated Client_Secret - 2026-02-08
-    const clientId = Deno.env.get("Client_ID");
-    const clientSecret = Deno.env.get("Client_Secret");
+    const clientId = Deno.env.get("CLOUDBEDS_CLIENT_ID");
+    const clientSecret = Deno.env.get("CLOUDBEDS_CLIENT_SECRET");
     const publicBaseUrl = Deno.env.get("PUBLIC_BASE_URL") || "https://ritualtexas.com";
     const redirectUri = `${publicBaseUrl}/functions/cloudbedsOAuthCallback`;
     
