@@ -201,7 +201,10 @@ export default function AdminBookings() {
                           <p className="text-xs text-[rgb(45,45,45)]">{r.guestEmail}</p>
                           <p className="text-xs font-mono text-[rgb(150,150,150)]">{r.reservationID}</p>
                         </td>
-                        <td className="p-4 text-sm text-[rgb(45,45,45)]">{r.roomTypeName || '—'}</td>
+                        <td className="p-4 text-sm text-[rgb(45,45,45)]">
+                          <p>{r.roomName || r.roomTypeName || '—'}</p>
+                          {r.roomNumber && <p className="text-xs text-[rgb(150,150,150)]">Room {r.roomNumber}</p>}
+                        </td>
                         <td className="p-4 text-sm text-[rgb(45,45,45)]">{r.checkIn ? format(new Date(r.checkIn + 'T12:00:00'), 'MMM d, yyyy') : '—'}</td>
                         <td className="p-4 text-sm text-[rgb(45,45,45)]">{r.checkOut ? format(new Date(r.checkOut + 'T12:00:00'), 'MMM d, yyyy') : '—'}</td>
                         <td className="p-4 text-sm text-[rgb(107,85,64)]">{r.balance != null ? `$${Number(r.balance).toFixed(2)}` : '—'}</td>
