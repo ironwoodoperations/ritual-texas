@@ -148,6 +148,17 @@ Deno.serve(async (req) => {
     }
 
     const resJson = JSON.parse(result.bodyText);
+
+    // Dump the raw Cloudbeds response so we can see the real structure
+    return Response.json({
+      success: false,
+      error: 'DEBUG: raw Cloudbeds response',
+      debug: {
+        resJsonKeys: resJson ? Object.keys(resJson) : [],
+        rawResponse: resJson,
+      }
+    }, { status: 200 });
+
     // Cloudbeds may return reservation at top-level, under .data, or under .reservation
     const reservation = resJson?.data ?? resJson?.reservation ?? (resJson?.success !== undefined ? resJson : null);
 
