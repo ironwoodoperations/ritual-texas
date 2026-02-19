@@ -33,13 +33,9 @@ async function refreshCloudbedsAccessToken(base44) {
   const refreshToken = await getSettingValue(base44, 'CLOUDBEDS_REFRESH_TOKEN');
   if (!refreshToken) throw new Error('Missing CLOUDBEDS_REFRESH_TOKEN — please re-authorize Cloudbeds.');
 
-  // Use the existing secrets (Client_ID and Client_Secret are already set)
   const clientId = Deno.env.get('CLOUDBEDS_CLIENT_ID');
   const clientSecret = Deno.env.get('CLOUDBEDS_CLIENT_SECRET');
-
-  if (!clientId || !clientSecret) {
-    throw new Error('Missing CLOUDBEDS_CLIENT_ID / CLOUDBEDS_CLIENT_SECRET in environment secrets.');
-  }
+  if (!clientId || !clientSecret) throw new Error('Missing CLOUDBEDS_CLIENT_ID / CLOUDBEDS_CLIENT_SECRET.');
 
   const form = new URLSearchParams();
   form.set('grant_type', 'refresh_token');
@@ -54,22 +50,17 @@ async function refreshCloudbedsAccessToken(base44) {
   });
 
   const text = await resp.text();
-  if (!resp.ok) {
-    throw new Error(`Cloudbeds token refresh failed (${resp.status}): ${text}`);
-  }
+  if (!resp.ok) throw new Error(`Cloudbeds token refresh failed (${resp.status}): ${text}`);
 
   const json = JSON.parse(text);
   const newAccess = json?.access_token || json?.data?.access_token;
   const newRefresh = json?.refresh_token || json?.data?.refresh_token || refreshToken;
   const expiresIn = json?.expires_in || json?.data?.expires_in || 3600;
-
   if (!newAccess) throw new Error(`Refresh succeeded but no access_token in response: ${text}`);
-
-  const expiryIso = new Date(Date.now() + Number(expiresIn) * 1000).toISOString();
 
   await upsertSetting(base44, 'CLOUDBEDS_ACCESS_TOKEN', newAccess);
   await upsertSetting(base44, 'CLOUDBEDS_REFRESH_TOKEN', newRefresh);
-  await upsertSetting(base44, 'CLOUDBEDS_TOKEN_EXPIRY', expiryIso);
+  await upsertSetting(base44, 'CLOUDBEDS_TOKEN_EXPIRY', new Date(Date.now() + Number(expiresIn) * 1000).toISOString());
 
   return newAccess;
 }
@@ -91,14 +82,12 @@ Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
 
   try {
-    // Support both body and query params
     let reservationID, contact;
     const url = new URL(req.url);
 
     if (req.method === 'POST') {
       try {
         const body = await req.json();
-        // base44.functions.invoke wraps params under a "payload" key
         const params = body.payload || body;
         reservationID = params.confirmation;
         contact = params.contact;
@@ -122,10 +111,8 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Missing CLOUDBEDS_PROPERTY_ID in SiteSettings.' }, { status: 200 });
     }
 
-    // 1) Try with current token
+    // Try with current token, auto-refresh once if expired
     let result = await callGetReservation(accessToken, propertyId, reservationID);
-
-    // 2) If expired/invalid, auto-refresh and retry once
     if (!result.ok && (result.status === 401 || result.status === 403 || isTokenInvalid(result.bodyText))) {
       accessToken = await refreshCloudbedsAccessToken(base44);
       result = await callGetReservation(accessToken, propertyId, reservationID);
@@ -134,16 +121,8 @@ Deno.serve(async (req) => {
     if (!result.ok) {
       return Response.json({
         success: false,
-        step: 'getReservation',
-        upstreamStatus: result.status,
-        requestUrl: result.requestUrl,
+        error: `Cloudbeds API error (${result.status})`,
         upstreamBody: result.bodyText,
-        debug: {
-          reservationID,
-          contact,
-          propertyId,
-          hasAccessToken: !!accessToken,
-        },
       }, { status: 200 });
     }
 
@@ -155,14 +134,18 @@ Deno.serve(async (req) => {
 
     const reservation = resJson.data;
 
-    // Contact match: check top-level guestEmail, top-level guestPhone, or any guest in guestList
-    const contactLower = contact.toLowerCase();
+    // Match contact against top-level email or any guest in guestList (email or phone)
+    const contactLower = contact.toLowerCase().trim();
     const contactDigits = contact.replace(/\D/g, '');
-
-    const topEmail = (reservation.guestEmail || '').toLowerCase();
     const guestListValues = Object.values(reservation.guestList || {});
-    const emailMatch = topEmail === contactLower || guestListValues.some(g => (g.guestEmail || '').toLowerCase() === contactLower);
-    const phoneMatch = contactDigits.length >= 7 && guestListValues.some(g => (g.guestPhone || '').replace(/\D/g, '').endsWith(contactDigits));
+
+    const emailMatch =
+      (reservation.guestEmail || '').toLowerCase() === contactLower ||
+      guestListValues.some(g => (g.guestEmail || '').toLowerCase() === contactLower);
+
+    const phoneMatch =
+      contactDigits.length >= 7 &&
+      guestListValues.some(g => (g.guestPhone || '').replace(/\D/g, '').endsWith(contactDigits));
 
     if (!emailMatch && !phoneMatch) {
       return Response.json({ success: false, error: 'Contact does not match reservation.' }, { status: 200 });
