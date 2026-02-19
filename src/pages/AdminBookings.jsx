@@ -5,8 +5,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { 
-  Calendar, Search, Filter, ChevronRight, Eye, 
-  Mail, Phone, MoreHorizontal, Leaf, ArrowLeft
+  Calendar, Search, Eye, 
+  Mail, Phone, MoreHorizontal, Leaf, ArrowLeft, RefreshCw
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,7 @@ export default function AdminBookings() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [activeTab, setActiveTab] = useState('cloudbeds');
   const queryClient = useQueryClient();
 
   useEffect(() => {
