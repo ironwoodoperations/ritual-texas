@@ -101,19 +101,28 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: json?.message || 'API error' }, { status: 200 });
     }
 
-    const reservations = (json.data || []).map(r => ({
-      reservationID: r.reservationID,
-      guestName: r.guestName,
-      guestEmail: r.guestEmail,
-      roomTypeName: r.roomTypeName || r.roomName || '',
-      checkIn: r.startDate,
-      checkOut: r.endDate,
-      status: r.status,
-      total: r.total,
-      balance: r.balance,
-      adults: r.adults,
-      children: r.children,
-    }));
+    const reservations = (json.data || []).map(r => {
+      // Cloudbeds uses "assignment" for the specific room assigned
+      const assignment = Array.isArray(r.assignment) ? r.assignment[0] : r.assignment;
+      const roomName = assignment?.roomName || assignment?.roomTypeName || r.roomName || r.roomTypeName || '';
+      const roomNumber = assignment?.roomID || assignment?.roomNumber || '';
+
+      return {
+        reservationID: r.reservationID,
+        guestName: r.guestName,
+        guestEmail: r.guestEmail,
+        roomName,
+        roomNumber,
+        roomTypeName: r.roomTypeName || '',
+        checkIn: r.startDate,
+        checkOut: r.endDate,
+        status: r.status,
+        total: r.total,
+        balance: r.balance,
+        adults: r.adults,
+        children: r.children,
+      };
+    });
 
     return Response.json({ success: true, reservations }, { status: 200 });
 
