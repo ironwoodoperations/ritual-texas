@@ -80,31 +80,29 @@ Deno.serve(async (req) => {
       );
     }
 
-    const accessToken = await getSiteSetting(base44, 'CLOUDBEDS_ACCESS_TOKEN');
+    let accessToken = await getSettingValue(base44, 'CLOUDBEDS_ACCESS_TOKEN');
     if (!accessToken) {
-      return Response.json(
-        { error: 'No access token found. Please authorize Cloudbeds.' },
-        { status: 401 }
-      );
+      return Response.json({ error: 'No access token found. Please authorize Cloudbeds.' }, { status: 401 });
     }
 
-    const propertyID = await getSiteSetting(base44, 'CLOUDBEDS_PROPERTY_ID');
+    const propertyID = await getSettingValue(base44, 'CLOUDBEDS_PROPERTY_ID');
     if (!propertyID) {
-      return Response.json(
-        { error: 'No property ID found in SiteSettings.' },
-        { status: 500 }
-      );
+      return Response.json({ error: 'No property ID found in SiteSettings.' }, { status: 500 });
     }
 
-    // Use v1.1 API with propertyID
     const requestUrl = `https://hotels.cloudbeds.com/api/v1.1/getReservation?propertyID=${encodeURIComponent(propertyID)}&reservationID=${encodeURIComponent(reservationID)}`;
 
-    const reservationResponse = await fetch(requestUrl, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      }
+    let reservationResponse = await fetch(requestUrl, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
     });
+
+    // If unauthorized, try refreshing the token once and retry
+    if (reservationResponse.status === 401) {
+      accessToken = await refreshAccessToken(base44);
+      reservationResponse = await fetch(requestUrl, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+    }
 
     const data = await reservationResponse.json();
 
