@@ -119,6 +119,22 @@ export default function AdminBookings() {
       </header>
 
       <main className="max-w-6xl mx-auto p-6">
+        {/* Tabs */}
+        <div className="flex gap-1 mb-6 bg-[rgb(235,225,213)] p-1 rounded-lg w-fit">
+          <button
+            onClick={() => setActiveTab('cloudbeds')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'cloudbeds' ? 'bg-white text-[rgb(107,85,64)] shadow-sm' : 'text-[rgb(107,85,64)] hover:bg-white/50'}`}
+          >
+            Cloudbeds (Upcoming)
+          </button>
+          <button
+            onClick={() => setActiveTab('local')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'local' ? 'bg-white text-[rgb(107,85,64)] shadow-sm' : 'text-[rgb(107,85,64)] hover:bg-white/50'}`}
+          >
+            Local Bookings
+          </button>
+        </div>
+
         {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">
@@ -126,27 +142,83 @@ export default function AdminBookings() {
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, email, or confirmation code..."
+              placeholder="Search by name, email, or confirmation ID..."
               className="pl-10 border-[rgb(235,225,213)]"
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-48 border-[rgb(235,225,213)]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="checked_in">Checked In</SelectItem>
-              <SelectItem value="checked_out">Checked Out</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
+          {activeTab === 'local' && (
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-48 border-[rgb(235,225,213)]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="confirmed">Confirmed</SelectItem>
+                <SelectItem value="checked_in">Checked In</SelectItem>
+                <SelectItem value="checked_out">Checked Out</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          {activeTab === 'cloudbeds' && (
+            <button onClick={() => refetchCloudbeds()} className="flex items-center gap-2 px-3 py-2 text-sm text-[rgb(107,85,64)] border border-[rgb(235,225,213)] rounded-md hover:bg-[rgb(235,225,213)]">
+              <RefreshCw className="w-4 h-4" /> Refresh
+            </button>
+          )}
         </div>
 
-        {/* Bookings Table */}
-        <div className="bg-white border border-[rgb(235,225,213)] overflow-hidden">
+        {/* Cloudbeds Table */}
+        {activeTab === 'cloudbeds' && (
+          <div className="bg-white border border-[rgb(235,225,213)] overflow-hidden rounded-lg">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <div className="animate-spin w-6 h-6 border-2 border-[rgb(150,170,155)] border-t-transparent rounded-full" />
+              </div>
+            ) : !cloudbedsData?.success ? (
+              <div className="p-8 text-center text-[rgb(107,85,64)]">{cloudbedsData?.error || 'Could not load Cloudbeds reservations.'}</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-[rgb(235,225,213)]">
+                    <tr>
+                      <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Guest</th>
+                      <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Room</th>
+                      <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Check-In</th>
+                      <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Check-Out</th>
+                      <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Balance</th>
+                      <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[rgb(235,225,213)]">
+                    {cloudbedsReservations.length === 0 && (
+                      <tr><td colSpan={6} className="text-center p-8 text-[rgb(45,45,45)]">No upcoming reservations found.</td></tr>
+                    )}
+                    {cloudbedsReservations.map(r => (
+                      <tr key={r.reservationID} className="hover:bg-[rgb(248,246,242)]">
+                        <td className="p-4">
+                          <p className="font-medium text-[rgb(107,85,64)]">{r.guestName}</p>
+                          <p className="text-xs text-[rgb(45,45,45)]">{r.guestEmail}</p>
+                          <p className="text-xs font-mono text-[rgb(150,150,150)]">{r.reservationID}</p>
+                        </td>
+                        <td className="p-4 text-sm text-[rgb(45,45,45)]">{r.roomTypeName || '—'}</td>
+                        <td className="p-4 text-sm text-[rgb(45,45,45)]">{r.checkIn ? format(new Date(r.checkIn + 'T12:00:00'), 'MMM d, yyyy') : '—'}</td>
+                        <td className="p-4 text-sm text-[rgb(45,45,45)]">{r.checkOut ? format(new Date(r.checkOut + 'T12:00:00'), 'MMM d, yyyy') : '—'}</td>
+                        <td className="p-4 text-sm text-[rgb(107,85,64)]">{r.balance != null ? `$${Number(r.balance).toFixed(2)}` : '—'}</td>
+                        <td className="p-4">
+                          <Badge className="bg-green-100 text-green-800 capitalize">{r.status}</Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Local Bookings Table */}
+        {activeTab === 'local' && <div className="bg-white border border-[rgb(235,225,213)] overflow-hidden rounded-lg">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-[rgb(235,225,213)]">
