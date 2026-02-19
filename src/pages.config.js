@@ -54,6 +54,10 @@ import AdminCateringMenu from './pages/AdminCateringMenu';
 import AdminCateringQuote from './pages/AdminCateringQuote';
 import AdminCloudbeds from './pages/AdminCloudbeds';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminHousekeeping from './pages/AdminHousekeeping';
+import AdminHousekeepingIssues from './pages/AdminHousekeepingIssues';
+import AdminHousekeepingSetup from './pages/AdminHousekeepingSetup';
+import AdminHousekeepingTask from './pages/AdminHousekeepingTask';
 import AdminImages from './pages/AdminImages';
 import AdminKnowledge from './pages/AdminKnowledge';
 import AdminMedia from './pages/AdminMedia';
@@ -87,10 +91,6 @@ import afterBooking from './pages/afterBooking';
 import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
-import AdminHousekeeping from './pages/AdminHousekeeping';
-import AdminHousekeepingTask from './pages/AdminHousekeepingTask';
-import AdminHousekeepingSetup from './pages/AdminHousekeepingSetup';
-import AdminHousekeepingIssues from './pages/AdminHousekeepingIssues';
 import __Layout from './Layout.jsx';
 
 
@@ -102,6 +102,10 @@ export const PAGES = {
     "AdminCateringQuote": AdminCateringQuote,
     "AdminCloudbeds": AdminCloudbeds,
     "AdminDashboard": AdminDashboard,
+    "AdminHousekeeping": AdminHousekeeping,
+    "AdminHousekeepingIssues": AdminHousekeepingIssues,
+    "AdminHousekeepingSetup": AdminHousekeepingSetup,
+    "AdminHousekeepingTask": AdminHousekeepingTask,
     "AdminImages": AdminImages,
     "AdminKnowledge": AdminKnowledge,
     "AdminMedia": AdminMedia,
@@ -135,10 +139,6 @@ export const PAGES = {
     "booking": booking,
     "concierge": concierge,
     "itinerary": itinerary,
-    "AdminHousekeeping": AdminHousekeeping,
-    "AdminHousekeepingTask": AdminHousekeepingTask,
-    "AdminHousekeepingSetup": AdminHousekeepingSetup,
-    "AdminHousekeepingIssues": AdminHousekeepingIssues,
 }
 
 export const pagesConfig = {
