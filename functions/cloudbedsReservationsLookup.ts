@@ -91,9 +91,20 @@ Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
 
   try {
-    const body = await req.json();
-    const reservationID = body.confirmation;
-    const contact = body.contact;
+    // Support both body and query params
+    let reservationID, contact;
+    const url = new URL(req.url);
+
+    if (req.method === 'POST') {
+      try {
+        const body = await req.json();
+        reservationID = body.confirmation;
+        contact = body.contact;
+      } catch (_) {}
+    }
+
+    reservationID = reservationID || url.searchParams.get('confirmation');
+    contact = contact || url.searchParams.get('contact');
 
     if (!reservationID || !contact) {
       return Response.json({ success: false, error: 'Missing confirmation and/or contact' }, { status: 200 });
