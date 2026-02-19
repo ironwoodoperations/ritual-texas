@@ -1,93 +1,77 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-async function getAccessToken(base44) {
-  const tokenRecords = await base44.asServiceRole.entities.SiteSettings.filter({ 
-    key: 'CLOUDBEDS_ACCESS_TOKEN' 
-  });
-  
-  if (tokenRecords.length === 0) {
-    throw new Error('No access token found. Please authorize Cloudbeds first.');
-  }
-  
-  return tokenRecords[0].value;
+async function getSiteSetting(base44, key) {
+  const records = await base44.asServiceRole.entities.SiteSettings.filter({ key });
+  return records.length > 0 ? records[0].value : null;
 }
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    
+
     const url = new URL(req.url);
-    const confirmation = url.searchParams.get('confirmation');
+    const reservationID = url.searchParams.get('confirmation');
     const contact = url.searchParams.get('contact');
-    
-    if (!confirmation || !contact) {
-      return Response.json({ 
-        error: 'Missing required parameters: confirmation and contact' 
-      }, { status: 400 });
+
+    if (!reservationID || !contact) {
+      return Response.json(
+        { error: 'Missing required parameters' },
+        { status: 400 }
+      );
     }
-    
-    const accessToken = await getAccessToken(base44);
-    
-    // Get property ID (you may want to store this in settings too)
-    const propertyResponse = await fetch('https://hotels.cloudbeds.com/api/v1.1/getHotels', {
+
+    const accessToken = await getSiteSetting(base44, 'CLOUDBEDS_ACCESS_TOKEN');
+    if (!accessToken) {
+      return Response.json(
+        { error: 'No access token found. Please authorize Cloudbeds.' },
+        { status: 401 }
+      );
+    }
+
+    const propertyID = await getSiteSetting(base44, 'CLOUDBEDS_PROPERTY_ID');
+    if (!propertyID) {
+      return Response.json(
+        { error: 'No property ID found in SiteSettings.' },
+        { status: 500 }
+      );
+    }
+
+    // Use v1.1 API with propertyID
+    const requestUrl = `https://hotels.cloudbeds.com/api/v1.1/getReservation?propertyID=${encodeURIComponent(propertyID)}&reservationID=${encodeURIComponent(reservationID)}`;
+
+    const reservationResponse = await fetch(requestUrl, {
       headers: {
-        'Authorization': `Bearer ${accessToken}`
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
       }
     });
-    
-    if (!propertyResponse.ok) {
-      const error = await propertyResponse.text();
-      return Response.json({ 
-        error: 'Failed to get property info', 
-        details: error 
-      }, { status: propertyResponse.status });
+
+    const data = await reservationResponse.json();
+
+    if (!reservationResponse.ok || !data.success) {
+      return Response.json(
+        { error: 'Cloudbeds error', details: data },
+        { status: reservationResponse.status || 400 }
+      );
     }
-    
-    const propertyData = await propertyResponse.json();
-    const propertyId = propertyData.data[0]?.propertyID;
-    
-    if (!propertyId) {
-      return Response.json({ error: 'No property found' }, { status: 404 });
-    }
-    
-    // Search for reservation
-    const reservationResponse = await fetch(
-      `https://hotels.cloudbeds.com/api/v1.1/getReservation?propertyID=${propertyId}&reservationID=${confirmation}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      }
-    );
-    
-    if (!reservationResponse.ok) {
-      const error = await reservationResponse.text();
-      return Response.json({ 
-        error: 'Reservation not found or access denied', 
-        details: error 
-      }, { status: reservationResponse.status });
-    }
-    
-    const reservationData = await reservationResponse.json();
-    const reservation = reservationData.data;
-    
-    // Verify contact information matches
-    const guestEmail = reservation.guestEmail?.toLowerCase();
-    const guestPhone = reservation.guestPhone?.replace(/\D/g, '');
+
+    const reservation = data.data;
+
+    const guestEmail = reservation.guestEmail?.toLowerCase() || '';
+    const guestPhone = reservation.guestPhone?.replace(/\D/g, '') || '';
     const contactLower = contact.toLowerCase();
     const contactDigits = contact.replace(/\D/g, '');
-    
-    if (guestEmail !== contactLower && guestPhone !== contactDigits) {
-      return Response.json({ 
-        error: 'Contact information does not match reservation' 
-      }, { status: 403 });
-    }
-    
-    // Extract room name from assigned array or fall back to roomTypeName
-    const assignedRoom = reservation.assigned?.[0];
-    const roomDisplay = assignedRoom?.roomName || assignedRoom?.roomTypeName || reservation.roomTypeName || "Assigned at check-in";
 
-    // Return reservation details
+    if (guestEmail !== contactLower && guestPhone !== contactDigits) {
+      return Response.json(
+        { error: 'Contact information does not match reservation' },
+        { status: 403 }
+      );
+    }
+
+    const assignedRoom = reservation.assigned?.[0];
+    const roomDisplay = assignedRoom?.roomName || assignedRoom?.roomTypeName || reservation.roomTypeName || 'Assigned at check-in';
+
     return Response.json({
       success: true,
       reservation: {
@@ -106,7 +90,7 @@ Deno.serve(async (req) => {
         fullCloudbedsResponse: reservation
       }
     });
-    
+
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
