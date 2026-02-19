@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     
     if (!clientId) {
       return Response.json({ 
-        error: "Client_ID not configured",
+        error: "CLOUDBEDS_CLIENT_ID not configured",
         redirectUri: redirectUri
       }, { status: 500 });
     }
