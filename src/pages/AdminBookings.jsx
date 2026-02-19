@@ -64,10 +64,12 @@ export default function AdminBookings() {
 
   const isLoading = activeTab === 'cloudbeds' ? cloudbedsLoading : bookingsLoading;
 
-  const cloudbedsReservations = (cloudbedsData?.reservations || []).filter(r => {
-    const q = search.toLowerCase();
-    return !q || r.guestName?.toLowerCase().includes(q) || r.guestEmail?.toLowerCase().includes(q) || r.reservationID?.includes(q);
-  });
+  const cloudbedsReservations = (cloudbedsData?.reservations || [])
+    .filter(r => {
+      const q = search.toLowerCase();
+      return !q || r.guestName?.toLowerCase().includes(q) || r.guestEmail?.toLowerCase().includes(q) || r.reservationID?.includes(q);
+    })
+    .sort((a, b) => new Date(a.checkIn) - new Date(b.checkIn));
 
   const filteredBookings = bookings?.filter(b => {
     const matchesSearch = 
