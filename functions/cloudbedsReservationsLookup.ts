@@ -149,18 +149,23 @@ Deno.serve(async (req) => {
 
     const resJson = JSON.parse(result.bodyText);
 
-    // Dump the raw Cloudbeds response so we can see the real structure
-    return Response.json({
-      success: false,
-      error: 'DEBUG: raw Cloudbeds response',
-      debug: {
-        resJsonKeys: resJson ? Object.keys(resJson) : [],
-        rawResponse: resJson,
-      }
-    }, { status: 200 });
+    // Cloudbeds said "Invalid Reservation" — the ID sent doesn't match
+    if (resJson?.success === false) {
+      return Response.json({
+        success: false,
+        error: resJson.message || 'Invalid Reservation',
+        debug: {
+          reservationIDSent: reservationID,
+          contactSent: contact,
+          propertyIdUsed: propertyId,
+          requestUrl: result.requestUrl,
+          cloudbedsResponse: resJson,
+        }
+      }, { status: 200 });
+    }
 
     // Cloudbeds may return reservation at top-level, under .data, or under .reservation
-    const reservation = resJson?.data ?? resJson?.reservation ?? (resJson?.success !== undefined ? resJson : null);
+    const reservation = resJson?.data ?? resJson?.reservation ?? resJson;
 
     if (!reservation) {
       return Response.json({
