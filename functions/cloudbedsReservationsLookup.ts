@@ -9,9 +9,16 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    const url = new URL(req.url);
-    const reservationID = url.searchParams.get('confirmation');
-    const contact = url.searchParams.get('contact');
+    let reservationID, contact;
+    try {
+      const body = await req.json();
+      reservationID = body.confirmation;
+      contact = body.contact;
+    } catch {
+      const url = new URL(req.url);
+      reservationID = url.searchParams.get('confirmation');
+      contact = url.searchParams.get('contact');
+    }
 
     if (!reservationID || !contact) {
       return Response.json(
