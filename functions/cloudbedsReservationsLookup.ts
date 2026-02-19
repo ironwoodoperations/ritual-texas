@@ -34,11 +34,11 @@ async function refreshCloudbedsAccessToken(base44) {
   if (!refreshToken) throw new Error('Missing CLOUDBEDS_REFRESH_TOKEN — please re-authorize Cloudbeds.');
 
   // Use the existing secrets (Client_ID and Client_Secret are already set)
-  const clientId = Deno.env.get('Client_ID');
-  const clientSecret = Deno.env.get('Client_Secret');
+  const clientId = Deno.env.get('CLOUDBEDS_CLIENT_ID');
+  const clientSecret = Deno.env.get('CLOUDBEDS_CLIENT_SECRET');
 
   if (!clientId || !clientSecret) {
-    throw new Error('Missing Client_ID / Client_Secret in environment secrets.');
+    throw new Error('Missing CLOUDBEDS_CLIENT_ID / CLOUDBEDS_CLIENT_SECRET in environment secrets.');
   }
 
   const form = new URLSearchParams();
