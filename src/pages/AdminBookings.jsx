@@ -43,16 +43,30 @@ export default function AdminBookings() {
     loadUser();
   }, []);
 
-  const { data: bookings, isLoading } = useQuery({
+  const { data: bookings, isLoading: bookingsLoading } = useQuery({
     queryKey: ['admin-bookings'],
     queryFn: () => base44.entities.Booking.list('-created_date', 200),
   });
 
+  const { data: cloudbedsData, isLoading: cloudbedsLoading, refetch: refetchCloudbeds } = useQuery({
+    queryKey: ['cloudbeds-upcoming'],
+    queryFn: async () => {
+      const res = await base44.functions.invoke('cloudbedsUpcomingReservations', {});
+      return res.data;
+    },
+    enabled: !!user,
+  });
+
   const updateBookingMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Booking.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['admin-bookings']);
-    },
+    onSuccess: () => queryClient.invalidateQueries(['admin-bookings']),
+  });
+
+  const isLoading = activeTab === 'cloudbeds' ? cloudbedsLoading : bookingsLoading;
+
+  const cloudbedsReservations = (cloudbedsData?.reservations || []).filter(r => {
+    const q = search.toLowerCase();
+    return !q || r.guestName?.toLowerCase().includes(q) || r.guestEmail?.toLowerCase().includes(q) || r.reservationID?.includes(q);
   });
 
   const filteredBookings = bookings?.filter(b => {
@@ -60,9 +74,7 @@ export default function AdminBookings() {
       b.guest_name?.toLowerCase().includes(search.toLowerCase()) ||
       b.confirmation_code?.toLowerCase().includes(search.toLowerCase()) ||
       b.guest_email?.toLowerCase().includes(search.toLowerCase());
-    
     const matchesStatus = statusFilter === 'all' || b.booking_status === statusFilter;
-    
     return matchesSearch && matchesStatus;
   }) || [];
 
