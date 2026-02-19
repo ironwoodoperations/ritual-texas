@@ -149,67 +149,41 @@ Deno.serve(async (req) => {
 
     const resJson = JSON.parse(result.bodyText);
 
-    // Cloudbeds said "Invalid Reservation" — the ID sent doesn't match
-    if (resJson?.success === false) {
-      return Response.json({
-        success: false,
-        error: resJson.message || 'Invalid Reservation',
-        debug: {
-          reservationIDSent: reservationID,
-          contactSent: contact,
-          propertyIdUsed: propertyId,
-          requestUrl: result.requestUrl,
-          cloudbedsResponse: resJson,
-        }
-      }, { status: 200 });
+    if (!resJson?.success) {
+      return Response.json({ success: false, error: resJson?.message || 'Invalid Reservation' }, { status: 200 });
     }
 
-    // Cloudbeds may return reservation at top-level, under .data, or under .reservation
-    const reservation = resJson?.data ?? resJson?.reservation ?? resJson;
+    const reservation = resJson.data;
 
-    if (!reservation) {
-      return Response.json({
-        success: false,
-        error: 'Could not parse reservation from Cloudbeds response.',
-        debug: { rawResponse: resJson }
-      }, { status: 200 });
-    }
-
-    // Contact match check (email or phone)
-    const guestEmail = (reservation?.guestEmail || reservation?.email || '').toLowerCase();
-    const guestPhone = (reservation?.guestPhone || reservation?.phone || '').replace(/\D/g, '');
+    // Contact match: check top-level guestEmail, top-level guestPhone, or any guest in guestList
     const contactLower = contact.toLowerCase();
     const contactDigits = contact.replace(/\D/g, '');
 
-    if (guestEmail !== contactLower && guestPhone !== contactDigits) {
-      return Response.json({
-        success: false,
-        error: 'Contact does not match reservation.',
-        debug: {
-          inputContact: contact,
-          guestEmailFound: reservation?.guestEmail || reservation?.email,
-          guestPhoneFound: reservation?.guestPhone || reservation?.phone,
-          reservationKeys: Object.keys(reservation),
-        }
-      }, { status: 200 });
+    const topEmail = (reservation.guestEmail || '').toLowerCase();
+    const guestListValues = Object.values(reservation.guestList || {});
+    const emailMatch = topEmail === contactLower || guestListValues.some(g => (g.guestEmail || '').toLowerCase() === contactLower);
+    const phoneMatch = contactDigits.length >= 7 && guestListValues.some(g => (g.guestPhone || '').replace(/\D/g, '').endsWith(contactDigits));
+
+    if (!emailMatch && !phoneMatch) {
+      return Response.json({ success: false, error: 'Contact does not match reservation.' }, { status: 200 });
     }
 
-    const assignedRoom = reservation?.assigned?.[0];
-    const roomDisplay = assignedRoom?.roomName || assignedRoom?.roomTypeName || reservation?.roomTypeName || 'Assigned at check-in';
+    const assignedRoom = reservation.assigned?.[0];
+    const roomDisplay = assignedRoom?.roomName || assignedRoom?.roomTypeName || 'Assigned at check-in';
 
     return Response.json({
       success: true,
       reservation: {
-        reservationID: reservation?.reservationID,
-        guestName: reservation?.guestName,
-        guestEmail: reservation?.guestEmail,
-        guestPhone: reservation?.guestPhone,
-        checkIn: reservation?.startDate,
-        checkOut: reservation?.endDate,
-        roomType: reservation?.roomTypeName,
+        reservationID: reservation.reservationID,
+        guestName: reservation.guestName,
+        guestEmail: reservation.guestEmail,
+        checkIn: reservation.startDate,
+        checkOut: reservation.endDate,
+        roomType: assignedRoom?.roomTypeName || '',
         roomNumber: roomDisplay,
-        status: reservation?.status,
-        totalAmount: reservation?.balance,
+        status: reservation.status,
+        balance: reservation.balance,
+        total: reservation.total,
       },
     }, { status: 200 });
 
