@@ -2,7 +2,60 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 async function getSiteSetting(base44, key) {
   const records = await base44.asServiceRole.entities.SiteSettings.filter({ key });
-  return records.length > 0 ? records[0].value : null;
+  return records.length > 0 ? records[0] : null;
+}
+
+async function getSettingValue(base44, key) {
+  const record = await getSiteSetting(base44, key);
+  return record ? record.value : null;
+}
+
+async function refreshAccessToken(base44) {
+  const refreshRecord = await getSiteSetting(base44, 'CLOUDBEDS_REFRESH_TOKEN');
+  if (!refreshRecord) throw new Error('No refresh token available. Please re-authorize Cloudbeds.');
+
+  const clientId = Deno.env.get('Client_ID');
+  const clientSecret = Deno.env.get('Client_Secret');
+
+  const tokenResponse = await fetch('https://hotels.cloudbeds.com/api/v1.1/access_token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'refresh_token',
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshRecord.value
+    })
+  });
+
+  const tokenData = await tokenResponse.json();
+  if (!tokenResponse.ok || !tokenData.access_token) {
+    throw new Error('Failed to refresh token: ' + JSON.stringify(tokenData));
+  }
+
+  // Update access token in SiteSettings
+  const accessRecord = await getSiteSetting(base44, 'CLOUDBEDS_ACCESS_TOKEN');
+  if (accessRecord) {
+    await base44.asServiceRole.entities.SiteSettings.update(accessRecord.id, {
+      value: tokenData.access_token,
+      description: `Cloudbeds access token - refreshed ${new Date().toISOString()}`
+    });
+  } else {
+    await base44.asServiceRole.entities.SiteSettings.create({
+      key: 'CLOUDBEDS_ACCESS_TOKEN',
+      value: tokenData.access_token,
+      description: `Cloudbeds access token - refreshed ${new Date().toISOString()}`
+    });
+  }
+
+  // Update refresh token if a new one was issued
+  if (tokenData.refresh_token) {
+    await base44.asServiceRole.entities.SiteSettings.update(refreshRecord.id, {
+      value: tokenData.refresh_token
+    });
+  }
+
+  return tokenData.access_token;
 }
 
 Deno.serve(async (req) => {
