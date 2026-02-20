@@ -115,6 +115,7 @@ export default function AdminDashboard() {
         { icon: ClipboardList, label: 'Knowledge Base', page: 'AdminKnowledge', badge: null },
         { icon: Image, label: 'Image Library', page: 'AdminImages', badge: null },
         { icon: BookOpen, label: 'Media', page: 'AdminMedia', badge: null },
+        { icon: Users, label: 'Staff Controls', page: 'StaffControls', badge: null },
       ]
     },
   ];
