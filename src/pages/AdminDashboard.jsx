@@ -28,10 +28,6 @@ export default function AdminDashboard() {
     loadUser();
   }, []);
 
-  const { data: spaBookings = [] } = useQuery({
-    queryKey: ['spa-bookings'],
-    queryFn: () => base44.entities.SpaBooking.list('-created_date', 100),
-  });
   const { data: restaurantReservations = [] } = useQuery({
     queryKey: ['restaurant-reservations-admin'],
     queryFn: () => base44.entities.RestaurantReservationRequests.list('-created_date', 50),
