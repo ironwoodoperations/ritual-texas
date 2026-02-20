@@ -88,6 +88,23 @@ export default function AdminSpaSchedule() {
         <p style={{ color: '#666' }}>View and export daily spa appointments from Square</p>
       </div>
 
+      {/* Calendar + Day view layout */}
+      <div className="grid gap-6 mb-6 no-print" style={{ gridTemplateColumns: '280px 1fr' }}>
+        <SpaCalendar selectedDate={date} onSelectDate={(d) => setDate(d)} />
+
+        {/* Quick summary for selected day */}
+        <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '180px' }}>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: '#3B4831' }}>{bookings.length}</div>
+          <div style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>
+            appointment{bookings.length !== 1 ? 's' : ''} on
+          </div>
+          <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a1a1a', marginBottom: '16px' }}>
+            {new Date(`${date}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          </div>
+          {loading && <div className="text-xs text-gray-400">Loading…</div>}
+        </div>
+      </div>
+
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-3 mb-6 no-print">
         <div>
