@@ -86,14 +86,14 @@ import RestaurantMenu from './pages/RestaurantMenu';
 import RestaurantOrder from './pages/RestaurantOrder';
 import RestaurantReservations from './pages/RestaurantReservations';
 import Rooms from './pages/Rooms';
+import StaffControls from './pages/StaffControls';
 import StaffDashboard from './pages/StaffDashboard';
+import StaffLogin from './pages/StaffLogin';
 import Treatments from './pages/Treatments';
 import afterBooking from './pages/afterBooking';
 import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
-import StaffLogin from './pages/StaffLogin';
-import StaffControls from './pages/StaffControls';
 import __Layout from './Layout.jsx';
 
 
@@ -137,14 +137,14 @@ export const PAGES = {
     "RestaurantOrder": RestaurantOrder,
     "RestaurantReservations": RestaurantReservations,
     "Rooms": Rooms,
+    "StaffControls": StaffControls,
     "StaffDashboard": StaffDashboard,
+    "StaffLogin": StaffLogin,
     "Treatments": Treatments,
     "afterBooking": afterBooking,
     "booking": booking,
     "concierge": concierge,
     "itinerary": itinerary,
-    "StaffLogin": StaffLogin,
-    "StaffControls": StaffControls,
 }
 
 export const pagesConfig = {
