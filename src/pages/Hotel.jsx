@@ -20,7 +20,7 @@ export default function Hotel() {
       {/* Hero */}
       <div className="relative h-[70vh] min-h-[500px] overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1600&q=80"
+          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/3092e0bd3_IMG_20260220_122140.jpg"
           alt="Hotel RITUAL"
           className="w-full h-full object-cover"
         />
