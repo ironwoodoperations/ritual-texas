@@ -156,6 +156,81 @@ export default function ItineraryPage() {
 
   const handlePrint = () => window.print();
 
+  // Build unified chronological timeline
+  const buildTimeline = () => {
+    const items = [];
+
+    if (reservation?.checkIn) {
+      items.push({
+        type: 'hotel',
+        label: 'Check-In',
+        dt: toDateSafe(`${reservation.checkIn}T15:00:00`),
+        sub: 'Check-in instructions will be sent by text the morning of arrival.',
+      });
+      items.push({
+        type: 'info',
+        label: 'During Your Stay',
+        dt: toDateSafe(`${reservation.checkIn}T08:00:00`),
+        bullets: [
+          'Breakfast: 8:00–10:00 AM daily',
+          'Sauna & rainshower available anytime during your stay',
+          'Spa treatments can be booked through Square (link above)',
+        ],
+      });
+    }
+
+    (spaBookings || []).forEach((b) => {
+      const start = b.startAt || b.start_at || b.start || null;
+      const end = b.endAt || b.end_at || null;
+      const dt = start ? toDateSafe(start) : null;
+      if (!dt) return;
+
+      const serviceName = b.serviceName || b.service || b.service_variation_name || 'Spa Treatment';
+      const durationMinutes =
+        b.durationMinutes ||
+        b.duration_minutes ||
+        (start && end ? Math.round((new Date(end) - new Date(start)) / 60000) : null);
+
+      items.push({
+        type: 'spa',
+        label: serviceName,
+        dt,
+        meta: [
+          `Time: ${formatTime(start)}`,
+          durationMinutes ? `Duration: ${durationMinutes} minutes` : null,
+          `Treatment Room: ${b.roomName || 'Ask Concierge'}`,
+        ].filter(Boolean),
+        status: (b.status || '').toString(),
+      });
+    });
+
+    if (reservation?.checkOut) {
+      items.push({
+        type: 'hotel',
+        label: 'Check-Out',
+        dt: toDateSafe(`${reservation.checkOut}T11:00:00`),
+        sub: 'Thank you for restoring with us. We hope to welcome you back soon.',
+      });
+    }
+
+    const sorted = items.filter(i => i.dt).sort((a, b) => a.dt.getTime() - b.dt.getTime());
+
+    const grouped = [];
+    sorted.forEach((item) => {
+      const dayKey = item.dt.toDateString();
+      let group = grouped.find(g => g.dayKey === dayKey);
+      if (!group) {
+        group = { dayKey, dayLabel: formatDayHeader(item.dt.toISOString()), items: [] };
+        grouped.push(group);
+      }
+      group.items.push(item);
+    });
+
+    return grouped;
+  };
+
+  const timelineGroups = buildTimeline();
+
   const handleEmailItinerary = async () => {
     let emailAddress = reservation?.guestEmail || contact;
     if (!emailAddress) { alert('No email on file'); return; }
