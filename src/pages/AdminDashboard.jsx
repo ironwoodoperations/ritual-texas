@@ -29,6 +29,9 @@ export default function AdminDashboard() {
     loadUser();
   }, []);
 
+  const today = new Date();
+  const todayStr = format(today, 'yyyy-MM-dd');
+
   const { data: restaurantReservations = [] } = useQuery({
     queryKey: ['restaurant-reservations-admin'],
     queryFn: () => base44.entities.RestaurantReservationRequests.list('-created_date', 50),
@@ -43,14 +46,32 @@ export default function AdminDashboard() {
   });
   const { data: hkTasks = [] } = useQuery({
     queryKey: ['hk-tasks-dash'],
-    queryFn: () => base44.entities.HkTask.filter({ taskDate: format(new Date(), 'yyyy-MM-dd') }),
+    queryFn: () => base44.entities.HkTask.filter({ taskDate: todayStr }),
+  });
+  const { data: spaBookings = [] } = useQuery({
+    queryKey: ['spa-bookings-dash'],
+    queryFn: () => base44.entities.SpaBooking.list('-startAt', 200),
+  });
+  const { data: hotelBookings = [] } = useQuery({
+    queryKey: ['hotel-bookings-dash'],
+    queryFn: () => base44.entities.Booking.list('-check_in_date', 200),
+  });
+  const { data: packageInquiries = [] } = useQuery({
+    queryKey: ['pkg-inquiries-dash'],
+    queryFn: () => base44.entities.PackageInquiry.filter({ status: 'new' }),
+  });
+  const { data: cateringQuotes = [] } = useQuery({
+    queryKey: ['catering-quotes-dash'],
+    queryFn: () => base44.entities.CateringQuote.list('-created_date', 100),
   });
 
-  const today = new Date();
-  const todayStr = format(today, 'yyyy-MM-dd');
   const pendingReservations = restaurantReservations.filter(r => r.status === 'pending');
   const pendingEvents = eventLeads.filter(e => e.status === 'pending');
   const pendingHkTasks = hkTasks.filter(t => t.status !== 'completed');
+  const todaySpa = spaBookings.filter(b => b.startAt?.slice(0, 10) === todayStr && b.status !== 'booking.cancelled');
+  const arrivingToday = hotelBookings.filter(b => b.check_in_date === todayStr && b.booking_status !== 'cancelled');
+  const conciergeRequests = [...pendingReservations, ...pendingEvents, ...packageInquiries];
+  const activeCatering = cateringQuotes.filter(q => ['draft', 'sent', 'accepted', 'deposit_paid'].includes(q.status));
 
   const sections = [
     {
