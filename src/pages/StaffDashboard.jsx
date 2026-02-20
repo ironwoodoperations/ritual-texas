@@ -18,6 +18,7 @@ import {
   getStaffSession, clearStaffSession, getModuleSettings,
   DEFAULT_MODULES, isRoleAllowed
 } from '@/components/staffAccess';
+import StaffChecklist from '@/components/StaffChecklist';
 
 // ─── Staff Inventory (stock-only editing) ────────────────────────────────────
 function StaffInventory({ session }) {
