@@ -423,58 +423,24 @@ export default function ItineraryPage() {
           </Card>
         )}
 
-        {/* Spa Bookings */}
+        {/* Spa Bookings — compact list */}
         {spaBookings.length > 0 && (
-          <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
-            <h2 className="text-2xl font-light mb-6" style={{ color: '#3B4831' }}>
-              Your Spa Appointments
-            </h2>
-            <div className="space-y-4 mb-6">
+          <Card className="p-6 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
+            <h2 className="text-lg font-light mb-4" style={{ color: '#3B4831' }}>Your Spa Appointments</h2>
+            <div className="space-y-2 mb-4">
               {spaBookings.map((booking) => (
-                <div
-                  key={booking.id || booking.squareBookingId}
-                  className="p-4 rounded-lg border"
-                  style={{ borderColor: '#F0E8DD', backgroundColor: 'white' }}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="font-medium text-lg" style={{ color: '#3B4831' }}>
-                      {booking.serviceName || booking.service || 'Spa Service'}
-                    </h3>
-                    {booking.status && (
-                      <span className="text-xs px-3 py-1 rounded-full whitespace-nowrap" style={{ backgroundColor: '#C4A55C', color: 'white' }}>
-                        {String(booking.status).replace('booking.', '')}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-sm space-y-2" style={{ color: '#1B1B1B' }}>
-                    {booking.startAt && (
-                      <p>
-                        <CalendarDays className="w-4 h-4 inline mr-2" style={{ color: '#3B4831' }} />
-                        <strong>Date & Time:</strong> {new Date(booking.startAt).toLocaleString('en-US', {
-                          weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-                        })}
-                      </p>
-                    )}
-                    {booking.durationMinutes && (
-                      <p>
-                        <Clock className="w-4 h-4 inline mr-2" style={{ color: '#3B4831' }} />
-                        <strong>Duration:</strong> {booking.durationMinutes} minutes
-                      </p>
-                    )}
-                    <p>
-                      <Coffee className="w-4 h-4 inline mr-2" style={{ color: '#3B4831' }} />
-                      <strong>Treatment Room:</strong> {booking.roomName || 'Ask Concierge'}
-                    </p>
-                  </div>
+                <div key={booking.id || booking.squareBookingId} className="flex items-center justify-between py-2 border-b last:border-b-0" style={{ borderColor: '#F0E8DD' }}>
+                  <span className="text-sm font-medium" style={{ color: '#3B4831' }}>
+                    {booking.serviceName || booking.service || 'Spa Service'}
+                  </span>
+                  <span className="text-sm" style={{ color: '#1B1B1B' }}>
+                    {booking.startAt ? new Date(booking.startAt).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—'}
+                  </span>
                 </div>
               ))}
             </div>
-            <Button
-              onClick={() => window.open(SQUARE_SERVICES_URL, '_blank')}
-              className="w-full text-white font-medium py-6"
-              style={{ backgroundColor: '#C57C5D' }}
-            >
-              <Sparkles className="w-5 h-5 mr-2" />
+            <Button onClick={() => window.open(SQUARE_SERVICES_URL, '_blank')} variant="outline" style={{ borderColor: '#C57C5D', color: '#C57C5D' }}>
+              <Sparkles className="w-4 h-4 mr-2" />
               Book Another Treatment
             </Button>
           </Card>
