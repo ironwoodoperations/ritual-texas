@@ -222,7 +222,7 @@ export default function StaffControls() {
                 <div key={p.id} className="flex items-center justify-between gap-3 p-3 rounded-lg border border-[rgb(235,225,213)] bg-white">
                   <div>
                     <div className="font-medium text-[rgb(107,85,64)]">
-                      {p.name || 'PIN'} <span className="text-[rgb(45,45,45)] font-normal">({p.role || 'staff'})</span>
+                      {p.name || '—'} <span className="text-[rgb(45,45,45)] font-normal">({p.role || 'staff'})</span>
                     </div>
                     <div className="text-xs text-[rgb(45,45,45)]">PIN: ••••</div>
                   </div>
