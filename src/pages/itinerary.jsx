@@ -504,67 +504,60 @@ export default function ItineraryPage() {
               </div>
             </Card>
 
-            {/* Timeline */}
+            {/* Unified Timeline */}
             <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
-              <h2 className="text-2xl font-light mb-8" style={{ color: '#3B4831' }}>
+              <h2 className="text-2xl font-light mb-6" style={{ color: '#3B4831' }}>
                 Your Stay Timeline
               </h2>
-              <div className="space-y-8">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#C4A55C' }}>
-                      <CheckCircle className="w-6 h-6 text-white" />
+              {timelineGroups.length === 0 ? (
+                <div className="text-sm" style={{ color: '#1B1B1B' }}>No timeline items found.</div>
+              ) : (
+                <div className="space-y-8">
+                  {timelineGroups.map((group) => (
+                    <div key={group.dayKey}>
+                      <div className="text-xs uppercase tracking-wide mb-3" style={{ color: '#1B1B1B' }}>
+                        {group.dayLabel}
+                      </div>
+                      <div className="space-y-4">
+                        {group.items.map((item, idx) => (
+                          <div
+                            key={`${item.type}-${item.label}-${idx}`}
+                            className="p-4 rounded-lg border"
+                            style={{ borderColor: '#F0E8DD', backgroundColor: 'white' }}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <div className="font-medium" style={{ color: '#3B4831' }}>{item.label}</div>
+                                <div className="text-sm mt-1" style={{ color: '#1B1B1B' }}>
+                                  {formatDate(item.dt.toISOString())} • {formatTime(item.dt.toISOString())}
+                                </div>
+                                {item.sub && (
+                                  <div className="text-sm mt-2" style={{ color: '#1B1B1B' }}>{item.sub}</div>
+                                )}
+                                {item.bullets && (
+                                  <ul className="text-sm mt-2 list-disc pl-5" style={{ color: '#1B1B1B' }}>
+                                    {item.bullets.map((b, i) => <li key={i}>{b}</li>)}
+                                  </ul>
+                                )}
+                                {item.meta && (
+                                  <div className="text-sm mt-2 space-y-1" style={{ color: '#1B1B1B' }}>
+                                    {item.meta.map((m, i) => <div key={i}>{m}</div>)}
+                                  </div>
+                                )}
+                              </div>
+                              {item.type === 'spa' && item.status && (
+                                <span className="text-xs px-3 py-1 rounded-full whitespace-nowrap ml-3" style={{ backgroundColor: '#C4A55C', color: 'white' }}>
+                                  {item.status.replace('booking.', '')}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-light mb-2" style={{ color: '#3B4831' }}>Check-In</h3>
-                    <p className="text-sm mb-3" style={{ color: '#1B1B1B' }}>{formatDate(reservation.checkIn)} at 3:00 PM</p>
-                    <p className="text-sm" style={{ color: '#1B1B1B' }}>
-                      Check-in instructions will be sent by text the morning of arrival. If you need help now, tap Text Concierge.
-                    </p>
-                  </div>
+                  ))}
                 </div>
-
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#C57C5D' }}>
-                      <Coffee className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-light mb-2" style={{ color: '#3B4831' }}>During Your Stay</h3>
-                    <ul className="space-y-2 text-sm" style={{ color: '#1B1B1B' }}>
-                      <li className="flex items-start gap-2">
-                        <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: '#3B4831' }} />
-                        <span>Breakfast: 8:00–10:00 AM daily</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <Droplets className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: '#3B4831' }} />
-                        <span>Sauna & rainshower available anytime during your stay</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <Sparkles className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: '#3B4831' }} />
-                        <span>Spa treatments can be booked through Square (link above)</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#3B4831' }}>
-                      <CalendarDays className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-light mb-2" style={{ color: '#3B4831' }}>Check-Out</h3>
-                    <p className="text-sm mb-3" style={{ color: '#1B1B1B' }}>{formatDate(reservation.checkOut)} by 11:00 AM</p>
-                    <p className="text-sm" style={{ color: '#1B1B1B' }}>
-                      Thank you for restoring with us. We hope to welcome you back soon.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              )}
             </Card>
 
             {/* Spa CTA if no bookings */}
