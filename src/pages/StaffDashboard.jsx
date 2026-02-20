@@ -336,6 +336,15 @@ export default function StaffDashboard() {
             {visibleModules.length === 0 && (
               <p className="text-xs text-[rgb(45,45,45)] py-2">No modules enabled. Ask admin.</p>
             )}
+            <div className="border-t border-[rgb(235,225,213)] mt-3 pt-3">
+              <Link
+                to={createPageUrl('Home')}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[rgb(45,45,45)] hover:bg-[rgb(235,225,213)] transition-colors"
+              >
+                <Home className="w-4 h-4" />
+                Back to Website
+              </Link>
+            </div>
           </div>
         </aside>
 
