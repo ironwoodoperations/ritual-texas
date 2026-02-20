@@ -401,7 +401,7 @@ export default function ItineraryPage() {
           <Card className="p-6 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
             <div className="flex flex-wrap gap-3">
               <Button
-                onClick={() => window.open(`sms:${CONCIERGE_SMS}?&body=Hi RITUAL Concierge — I need help with my itinerary. My confirmation is ${reservation.confirmationCode}`, '_blank')}
+                onClick={() => window.open(`sms:${CONCIERGE_SMS}?&body=Hi RITUAL Concierge — I need help with my reservation. Guest: ${reservation.guestName} | Confirmation: ${reservation.confirmationCode} | Check-in: ${formatDate(reservation.checkIn)}`, '_blank')}
                 variant="outline"
                 style={{ borderColor: '#3B4831', color: '#3B4831' }}
               >
