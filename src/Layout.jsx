@@ -96,17 +96,14 @@ export default function Layout({ children, currentPageName }) {
 
               {/* Desktop Nav */}
               <div className="hidden md:flex items-center gap-10">
-                <Link to={createPageUrl('Rooms')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
-                  Rooms
+                <Link to={createPageUrl('Hotel')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
+                  Hotel
                 </Link>
                 <Link to={createPageUrl('Treatments')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   Spa & Wellness
                 </Link>
                 <Link to={createPageUrl('Restaurant')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   Restaurant
-                </Link>
-                <Link to={createPageUrl('Packages')} className="text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
-                  Packages
                 </Link>
                 <button onClick={() => setShowWhitney(true)} className="flex items-center gap-2 text-sm tracking-wide text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
                   <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/424e86f0a_generated-image1.jpeg" alt="Whitney" className="w-6 h-6 rounded-full object-cover" />
@@ -123,6 +120,20 @@ export default function Layout({ children, currentPageName }) {
                   </button>
                   {isMenuOpen && (
                     <div className="absolute right-0 top-full mt-2 w-48 bg-[rgb(248,246,242)] border border-[rgb(235,225,213)] rounded-md shadow-lg py-2 z-50">
+                      <Link 
+                        to={createPageUrl('Rooms')} 
+                        className="block px-4 py-2 text-sm text-[rgb(45,45,45)] hover:bg-[rgb(235,225,213)] transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Rooms & Suites
+                      </Link>
+                      <Link 
+                        to={createPageUrl('Packages')} 
+                        className="block px-4 py-2 text-sm text-[rgb(45,45,45)] hover:bg-[rgb(235,225,213)] transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Packages
+                      </Link>
                       <Link 
                         to={createPageUrl('Amenities')} 
                         className="block px-4 py-2 text-sm text-[rgb(45,45,45)] hover:bg-[rgb(235,225,213)] transition-colors"
@@ -147,7 +158,7 @@ export default function Layout({ children, currentPageName }) {
                     </div>
                   )}
                 </div>
-                </div>
+              </div>
 
               {/* Mobile Menu Button */}
               <button 
