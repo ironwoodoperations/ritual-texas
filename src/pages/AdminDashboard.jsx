@@ -46,8 +46,6 @@ export default function AdminDashboard() {
   });
 
   const today = new Date();
-  const todayStr = format(today, 'yyyy-MM-dd');
-  const todaySpaBookings = spaBookings.filter(b => b.startAt && format(new Date(b.startAt), 'yyyy-MM-dd') === todayStr);
   const pendingReservations = restaurantReservations.filter(r => r.status === 'pending');
   const pendingEvents = eventLeads.filter(e => e.status === 'pending');
   const pendingHkTasks = hkTasks.filter(t => t.status !== 'completed');
