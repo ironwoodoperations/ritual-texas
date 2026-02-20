@@ -154,17 +154,67 @@ export default function AdminDashboard() {
       </header>
 
       <div className="max-w-5xl mx-auto p-6">
-        {/* Quick stats row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        {/* Today at a glance */}
+        <div className="mb-2">
+          <p className="text-xs tracking-widest font-medium text-[rgb(150,150,150)] mb-3">TODAY AT A GLANCE</p>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
           {[
-            { label: "Today's Spa", value: 'See Schedule', color: 'rgb(150,170,155)' },
-            { label: 'Pending Requests', value: pendingReservations.length + pendingEvents.length, color: 'rgb(196,155,145)' },
-            { label: 'HK Tasks Today', value: pendingHkTasks.length, color: 'rgb(120,140,160)' },
-            { label: 'Open Issues', value: hkIssues.length, color: hkIssues.length > 0 ? 'rgb(200,80,80)' : 'rgb(150,170,155)' },
-          ].map(stat => (
-            <motion.div key={stat.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="bg-white border border-[rgb(235,225,213)] p-4 rounded-lg">
-              <p className="text-2xl font-light" style={{ color: stat.color }}>{stat.value}</p>
-              <p className="text-xs text-[rgb(150,150,150)] mt-1">{stat.label}</p>
+            {
+              label: 'Arriving Today',
+              value: arrivingToday.length,
+              icon: BedSingle,
+              color: 'rgb(107,85,64)',
+              page: 'AdminBookings',
+              alert: false,
+            },
+            {
+              label: "Today's Spa",
+              value: todaySpa.length,
+              icon: Sparkles,
+              color: 'rgb(150,170,155)',
+              page: 'AdminSpaSchedule',
+              alert: false,
+            },
+            {
+              label: 'HK Needs',
+              value: pendingHkTasks.length,
+              icon: Brush,
+              color: pendingHkTasks.length > 0 ? 'rgb(120,140,160)' : 'rgb(150,150,150)',
+              page: 'AdminHousekeeping',
+              alert: hkIssues.length > 0,
+              alertLabel: `${hkIssues.length} open issue${hkIssues.length !== 1 ? 's' : ''}`,
+            },
+            {
+              label: 'Concierge Requests',
+              value: conciergeRequests.length,
+              icon: MessageSquare,
+              color: conciergeRequests.length > 0 ? 'rgb(196,100,80)' : 'rgb(150,150,150)',
+              page: 'AdminRestaurant',
+              alert: false,
+            },
+            {
+              label: 'Active Catering',
+              value: activeCatering.length,
+              icon: ChefHat,
+              color: 'rgb(196,155,145)',
+              page: 'AdminCatering',
+              alert: false,
+            },
+          ].map((stat, i) => (
+            <motion.div key={stat.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+              <Link to={createPageUrl(stat.page)} className="block bg-white border border-[rgb(235,225,213)] p-4 rounded-xl hover:shadow-md hover:border-[rgb(198,182,165)] transition-all group">
+                <div className="flex items-start justify-between mb-2">
+                  <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
+                  {stat.alert && (
+                    <span className="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full font-medium">
+                      {stat.alertLabel}
+                    </span>
+                  )}
+                </div>
+                <p className="text-3xl font-light" style={{ color: stat.color }}>{stat.value}</p>
+                <p className="text-xs text-[rgb(150,150,150)] mt-1 leading-snug">{stat.label}</p>
+              </Link>
             </motion.div>
           ))}
         </div>
