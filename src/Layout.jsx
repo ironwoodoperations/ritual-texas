@@ -174,8 +174,8 @@ export default function Layout({ children, currentPageName }) {
           {isMenuOpen && (
             <div className="md:hidden absolute top-full left-0 right-0 bg-[rgb(248,246,242)] border-b border-[rgb(235,225,213)] py-6 px-6">
               <div className="flex flex-col gap-4">
-                  <Link to={createPageUrl('Rooms')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
-                    Rooms
+                  <Link to={createPageUrl('Hotel')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
+                    Hotel
                   </Link>
                   <Link to={createPageUrl('Treatments')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
                     Spa & Wellness
@@ -183,22 +183,27 @@ export default function Layout({ children, currentPageName }) {
                   <Link to={createPageUrl('Restaurant')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
                     Restaurant
                   </Link>
-                  <Link to={createPageUrl('Packages')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
-                    Packages
-                  </Link>
-                  <Link to={createPageUrl('Amenities')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
-                    Amenities
-                  </Link>
-                  <Link to={createPageUrl('Press')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
-                    Press
-                  </Link>
-                  <Link to={createPageUrl('itinerary')} className="text-[rgb(45,45,45)] py-2" onClick={() => setIsMenuOpen(false)}>
-                    Itinerary
-                  </Link>
                   <button onClick={() => { setShowWhitney(true); setIsMenuOpen(false); }} className="flex items-center gap-2 text-[rgb(45,45,45)] py-2 w-full text-left">
                     <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/424e86f0a_generated-image1.jpeg" alt="Whitney" className="w-6 h-6 rounded-full object-cover" />
                     Ask Whitney
                   </button>
+                  <div className="border-t border-[rgb(235,225,213)] pt-4 flex flex-col gap-3">
+                    <Link to={createPageUrl('Rooms')} className="text-sm text-[rgb(107,85,64)] py-1" onClick={() => setIsMenuOpen(false)}>
+                      Rooms & Suites
+                    </Link>
+                    <Link to={createPageUrl('Packages')} className="text-sm text-[rgb(107,85,64)] py-1" onClick={() => setIsMenuOpen(false)}>
+                      Packages
+                    </Link>
+                    <Link to={createPageUrl('Amenities')} className="text-sm text-[rgb(107,85,64)] py-1" onClick={() => setIsMenuOpen(false)}>
+                      Amenities
+                    </Link>
+                    <Link to={createPageUrl('Press')} className="text-sm text-[rgb(107,85,64)] py-1" onClick={() => setIsMenuOpen(false)}>
+                      Press
+                    </Link>
+                    <Link to={createPageUrl('itinerary')} className="text-sm text-[rgb(107,85,64)] py-1" onClick={() => setIsMenuOpen(false)}>
+                      My Itinerary
+                    </Link>
+                  </div>
 
                   <Link 
                   to={createPageUrl('BookRooms')} 
