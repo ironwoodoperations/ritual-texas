@@ -15,8 +15,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'startISO and endISO are required' }, { status: 400 });
     }
 
-    // Fetch all bookings in date range
-    let all = await base44.asServiceRole.entities.SpaBooking.list('-startAt', 500);
+    // Fetch all bookings
+    const all = await base44.asServiceRole.entities.SpaBooking.list('-startAt', 500);
 
     // Filter by date range
     const start = new Date(startISO).getTime();
@@ -37,11 +37,16 @@ Deno.serve(async (req) => {
       bookings = bookings.filter(b => (b.status || '').toLowerCase().includes(status.toLowerCase()));
     }
 
-    // Sort ascending
+    // Sort ascending by start time
     bookings.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
 
-    // Build staff list for dropdown
-    const staffNames = Array.from(new Set(bookings.map(b => b.staffName).filter(Boolean)));
+    // Build unique staff list from all (unfiltered by staff) for dropdown
+    const allForStaff = all.filter(b => {
+      if (!b.startAt) return false;
+      const t = new Date(b.startAt).getTime();
+      return t >= start && t <= end;
+    });
+    const staffNames = Array.from(new Set(allForStaff.map(b => b.staffName).filter(Boolean))).sort();
 
     return Response.json({ success: true, bookings, staffNames });
   } catch (error) {
