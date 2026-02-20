@@ -31,14 +31,6 @@ export default function ItineraryPage() {
       setConfirmationCode(code);
       setContact(email);
       handleLookup({ nextMode: 'HOTEL', nextConfirmation: code, nextContact: email });
-    } else {
-      const savedCode = localStorage.getItem('ritual_confirmation');
-      const savedEmail = localStorage.getItem('ritual_email');
-      if (savedCode && savedEmail) {
-        setMode('HOTEL');
-        setConfirmationCode(savedCode);
-        setContact(savedEmail);
-      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
