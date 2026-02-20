@@ -93,6 +93,7 @@ import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
 import StaffLogin from './pages/StaffLogin';
+import StaffControls from './pages/StaffControls';
 import __Layout from './Layout.jsx';
 
 
@@ -143,6 +144,7 @@ export const PAGES = {
     "concierge": concierge,
     "itinerary": itinerary,
     "StaffLogin": StaffLogin,
+    "StaffControls": StaffControls,
 }
 
 export const pagesConfig = {
