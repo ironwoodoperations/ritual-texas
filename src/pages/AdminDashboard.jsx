@@ -8,7 +8,8 @@ import {
   Calendar, Users, Sparkles, Home, ArrowRight,
   Bell, UtensilsCrossed, ChefHat, BedDouble,
   ClipboardList, FileText, Image, LogOut, Leaf,
-  CalendarDays, BookOpen, Brush, AlertTriangle
+  CalendarDays, BookOpen, Brush, AlertTriangle,
+  BedSingle, MessageSquare
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
