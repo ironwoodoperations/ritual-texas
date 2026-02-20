@@ -272,11 +272,13 @@ export default function StaffDashboard() {
     housekeeping_tasks: Home,
     spa_schedule: Sparkles,
     arrivals_today: Users,
+    daily_checklists: ClipboardList,
   };
 
   const renderView = () => {
     switch (view) {
       case 'kitchen_inventory': return <StaffInventory session={session} />;
+      case 'daily_checklists': return <StaffChecklist session={session} />;
       case 'housekeeping_tasks':
       case 'arrivals_today':
       case 'staff_home':
