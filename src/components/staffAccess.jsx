@@ -44,6 +44,7 @@ export async function getModuleSettings() {
 
 export const DEFAULT_MODULES = [
   { key: 'staff_home', label: 'Staff Home', defaultVisible: true, defaultRoles: 'staff,chef,manager' },
+  { key: 'daily_checklists', label: 'Daily Checklists', defaultVisible: true, defaultRoles: 'staff,chef,manager' },
   { key: 'kitchen_inventory', label: 'Kitchen: Inventory', defaultVisible: true, defaultRoles: 'chef,manager' },
   { key: 'housekeeping_tasks', label: 'Housekeeping Tasks', defaultVisible: true, defaultRoles: 'staff,chef,manager' },
   { key: 'spa_schedule', label: 'Spa Schedule', defaultVisible: false, defaultRoles: 'staff,chef,manager' },
