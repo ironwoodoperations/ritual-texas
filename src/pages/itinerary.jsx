@@ -124,6 +124,21 @@ export default function ItineraryPage() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
+  const toDateSafe = (v) => {
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
+  const formatTime = (dateString) => {
+    const d = new Date(dateString);
+    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  };
+
+  const formatDayHeader = (dateString) => {
+    const d = new Date(dateString);
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+  };
+
   const getStatusBadge = (status) => {
     const statusMap = {
       confirmed: { label: 'Confirmed', color: 'bg-[#C4A55C]' },
