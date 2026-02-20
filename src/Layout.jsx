@@ -254,6 +254,7 @@ export default function Layout({ children, currentPageName }) {
                   <Link to={createPageUrl('concierge')} className="hover:text-[rgb(107,85,64)]">Ask Whitney</Link>
                   <Link to={createPageUrl('itinerary')} className="hover:text-[rgb(107,85,64)]">My Itinerary</Link>
                   <Link to={createPageUrl('AdminDashboard')} className="hover:text-[rgb(107,85,64)] opacity-60">Admin</Link>
+                <Link to={createPageUrl('StaffDashboard')} className="hover:text-[rgb(107,85,64)] opacity-60">Staff</Link>
                 </div>
               </div>
               <div>
