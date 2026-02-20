@@ -7,11 +7,180 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Plus, Users } from 'lucide-react';
+import { Trash2, Plus, Users, Pencil, Check, X } from 'lucide-react';
 import { DEFAULT_MODULES } from '@/components/staffAccess';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
+const ROLES = ['staff', 'chef', 'manager'];
+
+const ROLE_COLORS = {
+  staff:   'bg-blue-100 text-blue-800',
+  chef:    'bg-amber-100 text-amber-800',
+  manager: 'bg-purple-100 text-purple-800',
+};
+
+// ── Editable row ─────────────────────────────────────────────────────────────
+function PinRow({ p, onSave, onDelete }) {
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ name: p.name || '', pin: p.pin || '', role: p.role || 'staff', is_active: p.is_active ?? true });
+  const [err, setErr] = useState('');
+
+  const save = () => {
+    if (!form.name.trim()) { setErr('Name is required.'); return; }
+    if (!/^\d{4}$/.test(form.pin)) { setErr('PIN must be exactly 4 digits.'); return; }
+    setErr('');
+    onSave(p.id, form);
+    setEditing(false);
+  };
+
+  const cancel = () => {
+    setForm({ name: p.name || '', pin: p.pin || '', role: p.role || 'staff', is_active: p.is_active ?? true });
+    setErr('');
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <tr className="bg-[rgb(248,246,242)]">
+        <td className="px-4 py-3">
+          <Input
+            value={form.name}
+            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+            placeholder="Staff name"
+            className="h-8 text-sm"
+          />
+        </td>
+        <td className="px-4 py-3">
+          <Input
+            value={form.pin}
+            onChange={e => setForm(f => ({ ...f, pin: e.target.value.replace(/[^\d]/g, '').slice(0, 4) }))}
+            placeholder="4 digits"
+            inputMode="numeric"
+            maxLength={4}
+            className="h-8 text-sm w-24"
+          />
+        </td>
+        <td className="px-4 py-3">
+          <select
+            value={form.role}
+            onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
+            className="border border-input rounded-md px-2 py-1 text-sm bg-white h-8"
+          >
+            {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </td>
+        <td className="px-4 py-3">
+          <Switch
+            checked={form.is_active}
+            onCheckedChange={v => setForm(f => ({ ...f, is_active: v }))}
+          />
+        </td>
+        <td className="px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={save} className="bg-[rgb(150,170,155)] hover:bg-[rgb(130,150,135)] text-white h-8 px-3">
+              <Check className="w-4 h-4" />
+            </Button>
+            <Button size="sm" variant="outline" onClick={cancel} className="h-8 px-3">
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          {err && <p className="text-red-600 text-xs mt-1">{err}</p>}
+        </td>
+      </tr>
+    );
+  }
+
+  return (
+    <tr className="border-t border-[rgb(235,225,213)] hover:bg-[rgb(248,246,242)] transition-colors">
+      <td className="px-4 py-3 font-medium text-[rgb(107,85,64)]">{p.name || '—'}</td>
+      <td className="px-4 py-3 font-mono text-sm text-[rgb(45,45,45)]">••••</td>
+      <td className="px-4 py-3">
+        <span className={`text-xs px-2 py-1 rounded-full font-medium ${ROLE_COLORS[p.role] || 'bg-gray-100 text-gray-700'}`}>
+          {p.role || 'staff'}
+        </span>
+      </td>
+      <td className="px-4 py-3">
+        <Switch
+          checked={p.is_active ?? true}
+          onCheckedChange={v => onSave(p.id, { ...p, is_active: v })}
+        />
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => setEditing(true)} className="h-8 px-3">
+            <Pencil className="w-3 h-3 mr-1" /> Edit
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => { if (confirm(`Delete PIN for ${p.name}?`)) onDelete(p.id); }}
+            className="h-8 px-3 border-red-200 hover:bg-red-50 text-red-600"
+          >
+            <Trash2 className="w-3 h-3" />
+          </Button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+// ── Add row ───────────────────────────────────────────────────────────────────
+function AddPinRow({ onAdd }) {
+  const [form, setForm] = useState({ name: '', pin: '', role: 'staff' });
+  const [err, setErr] = useState('');
+
+  const submit = () => {
+    if (!form.name.trim()) { setErr('Name is required.'); return; }
+    if (!/^\d{4}$/.test(form.pin)) { setErr('PIN must be exactly 4 digits.'); return; }
+    setErr('');
+    onAdd({ ...form, is_active: true });
+    setForm({ name: '', pin: '', role: 'staff' });
+  };
+
+  return (
+    <tr className="border-t-2 border-[rgb(150,170,155)] bg-[rgb(248,252,250)]">
+      <td className="px-4 py-3">
+        <Input
+          value={form.name}
+          onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+          placeholder="Staff name *"
+          className="h-8 text-sm"
+        />
+      </td>
+      <td className="px-4 py-3">
+        <Input
+          value={form.pin}
+          onChange={e => { setForm(f => ({ ...f, pin: e.target.value.replace(/[^\d]/g, '').slice(0, 4) })); setErr(''); }}
+          placeholder="4 digits *"
+          inputMode="numeric"
+          maxLength={4}
+          className="h-8 text-sm w-24"
+        />
+      </td>
+      <td className="px-4 py-3">
+        <select
+          value={form.role}
+          onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
+          className="border border-input rounded-md px-2 py-1 text-sm bg-white h-8"
+        >
+          {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+        </select>
+      </td>
+      <td className="px-4 py-3 text-xs text-[rgb(45,45,45)]">Active by default</td>
+      <td className="px-4 py-3">
+        <div>
+          <Button onClick={submit} className="bg-[rgb(150,170,155)] hover:bg-[rgb(130,150,135)] text-white h-8 px-4 text-sm">
+            <Plus className="w-4 h-4 mr-1" /> Add
+          </Button>
+          {err && <p className="text-red-600 text-xs mt-1">{err}</p>}
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+// ── Main Page ─────────────────────────────────────────────────────────────────
 export default function StaffControls() {
   const qc = useQueryClient();
 
@@ -55,11 +224,6 @@ export default function StaffControls() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['staffPins'] }),
   });
 
-  const [newPin, setNewPin] = useState('');
-  const [newPinRole, setNewPinRole] = useState('staff');
-  const [newPinName, setNewPinName] = useState('');
-  const [pinError, setPinError] = useState('');
-
   // Seed default module settings if missing
   useEffect(() => {
     (async () => {
@@ -67,8 +231,7 @@ export default function StaffControls() {
         for (const d of DEFAULT_MODULES) {
           if (!moduleMap.get(d.key)) {
             await base44.entities.StaffModuleSetting.create({
-              key: d.key,
-              label: d.label,
+              key: d.key, label: d.label,
               staff_visible: d.defaultVisible,
               allowed_roles: d.defaultRoles,
             });
@@ -79,24 +242,12 @@ export default function StaffControls() {
     })();
   }, [moduleMap.size]);
 
-  const onAddPin = () => {
-    if (!/^\d{4}$/.test(newPin)) { setPinError('PIN must be exactly 4 digits.'); return; }
-    setPinError('');
-    createPin.mutate({
-      pin: newPin,
-      role: newPinRole || 'staff',
-      name: newPinName || (newPinRole || 'staff').toUpperCase(),
-      is_active: true,
-    });
-    setNewPin(''); setNewPinName(''); setNewPinRole('staff');
-  };
-
   return (
     <div className="min-h-screen bg-[rgb(248,246,242)]">
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+      <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
 
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <Link to={createPageUrl('AdminDashboard')} className="text-sm text-[rgb(150,170,155)] hover:underline mb-1 block">
               ← Admin Dashboard
@@ -106,146 +257,117 @@ export default function StaffControls() {
               Staff Controls
             </h1>
             <p className="text-sm text-[rgb(45,45,45)] mt-1">
-              Control what staff see at <strong>/StaffDashboard</strong> and manage 4-digit PINs.
+              Manage staff PINs and control which modules each role can access.
             </p>
           </div>
-          <a
-            href={createPageUrl('StaffDashboard')}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to={createPageUrl('StaffDashboard')}
             className="text-sm px-4 py-2 bg-[rgb(150,170,155)] text-white rounded hover:bg-[rgb(130,150,135)] transition-colors"
           >
             Preview Staff View →
-          </a>
+          </Link>
         </div>
 
-        {/* Modules */}
+        {/* ── PIN Management ── */}
         <Card className="border-[rgb(235,225,213)]">
           <CardHeader>
-            <CardTitle className="text-[rgb(107,85,64)]">Staff Modules</CardTitle>
-            <p className="text-sm text-[rgb(45,45,45)]">Toggle which sections are visible and which roles can access them.</p>
+            <CardTitle className="text-[rgb(107,85,64)]">Staff Members & PINs</CardTitle>
+            <p className="text-sm text-[rgb(45,45,45)]">
+              Each staff member gets a name, a 4-digit PIN, and a role. Roles control which modules they can see.
+            </p>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="p-0 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[rgb(235,225,213)] text-left">
+                  <th className="px-4 py-3 font-medium text-[rgb(107,85,64)]">Staff Name</th>
+                  <th className="px-4 py-3 font-medium text-[rgb(107,85,64)]">PIN</th>
+                  <th className="px-4 py-3 font-medium text-[rgb(107,85,64)]">Role</th>
+                  <th className="px-4 py-3 font-medium text-[rgb(107,85,64)]">Active</th>
+                  <th className="px-4 py-3 font-medium text-[rgb(107,85,64)]">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pins.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-[rgb(45,45,45)]">
+                      No staff yet — add one below.
+                    </td>
+                  </tr>
+                )}
+                {pins.map(p => (
+                  <PinRow
+                    key={p.id}
+                    p={p}
+                    onSave={(id, data) => updatePin.mutate({ id, data })}
+                    onDelete={(id) => deletePin.mutate(id)}
+                  />
+                ))}
+                <AddPinRow onAdd={(row) => createPin.mutate(row)} />
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+
+        {/* ── Role Descriptions ── */}
+        <Card className="border-[rgb(235,225,213)]">
+          <CardHeader>
+            <CardTitle className="text-[rgb(107,85,64)]">Role Reference</CardTitle>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-3 gap-4">
+            {[
+              { role: 'staff', desc: 'General access — arrivals, checkouts, basic housekeeping tasks.' },
+              { role: 'chef', desc: 'All staff access + kitchen inventory editing and menu modules.' },
+              { role: 'manager', desc: 'Full access to all modules including reports and sensitive data.' },
+            ].map(({ role, desc }) => (
+              <div key={role} className="p-4 rounded-lg border border-[rgb(235,225,213)] bg-white">
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${ROLE_COLORS[role]}`}>{role}</span>
+                <p className="text-sm text-[rgb(45,45,45)] mt-2">{desc}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* ── Module Permissions ── */}
+        <Card className="border-[rgb(235,225,213)]">
+          <CardHeader>
+            <CardTitle className="text-[rgb(107,85,64)]">Module Permissions</CardTitle>
+            <p className="text-sm text-[rgb(45,45,45)]">Toggle visibility and set which roles can see each module.</p>
+          </CardHeader>
+          <CardContent className="space-y-3">
             {DEFAULT_MODULES.map(d => {
               const row = moduleMap.get(d.key);
               const staff_visible = row?.staff_visible ?? d.defaultVisible;
               const allowed_roles = row?.allowed_roles ?? d.defaultRoles;
               return (
-                <div key={d.key} className="p-4 rounded-lg border border-[rgb(235,225,213)] bg-white space-y-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className="font-medium text-[rgb(107,85,64)]">{d.label}</div>
-                      <div className="text-xs text-[rgb(45,45,45)]">Key: <code>{d.key}</code></div>
+                <div key={d.key} className="flex flex-col md:flex-row md:items-center gap-3 p-4 rounded-lg border border-[rgb(235,225,213)] bg-white">
+                  <div className="flex-1">
+                    <div className="font-medium text-[rgb(107,85,64)]">{d.label}</div>
+                    <div className="text-xs text-[rgb(45,45,45)] mt-0.5">
+                      Allowed roles:&nbsp;
+                      {allowed_roles.split(',').map(r => r.trim()).filter(Boolean).map(r => (
+                        <span key={r} className={`inline-block text-xs px-1.5 py-0.5 rounded mr-1 ${ROLE_COLORS[r] || 'bg-gray-100 text-gray-700'}`}>{r}</span>
+                      ))}
                     </div>
-                    <div className="flex items-center gap-2">
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Input
+                      value={allowed_roles}
+                      onChange={e => upsertModule.mutate({ key: d.key, label: d.label, staff_visible, allowed_roles: e.target.value })}
+                      placeholder="staff,chef,manager"
+                      className="h-8 text-sm w-48"
+                    />
+                    <div className="flex items-center gap-2 whitespace-nowrap">
                       <span className="text-sm text-[rgb(45,45,45)]">Visible</span>
                       <Switch
                         checked={!!staff_visible}
-                        onCheckedChange={(v) => upsertModule.mutate({ key: d.key, label: d.label, staff_visible: v, allowed_roles })}
+                        onCheckedChange={v => upsertModule.mutate({ key: d.key, label: d.label, staff_visible: v, allowed_roles })}
                       />
                     </div>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-[rgb(45,45,45)]">Allowed Roles (comma-separated)</Label>
-                    <Input
-                      className="mt-1"
-                      value={allowed_roles}
-                      onChange={(e) => upsertModule.mutate({ key: d.key, label: d.label, staff_visible, allowed_roles: e.target.value })}
-                      placeholder="staff,chef,manager"
-                    />
-                    <p className="text-xs text-[rgb(45,45,45)] mt-1">Default: <em>{d.defaultRoles}</em></p>
                   </div>
                 </div>
               );
             })}
-          </CardContent>
-        </Card>
-
-        {/* PIN Management */}
-        <Card className="border-[rgb(235,225,213)]">
-          <CardHeader>
-            <CardTitle className="text-[rgb(107,85,64)]">PIN Management</CardTitle>
-            <p className="text-sm text-[rgb(45,45,45)]">Create 4-digit PINs for staff access. No email needed.</p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Add PIN */}
-            <div className="p-4 rounded-lg border border-[rgb(235,225,213)] bg-white">
-              <p className="text-sm font-medium text-[rgb(107,85,64)] mb-3">Add New PIN</p>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                <div>
-                  <Label className="text-xs">4-digit PIN</Label>
-                  <Input
-                    value={newPin}
-                    onChange={(e) => { setNewPin(e.target.value.replace(/[^\d]/g, '').slice(0, 4)); setPinError(''); }}
-                    placeholder="1234"
-                    inputMode="numeric"
-                    maxLength={4}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Role</Label>
-                  <Input
-                    value={newPinRole}
-                    onChange={(e) => setNewPinRole(e.target.value)}
-                    placeholder="staff / chef / manager"
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Staff Name</Label>
-                  <Input
-                    value={newPinName}
-                    onChange={(e) => setNewPinName(e.target.value)}
-                    placeholder="e.g. Maria, Kitchen AM"
-                    className="mt-1"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <Button
-                    className="w-full bg-[rgb(150,170,155)] hover:bg-[rgb(130,150,135)] text-white"
-                    onClick={onAddPin}
-                  >
-                    <Plus className="w-4 h-4 mr-2" /> Add PIN
-                  </Button>
-                </div>
-              </div>
-              {pinError && <p className="text-red-600 text-sm mt-2">{pinError}</p>}
-            </div>
-
-            {/* PIN List */}
-            <div className="space-y-2">
-              {pins.length === 0 && (
-                <p className="text-[rgb(45,45,45)] text-sm py-2">No PINs yet. Add one above.</p>
-              )}
-              {pins.map(p => (
-                <div key={p.id} className="flex items-center justify-between gap-3 p-3 rounded-lg border border-[rgb(235,225,213)] bg-white">
-                  <div>
-                    <div className="font-medium text-[rgb(107,85,64)]">
-                      {p.name || '—'} <span className="text-[rgb(45,45,45)] font-normal">({p.role || 'staff'})</span>
-                    </div>
-                    <div className="text-xs text-[rgb(45,45,45)]">PIN: ••••</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-[rgb(45,45,45)]">Active</span>
-                      <Switch
-                        checked={(p.is_active ?? true) === true}
-                        onCheckedChange={(v) => updatePin.mutate({ id: p.id, data: { is_active: v } })}
-                      />
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="border-red-200 hover:bg-red-50"
-                      onClick={() => deletePin.mutate(p.id)}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
           </CardContent>
         </Card>
 
