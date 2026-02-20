@@ -71,7 +71,6 @@ export default function AdminDashboard() {
       title: 'Spa & Wellness',
       color: 'rgb(150,170,155)',
       tiles: [
-        { icon: Sparkles, label: 'Treatment Bookings', page: 'AdminTreatmentBookings', badge: todaySpaBookings.length || null },
         { icon: Sparkles, label: 'Spa Schedule', page: 'AdminSpaSchedule', badge: null },
         { icon: Sparkles, label: 'Treatments', page: 'AdminTreatments', badge: null },
       ]
