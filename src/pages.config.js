@@ -74,6 +74,7 @@ import BookRooms from './pages/BookRooms';
 import BookingConfirmation from './pages/BookingConfirmation';
 import BookingFlow from './pages/BookingFlow';
 import Home from './pages/Home';
+import Hotel from './pages/Hotel';
 import MyBooking from './pages/MyBooking';
 import PackageDetail from './pages/PackageDetail';
 import Packages from './pages/Packages';
@@ -91,7 +92,7 @@ import afterBooking from './pages/afterBooking';
 import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
-import Hotel from './pages/Hotel';
+import StaffLogin from './pages/StaffLogin';
 import __Layout from './Layout.jsx';
 
 
@@ -123,6 +124,7 @@ export const PAGES = {
     "BookingConfirmation": BookingConfirmation,
     "BookingFlow": BookingFlow,
     "Home": Home,
+    "Hotel": Hotel,
     "MyBooking": MyBooking,
     "PackageDetail": PackageDetail,
     "Packages": Packages,
@@ -140,7 +142,7 @@ export const PAGES = {
     "booking": booking,
     "concierge": concierge,
     "itinerary": itinerary,
-    "Hotel": Hotel,
+    "StaffLogin": StaffLogin,
 }
 
 export const pagesConfig = {
