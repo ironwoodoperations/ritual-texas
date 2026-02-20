@@ -133,59 +133,6 @@ export default function Hotel() {
         </div>
       </section>
 
-      {/* Rooms CTA */}
-      <section className="max-w-5xl mx-auto px-6 py-20">
-        <div className="grid md:grid-cols-2 gap-8">
-
-          {/* Rooms */}
-          <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-            <div className="relative h-64 overflow-hidden rounded-xl mb-6">
-              <img
-                src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=900&q=80"
-                alt="Rooms"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-[rgb(45,35,25)]/30" />
-            </div>
-            <p className="text-xs tracking-[0.3em] text-[rgb(150,170,155)] mb-2 uppercase">Rooms & Suites</p>
-            <h3 className="text-2xl font-light text-[rgb(107,85,64)] mb-3">Eight unique spaces</h3>
-            <p className="text-[rgb(45,45,45)] text-sm leading-relaxed mb-5">
-              From our intimate first-floor suites to the secluded Carriage House, each room is designed with intention — distinct character, deep comfort, and everything you need to settle in.
-            </p>
-            <Link
-              to={createPageUrl('Rooms')}
-              className="inline-flex items-center gap-2 text-sm font-medium text-[rgb(107,85,64)] hover:text-[rgb(150,170,155)] transition-colors"
-            >
-              View All Rooms <ChevronRight className="w-4 h-4" />
-            </Link>
-          </motion.div>
-
-          {/* Packages */}
-          <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-            <div className="relative h-64 overflow-hidden rounded-xl mb-6">
-              <img
-                src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=900&q=80"
-                alt="Packages"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-[rgb(45,35,25)]/30" />
-            </div>
-            <p className="text-xs tracking-[0.3em] text-[rgb(150,170,155)] mb-2 uppercase">Curated Packages</p>
-            <h3 className="text-2xl font-light text-[rgb(107,85,64)] mb-3">Tailored for your retreat</h3>
-            <p className="text-[rgb(45,45,45)] text-sm leading-relaxed mb-5">
-              Let us do the thinking. Our packages combine accommodation, spa treatments, and thoughtful add-ons into a seamless stay — perfect for couples, solo retreats, or a reset with friends.
-            </p>
-            <Link
-              to={createPageUrl('Packages')}
-              className="inline-flex items-center gap-2 text-sm font-medium text-[rgb(107,85,64)] hover:text-[rgb(150,170,155)] transition-colors"
-            >
-              Explore Packages <ChevronRight className="w-4 h-4" />
-            </Link>
-          </motion.div>
-
-        </div>
-      </section>
-
       {/* Bottom CTA */}
       <section className="py-20 px-6 text-center" style={{ backgroundColor: 'rgb(107,85,64)' }}>
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
