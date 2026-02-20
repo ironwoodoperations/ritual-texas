@@ -134,7 +134,7 @@ export default function AdminDashboard() {
         {/* Quick stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
           {[
-            { label: "Today's Spa", value: todaySpaBookings.length, color: 'rgb(150,170,155)' },
+            { label: "Today's Spa", value: '—', color: 'rgb(150,170,155)' },
             { label: 'Pending Requests', value: pendingReservations.length + pendingEvents.length, color: 'rgb(196,155,145)' },
             { label: 'HK Tasks Today', value: pendingHkTasks.length, color: 'rgb(120,140,160)' },
             { label: 'Open Issues', value: hkIssues.length, color: hkIssues.length > 0 ? 'rgb(200,80,80)' : 'rgb(150,170,155)' },
