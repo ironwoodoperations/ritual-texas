@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from './utils';
+import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
 import { Leaf, Wind, Waves, Sun, Coffee, Sparkles, ChevronRight } from 'lucide-react';
 
