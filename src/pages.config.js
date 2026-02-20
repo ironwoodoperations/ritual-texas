@@ -66,7 +66,6 @@ import AdminPackages from './pages/AdminPackages';
 import AdminRestaurant from './pages/AdminRestaurant';
 import AdminRooms from './pages/AdminRooms';
 import AdminSeedData from './pages/AdminSeedData';
-import AdminTreatmentBookings from './pages/AdminTreatmentBookings';
 import AdminTreatments from './pages/AdminTreatments';
 import Amenities from './pages/Amenities';
 import AskRitual from './pages/AskRitual';
@@ -115,7 +114,6 @@ export const PAGES = {
     "AdminRestaurant": AdminRestaurant,
     "AdminRooms": AdminRooms,
     "AdminSeedData": AdminSeedData,
-    "AdminTreatmentBookings": AdminTreatmentBookings,
     "AdminTreatments": AdminTreatments,
     "Amenities": Amenities,
     "AskRitual": AskRitual,
