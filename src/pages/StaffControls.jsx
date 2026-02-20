@@ -193,11 +193,11 @@ export default function StaffControls() {
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Label (optional)</Label>
+                  <Label className="text-xs">Staff Name</Label>
                   <Input
                     value={newPinName}
                     onChange={(e) => setNewPinName(e.target.value)}
-                    placeholder="Kitchen AM"
+                    placeholder="e.g. Maria, Kitchen AM"
                     className="mt-1"
                   />
                 </div>
