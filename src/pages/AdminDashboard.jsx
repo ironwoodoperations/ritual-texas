@@ -163,7 +163,7 @@ export default function AdminDashboard() {
         <div className="mb-2">
           <p className="text-xs tracking-widest font-medium text-[rgb(150,150,150)] mb-3">TODAY AT A GLANCE</p>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
           {[
             {
               label: 'Arriving Today',
