@@ -46,7 +46,7 @@ export default function Hotel() {
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
             <div className="relative h-64 overflow-hidden rounded-xl mb-6">
               <img
-                src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=900&q=80"
+                src="https://images.squarespace-cdn.com/content/v1/5f28ea4d05e06334e017a510/44fbd548-a918-43db-af0d-b4d60e8f9bcb/S1+bed.JPG"
                 alt="Rooms"
                 className="w-full h-full object-cover"
               />
