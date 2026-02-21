@@ -93,7 +93,7 @@ const BLANK = {
 };
 
 const S = {
-  page: { minHeight: '100vh', background: '#0C1C2C', fontFamily: "'Georgia', serif", color: '#F5F0E8' },
+  page: { minHeight: '100vh', background: '#0C1C2C', fontFamily: "'Georgia', serif", color: '#F5F0E8', overflowY: 'auto' },
   section: { background: 'rgba(245,240,232,.04)', border: '1px solid rgba(198,168,94,.15)', borderRadius: '16px', padding: '28px', marginBottom: '24px' },
   sectionTitle: { color: '#C6A85E', fontSize: '11px', letterSpacing: '3px', margin: '0 0 20px', fontFamily: 'sans-serif' },
   label: { display: 'block', color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', marginBottom: '5px', fontFamily: 'sans-serif' },
