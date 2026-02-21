@@ -74,7 +74,7 @@ export default function AdminDashboard() {
   const pendingHkTasks = hkTasks.filter(t => t.status !== 'completed');
   const todaySpa = spaBookings.filter(b => b.startAt?.slice(0, 10) === todayStr && b.status !== 'booking.cancelled');
   const arrivingToday = hotelBookings.filter(b => b.check_in_date === todayStr && b.booking_status !== 'cancelled');
-  const conciergeRequests = [...pendingReservations, ...pendingEvents, ...packageInquiries];
+  const conciergeRequests = [...contactLeads, ...packageInquiries];
   const activeCatering = cateringQuotes.filter(q => ['draft', 'sent', 'accepted', 'deposit_paid'].includes(q.status));
 
   const sections = [
