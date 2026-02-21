@@ -187,10 +187,10 @@ export default function AdminDashboard() {
               alertLabel: `${hkIssues.length} open issue${hkIssues.length !== 1 ? 's' : ''}`,
             },
             {
-              label: 'Concierge Requests',
-              value: conciergeRequests.length,
+              label: 'Restaurant Requests',
+              value: pendingReservations.length + pendingEvents.length,
               icon: MessageSquare,
-              color: conciergeRequests.length > 0 ? 'rgb(196,100,80)' : 'rgb(150,150,150)',
+              color: (pendingReservations.length + pendingEvents.length) > 0 ? 'rgb(196,100,80)' : 'rgb(150,150,150)',
               page: 'AdminRestaurant',
               alert: false,
             },
