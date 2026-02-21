@@ -280,14 +280,8 @@ export default function AdminTreatments() {
                 </Button>
               </div>
               </motion.div>
-              )}
-              </Draggable>
-              ))}
-              {provided.placeholder}
-              </div>
-              )}
-              </Droppable>
-              </DragDropContext>
+                ))}
+        </div>
 
               {treatments?.length === 0 && (
               <div className="text-center py-16 bg-white border border-[rgb(235,225,213)]">
