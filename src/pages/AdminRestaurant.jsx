@@ -17,7 +17,7 @@ export default function AdminRestaurant() {
   const queryClient = useQueryClient();
 
   return (
-    <div style={{ background: '#F0E8DD', minHeight: '100vh', padding: '24px 16px', overflowX: 'hidden' }}>
+    <div style={{ background: '#F0E8DD', minHeight: '100vh', padding: '24px 16px', overflowX: 'hidden', overflowY: 'auto' }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
           <Link to={createPageUrl('AdminDashboard')} style={{ color: '#3B4831', display: 'flex', padding: '6px', flexShrink: 0 }}><ArrowLeft size={20} /></Link>
