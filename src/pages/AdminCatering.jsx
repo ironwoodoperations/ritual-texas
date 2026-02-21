@@ -107,8 +107,8 @@ export default function AdminCatering() {
         </div>
 
         {/* Filters */}
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
+        <div style={{ marginBottom: '24px' }}>
+          <div style={{ position: 'relative', marginBottom: '12px' }}>
             <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9AA8B5' }} />
             <input
               value={search}
@@ -117,78 +117,139 @@ export default function AdminCatering() {
               style={{ width: '100%', paddingLeft: '36px', paddingRight: '12px', paddingTop: '10px', paddingBottom: '10px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
-          {['all', 'draft', 'sent', 'accepted', 'deposit_paid', 'completed', 'archived'].map(s => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              style={{ padding: '10px 16px', borderRadius: '8px', border: statusFilter === s ? '1px solid #C6A85E' : '1px solid rgba(198,168,94,.2)', background: statusFilter === s ? 'rgba(198,168,94,.15)' : 'transparent', color: statusFilter === s ? '#C6A85E' : '#9AA8B5', fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap' }}
-            >
-              {s.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
-            </button>
-          ))}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {['all', 'draft', 'sent', 'accepted', 'deposit_paid', 'completed', 'archived'].map(s => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                style={{ padding: '8px 12px', borderRadius: '8px', border: statusFilter === s ? '1px solid #C6A85E' : '1px solid rgba(198,168,94,.2)', background: statusFilter === s ? 'rgba(198,168,94,.15)' : 'transparent', color: statusFilter === s ? '#C6A85E' : '#9AA8B5', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+              >
+                {s.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Quotes Table */}
-        <div className="catering-table-wrap" style={{ background: 'rgba(245,240,232,.04)', border: '1px solid rgba(198,168,94,.15)', borderRadius: '16px', overflow: 'hidden' }}>
-          {filtered.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px', color: '#9AA8B5' }}>
-              <FileText size={48} style={{ margin: '0 auto 16px', opacity: 0.3 }} />
-              <p style={{ margin: 0, fontSize: '16px' }}>No quotes found</p>
-              <Link to={createPageUrl('AdminCateringQuote')} style={{ display: 'inline-block', marginTop: '16px', color: '#C6A85E', textDecoration: 'none' }}>Create your first quote →</Link>
+        {/* Quotes List */}
+        {filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px', color: '#9AA8B5', background: 'rgba(245,240,232,.04)', border: '1px solid rgba(198,168,94,.15)', borderRadius: '16px' }}>
+            <FileText size={48} style={{ margin: '0 auto 16px', opacity: 0.3 }} />
+            <p style={{ margin: 0, fontSize: '16px' }}>No quotes found</p>
+            <Link to={createPageUrl('AdminCateringQuote')} style={{ display: 'inline-block', marginTop: '16px', color: '#C6A85E', textDecoration: 'none' }}>Create your first quote →</Link>
+          </div>
+        ) : (
+          <>
+            {/* Desktop Table */}
+            <div className="catering-table-wrap" style={{ background: 'rgba(245,240,232,.04)', border: '1px solid rgba(198,168,94,.15)', borderRadius: '16px', overflow: 'hidden', display: 'block' }}>
+              <table className="catering-table" style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid rgba(198,168,94,.15)' }}>
+                    {['Client', 'Event', 'Date', 'Guests', 'Total', 'Status', 'Actions'].map(h => (
+                      <th key={h} style={{ padding: '14px 20px', textAlign: 'left', color: '#C6A85E', fontSize: '11px', letterSpacing: '2px', fontWeight: 600 }}>{h.toUpperCase()}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((q, i) => {
+                    const sc = STATUS_COLORS[q.status] || STATUS_COLORS.draft;
+                    return (
+                      <tr key={q.id} style={{ borderBottom: '1px solid rgba(198,168,94,.08)', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,.02)' }}>
+                        <td style={{ padding: '16px 20px' }}>
+                          <div style={{ color: '#F5F0E8', fontWeight: 600 }}>{q.client_name}</div>
+                          {q.company && <div style={{ color: '#9AA8B5', fontSize: '12px' }}>{q.company}</div>}
+                        </td>
+                        <td style={{ padding: '16px 20px', color: '#D4C9B8', fontSize: '14px' }}>{q.event_name || '—'}</td>
+                        <td style={{ padding: '16px 20px', color: '#D4C9B8', fontSize: '14px' }}>{q.event_date || '—'}</td>
+                        <td style={{ padding: '16px 20px', color: '#D4C9B8', fontSize: '14px' }}>{q.guest_count || '—'}</td>
+                        <td style={{ padding: '16px 20px', color: '#C6A85E', fontSize: '14px', fontWeight: 600 }}>${(q.grand_total || 0).toLocaleString()}</td>
+                        <td style={{ padding: '16px 20px' }}>
+                          <select
+                            value={q.status}
+                            onChange={e => handleStatus(q.id, e.target.value)}
+                            style={{ padding: '4px 10px', background: sc.bg, color: sc.text, border: 'none', borderRadius: '20px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                          >
+                            {['draft','sent','accepted','deposit_paid','completed','archived'].map(s => (
+                              <option key={s} value={s}>{s.replace('_',' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td style={{ padding: '16px 20px' }}>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <Link to={createPageUrl(`AdminCateringQuote?id=${q.id}`)} title="Edit" style={{ padding: '6px', background: 'rgba(198,168,94,.1)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '6px', color: '#C6A85E', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                              <Edit size={14} />
+                            </Link>
+                            <button onClick={() => handleDuplicate(q)} title="Duplicate" style={{ padding: '6px', background: 'rgba(198,168,94,.1)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '6px', color: '#C6A85E', cursor: 'pointer' }}>
+                              <Copy size={14} />
+                            </button>
+                            <button onClick={() => handleArchive(q.id)} title="Archive" style={{ padding: '6px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', borderRadius: '6px', color: '#9AA8B5', cursor: 'pointer' }}>
+                              <Archive size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-          ) : (
-            <table className="catering-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid rgba(198,168,94,.15)' }}>
-                  {['Client', 'Event', 'Date', 'Guests', 'Total', 'Status', 'Actions'].map(h => (
-                    <th key={h} style={{ padding: '14px 20px', textAlign: 'left', color: '#C6A85E', fontSize: '11px', letterSpacing: '2px', fontWeight: 600 }}>{h.toUpperCase()}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((q, i) => {
-                  const sc = STATUS_COLORS[q.status] || STATUS_COLORS.draft;
-                  return (
-                    <tr key={q.id} style={{ borderBottom: '1px solid rgba(198,168,94,.08)', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,.02)' }}>
-                      <td style={{ padding: '16px 20px' }}>
-                        <div style={{ color: '#F5F0E8', fontWeight: 600 }}>{q.client_name}</div>
+
+            {/* Mobile Cards */}
+            <div className="catering-cards-mobile" style={{ display: 'none', flexDirection: 'column', gap: '10px' }}>
+              <style>{`.catering-cards-mobile { display: none !important; } @media (max-width: 640px) { .catering-table-wrap { display: none !important; } .catering-cards-mobile { display: flex !important; } }`}</style>
+              {filtered.map((q) => {
+                const sc = STATUS_COLORS[q.status] || STATUS_COLORS.draft;
+                return (
+                  <div key={q.id} style={{ background: 'rgba(245,240,232,.05)', border: '1px solid rgba(198,168,94,.15)', borderRadius: '12px', padding: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                      <div>
+                        <div style={{ color: '#F5F0E8', fontWeight: 600, fontSize: '16px' }}>{q.client_name}</div>
                         {q.company && <div style={{ color: '#9AA8B5', fontSize: '12px' }}>{q.company}</div>}
-                      </td>
-                      <td style={{ padding: '16px 20px', color: '#D4C9B8', fontSize: '14px' }}>{q.event_name || '—'}</td>
-                      <td style={{ padding: '16px 20px', color: '#D4C9B8', fontSize: '14px' }}>{q.event_date || '—'}</td>
-                      <td style={{ padding: '16px 20px', color: '#D4C9B8', fontSize: '14px' }}>{q.guest_count || '—'}</td>
-                      <td style={{ padding: '16px 20px', color: '#C6A85E', fontSize: '14px', fontWeight: 600 }}>${(q.grand_total || 0).toLocaleString()}</td>
-                      <td style={{ padding: '16px 20px' }}>
-                        <select
-                          value={q.status}
-                          onChange={e => handleStatus(q.id, e.target.value)}
-                          style={{ padding: '4px 10px', background: sc.bg, color: sc.text, border: 'none', borderRadius: '20px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
-                        >
-                          {['draft','sent','accepted','deposit_paid','completed','archived'].map(s => (
-                            <option key={s} value={s}>{s.replace('_',' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
-                          ))}
-                        </select>
-                      </td>
-                      <td style={{ padding: '16px 20px' }}>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <Link to={createPageUrl(`AdminCateringQuote?id=${q.id}`)} title="Edit" style={{ padding: '6px', background: 'rgba(198,168,94,.1)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '6px', color: '#C6A85E', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                            <Edit size={14} />
-                          </Link>
-                          <button onClick={() => handleDuplicate(q)} title="Duplicate" style={{ padding: '6px', background: 'rgba(198,168,94,.1)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '6px', color: '#C6A85E', cursor: 'pointer' }}>
-                            <Copy size={14} />
-                          </button>
-                          <button onClick={() => handleArchive(q.id)} title="Archive" style={{ padding: '6px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', borderRadius: '6px', color: '#9AA8B5', cursor: 'pointer' }}>
-                            <Archive size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
+                      </div>
+                      <select
+                        value={q.status}
+                        onChange={e => handleStatus(q.id, e.target.value)}
+                        style={{ padding: '4px 10px', background: sc.bg, color: sc.text, border: 'none', borderRadius: '20px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        {['draft','sent','accepted','deposit_paid','completed','archived'].map(s => (
+                          <option key={s} value={s}>{s.replace('_',' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '12px' }}>
+                      <div>
+                        <div style={{ color: '#9AA8B5', fontSize: '10px', letterSpacing: '1px' }}>EVENT</div>
+                        <div style={{ color: '#D4C9B8', fontSize: '13px' }}>{q.event_name || '—'}</div>
+                      </div>
+                      <div>
+                        <div style={{ color: '#9AA8B5', fontSize: '10px', letterSpacing: '1px' }}>DATE</div>
+                        <div style={{ color: '#D4C9B8', fontSize: '13px' }}>{q.event_date || '—'}</div>
+                      </div>
+                      <div>
+                        <div style={{ color: '#9AA8B5', fontSize: '10px', letterSpacing: '1px' }}>GUESTS</div>
+                        <div style={{ color: '#D4C9B8', fontSize: '13px' }}>{q.guest_count || '—'}</div>
+                      </div>
+                      <div>
+                        <div style={{ color: '#9AA8B5', fontSize: '10px', letterSpacing: '1px' }}>TOTAL</div>
+                        <div style={{ color: '#C6A85E', fontSize: '15px', fontWeight: 600 }}>${(q.grand_total || 0).toLocaleString()}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <Link to={createPageUrl(`AdminCateringQuote?id=${q.id}`)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px', background: 'rgba(198,168,94,.15)', border: '1px solid rgba(198,168,94,.3)', borderRadius: '8px', color: '#C6A85E', textDecoration: 'none', fontSize: '13px' }}>
+                        <Edit size={13} /> Edit
+                      </Link>
+                      <button onClick={() => handleDuplicate(q)} style={{ padding: '8px 12px', background: 'rgba(198,168,94,.1)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#C6A85E', cursor: 'pointer' }}>
+                        <Copy size={13} />
+                      </button>
+                      <button onClick={() => handleArchive(q.id)} style={{ padding: '8px 12px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', borderRadius: '8px', color: '#9AA8B5', cursor: 'pointer' }}>
+                        <Archive size={13} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
