@@ -64,6 +64,10 @@ export default function AdminDashboard() {
     queryKey: ['catering-quotes-dash'],
     queryFn: () => base44.entities.CateringQuote.list('-created_date', 100),
   });
+  const { data: contactLeads = [] } = useQuery({
+    queryKey: ['contact-leads-dash'],
+    queryFn: () => base44.entities.RestaurantContactLeads.filter({ status: 'new' }),
+  });
 
   const pendingReservations = restaurantReservations.filter(r => r.status === 'pending');
   const pendingEvents = eventLeads.filter(e => e.status === 'pending');
