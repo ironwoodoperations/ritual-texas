@@ -233,11 +233,12 @@ export default function AdminTreatments() {
                 <span>${treatment.price}</span>
               </div>
               {/* Booking mode quick-select */}
-              <div className="flex gap-2 mb-3">
+              <div className="flex gap-2 mb-3 flex-wrap">
                 {[
                   { value: 'book_online', label: '🟢 Book Online', color: 'rgb(150,170,155)' },
                   { value: 'request_info', label: '🟡 Request Info', color: 'rgb(198,168,94)' },
                   { value: 'call_to_book', label: '🔵 Call to Book', color: 'rgb(107,85,64)' },
+                  { value: 'call_and_info', label: '📞+💬 Both Buttons', color: 'rgb(150,100,150)' },
                 ].map(opt => (
                   <button
                     key={opt.value}
