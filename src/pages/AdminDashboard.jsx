@@ -199,6 +199,14 @@ export default function AdminDashboard() {
               alert: false,
             },
             {
+              label: 'Concierge Inbox',
+              value: conciergeRequests.length,
+              icon: MessageSquare,
+              color: conciergeRequests.length > 0 ? 'rgb(107,85,64)' : 'rgb(150,150,150)',
+              page: 'AdminConciergeInbox',
+              alert: false,
+            },
+            {
               label: 'Active Catering',
               value: activeCatering.length,
               icon: ChefHat,
