@@ -283,11 +283,11 @@ export default function AdminTreatments() {
                 ))}
         </div>
 
-              {treatments?.length === 0 && (
-              <div className="text-center py-16 bg-white border border-[rgb(235,225,213)]">
-              <p className="text-[rgb(45,45,45)]">No treatments yet. Add your first treatment to get started.</p>
-              </div>
-              )}
+        {treatments?.length === 0 && (
+          <div className="text-center py-16 bg-white border border-[rgb(235,225,213)]">
+            <p className="text-[rgb(45,45,45)]">No treatments yet. Add your first treatment to get started.</p>
+          </div>
+        )}
       </main>
 
       {/* Treatment Form Modal */}
