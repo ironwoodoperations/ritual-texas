@@ -116,6 +116,7 @@ export default function AdminDashboard() {
       title: 'Content & Settings',
       color: 'rgb(198,182,165)',
       tiles: [
+        { icon: MessageSquare, label: 'Concierge Inbox', page: 'AdminConciergeInbox', badge: conciergeRequests.length || null },
         { icon: ClipboardList, label: 'Knowledge Base', page: 'AdminKnowledge', badge: null },
         { icon: Image, label: 'Image Library', page: 'AdminImages', badge: null },
         { icon: BookOpen, label: 'Media', page: 'AdminMedia', badge: null },
