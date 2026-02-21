@@ -415,6 +415,7 @@ export default function AdminTreatments() {
                   <SelectItem value="book_online">🟢 Book Online — guests can book directly</SelectItem>
                   <SelectItem value="request_info">🟡 Request Info — guests submit an inquiry</SelectItem>
                   <SelectItem value="call_to_book">🔵 Call to Book — guests must call to schedule</SelectItem>
+                  <SelectItem value="call_and_info">📞+💬 Both — show Call to Book AND Request Info</SelectItem>
                 </SelectContent>
               </Select>
             </div>
