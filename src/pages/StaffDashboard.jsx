@@ -287,7 +287,7 @@ export default function StaffDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[rgb(248,246,242)]">
+    <div className="min-h-screen bg-[rgb(248,246,242)] overflow-y-auto">
       {/* Header */}
       <header className="bg-white border-b border-[rgb(235,225,213)] px-6 py-4 sticky top-0 z-40">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
