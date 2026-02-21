@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 
 export default function AdminConciergeInbox() {
   const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState('messages');
   const queryClient = useQueryClient();
 
   useEffect(() => {
