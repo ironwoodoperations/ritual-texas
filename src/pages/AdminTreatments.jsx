@@ -137,16 +137,15 @@ export default function AdminTreatments() {
     }
   };
 
-  const handleDragEnd = (result) => {
-    const { source, destination, draggableId } = result;
-    if (!destination) return;
-    if (source.index === destination.index) return;
+  const handleMove = (index, direction) => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= treatments.length) return;
 
-    const reorderedTreatments = Array.from(treatments);
-    const [movedTreatment] = reorderedTreatments.splice(source.index, 1);
-    reorderedTreatments.splice(destination.index, 0, movedTreatment);
+    const reordered = Array.from(treatments);
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(newIndex, 0, moved);
 
-    reorderedTreatments.forEach((treatment, idx) => {
+    reordered.forEach((treatment, idx) => {
       updateMutation.mutate({ id: treatment.id, data: { ...treatment, sort_order: idx } });
     });
   };
