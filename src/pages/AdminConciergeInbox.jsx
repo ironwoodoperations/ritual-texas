@@ -56,8 +56,6 @@ export default function AdminConciergeInbox() {
     );
   }
 
-  const [activeTab, setActiveTab] = useState('messages');
-
   const tabs = [
     { id: 'messages', label: 'Guest Messages', count: newContacts.length },
     { id: 'packages', label: 'Package Inquiries', count: newPackageInquiries.length },
