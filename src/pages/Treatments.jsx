@@ -57,10 +57,14 @@ export default function Treatments() {
                 <div style={{ fontWeight: 800, color: '#1B1B1B' }}>{treatment.duration_minutes} min · ${treatment.price}</div>
                 {(!treatment.booking_mode || treatment.booking_mode === 'book_online') && (
                   <a 
-                    href={`/booking?treatment=${treatment.slug || treatment.name.toLowerCase().replace(/\s+/g, '-')}`}
+                    href={treatment.name?.toLowerCase().includes('sound bath') && treatment.name?.toLowerCase().includes('group')
+                      ? 'https://book.squareup.com/classes/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/classes'
+                      : `/booking?treatment=${treatment.slug || treatment.name.toLowerCase().replace(/\s+/g, '-')}`}
+                    target={treatment.name?.toLowerCase().includes('sound bath') && treatment.name?.toLowerCase().includes('group') ? '_blank' : undefined}
+                    rel={treatment.name?.toLowerCase().includes('sound bath') && treatment.name?.toLowerCase().includes('group') ? 'noopener noreferrer' : undefined}
                     style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}
                   >
-                    Book Now
+                    {treatment.name?.toLowerCase().includes('sound bath') && treatment.name?.toLowerCase().includes('group') ? 'Register for Class' : 'Book Now'}
                   </a>
                 )}
                 {treatment.booking_mode === 'request_info' && (
