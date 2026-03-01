@@ -120,7 +120,7 @@ export default function AdminHousekeepingTask() {
 
   const requiredItems = items.filter(i => i.required !== false);
   const requiredDone = requiredItems.filter(i => i.isDone).length;
-  const canComplete = task?.status !== 'completed' && requiredDone === requiredItems.length && requiredItems.length > 0;
+  const canComplete = task?.status !== 'completed';
   const pct = task?.completionPercent || 0;
 
   const S = {
