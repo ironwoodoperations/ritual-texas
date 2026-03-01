@@ -18,9 +18,9 @@ Deno.serve(async (req) => {
       method: 'POST',
       headers: {
         Authorization: `Basic ${basic}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
       },
-      body: new URLSearchParams({ grant_type: 'client_credentials' }),
+      body: JSON.stringify({ grantType: 'client_credentials' }),
     });
 
     if (!res.ok) {
