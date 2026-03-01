@@ -26,10 +26,11 @@ const VERIFY_COLORS = {
 const BLANK = {
   guestName: "", phone: "", email: "", preferredContactMethod: "phone",
   numberOfGuests: 1, checkInDate: "", checkOutDate: "", roomRequested: "",
-  flexibleOnRoom: false, treatmentsRequested: "", preferredTherapist: "",
+  flexibleOnRoom: false, selectedTreatments: [], treatmentsRequested: "", preferredTherapist: "",
   preferredTreatmentDate: "", preferredTreatmentTime: "", flexibleOnTime: false,
   therapistContacted: false, therapistConfirmed: false, therapistResponseNotes: "",
   verificationStatus: "pending", bookingStatus: "new_inquiry", followUpDate: "", internalNotes: "",
+  ccName: "", ccLast4: "", ccExpiry: "", ccType: "", ccNotes: "",
 };
 
 function IntakeForm({ initial = BLANK, onSave, onCancel }) {
