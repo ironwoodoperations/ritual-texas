@@ -51,6 +51,11 @@ export default function AdminMedia() {
   return (
     <div style={{ padding: '18px', minHeight: '100vh', background: 'rgb(248, 246, 242)' }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+        <div className="flex items-center gap-3 mb-4">
+          <Link to={createPageUrl('AdminDashboard')} className="text-[rgb(107,85,64)] hover:text-[rgb(150,170,155)]">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+        </div>
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="text-2xl text-[rgb(107,85,64)]">Media Library</CardTitle>

@@ -86,6 +86,11 @@ export default function AdminSpaSchedule() {
     <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
       {/* Header */}
       <div className="mb-8">
+        <div className="flex items-center gap-3 mb-3">
+          <Link to={createPageUrl('AdminDashboard')} className="text-[rgb(107,85,64)] hover:text-[rgb(150,170,155)]">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+        </div>
         <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '4px' }}>Spa Schedule</h1>
         <p style={{ color: '#666' }}>View and export daily spa appointments from Square</p>
       </div>
