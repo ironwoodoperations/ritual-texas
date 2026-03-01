@@ -257,6 +257,17 @@ export default function AdminDashboard() {
   });
   const conciergeRequests = [...contactLeads, ...packageInquiries];
 
+  // ── Intake forms needing follow-up ──
+  const { data: intakeForms = [] } = useQuery({
+    queryKey: ["intake-followup-dash"],
+    queryFn: () => base44.entities.HotelTreatmentIntake.filter({ bookingStatus: "pending" }),
+  });
+  const intakeNewInquiries = useQuery({
+    queryKey: ["intake-new-dash"],
+    queryFn: () => base44.entities.HotelTreatmentIntake.filter({ bookingStatus: "new_inquiry" }),
+  }).data || [];
+  const intakeFollowUpCount = intakeForms.length + intakeNewInquiries.length;
+
   // ── Catering ──
   const { data: cateringQuotes = [] } = useQuery({
     queryKey: ["catering-quotes-dash"],
