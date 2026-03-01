@@ -331,18 +331,14 @@ export default function AdminDashboard() {
       title: "Rooms & Stays",
       color: "rgb(107,85,64)",
       tiles: [
-        { icon: CalendarDays, label: "Room Bookings", page: "AdminBookings" },
         { icon: BedDouble, label: "Rooms", page: "AdminRooms" },
         { icon: FileText, label: "Packages", page: "AdminPackages" },
-        { icon: Bell, label: "Package Inquiries", page: "AdminPackageInquiries" },
-        { icon: ClipboardList, label: "Hotel + Treatment Intake", page: "AdminIntake" },
       ],
     },
     {
       title: "Spa & Wellness",
       color: "rgb(150,170,155)",
       tiles: [
-        { icon: Sparkles, label: "Spa Schedule", page: "AdminSpaSchedule" },
         { icon: Sparkles, label: "Treatments", page: "AdminTreatments" },
       ],
     },
@@ -352,21 +348,13 @@ export default function AdminDashboard() {
       tiles: [
         { icon: UtensilsCrossed, label: "Restaurant", page: "AdminRestaurant", badge: restaurantLeadsCount || null },
         { icon: ChefHat, label: "Catering", page: "AdminCatering" },
-      ],
-    },
-    {
-      title: "Housekeeping",
-      color: "rgb(120,140,160)",
-      tiles: [
-        { icon: Brush, label: "Today's Tasks", page: "AdminHousekeeping", badge: hkTodayOpen.length || null },
-        { icon: AlertTriangle, label: "Issues", page: "AdminHousekeepingIssues", badge: hkIssues.length || null },
+        { icon: BadgeDollarSign, label: "Sales & Labor", page: "AdminRestaurantSales" },
       ],
     },
     {
       title: "Content & Settings",
       color: "rgb(198,182,165)",
       tiles: [
-        { icon: MessageSquare, label: "Concierge Inbox", page: "AdminConciergeInbox", badge: conciergeRequests.length || null },
         { icon: ClipboardList, label: "Knowledge Base", page: "AdminKnowledge" },
         { icon: Image, label: "Image Library", page: "AdminImages" },
         { icon: BookOpen, label: "Media", page: "AdminMedia" },
