@@ -497,8 +497,9 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        {/* Toast Ops Panel */}
-        <div className="mb-10">
+        {/* Whitney Focus + Toast Panels */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-10">
+          <WhitneyFocusPanel todayStr={todayStr} />
           <ToastOpsPanel todayStr={todayStr} refetchSummary={refetchToast} />
         </div>
 
