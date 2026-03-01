@@ -16,14 +16,10 @@ Deno.serve(async (req) => {
     const apiBase = Deno.env.get('TOAST_API_BASE');
     const restaurantGuid = Deno.env.get('TOAST_RESTAURANT_GUID');
 
-    // Use provided date or fall back to today
     let dateStr = body.date;
     if (!dateStr) {
       const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      dateStr = `${yyyy}-${mm}-${dd}`;
+      dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
     }
 
     // Auth
@@ -32,16 +28,13 @@ Deno.serve(async (req) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userAccessType: 'TOAST_MACHINE_CLIENT', clientId, clientSecret }),
     });
-
     if (!authRes.ok) {
       const txt = await authRes.text();
       return Response.json({ ok: false, error: `Toast auth failed: ${authRes.status} ${txt}` }, { status: 400 });
     }
 
     const authData = await authRes.json();
-    // Toast returns token nested: { token: { accessToken: '...' } }
     const token = authData?.token?.accessToken || authData?.access_token || authData?.accessToken;
-
     if (!token) {
       return Response.json({ ok: false, error: `No token in auth response: ${JSON.stringify(authData)}` }, { status: 400 });
     }
@@ -51,27 +44,64 @@ Deno.serve(async (req) => {
       'Toast-Restaurant-External-ID': restaurantGuid,
     };
 
-    // Fetch sales summary
-    const summaryRes = await fetch(
-      `${apiBase}/analytics/v2/reports/sales?restaurantGuid=${restaurantGuid}&businessDate=${dateStr}`,
+    // Use Central Time (UTC-6) for business day window
+    const startDate = `${dateStr}T00:00:00.000-0600`;
+    const endDate = `${dateStr}T23:59:59.999-0600`;
+
+    // Fetch orders in bulk (paginated)
+    let page = 1;
+    let allOrders = [];
+    while (true) {
+      const ordersRes = await fetch(
+        `${apiBase}/orders/v2/ordersBulk?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&pageSize=100&page=${page}`,
+        { headers }
+      );
+      if (!ordersRes.ok) {
+        const txt = await ordersRes.text();
+        return Response.json({ ok: false, error: `Orders fetch failed (page ${page}): ${ordersRes.status} ${txt}` }, { status: 400 });
+      }
+      const data = await ordersRes.json();
+      const orders = Array.isArray(data) ? data : (data.orders || []);
+      allOrders = allOrders.concat(orders);
+      if (orders.length < 100) break;
+      page++;
+    }
+
+    // Calculate net sales from orders
+    let netSales = 0;
+    for (const order of allOrders) {
+      // Skip voided orders
+      if (order.voided) continue;
+      const checks = order.checks || [];
+      for (const check of checks) {
+        if (check.voided) continue;
+        netSales += check.totalAmount || 0;
+      }
+    }
+
+    // Fetch labor time entries
+    const laborRes = await fetch(
+      `${apiBase}/labor/v1/timeEntries?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`,
       { headers }
     );
 
-    if (!summaryRes.ok) {
-      const txt = await summaryRes.text();
-      return Response.json({ ok: false, error: `Toast sales fetch failed: ${summaryRes.status} ${txt}` }, { status: 400 });
+    let laborTotalCost = 0;
+    let laborHours = 0;
+    if (laborRes.ok) {
+      const laborData = await laborRes.json();
+      const entries = Array.isArray(laborData) ? laborData : (laborData.timeEntries || []);
+      for (const entry of entries) {
+        if (entry.regularHours) laborHours += entry.regularHours;
+        if (entry.overtimeHours) laborHours += entry.overtimeHours;
+        if (entry.regularPay) laborTotalCost += entry.regularPay;
+        if (entry.overtimePay) laborTotalCost += entry.overtimePay;
+      }
     }
 
-    const salesData = await summaryRes.json();
-
-    const netSales = salesData?.netSales ?? salesData?.summary?.netSales ?? 0;
-    const laborTotalCost = salesData?.laborTotalCost ?? salesData?.summary?.laborTotalCost ?? 0;
-    const laborHours = salesData?.laborHours ?? salesData?.summary?.laborHours ?? 0;
     const salesPerLaborHour = laborHours > 0 ? netSales / laborHours : 0;
 
     // Upsert
     const existing = await base44.asServiceRole.entities.ToastDailySummary.filter({ businessDate: dateStr });
-
     if (existing?.length > 0) {
       await base44.asServiceRole.entities.ToastDailySummary.update(existing[0].id, {
         netSales, laborTotalCost, laborHours, salesPerLaborHour,
@@ -84,7 +114,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    return Response.json({ ok: true, date: dateStr, netSales, laborTotalCost, laborHours, salesPerLaborHour });
+    return Response.json({ ok: true, date: dateStr, netSales, laborTotalCost, laborHours, salesPerLaborHour, orderCount: allOrders.length });
   } catch (error) {
     return Response.json({ ok: false, error: error.message }, { status: 500 });
   }
