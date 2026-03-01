@@ -11,6 +11,7 @@ import {
   MessageSquare, Activity, BadgeDollarSign, Timer,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import GoogleCalendarPanel from "@/components/dashboard/GoogleCalendarPanel";
 
 const HK_OPEN_STATUSES = ["pending", "in_progress"];
 
