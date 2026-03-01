@@ -254,12 +254,7 @@ export default function AdminHousekeepingTask() {
                   Pause
                 </button>
               )}
-              {(task.status === 'pending' || task.status === 'paused') && (
-                <button onClick={handleStart} style={{ flex: 1, padding: '14px', background: 'rgba(198,168,94,.15)', border: '1px solid rgba(198,168,94,.3)', borderRadius: '10px', color: '#C6A85E', cursor: 'pointer', fontWeight: 700, fontFamily: 'sans-serif', fontSize: '15px' }}>
-                  {task.status === 'paused' ? 'Resume' : 'Start'}
-                </button>
-              )}
-              <button onClick={handleComplete} disabled={!canComplete} style={{ flex: 2, padding: '14px', background: canComplete ? '#4CAF50' : 'rgba(245,240,232,.06)', border: 'none', borderRadius: '10px', color: canComplete ? '#fff' : '#666', cursor: canComplete ? 'pointer' : 'not-allowed', fontWeight: 700, fontFamily: 'sans-serif', fontSize: '15px' }}>
+              <button onClick={handleComplete} style={{ flex: 2, padding: '14px', background: canComplete ? '#4CAF50' : 'rgba(76,175,80,.25)', border: 'none', borderRadius: '10px', color: '#fff', cursor: 'pointer', fontWeight: 700, fontFamily: 'sans-serif', fontSize: '15px' }}>
                 ✓ Complete Room
               </button>
             </>
