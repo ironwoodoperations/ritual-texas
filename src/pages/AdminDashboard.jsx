@@ -380,11 +380,18 @@ export default function AdminDashboard() {
             </Link>
             <Link to={createPageUrl("AdminRestaurant")} className="rounded-xl border border-[rgb(235,225,213)] bg-[rgb(248,246,242)] px-4 py-3 hover:bg-white hover:shadow-sm transition-all">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-semibold text-[rgb(196,155,145)]">Restaurant</span>
+                <span className="text-sm font-semibold text-[rgb(196,155,145)]">Restaurant Today</span>
                 <UtensilsCrossed className="w-4 h-4 text-[rgb(196,155,145)]" />
               </div>
               <p className="text-xs text-[rgb(120,120,120)]">Sales {fmtMoney(toastToday?.netSales)} · Labor {fmtMoney(toastToday?.laborTotalCost)} · {restaurantLeadsCount} leads</p>
             </Link>
+            <div className="rounded-xl border border-[rgb(235,225,213)] bg-[rgb(248,246,242)] px-4 py-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-semibold text-[rgb(196,155,145)]">Restaurant Week</span>
+                <BadgeDollarSign className="w-4 h-4 text-[rgb(196,155,145)]" />
+              </div>
+              <p className="text-xs text-[rgb(120,120,120)]">Sales {fmtMoney(toastWeeklySales)} · Labor {fmtMoney(toastWeeklyLabor)} · resets Mon</p>
+            </div>
           </div>
         </div>
 
