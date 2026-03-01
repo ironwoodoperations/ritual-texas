@@ -34,11 +34,23 @@ const BLANK = {
 };
 
 function IntakeForm({ initial = BLANK, onSave, onCancel }) {
-  const [form, setForm] = useState(initial);
+  const [form, setForm] = useState({ ...BLANK, ...initial });
   const [saving, setSaving] = useState(false);
+  const [treatments, setTreatments] = useState([]);
+
+  useEffect(() => {
+    base44.entities.Treatment.list("sort_order", 50)
+      .then(t => setTreatments(t.filter(x => x.is_available !== false)))
+      .catch(() => {});
+  }, []);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const chk = (e) => set(e.target.name, e.target.type === "checkbox" ? e.target.checked : e.target.value);
+
+  function toggleTreatment(name) {
+    const cur = form.selectedTreatments || [];
+    set("selectedTreatments", cur.includes(name) ? cur.filter(n => n !== name) : [...cur, name]);
+  }
 
   async function submit() {
     setSaving(true);
