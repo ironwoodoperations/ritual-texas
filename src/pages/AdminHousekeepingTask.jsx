@@ -102,7 +102,7 @@ export default function AdminHousekeepingTask() {
 
   const handleStart = () => updateTaskMutation.mutate({ status: 'in_progress', startedAt: new Date().toISOString() });
   const handlePause = () => updateTaskMutation.mutate({ status: 'paused' });
-  const handleComplete = () => updateTaskMutation.mutate({ status: 'completed', completedAt: new Date().toISOString() });
+  const handleComplete = () => updateTaskMutation.mutate({ status: 'completed', completedAt: new Date().toISOString(), completedByUserId: 'housekeeper' });
   const handleReopen = () => updateTaskMutation.mutate({ status: 'in_progress' });
 
   const saveNotes = () => {
