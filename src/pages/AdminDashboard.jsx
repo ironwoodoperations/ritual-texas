@@ -41,6 +41,7 @@ function fmtMoney(n) {
 // ─── Toast Ops Panel ────────────────────────────────────────────────────────
 function ToastOpsPanel({ todayStr, refetchSummary }) {
   const [status, setStatus] = React.useState("");
+  const [syncDate, setSyncDate] = React.useState(todayStr);
 
   async function test() {
     setStatus("Testing Toast…");
@@ -62,12 +63,12 @@ function ToastOpsPanel({ todayStr, refetchSummary }) {
     }
   }
 
-  async function syncToday() {
-    setStatus("Syncing Toast sales + labor…");
+  async function syncDate_fn() {
+    setStatus(`Syncing Toast sales + labor for ${syncDate}…`);
     try {
-      const res = await base44.functions.invoke("toastSyncTodaySummary");
+      const res = await base44.functions.invoke("toastSyncTodaySummary", { date: syncDate });
       await refetchSummary();
-      setStatus(res.data?.ok ? "✅ Today summary updated" : `❌ ${res.data?.error}`);
+      setStatus(res.data?.ok ? `✅ ${syncDate} synced — Sales $${Number(res.data.netSales).toFixed(0)}, Labor $${Number(res.data.laborTotalCost).toFixed(0)}` : `❌ ${res.data?.error}`);
     } catch (e) {
       setStatus(`❌ ${e.message}`);
     }
@@ -78,18 +79,24 @@ function ToastOpsPanel({ todayStr, refetchSummary }) {
       <div className="flex items-center justify-between gap-3 mb-3">
         <div>
           <div className="text-sm font-medium text-[rgb(45,45,45)]">Toast Integration</div>
-          <div className="text-xs text-[rgb(150,150,150)]">Menu · Today Sales · Labor</div>
+          <div className="text-xs text-[rgb(150,150,150)]">Menu · Sales · Labor</div>
         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
         <button onClick={test} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-colors">
           Test Connection
         </button>
         <button onClick={syncMenu} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-colors">
           Sync Menu
         </button>
-        <button onClick={syncToday} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-colors">
-          Sync Today
+        <input
+          type="date"
+          value={syncDate}
+          onChange={(e) => setSyncDate(e.target.value)}
+          className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] bg-white"
+        />
+        <button onClick={syncDate_fn} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-colors">
+          Sync Date
         </button>
       </div>
       {status && <div className="mt-3 text-xs text-[rgb(120,120,120)]">{status}</div>}
