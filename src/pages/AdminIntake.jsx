@@ -171,6 +171,27 @@ function IntakeForm({ initial = BLANK, onSave, onCancel }) {
         </div>
       </div>
 
+      {/* Credit Card */}
+      <div>
+        <p className={sectionTitle + " flex items-center gap-1.5"}><Lock className="w-3 h-3" /> Card on File (Internal — Do Not Share)</p>
+        <div className="border border-[rgb(235,225,213)] rounded-xl p-4 bg-[rgb(250,248,245)] space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input name="ccName" placeholder="Cardholder Name" value={form.ccName} onChange={chk} className={inputCls} />
+            <select name="ccType" value={form.ccType} onChange={chk} className={inputCls}>
+              <option value="">Card Type</option>
+              <option value="Visa">Visa</option>
+              <option value="Mastercard">Mastercard</option>
+              <option value="Amex">Amex</option>
+              <option value="Discover">Discover</option>
+            </select>
+            <input name="ccLast4" placeholder="Last 4 digits" value={form.ccLast4} onChange={chk} className={inputCls} maxLength={4} />
+            <input name="ccExpiry" placeholder="Expiry MM/YY" value={form.ccExpiry} onChange={chk} className={inputCls} maxLength={5} />
+          </div>
+          <textarea name="ccNotes" placeholder="Notes (e.g. deposit auth, amount held, date…)" value={form.ccNotes} onChange={chk} className={inputCls + " h-16 resize-none"} />
+          <p className="text-xs text-[rgb(180,160,140)]">⚠️ Store reference info only — full card numbers should never be entered here.</p>
+        </div>
+      </div>
+
       <div className="flex gap-3 pt-2">
         <button onClick={submit} disabled={saving || !form.guestName} className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[rgb(107,85,64)] text-white text-sm disabled:opacity-50 hover:opacity-90 transition-opacity">
           <Save className="w-4 h-4" /> {saving ? "Saving…" : "Save Intake"}
