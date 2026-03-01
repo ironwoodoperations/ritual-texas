@@ -74,7 +74,12 @@ export default function AdminHousekeepingTask() {
 
   const updateTaskMutation = useMutation({
     mutationFn: (data) => base44.entities.HkTask.update(taskId, data),
-    onSuccess: () => { qc.invalidateQueries(['hk-task', taskId]); qc.invalidateQueries(['hk-tasks']); }
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['hk-task', taskId] });
+      qc.invalidateQueries({ queryKey: ['hk-tasks'] });
+      qc.invalidateQueries({ queryKey: ['hk-tasks-today-all-dash'] });
+      qc.invalidateQueries({ queryKey: ['hk-tasks-overdue-open-dash'] });
+    }
   });
 
   const createIssueMutation = useMutation({
