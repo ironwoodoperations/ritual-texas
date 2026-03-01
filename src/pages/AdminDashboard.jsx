@@ -451,53 +451,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Today at a Glance — primary tiles */}
-        <p className="text-xs tracking-widest font-medium text-[rgb(150,150,150)] mb-3">TODAY AT A GLANCE</p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-4">
-          {[
-            { label: "Arrivals", value: arrivalsToday.length, icon: BedSingle, color: "rgb(107,85,64)", page: "AdminBookings" },
-            { label: "Departures", value: departuresToday.length, icon: CalendarDays, color: "rgb(107,85,64)", page: "AdminBookings" },
-            { label: "In-House", value: inHouseTonight.length, icon: BedDouble, color: "rgb(107,85,64)", page: "AdminBookings" },
-            { label: "Spa Appts", value: todaySpa.length, icon: Sparkles, color: "rgb(150,170,155)", page: "AdminSpaSchedule" },
-            { label: "Spa Gaps", value: spaGapCount, icon: Timer, color: spaGapCount > 0 ? "rgb(196,155,145)" : "rgb(150,150,150)", page: "AdminSpaSchedule" },
-            { label: "HK Needs", value: hkNeedsCount, icon: Brush, color: hkNeedsCount > 0 ? "rgb(120,140,160)" : "rgb(150,150,150)", page: "AdminHousekeeping", alert: hkIssues.length > 0, alertLabel: `${hkIssues.length} issue${hkIssues.length !== 1 ? "s" : ""}` },
-            { label: "Concierge", value: conciergeRequests.length, icon: MessageSquare, color: conciergeRequests.length > 0 ? "rgb(107,85,64)" : "rgb(150,150,150)", page: "AdminConciergeInbox" },
-            { label: "Catering", value: activeCatering.length, icon: ChefHat, color: "rgb(196,155,145)", page: "AdminCatering" },
-          ].map((stat, i) => (
-            <motion.div key={stat.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-              <Link to={createPageUrl(stat.page)} className="block bg-white border border-[rgb(235,225,213)] p-4 rounded-xl hover:shadow-md hover:border-[rgb(198,182,165)] transition-all group">
-                <div className="flex items-start justify-between mb-2">
-                  <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
-                  {stat.alert && (
-                    <span className="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full font-medium">{stat.alertLabel}</span>
-                  )}
-                </div>
-                <p className="text-3xl font-light" style={{ color: stat.color }}>{stat.value}</p>
-                <p className="text-xs text-[rgb(150,150,150)] mt-1 leading-snug">{stat.label}</p>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Toast tiles */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-          {[
-            { label: "Net Sales (Today)", value: fmtMoney(toastToday?.netSales), icon: BadgeDollarSign, color: "rgb(196,155,145)" },
-            { label: "Labor Cost (Today)", value: fmtMoney(toastToday?.laborTotalCost), icon: Users, color: "rgb(120,140,160)" },
-            { label: "Sales / Labor Hr", value: toastToday?.salesPerLaborHour != null ? `$${Number(toastToday.salesPerLaborHour).toFixed(0)}` : "—", icon: Timer, color: "rgb(150,170,155)" },
-            { label: "Restaurant Leads", value: restaurantLeadsCount, icon: UtensilsCrossed, color: "rgb(196,155,145)" },
-          ].map((stat, i) => (
-            <Link key={stat.label} to={createPageUrl("AdminRestaurant")} className="block bg-white border border-[rgb(235,225,213)] p-4 rounded-xl hover:shadow-md transition-all">
-              <div className="flex items-start justify-between mb-2">
-                <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
-                <span className="text-[10px] bg-[rgb(248,246,242)] text-[rgb(120,120,120)] px-1.5 py-0.5 rounded-full font-medium">Toast</span>
-              </div>
-              <p className="text-2xl font-light text-[rgb(45,45,45)]">{stat.value}</p>
-              <p className="text-xs text-[rgb(150,150,150)] mt-1 leading-snug">{stat.label}</p>
-            </Link>
-          ))}
-        </div>
-
         {/* Whitney Focus + Toast Panels */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-10">
           <WhitneyFocusPanel todayStr={todayStr} />

@@ -60,6 +60,7 @@ import AdminHousekeepingIssues from './pages/AdminHousekeepingIssues';
 import AdminHousekeepingSetup from './pages/AdminHousekeepingSetup';
 import AdminHousekeepingTask from './pages/AdminHousekeepingTask';
 import AdminImages from './pages/AdminImages';
+import AdminIntake from './pages/AdminIntake';
 import AdminKnowledge from './pages/AdminKnowledge';
 import AdminMedia from './pages/AdminMedia';
 import AdminPackageInquiries from './pages/AdminPackageInquiries';
@@ -95,7 +96,6 @@ import afterBooking from './pages/afterBooking';
 import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
-import AdminIntake from './pages/AdminIntake';
 import __Layout from './Layout.jsx';
 
 
@@ -113,6 +113,7 @@ export const PAGES = {
     "AdminHousekeepingSetup": AdminHousekeepingSetup,
     "AdminHousekeepingTask": AdminHousekeepingTask,
     "AdminImages": AdminImages,
+    "AdminIntake": AdminIntake,
     "AdminKnowledge": AdminKnowledge,
     "AdminMedia": AdminMedia,
     "AdminPackageInquiries": AdminPackageInquiries,
@@ -148,7 +149,6 @@ export const PAGES = {
     "booking": booking,
     "concierge": concierge,
     "itinerary": itinerary,
-    "AdminIntake": AdminIntake,
 }
 
 export const pagesConfig = {
