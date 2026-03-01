@@ -99,55 +99,54 @@ function WhitneyFocusPanel({ todayStr }) {
   );
 }
 
-// ─── Toast Panel ─────────────────────────────────────────────────────────────
-function ToastOpsPanel({ todayStr, refetchSummary }) {
-  const [status, setStatus] = React.useState("");
-  const [syncDate, setSyncDate] = React.useState(todayStr);
-
-  async function test() {
-    setStatus("Testing Toast…");
-    try {
-      const res = await base44.functions.invoke("toast_test", {});
-      setStatus(res.data?.ok ? `✅ ${res.data.message} (${res.data.tokenPreview})` : `❌ ${res.data?.error}`);
-    } catch (e) { setStatus(`❌ ${e.message}`); }
-  }
-
-  async function syncMenu() {
-    setStatus("Syncing menu…");
-    try {
-      const res = await base44.functions.invoke("toast_sync_menu_items", {});
-      setStatus(res.data?.ok ? `✅ Synced ${res.data.synced} items` : `❌ ${res.data?.error}`);
-    } catch (e) { setStatus(`❌ ${e.message}`); }
-  }
-
-  async function syncDate_fn() {
-    setStatus(`Syncing ${syncDate}…`);
-    try {
-      const res = await base44.functions.invoke("toast_sync_today_summary", { date: syncDate });
-      await refetchSummary();
-      if (res.data?.pending) {
-        setStatus("⏳ Toast preparing report… tap Sync again in 30–60s.");
-      } else {
-        setStatus(res.data?.ok ? `✅ ${syncDate} — Sales $${Number(res.data.netSales||0).toFixed(0)}, Labor $${Number(res.data.laborTotalCost||0).toFixed(0)}` : `❌ ${res.data?.error}`);
-      }
-    } catch (e) { setStatus(`❌ ${e.message}`); }
-  }
+// ─── Intake Panel ─────────────────────────────────────────────────────────────
+function IntakePanel({ intakeForms, intakeNewInquiries }) {
+  const allIntakes = [...intakeNewInquiries, ...intakeForms];
+  const statusColor = (s) => {
+    if (s === "new_inquiry") return "text-[rgb(196,155,145)]";
+    if (s === "pending") return "text-[rgb(150,170,155)]";
+    return "text-[rgb(150,150,150)]";
+  };
+  const statusLabel = (s) => {
+    if (s === "new_inquiry") return "New";
+    if (s === "pending") return "Pending";
+    return s;
+  };
 
   return (
     <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-4">
       <div className="flex items-center justify-between gap-3 mb-3">
         <div>
-          <div className="text-sm font-medium text-[rgb(45,45,45)]">Toast · Restaurant</div>
-          <div className="text-xs text-[rgb(150,150,150)]">Sales · Labor · Menu</div>
+          <div className="text-sm font-medium text-[rgb(45,45,45)]">Hotel + Treatment Intake</div>
+          <div className="text-xs text-[rgb(150,150,150)]">{allIntakes.length} needing attention</div>
         </div>
+        <Link to={createPageUrl("AdminIntake")} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-colors">
+          View All
+        </Link>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-        <button onClick={test} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-colors">Test</button>
-        <button onClick={syncMenu} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-colors">Sync Menu</button>
-        <input type="date" value={syncDate} onChange={(e) => setSyncDate(e.target.value)} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] bg-white" />
-        <button onClick={syncDate_fn} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-colors">Sync Date</button>
+      <div className="grid gap-2">
+        {allIntakes.slice(0, 5).map((f) => (
+          <div key={f.id} className="flex items-center justify-between gap-3 rounded-xl border border-[rgb(235,225,213)] px-3 py-2">
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-[rgb(45,45,45)] truncate">{f.guestName}</div>
+              {(f.checkInDate || f.checkOutDate) && (
+                <div className="text-xs text-[rgb(120,120,120)]">{f.checkInDate} → {f.checkOutDate}</div>
+              )}
+            </div>
+            <span className={`text-[11px] font-semibold shrink-0 ${statusColor(f.bookingStatus)}`}>
+              {statusLabel(f.bookingStatus)}
+            </span>
+          </div>
+        ))}
+        {allIntakes.length === 0 && (
+          <div className="text-sm text-[rgb(150,150,150)]">No pending intake forms.</div>
+        )}
+        {allIntakes.length > 5 && (
+          <Link to={createPageUrl("AdminIntake")} className="text-xs text-[rgb(150,170,155)] hover:underline text-center block">
+            +{allIntakes.length - 5} more
+          </Link>
+        )}
       </div>
-      {status && <div className="mt-3 text-xs text-[rgb(120,120,120)]">{status}</div>}
     </div>
   );
 }
