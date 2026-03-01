@@ -8,17 +8,23 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const body = await req.json().catch(() => ({}));
+
     const clientId = Deno.env.get('TOAST_CLIENT_ID');
     const clientSecret = Deno.env.get('TOAST_CLIENT_SECRET');
     const authUrl = Deno.env.get('TOAST_AUTH_URL');
     const apiBase = Deno.env.get('TOAST_API_BASE');
     const restaurantGuid = Deno.env.get('TOAST_RESTAURANT_GUID');
 
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy}-${mm}-${dd}`;
+    // Use provided date or fall back to today
+    let dateStr = body.date;
+    if (!dateStr) {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      dateStr = `${yyyy}-${mm}-${dd}`;
+    }
 
     const authRes = await fetch(authUrl, {
       method: 'POST',
@@ -39,7 +45,7 @@ Deno.serve(async (req) => {
     const token = authData.access_token;
 
     const summaryRes = await fetch(
-      `${apiBase}/analytics/v2/reports/sales?restaurantGuid=${restaurantGuid}&businessDate=${todayStr}`,
+      `${apiBase}/analytics/v2/reports/sales?restaurantGuid=${restaurantGuid}&businessDate=${dateStr}`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
@@ -55,8 +61,8 @@ Deno.serve(async (req) => {
     const laborHours = salesData?.laborHours ?? 0;
     const salesPerLaborHour = laborHours > 0 ? netSales / laborHours : 0;
 
-    // Upsert: find existing row for today, update or create
-    const existing = await base44.asServiceRole.entities.ToastDailySummary.filter({ businessDate: todayStr });
+    // Upsert: find existing row for date, update or create
+    const existing = await base44.asServiceRole.entities.ToastDailySummary.filter({ businessDate: dateStr });
 
     if (existing?.length > 0) {
       await base44.asServiceRole.entities.ToastDailySummary.update(existing[0].id, {
@@ -65,12 +71,12 @@ Deno.serve(async (req) => {
       });
     } else {
       await base44.asServiceRole.entities.ToastDailySummary.create({
-        businessDate: todayStr, netSales, laborTotalCost, laborHours, salesPerLaborHour,
+        businessDate: dateStr, netSales, laborTotalCost, laborHours, salesPerLaborHour,
         updatedAt: new Date().toISOString(),
       });
     }
 
-    return Response.json({ ok: true, netSales, laborTotalCost, laborHours, salesPerLaborHour });
+    return Response.json({ ok: true, date: dateStr, netSales, laborTotalCost, laborHours, salesPerLaborHour });
   } catch (error) {
     return Response.json({ ok: false, error: error.message }, { status: 500 });
   }
