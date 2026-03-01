@@ -110,6 +110,9 @@ export default function AdminHousekeeping() {
                 <AlertTriangle size={14} /> {openIssues.length} Open Issue{openIssues.length > 1 ? 's' : ''}
               </Link>
             )}
+            <button onClick={async () => { setGenerating(true); try { await base44.functions.invoke('hk_generate_checkout_tasks', {}); qc.invalidateQueries(['hk-tasks']); } finally { setGenerating(false); } }} disabled={generating} style={{ padding: '8px 14px', background: 'rgba(76,175,80,.1)', border: '1px solid rgba(76,175,80,.3)', borderRadius: '8px', color: '#4CAF50', cursor: 'pointer', fontSize: '13px', fontFamily: 'sans-serif' }}>
+              {generating ? '⏳' : '🔄'} Auto-Fill Checkouts
+            </button>
             <button onClick={() => setShowAddNote(true)} style={{ padding: '8px 14px', background: 'rgba(198,168,94,.1)', border: '1px solid rgba(198,168,94,.3)', borderRadius: '8px', color: '#C6A85E', cursor: 'pointer', fontSize: '13px', fontFamily: 'sans-serif' }}>
               + Note
             </button>
