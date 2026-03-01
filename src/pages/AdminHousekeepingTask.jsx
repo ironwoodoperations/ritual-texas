@@ -56,7 +56,10 @@ export default function AdminHousekeepingTask() {
       const allItems = cached.map(i => i.id === item.id ? { ...i, ...updates } : i);
       const done = allItems.filter(i => i.isDone).length;
       const pct = allItems.length > 0 ? Math.round(done / allItems.length * 100) : 0;
-      await base44.entities.HkTask.update(taskId, { completedItems: done, totalItems: allItems.length, completionPercent: pct });
+      const allDone = allItems.length > 0 && done === allItems.length;
+      const taskUpdates = { completedItems: done, totalItems: allItems.length, completionPercent: pct };
+      if (allDone) { taskUpdates.status = 'completed'; taskUpdates.completedAt = new Date().toISOString(); }
+      await base44.entities.HkTask.update(taskId, taskUpdates);
     },
     onMutate: async ({ item, updates }) => {
       await qc.cancelQueries(['hk-task-items', taskId]);
