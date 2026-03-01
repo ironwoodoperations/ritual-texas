@@ -476,10 +476,10 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Whitney Focus + Toast Panels */}
+        {/* Whitney Focus + Intake Panels */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-10">
           <WhitneyFocusPanel todayStr={todayStr} />
-          <ToastOpsPanel todayStr={todayStr} refetchSummary={refetchToast} />
+          <IntakePanel intakeForms={intakeForms} intakeNewInquiries={intakeNewInquiries} />
         </div>
 
         {/* Section nav tiles */}
