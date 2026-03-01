@@ -29,6 +29,7 @@ const tomorrow = () => {
 export default function AdminHousekeeping() {
   const [tab, setTab] = useState('today');
   const [showAddTask, setShowAddTask] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [showAddNote, setShowAddNote] = useState(false);
   const [newTask, setNewTask] = useState({ roomId: '', taskType: 'checkout', priority: 'normal', adminNotes: '', taskDate: today() });
   const [newNote, setNewNote] = useState({ scope: 'hotel', roomId: '', note: '', priority: 'normal' });
