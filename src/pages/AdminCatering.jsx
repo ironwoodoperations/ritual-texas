@@ -66,9 +66,12 @@ export default function AdminCatering() {
       {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #0C1C2C 0%, #132336 100%)', borderBottom: '1px solid rgba(198,168,94,.2)', padding: '20px 16px' }}>
         <div className="catering-header" style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <p style={{ color: '#C6A85E', fontSize: '12px', letterSpacing: '3px', margin: '0 0 6px' }}>HOTEL RITUAL</p>
-            <h1 style={{ color: '#F5F0E8', fontSize: '28px', fontWeight: 300, margin: 0 }}>Catering</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Link to={createPageUrl('AdminDashboard')} style={{ color: '#C6A85E', display: 'flex', padding: '6px', flexShrink: 0 }}><ArrowLeft size={20} /></Link>
+            <div>
+              <p style={{ color: '#C6A85E', fontSize: '12px', letterSpacing: '3px', margin: '0 0 6px' }}>HOTEL RITUAL</p>
+              <h1 style={{ color: '#F5F0E8', fontSize: '28px', fontWeight: 300, margin: 0 }}>Catering</h1>
+            </div>
           </div>
           <div className="catering-header-btns" style={{ display: 'flex', gap: '10px' }}>
             <Link
