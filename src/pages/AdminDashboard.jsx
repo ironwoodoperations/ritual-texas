@@ -224,6 +224,42 @@ export default function AdminDashboard() {
   });
   const toastToday = toastDailyRows?.[0] ?? null;
 
+  // ── Toast Weekly ──
+  const weekStart = useMemo(() => {
+    const d = new Date();
+    const day = d.getDay(); // 0=Sun, 1=Mon, ...
+    // Roll back to most recent Monday
+    const diff = day === 0 ? 6 : day - 1;
+    d.setDate(d.getDate() - diff);
+    d.setHours(0, 0, 0, 0);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }, []);
+
+  const { data: toastWeekRows = [] } = useQuery({
+    queryKey: ["toast-weekly-summary", weekStart],
+    queryFn: async () => {
+      try {
+        return await base44.entities.ToastDailySummary.filter({
+          businessDate: { $gte: weekStart },
+        });
+      } catch {
+        return [];
+      }
+    },
+  });
+
+  const toastWeeklySales = useMemo(() =>
+    toastWeekRows.reduce((sum, r) => sum + (r.netSales || 0), 0),
+    [toastWeekRows]
+  );
+  const toastWeeklyLabor = useMemo(() =>
+    toastWeekRows.reduce((sum, r) => sum + (r.laborTotalCost || 0), 0),
+    [toastWeekRows]
+  );
+
   // ── Nav sections ──
   const sections = [
     {
