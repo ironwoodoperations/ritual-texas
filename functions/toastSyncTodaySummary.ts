@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
         Authorization: `Basic ${basic}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ grantType: 'client_credentials' }),
+      body: JSON.stringify({ userAccessType: 'TOAST_MACHINE_CLIENT', grantType: 'client_credentials' }),
     });
 
     if (!authRes.ok) {
