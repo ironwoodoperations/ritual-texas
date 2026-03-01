@@ -26,14 +26,11 @@ Deno.serve(async (req) => {
       dateStr = `${yyyy}-${mm}-${dd}`;
     }
 
+    // Auth
     const authRes = await fetch(authUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userAccessType: 'TOAST_MACHINE_CLIENT',
-        clientId,
-        clientSecret,
-      }),
+      body: JSON.stringify({ userAccessType: 'TOAST_MACHINE_CLIENT', clientId, clientSecret }),
     });
 
     if (!authRes.ok) {
@@ -42,11 +39,22 @@ Deno.serve(async (req) => {
     }
 
     const authData = await authRes.json();
-    const token = authData.access_token;
+    // Toast returns token nested: { token: { accessToken: '...' } }
+    const token = authData?.token?.accessToken || authData?.access_token || authData?.accessToken;
 
+    if (!token) {
+      return Response.json({ ok: false, error: `No token in auth response: ${JSON.stringify(authData)}` }, { status: 400 });
+    }
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Toast-Restaurant-External-ID': restaurantGuid,
+    };
+
+    // Fetch sales summary
     const summaryRes = await fetch(
       `${apiBase}/analytics/v2/reports/sales?restaurantGuid=${restaurantGuid}&businessDate=${dateStr}`,
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers }
     );
 
     if (!summaryRes.ok) {
@@ -56,12 +64,12 @@ Deno.serve(async (req) => {
 
     const salesData = await summaryRes.json();
 
-    const netSales = salesData?.netSales ?? 0;
-    const laborTotalCost = salesData?.laborTotalCost ?? 0;
-    const laborHours = salesData?.laborHours ?? 0;
+    const netSales = salesData?.netSales ?? salesData?.summary?.netSales ?? 0;
+    const laborTotalCost = salesData?.laborTotalCost ?? salesData?.summary?.laborTotalCost ?? 0;
+    const laborHours = salesData?.laborHours ?? salesData?.summary?.laborHours ?? 0;
     const salesPerLaborHour = laborHours > 0 ? netSales / laborHours : 0;
 
-    // Upsert: find existing row for date, update or create
+    // Upsert
     const existing = await base44.asServiceRole.entities.ToastDailySummary.filter({ businessDate: dateStr });
 
     if (existing?.length > 0) {
