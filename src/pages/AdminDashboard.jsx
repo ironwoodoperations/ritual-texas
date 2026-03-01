@@ -277,7 +277,7 @@ export default function AdminDashboard() {
   );
 
   // ── Toast ──
-  const { data: toastDailyRows = [], refetch: refetchToast } = useQuery({
+  const { data: toastDailyRows = [] } = useQuery({
     queryKey: ["toast-daily-summary-row", todayStr],
     queryFn: async () => {
       try {
