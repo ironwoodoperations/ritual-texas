@@ -457,10 +457,10 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Whitney Focus + Intake Panels */}
+        {/* Whitney Focus + Google Calendar Panels */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-10">
           <WhitneyFocusPanel todayStr={todayStr} />
-          <IntakePanel intakeForms={intakeForms} intakeNewInquiries={intakeNewInquiries} />
+          <GoogleCalendarPanel />
         </div>
 
         {/* Section nav tiles */}
