@@ -51,13 +51,25 @@ export default function AdminHousekeepingTask() {
   const updateItemMutation = useMutation({
     mutationFn: async ({ item, updates }) => {
       await base44.entities.HkTaskItem.update(item.id, updates);
-      // recalc totals
-      const allItems = await base44.entities.HkTaskItem.filter({ taskId });
+      // recalc totals using optimistic cache
+      const cached = qc.getQueryData(['hk-task-items', taskId]) || [];
+      const allItems = cached.map(i => i.id === item.id ? { ...i, ...updates } : i);
       const done = allItems.filter(i => i.isDone).length;
       const pct = allItems.length > 0 ? Math.round(done / allItems.length * 100) : 0;
       await base44.entities.HkTask.update(taskId, { completedItems: done, totalItems: allItems.length, completionPercent: pct });
     },
-    onSuccess: () => { qc.invalidateQueries(['hk-task-items', taskId]); qc.invalidateQueries(['hk-task', taskId]); qc.invalidateQueries(['hk-tasks']); }
+    onMutate: async ({ item, updates }) => {
+      await qc.cancelQueries(['hk-task-items', taskId]);
+      const prev = qc.getQueryData(['hk-task-items', taskId]);
+      qc.setQueryData(['hk-task-items', taskId], old =>
+        (old || []).map(i => i.id === item.id ? { ...i, ...updates } : i)
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['hk-task-items', taskId], ctx.prev);
+    },
+    onSuccess: () => { qc.invalidateQueries(['hk-task', taskId]); qc.invalidateQueries(['hk-tasks']); }
   });
 
   const updateTaskMutation = useMutation({
