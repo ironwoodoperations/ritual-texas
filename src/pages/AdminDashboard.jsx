@@ -38,27 +38,15 @@ function fmtMoney(n) {
   return `$${Number(n).toFixed(0)}`;
 }
 
-/** Toast Ops Panel */
-function ToastOpsPanel({ todayStr }) {
+// ─── Toast Ops Panel ────────────────────────────────────────────────────────
+function ToastOpsPanel({ todayStr, refetchSummary }) {
   const [status, setStatus] = React.useState("");
-
-  const { data: toastSummaryRow = null, refetch } = useQuery({
-    queryKey: ["toast-daily-summary", todayStr],
-    queryFn: async () => {
-      try {
-        const rows = await base44.entities.ToastDailySummary.filter({ businessDate: todayStr });
-        return rows?.[0] ?? null;
-      } catch {
-        return null;
-      }
-    },
-  });
 
   async function test() {
     setStatus("Testing Toast…");
     try {
-      await base44.functions.invoke("toastTestConnection");
-      setStatus("✅ Toast connected");
+      const res = await base44.functions.invoke("toastTestConnection");
+      setStatus(res.data?.ok ? "✅ Toast connected" : `❌ ${res.data?.error}`);
     } catch (e) {
       setStatus(`❌ ${e.message}`);
     }
@@ -68,18 +56,18 @@ function ToastOpsPanel({ todayStr }) {
     setStatus("Syncing Toast menu…");
     try {
       const res = await base44.functions.invoke("toastSyncMenu");
-      setStatus(`✅ ${res.data?.message || "Menu synced"}`);
+      setStatus(`✅ ${res.data?.message || "Done"}`);
     } catch (e) {
       setStatus(`❌ ${e.message}`);
     }
   }
 
   async function syncToday() {
-    setStatus("Syncing Toast sales + labor for today…");
+    setStatus("Syncing Toast sales + labor…");
     try {
-      await base44.functions.invoke("toastSyncTodaySummary");
-      await refetch();
-      setStatus("✅ Today summary updated");
+      const res = await base44.functions.invoke("toastSyncTodaySummary");
+      await refetchSummary();
+      setStatus(res.data?.ok ? "✅ Today summary updated" : `❌ ${res.data?.error}`);
     } catch (e) {
       setStatus(`❌ ${e.message}`);
     }
@@ -87,38 +75,29 @@ function ToastOpsPanel({ todayStr }) {
 
   return (
     <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 mb-3">
         <div>
           <div className="text-sm font-medium text-[rgb(45,45,45)]">Toast Integration</div>
-          <div className="text-xs text-[rgb(150,150,150)]">Menu + Today Sales + Labor</div>
-        </div>
-        <div className="text-xs text-[rgb(150,150,150)]">
-          {toastSummaryRow?.updatedAt
-            ? `Updated ${new Date(toastSummaryRow.updatedAt).toLocaleTimeString()}`
-            : "Not synced yet"}
+          <div className="text-xs text-[rgb(150,150,150)]">Menu · Today Sales · Labor</div>
         </div>
       </div>
-      <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
-        {[
-          { label: "Test Connection", fn: test },
-          { label: "Sync Menu", fn: syncMenu },
-          { label: "Sync Today", fn: syncToday },
-        ].map(({ label, fn }) => (
-          <button
-            key={label}
-            onClick={fn}
-            className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-colors"
-          >
-            {label}
-          </button>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <button onClick={test} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-colors">
+          Test Connection
+        </button>
+        <button onClick={syncMenu} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-colors">
+          Sync Menu
+        </button>
+        <button onClick={syncToday} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-colors">
+          Sync Today
+        </button>
       </div>
-      {status && <div className="mt-3 text-xs text-[rgb(107,85,64)]">{status}</div>}
+      {status && <div className="mt-3 text-xs text-[rgb(120,120,120)]">{status}</div>}
     </div>
   );
 }
 
-/** Admin Dashboard */
+// ─── Main Dashboard ──────────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
 
@@ -138,6 +117,7 @@ export default function AdminDashboard() {
   const today = useMemo(() => new Date(), []);
   const todayStr = useMemo(() => todayStrLocal(), []);
 
+  // ── Restaurant leads ──
   const { data: restaurantReservations = [] } = useQuery({
     queryKey: ["restaurant-reservations-admin"],
     queryFn: () => base44.entities.RestaurantReservationRequests.list("-created_date", 50),
@@ -150,6 +130,11 @@ export default function AdminDashboard() {
     queryKey: ["contact-leads-dash"],
     queryFn: () => base44.entities.RestaurantContactLeads.filter({ status: "new" }),
   });
+  const pendingReservations = restaurantReservations.filter((r) => r.status === "pending");
+  const pendingEvents = eventLeads.filter((e) => e.status === "pending");
+  const restaurantLeadsCount = pendingReservations.length + pendingEvents.length;
+
+  // ── Housekeeping ──
   const { data: hkIssues = [] } = useQuery({
     queryKey: ["hk-issues-open-dash"],
     queryFn: () => base44.entities.HkIssue.filter({ status: "open" }),
@@ -162,63 +147,31 @@ export default function AdminDashboard() {
     queryKey: ["hk-tasks-overdue-open-dash", todayStr],
     queryFn: async () => {
       try {
-        return await base44.entities.HkTask.filter({
-          taskDate: { $lt: todayStr },
-          status: { $in: HK_OPEN_STATUSES },
-        });
-      } catch {
         const [pending, inProg] = await Promise.all([
           base44.entities.HkTask.filter({ taskDate: { $lt: todayStr }, status: "pending" }),
           base44.entities.HkTask.filter({ taskDate: { $lt: todayStr }, status: "in_progress" }),
         ]);
         return [...pending, ...inProg];
-      }
-    },
-  });
-  const { data: spaBookings = [] } = useQuery({
-    queryKey: ["spa-bookings-dash"],
-    queryFn: () => base44.entities.SpaBooking.list("-startAt", 250),
-  });
-  const { data: hotelBookings = [] } = useQuery({
-    queryKey: ["hotel-bookings-dash"],
-    queryFn: () => base44.entities.Booking.list("-check_in_date", 400),
-  });
-  const { data: packageInquiries = [] } = useQuery({
-    queryKey: ["pkg-inquiries-dash"],
-    queryFn: () => base44.entities.PackageInquiry.filter({ status: "new" }),
-  });
-  const { data: cateringQuotes = [] } = useQuery({
-    queryKey: ["catering-quotes-dash"],
-    queryFn: () => base44.entities.CateringQuote.list("-created_date", 120),
-  });
-  const { data: toastDailyRows = [] } = useQuery({
-    queryKey: ["toast-daily-summary-row", todayStr],
-    queryFn: async () => {
-      try {
-        return await base44.entities.ToastDailySummary.filter({ businessDate: todayStr });
       } catch {
         return [];
       }
     },
   });
+  const hkTodayOpen = hkTasksTodayAll.filter((t) => HK_OPEN_STATUSES.includes(t.status));
+  const hkNeedsCount = hkTodayOpen.length + hkTasksOverdueOpen.length;
 
-  const toastToday = toastDailyRows?.[0] ?? null;
-
-  const pendingReservations = restaurantReservations.filter(r => r.status === "pending");
-  const pendingEvents = eventLeads.filter(e => e.status === "pending");
-  const restaurantLeadsCount = pendingReservations.length + pendingEvents.length;
-
-  const hkTodayOpen = hkTasksTodayAll.filter(t => HK_OPEN_STATUSES.includes(t.status));
-  const hkNeedsCount = (hkTodayOpen?.length || 0) + (hkTasksOverdueOpen?.length || 0);
-
+  // ── Spa ──
+  const { data: spaBookings = [] } = useQuery({
+    queryKey: ["spa-bookings-dash"],
+    queryFn: () => base44.entities.SpaBooking.list("-startAt", 250),
+  });
   const todaySpa = spaBookings.filter(
-    b => b.startAt?.slice(0, 10) === todayStr && b.status !== "booking.cancelled"
+    (b) => b.startAt?.slice(0, 10) === todayStr && b.status !== "booking.cancelled"
   );
-
   const spaGapCount = useMemo(() => {
     const sorted = [...todaySpa]
-      .map(b => ({ ...b, _dt: parseIsoMaybe(b.startAt) }))
-      .filter(b => b._dt)
+      .map((b) => ({ ...b, _dt: parseIsoMaybe(b.startAt) }))
+      .filter((b) => b._dt)
       .sort((a, b) => a._dt.getTime() - b._dt.getTime());
     if (sorted.length < 2) return 0;
     let gaps = 0;
@@ -228,20 +181,50 @@ export default function AdminDashboard() {
     return gaps;
   }, [todaySpa]);
 
+  // ── Hotel ──
+  const { data: hotelBookings = [] } = useQuery({
+    queryKey: ["hotel-bookings-dash"],
+    queryFn: () => base44.entities.Booking.list("-check_in_date", 400),
+  });
   const activeHotelBookings = hotelBookings.filter(
-    b => String(b.booking_status || "").toLowerCase() !== "cancelled"
+    (b) => String(b.booking_status || "").toLowerCase() !== "cancelled"
   );
-  const arrivalsToday = activeHotelBookings.filter(b => b.check_in_date === todayStr);
-  const departuresToday = activeHotelBookings.filter(b => b.check_out_date === todayStr);
+  const arrivalsToday = activeHotelBookings.filter((b) => b.check_in_date === todayStr);
+  const departuresToday = activeHotelBookings.filter((b) => b.check_out_date === todayStr);
   const inHouseTonight = activeHotelBookings.filter(
-    b => b.check_in_date <= todayStr && b.check_out_date > todayStr
+    (b) => b.check_in_date <= todayStr && b.check_out_date > todayStr
   );
 
+  // ── Concierge ──
+  const { data: packageInquiries = [] } = useQuery({
+    queryKey: ["pkg-inquiries-dash"],
+    queryFn: () => base44.entities.PackageInquiry.filter({ status: "new" }),
+  });
   const conciergeRequests = [...contactLeads, ...packageInquiries];
-  const activeCatering = cateringQuotes.filter(q =>
+
+  // ── Catering ──
+  const { data: cateringQuotes = [] } = useQuery({
+    queryKey: ["catering-quotes-dash"],
+    queryFn: () => base44.entities.CateringQuote.list("-created_date", 120),
+  });
+  const activeCatering = cateringQuotes.filter((q) =>
     ["draft", "sent", "accepted", "deposit_paid"].includes(q.status)
   );
 
+  // ── Toast ──
+  const { data: toastDailyRows = [], refetch: refetchToast } = useQuery({
+    queryKey: ["toast-daily-summary-row", todayStr],
+    queryFn: async () => {
+      try {
+        return await base44.entities.ToastDailySummary.filter({ businessDate: todayStr });
+      } catch {
+        return [];
+      }
+    },
+  });
+  const toastToday = toastDailyRows?.[0] ?? null;
+
+  // ── Nav sections ──
   const sections = [
     {
       title: "Rooms & Stays",
@@ -330,8 +313,8 @@ export default function AdminDashboard() {
         <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5 mb-6">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <p className="text-xs tracking-widest font-medium text-[rgb(150,150,150)] mb-1">WHITNEY FOCUS — TODAY</p>
-              <h2 className="text-base font-medium text-[rgb(45,45,45)]">Open the day in 60 seconds</h2>
+              <p className="text-xs tracking-widest font-medium text-[rgb(150,150,150)] mb-1">WHITNEY FOCUS · TODAY</p>
+              <h2 className="text-lg font-medium text-[rgb(45,45,45)]">Open the day in 60 seconds</h2>
             </div>
             <div className="hidden sm:flex items-center gap-1 text-xs text-[rgb(150,150,150)]">
               <Activity className="w-4 h-4" /> Live data
@@ -343,41 +326,33 @@ export default function AdminDashboard() {
                 <span className="text-sm font-semibold text-[rgb(107,85,64)]">Hotel</span>
                 <BedSingle className="w-4 h-4 text-[rgb(107,85,64)]" />
               </div>
-              <div className="text-xs text-[rgb(120,120,120)]">
-                {arrivalsToday.length} arriving · {departuresToday.length} departing · {inHouseTonight.length} in-house
-              </div>
+              <p className="text-xs text-[rgb(120,120,120)]">{arrivalsToday.length} arriving · {departuresToday.length} departing · {inHouseTonight.length} in-house</p>
             </Link>
             <Link to={createPageUrl("AdminSpaSchedule")} className="rounded-xl border border-[rgb(235,225,213)] bg-[rgb(248,246,242)] px-4 py-3 hover:bg-white hover:shadow-sm transition-all">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-semibold text-[rgb(150,170,155)]">Spa Today</span>
                 <Sparkles className="w-4 h-4 text-[rgb(150,170,155)]" />
               </div>
-              <div className="text-xs text-[rgb(120,120,120)]">
-                {todaySpa.length} appointments · {spaGapCount} gap{spaGapCount === 1 ? "" : "s"}
-              </div>
+              <p className="text-xs text-[rgb(120,120,120)]">{todaySpa.length} appointments · {spaGapCount} gap{spaGapCount === 1 ? "" : "s"}</p>
             </Link>
             <Link to={createPageUrl("AdminHousekeeping")} className="rounded-xl border border-[rgb(235,225,213)] bg-[rgb(248,246,242)] px-4 py-3 hover:bg-white hover:shadow-sm transition-all">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-semibold text-[rgb(120,140,160)]">Housekeeping</span>
                 <Brush className="w-4 h-4 text-[rgb(120,140,160)]" />
               </div>
-              <div className="text-xs text-[rgb(120,120,120)]">
-                {hkNeedsCount} open{hkIssues.length ? ` · ${hkIssues.length} issue${hkIssues.length === 1 ? "" : "s"}` : ""}
-              </div>
+              <p className="text-xs text-[rgb(120,120,120)]">{hkNeedsCount} open{hkIssues.length ? ` · ${hkIssues.length} issue${hkIssues.length === 1 ? "" : "s"}` : ""}</p>
             </Link>
             <Link to={createPageUrl("AdminRestaurant")} className="rounded-xl border border-[rgb(235,225,213)] bg-[rgb(248,246,242)] px-4 py-3 hover:bg-white hover:shadow-sm transition-all">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-semibold text-[rgb(196,155,145)]">Restaurant</span>
                 <UtensilsCrossed className="w-4 h-4 text-[rgb(196,155,145)]" />
               </div>
-              <div className="text-xs text-[rgb(120,120,120)]">
-                Sales {fmtMoney(toastToday?.netSales)} · Labor {fmtMoney(toastToday?.laborTotalCost)} · Leads {restaurantLeadsCount}
-              </div>
+              <p className="text-xs text-[rgb(120,120,120)]">Sales {fmtMoney(toastToday?.netSales)} · Labor {fmtMoney(toastToday?.laborTotalCost)} · {restaurantLeadsCount} leads</p>
             </Link>
           </div>
         </div>
 
-        {/* Today at a Glance */}
+        {/* Today at a Glance — primary tiles */}
         <p className="text-xs tracking-widest font-medium text-[rgb(150,150,150)] mb-3">TODAY AT A GLANCE</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-4">
           {[
@@ -385,10 +360,10 @@ export default function AdminDashboard() {
             { label: "Departures", value: departuresToday.length, icon: CalendarDays, color: "rgb(107,85,64)", page: "AdminBookings" },
             { label: "In-House", value: inHouseTonight.length, icon: BedDouble, color: "rgb(107,85,64)", page: "AdminBookings" },
             { label: "Spa Appts", value: todaySpa.length, icon: Sparkles, color: "rgb(150,170,155)", page: "AdminSpaSchedule" },
-            { label: "Spa Gaps (≥60m)", value: spaGapCount, icon: Timer, color: spaGapCount > 0 ? "rgb(196,155,145)" : "rgb(150,150,150)", page: "AdminSpaSchedule" },
+            { label: "Spa Gaps", value: spaGapCount, icon: Timer, color: spaGapCount > 0 ? "rgb(196,155,145)" : "rgb(150,150,150)", page: "AdminSpaSchedule" },
             { label: "HK Needs", value: hkNeedsCount, icon: Brush, color: hkNeedsCount > 0 ? "rgb(120,140,160)" : "rgb(150,150,150)", page: "AdminHousekeeping", alert: hkIssues.length > 0, alertLabel: `${hkIssues.length} issue${hkIssues.length !== 1 ? "s" : ""}` },
             { label: "Concierge", value: conciergeRequests.length, icon: MessageSquare, color: conciergeRequests.length > 0 ? "rgb(107,85,64)" : "rgb(150,150,150)", page: "AdminConciergeInbox" },
-            { label: "Active Catering", value: activeCatering.length, icon: ChefHat, color: "rgb(196,155,145)", page: "AdminCatering" },
+            { label: "Catering", value: activeCatering.length, icon: ChefHat, color: "rgb(196,155,145)", page: "AdminCatering" },
           ].map((stat, i) => (
             <motion.div key={stat.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
               <Link to={createPageUrl(stat.page)} className="block bg-white border border-[rgb(235,225,213)] p-4 rounded-xl hover:shadow-md hover:border-[rgb(198,182,165)] transition-all group">
@@ -406,14 +381,14 @@ export default function AdminDashboard() {
         </div>
 
         {/* Toast tiles */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
           {[
             { label: "Net Sales (Today)", value: fmtMoney(toastToday?.netSales), icon: BadgeDollarSign, color: "rgb(196,155,145)" },
             { label: "Labor Cost (Today)", value: fmtMoney(toastToday?.laborTotalCost), icon: Users, color: "rgb(120,140,160)" },
             { label: "Sales / Labor Hr", value: toastToday?.salesPerLaborHour != null ? `$${Number(toastToday.salesPerLaborHour).toFixed(0)}` : "—", icon: Timer, color: "rgb(150,170,155)" },
             { label: "Restaurant Leads", value: restaurantLeadsCount, icon: UtensilsCrossed, color: "rgb(196,155,145)" },
           ].map((stat, i) => (
-            <Link key={stat.label} to={createPageUrl("AdminRestaurant")} className="block bg-white border border-[rgb(235,225,213)] p-4 rounded-xl hover:shadow-md hover:border-[rgb(198,182,165)] transition-all">
+            <Link key={stat.label} to={createPageUrl("AdminRestaurant")} className="block bg-white border border-[rgb(235,225,213)] p-4 rounded-xl hover:shadow-md transition-all">
               <div className="flex items-start justify-between mb-2">
                 <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
                 <span className="text-[10px] bg-[rgb(248,246,242)] text-[rgb(120,120,120)] px-1.5 py-0.5 rounded-full font-medium">Toast</span>
@@ -426,7 +401,7 @@ export default function AdminDashboard() {
 
         {/* Toast Ops Panel */}
         <div className="mb-10">
-          <ToastOpsPanel todayStr={todayStr} />
+          <ToastOpsPanel todayStr={todayStr} refetchSummary={refetchToast} />
         </div>
 
         {/* Section nav tiles */}
