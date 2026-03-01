@@ -20,15 +20,14 @@ Deno.serve(async (req) => {
     const dd = String(today.getDate()).padStart(2, '0');
     const todayStr = `${yyyy}-${mm}-${dd}`;
 
-    const basic = btoa(`${clientId}:${clientSecret}`);
-
     const authRes = await fetch(authUrl, {
       method: 'POST',
-      headers: {
-        Authorization: `Basic ${basic}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userAccessType: 'TOAST_MACHINE_CLIENT', grantType: 'client_credentials' }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userAccessType: 'TOAST_MACHINE_CLIENT',
+        clientId,
+        clientSecret,
+      }),
     });
 
     if (!authRes.ok) {

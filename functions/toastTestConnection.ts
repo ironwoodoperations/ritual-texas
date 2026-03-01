@@ -12,15 +12,14 @@ Deno.serve(async (req) => {
     const clientSecret = Deno.env.get('TOAST_CLIENT_SECRET');
     const authUrl = Deno.env.get('TOAST_AUTH_URL');
 
-    const basic = btoa(`${clientId}:${clientSecret}`);
-
     const res = await fetch(authUrl, {
       method: 'POST',
-      headers: {
-        Authorization: `Basic ${basic}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userAccessType: 'TOAST_MACHINE_CLIENT', grantType: 'client_credentials' }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userAccessType: 'TOAST_MACHINE_CLIENT',
+        clientId,
+        clientSecret,
+      }),
     });
 
     if (!res.ok) {
