@@ -459,15 +459,20 @@ export default function AdminDashboard() {
               </div>
               <p className="text-xs text-[rgb(120,120,120)]">Sales {fmtMoney(toastWeeklySales)} · Labor {fmtMoney(toastWeeklyLabor)} · resets Mon</p>
             </div>
-            {intakeFollowUpCount > 0 && (
-              <Link to={createPageUrl("AdminIntake")} className="rounded-xl border border-[rgb(107,85,64)] bg-[rgb(248,246,242)] px-4 py-3 hover:bg-white hover:shadow-sm transition-all">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-semibold text-[rgb(107,85,64)]">Intake Follow-Up</span>
-                  <ClipboardList className="w-4 h-4 text-[rgb(107,85,64)]" />
-                </div>
-                <p className="text-xs text-[rgb(120,120,120)]">{intakeFollowUpCount} intake{intakeFollowUpCount === 1 ? "" : "s"} need attention</p>
-              </Link>
-            )}
+            <Link to={createPageUrl("AdminIntake")} className={`rounded-xl border bg-[rgb(248,246,242)] px-4 py-3 hover:bg-white hover:shadow-sm transition-all ${intakeFollowUpCount > 0 ? "border-[rgb(107,85,64)]" : "border-[rgb(235,225,213)]"}`}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-semibold text-[rgb(107,85,64)]">Intake</span>
+                <ClipboardList className="w-4 h-4 text-[rgb(107,85,64)]" />
+              </div>
+              <p className="text-xs text-[rgb(120,120,120)]">{intakeFollowUpCount > 0 ? `${intakeFollowUpCount} need attention` : "Hotel + Treatment"}</p>
+            </Link>
+            <Link to={createPageUrl("AdminConciergeInbox")} className={`rounded-xl border bg-[rgb(248,246,242)] px-4 py-3 hover:bg-white hover:shadow-sm transition-all ${conciergeRequests.length > 0 ? "border-[rgb(150,170,155)]" : "border-[rgb(235,225,213)]"}`}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-semibold text-[rgb(150,170,155)]">Concierge</span>
+                <MessageSquare className="w-4 h-4 text-[rgb(150,170,155)]" />
+              </div>
+              <p className="text-xs text-[rgb(120,120,120)]">{conciergeRequests.length > 0 ? `${conciergeRequests.length} unread` : "Inbox"}</p>
+            </Link>
           </div>
         </div>
 
