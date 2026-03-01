@@ -97,17 +97,39 @@ function IntakeForm({ initial = BLANK, onSave, onCancel }) {
       {/* Treatment Request */}
       <div>
         <p className={sectionTitle}>Treatment Request</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <textarea name="treatmentsRequested" placeholder="Treatments Requested (list each)" value={form.treatmentsRequested} onChange={chk} className={inputCls + " h-24 resize-none"} />
-          <div className="space-y-3">
+        <div className="space-y-3">
+          {/* Treatment checkboxes */}
+          {treatments.length > 0 && (
+            <div className="border border-[rgb(235,225,213)] rounded-xl p-3">
+              <p className="text-xs text-[rgb(150,150,150)] mb-2">Select treatments (check all that apply)</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {treatments.map(t => {
+                  const label = `${t.name}${t.duration_minutes ? ` (${t.duration_minutes}min)` : ""}${t.price ? ` — $${t.price}` : ""}`;
+                  const checked = (form.selectedTreatments || []).includes(t.name + (t.duration_minutes ? ` ${t.duration_minutes}min` : ""));
+                  const key = t.name + (t.duration_minutes ? ` ${t.duration_minutes}min` : "");
+                  return (
+                    <label key={t.id} className="flex items-center gap-2 text-sm text-[rgb(45,45,45)] cursor-pointer select-none py-1">
+                      <input type="checkbox" checked={checked} onChange={() => toggleTreatment(key)} className="accent-[rgb(150,170,155)] shrink-0" />
+                      <span>{label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              {(form.selectedTreatments?.length > 0) && (
+                <p className="text-xs text-[rgb(150,170,155)] mt-2 font-medium">{form.selectedTreatments.length} selected</p>
+              )}
+            </div>
+          )}
+          <textarea name="treatmentsRequested" placeholder="Additional treatment notes or special requests…" value={form.treatmentsRequested} onChange={chk} className={inputCls + " h-20 resize-none"} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input name="preferredTherapist" placeholder="Preferred Therapist" value={form.preferredTherapist} onChange={chk} className={inputCls} />
-            <div><label className="text-xs text-[rgb(150,150,150)] mb-1 block">Preferred Treatment Date</label><input type="date" name="preferredTreatmentDate" value={form.preferredTreatmentDate} onChange={chk} className={inputCls} /></div>
             <input name="preferredTreatmentTime" placeholder="Preferred Time (e.g. 2pm)" value={form.preferredTreatmentTime} onChange={chk} className={inputCls} />
+            <div><label className="text-xs text-[rgb(150,150,150)] mb-1 block">Preferred Treatment Date</label><input type="date" name="preferredTreatmentDate" value={form.preferredTreatmentDate} onChange={chk} className={inputCls} /></div>
+            <label className={labelCls + " border border-[rgb(235,225,213)] rounded-xl px-3 py-2"}>
+              <input type="checkbox" name="flexibleOnTime" checked={form.flexibleOnTime} onChange={chk} className="accent-[rgb(150,170,155)]" />
+              Flexible on Time
+            </label>
           </div>
-          <label className={labelCls + " border border-[rgb(235,225,213)] rounded-xl px-3 py-2"}>
-            <input type="checkbox" name="flexibleOnTime" checked={form.flexibleOnTime} onChange={chk} className="accent-[rgb(150,170,155)]" />
-            Flexible on Time
-          </label>
         </div>
       </div>
 
