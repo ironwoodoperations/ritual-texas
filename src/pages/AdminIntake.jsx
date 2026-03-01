@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Plus, Search, ChevronDown, ChevronUp, Save, CheckCircle2, Clock, XCircle, Phone, Mail, MessageSquare } from "lucide-react";
+import { ArrowLeft, Plus, Search, ChevronDown, ChevronUp, Save, CheckCircle2, Clock, XCircle, Phone, Mail, MessageSquare, CreditCard, Lock } from "lucide-react";
 import { format } from "date-fns";
 
 const STATUS_COLORS = {
