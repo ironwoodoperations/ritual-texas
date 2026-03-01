@@ -124,7 +124,7 @@ export default function AdminHousekeepingTask() {
   const pct = task?.completionPercent || 0;
 
   const S = {
-    page: { minHeight: '100vh', background: '#0C1C2C', fontFamily: "'Georgia', serif", color: '#F5F0E8', paddingBottom: '100px' },
+    page: { minHeight: '100vh', background: '#0C1C2C', fontFamily: "'Georgia', serif", color: '#F5F0E8', paddingBottom: '160px' },
     input: { width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'sans-serif' },
   };
 
