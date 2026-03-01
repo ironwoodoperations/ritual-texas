@@ -95,6 +95,7 @@ import afterBooking from './pages/afterBooking';
 import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
+import AdminIntake from './pages/AdminIntake';
 import __Layout from './Layout.jsx';
 
 
@@ -147,6 +148,7 @@ export const PAGES = {
     "booking": booking,
     "concierge": concierge,
     "itinerary": itinerary,
+    "AdminIntake": AdminIntake,
 }
 
 export const pagesConfig = {
