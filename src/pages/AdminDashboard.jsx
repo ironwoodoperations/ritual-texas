@@ -325,6 +325,7 @@ export default function AdminDashboard() {
         { icon: BedDouble, label: "Rooms", page: "AdminRooms" },
         { icon: FileText, label: "Packages", page: "AdminPackages" },
         { icon: Bell, label: "Package Inquiries", page: "AdminPackageInquiries" },
+        { icon: ClipboardList, label: "Hotel + Treatment Intake", page: "AdminIntake" },
       ],
     },
     {
