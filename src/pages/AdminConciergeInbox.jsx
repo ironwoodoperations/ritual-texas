@@ -269,7 +269,18 @@ export default function AdminConciergeInbox() {
                         </div>
                         <div className="flex items-center gap-2 flex-wrap mb-2">
                           {(inq.email || inq.guest_email) && <a href={`mailto:${inq.email || inq.guest_email}`} className="text-xs text-[rgb(107,85,64)] hover:underline">{inq.email || inq.guest_email}</a>}
-                          {(inq.phone || inq.guest_phone) && <a href={`sms:${inq.phone || inq.guest_phone}`} className="text-xs text-[rgb(107,85,64)] hover:underline">{inq.phone || inq.guest_phone}</a>}
+                          {(inq.phone || inq.guest_phone) && (() => {
+            const phone = inq.phone || inq.guest_phone;
+            const pkg = inq.package_title || inq.package_name || '';
+            const msgParts = [
+              `Hi ${inq.full_name || inq.guest_name || ''}!`,
+              pkg ? `Regarding your inquiry about: ${pkg}` : '',
+              inq.message ? `\n\nYour message: "${inq.message}"` : '',
+              '\n\n— Hotel RITUAL'
+            ].filter(Boolean).join(' ');
+            const smsHref = `sms:${phone}&body=${encodeURIComponent(msgParts)}`;
+            return <a href={smsHref} className="text-xs text-[rgb(107,85,64)] hover:underline">{phone}</a>;
+          })()}
                         </div>
                         {(inq.package_title || inq.package_name) && (
                           <p className="text-xs font-medium text-[rgb(196,155,145)] mb-1">Package: {inq.package_title || inq.package_name}</p>
