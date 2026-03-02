@@ -230,7 +230,11 @@ function IntakeCard({ record, onUpdate }) {
             )}
           </div>
           <div className="flex items-center gap-3 mt-1 text-xs text-[rgb(120,120,120)] flex-wrap">
-            {record.phone && <span className="flex items-center gap-1">{contactIcon} {record.phone}</span>}
+            {record.phone && (
+              <a href={`sms:${record.phone}`} onClick={e => e.stopPropagation()} className="flex items-center gap-1 text-[rgb(107,85,64)] hover:underline">
+                {contactIcon} {record.phone}
+              </a>
+            )}
             {record.checkInDate && <span>Check-in: {record.checkInDate}</span>}
             {record.roomRequested && <span>Room: {record.roomRequested}</span>}
             {record.followUpDate && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> Follow-up: {record.followUpDate}</span>}
