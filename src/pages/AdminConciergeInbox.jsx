@@ -122,7 +122,10 @@ export default function AdminConciergeInbox() {
                           )}
                           <span className="text-xs text-[rgb(150,150,150)]">{lead.created_date ? format(new Date(lead.created_date), 'MMM d, h:mm a') : ''}</span>
                         </div>
-                        <p className="text-xs text-[rgb(150,150,150)] mb-2">{lead.email}{lead.phone ? ` · ${lead.phone}` : ''}</p>
+                        <div className="flex items-center gap-2 flex-wrap mb-2">
+                          {lead.email && <a href={`mailto:${lead.email}`} className="text-xs text-[rgb(107,85,64)] hover:underline">{lead.email}</a>}
+                          {lead.phone && <a href={`sms:${lead.phone}`} className="text-xs text-[rgb(107,85,64)] hover:underline">{lead.phone}</a>}
+                        </div>
                         <p className="text-sm text-[rgb(45,45,45)] leading-relaxed">{lead.message}</p>
                       </div>
                     </div>
