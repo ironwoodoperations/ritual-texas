@@ -63,9 +63,9 @@ export default function AdminSquareBackup() {
             <div className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2">
               <span className="text-sm text-[rgb(45,45,45)]">Booking Portal</span>
               <div className="flex items-center gap-1">
-                <span className="text-xs text-[rgb(120,120,120)] font-mono">ritualtexas.secure.simplybook.me/v2/</span>
-                <CopyButton text="https://ritualtexas.secure.simplybook.me/v2/" />
-                <a href="https://ritualtexas.secure.simplybook.me/v2/" target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-[rgb(235,225,213)] rounded-lg transition-colors">
+                <span className="text-xs text-[rgb(120,120,120)] font-mono">ritualtexas.simplybook.me/v2/</span>
+                <CopyButton text="https://ritualtexas.simplybook.me/v2/" />
+                <a href="https://ritualtexas.simplybook.me/v2/" target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-[rgb(235,225,213)] rounded-lg transition-colors">
                   <ExternalLink className="w-3.5 h-3.5 text-[rgb(150,150,150)]" />
                 </a>
               </div>

@@ -2,7 +2,7 @@
 import React from "react";
 
 export default function Booking() {
-  const simplybookUrl = "https://ritualtexas.secure.simplybook.me/v2/";
+  const simplybookUrl = "https://ritualtexas.simplybook.me/v2/";
 
   const params = new URLSearchParams(window.location.search);
   const service = (params.get("service") || "").toLowerCase();
