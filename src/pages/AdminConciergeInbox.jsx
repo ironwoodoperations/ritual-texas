@@ -7,9 +7,104 @@ import { ArrowLeft, MessageSquare, Package, CheckCircle, Clock, Mail, Plus, X, S
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 
+function buildReplyEmail(inq) {
+  const guestName = inq.full_name || inq.guest_name || inq.name || '';
+  const pkg = inq.package_title || inq.package_name || '';
+  const checkin = inq.preferred_checkin || '';
+  const checkout = inq.preferred_checkout || '';
+  const guests = inq.guests || '';
+  const originalMsg = inq.message || '';
+
+  const subject = encodeURIComponent(`Re: ${pkg ? pkg + ' Inquiry' : 'Package Inquiry'} — Hotel RITUAL`);
+  const body = encodeURIComponent(
+    `Hi ${guestName},\n\nThank you for your interest${pkg ? ` in the ${pkg}` : ''}!\n\n` +
+    `[Your reply here]\n\n` +
+    `—\n\nHotel RITUAL\n(903) 810-6695\n\n` +
+    `────────────────────\nOriginal Inquiry:\n${pkg ? `Package: ${pkg}\n` : ''}` +
+    `${checkin ? `Check-in: ${checkin}\n` : ''}` +
+    `${checkout ? `Check-out: ${checkout}\n` : ''}` +
+    `${guests ? `Guests: ${guests}\n` : ''}` +
+    `${originalMsg ? `\nMessage: ${originalMsg}` : ''}`
+  );
+  return `mailto:${inq.email || inq.guest_email || ''}?subject=${subject}&body=${body}`;
+}
+
+function CreateIntakeModal({ inq, onClose, onCreated }) {
+  const [saving, setSaving] = useState(false);
+  const guestName = inq.full_name || inq.guest_name || inq.name || '';
+  const email = inq.email || inq.guest_email || '';
+  const phone = inq.phone || inq.guest_phone || '';
+  const pkg = inq.package_title || inq.package_name || '';
+  const checkin = inq.preferred_checkin || '';
+  const checkout = inq.preferred_checkout || '';
+
+  const defaultNotes = [
+    pkg ? `Package Inquiry: ${pkg}` : '',
+    inq.message ? `Guest message: ${inq.message}` : '',
+  ].filter(Boolean).join('\n\n');
+
+  const [notes, setNotes] = useState(defaultNotes);
+
+  async function create() {
+    setSaving(true);
+    await base44.entities.HotelTreatmentIntake.create({
+      guestName,
+      email,
+      phone,
+      checkInDate: checkin,
+      checkOutDate: checkout,
+      numberOfGuests: inq.guests || 1,
+      bookingStatus: 'new_inquiry',
+      verificationStatus: 'pending',
+      preferredContactMethod: 'email',
+      internalNotes: notes,
+      treatmentsRequested: pkg ? `Interested in: ${pkg}` : '',
+    });
+    setSaving(false);
+    onCreated();
+    onClose();
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[rgb(235,225,213)]">
+          <h2 className="text-sm font-medium text-[rgb(107,85,64)]">Create Intake from Inquiry</h2>
+          <button onClick={onClose} className="p-1 hover:bg-[rgb(248,246,242)] rounded"><X className="w-4 h-4" /></button>
+        </div>
+        <div className="p-5 space-y-3">
+          <div className="bg-[rgb(248,246,242)] rounded-xl p-3 text-sm space-y-1">
+            <p className="font-medium text-[rgb(45,45,45)]">{guestName}</p>
+            {email && <p className="text-xs text-[rgb(107,85,64)]">{email}</p>}
+            {phone && <p className="text-xs text-[rgb(107,85,64)]">{phone}</p>}
+            {pkg && <p className="text-xs text-[rgb(150,150,150)]">Package: {pkg}</p>}
+            {checkin && <p className="text-xs text-[rgb(150,150,150)]">Check-in: {checkin}{checkout ? ` → ${checkout}` : ''}</p>}
+          </div>
+          <div>
+            <label className="text-xs text-[rgb(150,150,150)] mb-1 block">Internal Notes (pre-filled from inquiry)</label>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              rows={5}
+              className="w-full border border-[rgb(235,225,213)] rounded-xl px-3 py-2 text-sm text-[rgb(45,45,45)] bg-white focus:outline-none focus:border-[rgb(198,182,165)] resize-none"
+            />
+          </div>
+          <div className="flex gap-3 pt-1">
+            <button onClick={onClose} className="flex-1 px-4 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]">Cancel</button>
+            <button onClick={create} disabled={saving} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[rgb(107,85,64)] text-white text-sm hover:opacity-90 disabled:opacity-50">
+              <Save className="w-4 h-4" /> {saving ? 'Creating…' : 'Create Intake'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminConciergeInbox() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('messages');
+  const [intakeModal, setIntakeModal] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
