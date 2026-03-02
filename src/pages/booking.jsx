@@ -1,42 +1,53 @@
 // pages/booking.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
+
+const SIMPLYBOOK_URL = "https://ritualtexas.simplybook.me/v2/";
 
 export default function Booking() {
-  const simplybookUrl = "https://ritualtexas.simplybook.me/v2/";
   const params = new URLSearchParams(window.location.search);
-  const service = (params.get("service") || "").toLowerCase();
+  const service = (params.get("service") || params.get("treatment") || "").toLowerCase();
+
+  // Auto-open in new tab on mount
+  useEffect(() => {
+    window.open(SIMPLYBOOK_URL, "_blank", "noopener,noreferrer");
+  }, []);
 
   return (
-    <div style={{ position: "fixed", inset: 0, display: "flex", flexDirection: "column", background: "#F0E8DD", zIndex: 10 }}>
-      {/* Slim header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 20px", background: "#FCF9F4", borderBottom: "1px solid rgba(59,72,49,.12)", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <Link to={createPageUrl("Treatments")} style={{ display: "flex", alignItems: "center", gap: "6px", color: "#3B4831", textDecoration: "none", fontSize: "14px", fontWeight: 600 }}>
-            <ArrowLeft style={{ width: 16, height: 16 }} />
-            Back
-          </Link>
-          <span style={{ color: "#aaa" }}>|</span>
-          <span style={{ color: "#3B4831", fontFamily: "serif", fontSize: "18px" }}>
-            Book Your Treatment{service ? <span style={{ fontWeight: 700, fontSize: "14px", marginLeft: 8 }}>({service})</span> : null}
-          </span>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[rgb(240,232,221)] px-6 text-center">
+      <div className="bg-[rgb(252,249,244)] rounded-2xl border border-[rgba(59,72,49,0.1)] shadow-lg p-10 max-w-md w-full">
+        <div className="w-14 h-14 rounded-full bg-[rgba(196,165,92,0.18)] flex items-center justify-center mx-auto mb-5">
+          <ExternalLink className="w-6 h-6 text-[rgb(59,72,49)]" />
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#3B4831", fontWeight: 700, background: "rgba(196,165,92,.18)", border: "1px solid rgba(59,72,49,.10)", borderRadius: 999, padding: "4px 10px" }}>
-          <ShieldCheck style={{ width: 13, height: 13 }} />
-          Secure Booking
+        <h1 className="text-2xl font-light text-[rgb(59,72,49)] mb-3" style={{ fontFamily: "serif" }}>
+          Opening Booking Portal
+        </h1>
+        <p className="text-[rgb(27,27,27)] leading-relaxed mb-6">
+          The booking portal has been opened in a new tab. If it didn't open automatically, tap the button below.
+          {service && <span className="font-semibold"> ({service})</span>}
+        </p>
+        <a
+          href={SIMPLYBOOK_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-[rgb(252,249,244)] mb-4"
+          style={{ background: "#C57C5D" }}
+        >
+          <ExternalLink className="w-4 h-4" />
+          Open Booking Portal
+        </a>
+        <div>
+          <Link
+            to={createPageUrl("Treatments")}
+            className="inline-flex items-center gap-2 text-sm text-[rgb(107,85,64)] hover:underline"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Treatments
+          </Link>
         </div>
       </div>
-
-      {/* Iframe fills remaining space */}
-      <iframe
-        title="Ritual Texas Booking"
-        src={simplybookUrl}
-        style={{ flex: 1, border: 0, width: "100%", display: "block" }}
-        loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
-      />
     </div>
   );
 }
