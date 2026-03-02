@@ -400,63 +400,6 @@ export default function AdminDashboard() {
 
       <div className="max-w-6xl mx-auto p-6">
 
-        {/* Whitney Focus */}
-        <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5 mb-6">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div>
-              <p className="text-xs tracking-widest font-medium text-[rgb(150,150,150)] mb-1">WHITNEY FOCUS · TODAY</p>
-              <h2 className="text-lg font-medium text-[rgb(45,45,45)]">Open the day in 60 seconds</h2>
-            </div>
-            <div className="hidden sm:flex items-center gap-1 text-xs text-[rgb(150,150,150)]">
-              <Activity className="w-4 h-4" /> Live data
-            </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Link to={createPageUrl("AdminBookings")} className="rounded-xl border border-[rgb(235,225,213)] bg-[rgb(248,246,242)] px-4 py-3 hover:bg-white hover:shadow-sm transition-all">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-semibold text-[rgb(107,85,64)]">Hotel</span>
-                <BedSingle className="w-4 h-4 text-[rgb(107,85,64)]" />
-              </div>
-              <p className="text-xs text-[rgb(120,120,120)]">{arrivalsToday.length} arriving · {departuresToday.length} departing · {inHouseTonight.length} in-house</p>
-            </Link>
-            <Link to={createPageUrl("AdminSpaSchedule")} className="rounded-xl border border-[rgb(235,225,213)] bg-[rgb(248,246,242)] px-4 py-3 hover:bg-white hover:shadow-sm transition-all">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-semibold text-[rgb(150,170,155)]">Spa Today</span>
-                <Sparkles className="w-4 h-4 text-[rgb(150,170,155)]" />
-              </div>
-              <p className="text-xs text-[rgb(120,120,120)]">{todaySpa.length} appointments · {spaGapCount} gap{spaGapCount === 1 ? "" : "s"}</p>
-            </Link>
-            <Link to={createPageUrl("AdminHousekeeping")} className="rounded-xl border border-[rgb(235,225,213)] bg-[rgb(248,246,242)] px-4 py-3 hover:bg-white hover:shadow-sm transition-all">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-semibold text-[rgb(120,140,160)]">Housekeeping</span>
-                <Brush className="w-4 h-4 text-[rgb(120,140,160)]" />
-              </div>
-              <p className="text-xs text-[rgb(120,120,120)]">{hkNeedsCount} open{hkIssues.length ? ` · ${hkIssues.length} issue${hkIssues.length === 1 ? "" : "s"}` : ""}</p>
-            </Link>
-            <Link to={createPageUrl("AdminRestaurantSales")} className="rounded-xl border border-[rgb(235,225,213)] bg-[rgb(248,246,242)] px-4 py-3 hover:bg-white hover:shadow-sm transition-all">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-semibold text-[rgb(196,155,145)]">Restaurant Today</span>
-                <UtensilsCrossed className="w-4 h-4 text-[rgb(196,155,145)]" />
-              </div>
-              <p className="text-xs text-[rgb(120,120,120)]">Sales {fmtMoney(toastToday?.netSales)} · Labor {fmtMoney(toastToday?.laborTotalCost)} · {restaurantLeadsCount} leads</p>
-            </Link>
-            <Link to={createPageUrl("AdminIntake")} className={`rounded-xl border bg-[rgb(248,246,242)] px-4 py-3 hover:bg-white hover:shadow-sm transition-all ${intakeFollowUpCount > 0 ? "border-[rgb(107,85,64)]" : "border-[rgb(235,225,213)]"}`}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-semibold text-[rgb(107,85,64)]">Intake</span>
-                <ClipboardList className="w-4 h-4 text-[rgb(107,85,64)]" />
-              </div>
-              <p className="text-xs text-[rgb(120,120,120)]">{intakeFollowUpCount > 0 ? `${intakeFollowUpCount} need attention` : "Hotel + Treatment"}</p>
-            </Link>
-            <Link to={createPageUrl("AdminConciergeInbox")} className={`rounded-xl border bg-[rgb(248,246,242)] px-4 py-3 hover:bg-white hover:shadow-sm transition-all ${conciergeRequests.length > 0 ? "border-[rgb(150,170,155)]" : "border-[rgb(235,225,213)]"}`}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-semibold text-[rgb(150,170,155)]">Concierge</span>
-                <MessageSquare className="w-4 h-4 text-[rgb(150,170,155)]" />
-              </div>
-              <p className="text-xs text-[rgb(120,120,120)]">{conciergeRequests.length > 0 ? `${conciergeRequests.length} unread` : "Inbox"}</p>
-            </Link>
-          </div>
-        </div>
-
         {/* Whitney Focus + Day in 60 Seconds Panels */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-10">
           <WhitneyFocusPanel todayStr={todayStr} />
