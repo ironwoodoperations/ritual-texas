@@ -165,7 +165,10 @@ export default function AdminConciergeInbox() {
                           )}
                           <span className="text-xs text-[rgb(150,150,150)]">{inq.created_date ? format(new Date(inq.created_date), 'MMM d, h:mm a') : ''}</span>
                         </div>
-                        <p className="text-xs text-[rgb(150,150,150)] mb-2">{inq.guest_email || inq.email}{inq.guest_phone || inq.phone ? ` · ${inq.guest_phone || inq.phone}` : ''}</p>
+                        <div className="flex items-center gap-2 flex-wrap mb-2">
+                          {(inq.guest_email || inq.email) && <a href={`mailto:${inq.guest_email || inq.email}`} className="text-xs text-[rgb(107,85,64)] hover:underline">{inq.guest_email || inq.email}</a>}
+                          {(inq.guest_phone || inq.phone) && <a href={`sms:${inq.guest_phone || inq.phone}`} className="text-xs text-[rgb(107,85,64)] hover:underline">{inq.guest_phone || inq.phone}</a>}
+                        </div>
                         {inq.package_name && <p className="text-xs font-medium text-[rgb(196,155,145)] mb-1">Package: {inq.package_name}</p>}
                         {inq.message && <p className="text-sm text-[rgb(45,45,45)] leading-relaxed">{inq.message}</p>}
                       </div>
