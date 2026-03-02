@@ -302,7 +302,50 @@ export default function AdminConciergeInbox() {
                           >
                             <Plus className="w-3 h-3" /> Create Intake
                           </button>
+                          {inq.status !== 'completed_booked' && (
+                            <button
+                              onClick={async () => {
+                                await updatePkgMutation.mutateAsync({ id: inq.id, data: { status: 'completed_booked' } });
+                              }}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgb(150,170,155)] bg-[rgb(150,170,155)] text-white text-xs hover:opacity-90 transition-opacity"
+                            >
+                              <CalendarCheck className="w-3 h-3" /> Completed — Booked
+                            </button>
+                          )}
+                          {inq.status !== 'completed_not_booked' && (
+                            <button
+                              onClick={async () => {
+                                await updatePkgMutation.mutateAsync({ id: inq.id, data: { status: 'completed_not_booked' } });
+                                // Save to MarketingCRM
+                                const existing = await base44.entities.MarketingCRM.filter({ source_ref_id: inq.id });
+                                if (existing.length === 0) {
+                                  await base44.entities.MarketingCRM.create({
+                                    full_name: inq.full_name || inq.guest_name || '',
+                                    email: inq.email || inq.guest_email || '',
+                                    phone: inq.phone || inq.guest_phone || '',
+                                    source: 'package_inquiry',
+                                    source_ref_id: inq.id,
+                                    package_interest: inq.package_title || inq.package_name || '',
+                                    preferred_checkin: inq.preferred_checkin || '',
+                                    preferred_checkout: inq.preferred_checkout || '',
+                                    guests: inq.guests || 1,
+                                    original_message: inq.message || '',
+                                    tags: ['package_inquiry', inq.package_slug].filter(Boolean),
+                                    status: 'active',
+                                  });
+                                }
+                              }}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgb(198,182,165)] text-[rgb(107,85,64)] text-xs hover:bg-[rgb(248,246,242)] transition-colors"
+                            >
+                              <UserX className="w-3 h-3" /> Completed — Not Booked
+                            </button>
+                          )}
                         </div>
+                        {(inq.status === 'completed_booked' || inq.status === 'completed_not_booked') && (
+                          <div className={`mt-2 inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${inq.status === 'completed_booked' ? 'bg-[rgb(220,240,225)] text-[rgb(60,120,70)]' : 'bg-[rgb(245,235,225)] text-[rgb(150,100,60)]'}`}>
+                            {inq.status === 'completed_booked' ? '✓ Booked' : '✗ Not Booked — Added to Marketing CRM'}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <button
