@@ -457,10 +457,22 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Whitney Focus + Google Calendar Panels */}
+        {/* Whitney Focus + Day in 60 Seconds Panels */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-10">
           <WhitneyFocusPanel todayStr={todayStr} />
-          <GoogleCalendarPanel />
+          <DayIn60Panel
+            arrivalsToday={arrivalsToday}
+            departuresToday={departuresToday}
+            inHouseTonight={inHouseTonight}
+            todaySpa={todaySpa}
+            spaGapCount={spaGapCount}
+            hkNeedsCount={hkNeedsCount}
+            hkIssues={hkIssues}
+            toastToday={toastToday}
+            restaurantLeadsCount={restaurantLeadsCount}
+            intakeFollowUpCount={intakeFollowUpCount}
+            conciergeRequests={conciergeRequests}
+          />
         </div>
 
         {/* Section nav tiles */}
