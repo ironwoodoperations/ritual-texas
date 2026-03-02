@@ -253,7 +253,8 @@ function IntakeCard({ record, onUpdate }) {
           ) : (
             <div className="space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
-                {record.email && <div><span className="text-xs text-[rgb(150,150,150)]">Email</span><p>{record.email}</p></div>}
+                {record.email && <div><span className="text-xs text-[rgb(150,150,150)]">Email</span><p><a href={`mailto:${record.email}`} className="text-[rgb(107,85,64)] hover:underline">{record.email}</a></p></div>}
+                {record.phone && <div><span className="text-xs text-[rgb(150,150,150)]">Phone / Text</span><p><a href={`sms:${record.phone}`} className="text-[rgb(107,85,64)] hover:underline">{record.phone}</a></p></div>}
                 {record.numberOfGuests && <div><span className="text-xs text-[rgb(150,150,150)]">Guests</span><p>{record.numberOfGuests}</p></div>}
                 {record.checkOutDate && <div><span className="text-xs text-[rgb(150,150,150)]">Check-Out</span><p>{record.checkOutDate}</p></div>}
                 {record.treatmentsRequested && <div className="col-span-2 sm:col-span-3"><span className="text-xs text-[rgb(150,150,150)]">Treatments</span><p className="whitespace-pre-wrap">{record.treatmentsRequested}</p></div>}
