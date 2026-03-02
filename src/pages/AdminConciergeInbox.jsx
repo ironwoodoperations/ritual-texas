@@ -254,18 +254,48 @@ export default function AdminConciergeInbox() {
                       <Package className="w-5 h-5 mt-0.5 flex-shrink-0 text-[rgb(196,155,145)]" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                          <span className="font-medium text-[rgb(107,85,64)]">{inq.guest_name || inq.name}</span>
+                          <span className="font-medium text-[rgb(107,85,64)]">{inq.full_name || inq.guest_name || inq.name}</span>
                           {inq.status === 'new' && (
                             <span className="text-[10px] bg-[rgb(107,85,64)] text-white px-2 py-0.5 rounded-full">NEW</span>
                           )}
                           <span className="text-xs text-[rgb(150,150,150)]">{inq.created_date ? format(new Date(inq.created_date), 'MMM d, h:mm a') : ''}</span>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap mb-2">
-                          {(inq.guest_email || inq.email) && <a href={`mailto:${inq.guest_email || inq.email}`} className="text-xs text-[rgb(107,85,64)] hover:underline">{inq.guest_email || inq.email}</a>}
-                          {(inq.guest_phone || inq.phone) && <a href={`sms:${inq.guest_phone || inq.phone}`} className="text-xs text-[rgb(107,85,64)] hover:underline">{inq.guest_phone || inq.phone}</a>}
+                          {(inq.email || inq.guest_email) && <a href={`mailto:${inq.email || inq.guest_email}`} className="text-xs text-[rgb(107,85,64)] hover:underline">{inq.email || inq.guest_email}</a>}
+                          {(inq.phone || inq.guest_phone) && <a href={`sms:${inq.phone || inq.guest_phone}`} className="text-xs text-[rgb(107,85,64)] hover:underline">{inq.phone || inq.guest_phone}</a>}
                         </div>
-                        {inq.package_name && <p className="text-xs font-medium text-[rgb(196,155,145)] mb-1">Package: {inq.package_name}</p>}
-                        {inq.message && <p className="text-sm text-[rgb(45,45,45)] leading-relaxed">{inq.message}</p>}
+                        {(inq.package_title || inq.package_name) && (
+                          <p className="text-xs font-medium text-[rgb(196,155,145)] mb-1">Package: {inq.package_title || inq.package_name}</p>
+                        )}
+                        {(inq.preferred_checkin || inq.preferred_checkout) && (
+                          <p className="text-xs text-[rgb(150,150,150)] mb-1">
+                            {inq.preferred_checkin && `Check-in: ${inq.preferred_checkin}`}
+                            {inq.preferred_checkin && inq.preferred_checkout && ' → '}
+                            {inq.preferred_checkout && `Check-out: ${inq.preferred_checkout}`}
+                            {inq.guests && ` · ${inq.guests} guest${inq.guests > 1 ? 's' : ''}`}
+                          </p>
+                        )}
+                        {inq.message && (
+                          <div className="bg-[rgb(248,246,242)] rounded-lg px-3 py-2 mt-2">
+                            <p className="text-xs text-[rgb(150,150,150)] mb-0.5 font-medium">Guest Message</p>
+                            <p className="text-sm text-[rgb(45,45,45)] leading-relaxed">{inq.message}</p>
+                          </div>
+                        )}
+                        {/* Action buttons */}
+                        <div className="flex items-center gap-2 mt-3 flex-wrap">
+                          <a
+                            href={buildReplyEmail(inq)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgb(107,85,64)] text-white text-xs hover:opacity-90 transition-opacity"
+                          >
+                            <Mail className="w-3 h-3" /> Reply via Email
+                          </a>
+                          <button
+                            onClick={() => setIntakeModal(inq)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgb(150,170,155)] text-[rgb(150,170,155)] text-xs hover:bg-[rgb(240,245,241)] transition-colors"
+                          >
+                            <Plus className="w-3 h-3" /> Create Intake
+                          </button>
+                        </div>
                       </div>
                     </div>
                     <button
