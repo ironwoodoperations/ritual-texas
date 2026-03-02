@@ -152,6 +152,65 @@ function IntakePanel({ intakeForms, intakeNewInquiries }) {
   );
 }
 
+// ─── Day in 60 Seconds Panel ─────────────────────────────────────────────────
+function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa, spaGapCount, hkNeedsCount, hkIssues, toastToday, restaurantLeadsCount, intakeFollowUpCount, conciergeRequests }) {
+  return (
+    <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-4">
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <div>
+          <div className="text-sm font-medium text-[rgb(45,45,45)]">Day in 60 Seconds</div>
+          <div className="text-xs text-[rgb(150,150,150)]">Live snapshot</div>
+        </div>
+        <Activity className="w-4 h-4 text-[rgb(150,150,150)]" />
+      </div>
+      <div className="grid gap-2">
+        <Link to={createPageUrl("AdminBookings")} className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+          <div className="flex items-center gap-2">
+            <BedSingle className="w-4 h-4 text-[rgb(107,85,64)]" />
+            <span className="text-sm font-medium text-[rgb(45,45,45)]">Hotel</span>
+          </div>
+          <span className="text-xs text-[rgb(120,120,120)]">{arrivalsToday.length} arriving · {departuresToday.length} departing · {inHouseTonight.length} in-house</span>
+        </Link>
+        <Link to={createPageUrl("AdminSpaSchedule")} className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[rgb(150,170,155)]" />
+            <span className="text-sm font-medium text-[rgb(45,45,45)]">Spa Today</span>
+          </div>
+          <span className="text-xs text-[rgb(120,120,120)]">{todaySpa.length} appts · {spaGapCount} gap{spaGapCount === 1 ? "" : "s"}</span>
+        </Link>
+        <Link to={createPageUrl("AdminHousekeeping")} className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+          <div className="flex items-center gap-2">
+            <Brush className="w-4 h-4 text-[rgb(120,140,160)]" />
+            <span className="text-sm font-medium text-[rgb(45,45,45)]">Housekeeping</span>
+          </div>
+          <span className="text-xs text-[rgb(120,120,120)]">{hkNeedsCount} open{hkIssues.length ? ` · ${hkIssues.length} issue${hkIssues.length === 1 ? "" : "s"}` : ""}</span>
+        </Link>
+        <Link to={createPageUrl("AdminRestaurantSales")} className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+          <div className="flex items-center gap-2">
+            <UtensilsCrossed className="w-4 h-4 text-[rgb(196,155,145)]" />
+            <span className="text-sm font-medium text-[rgb(45,45,45)]">Restaurant</span>
+          </div>
+          <span className="text-xs text-[rgb(120,120,120)]">Sales {fmtMoney(toastToday?.netSales)} · Labor {fmtMoney(toastToday?.laborTotalCost)} · {restaurantLeadsCount} leads</span>
+        </Link>
+        <Link to={createPageUrl("AdminIntake")} className={`flex items-center justify-between rounded-xl border px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all ${intakeFollowUpCount > 0 ? "border-[rgb(107,85,64)]" : "border-[rgb(235,225,213)]"}`}>
+          <div className="flex items-center gap-2">
+            <ClipboardList className="w-4 h-4 text-[rgb(107,85,64)]" />
+            <span className="text-sm font-medium text-[rgb(45,45,45)]">Intake</span>
+          </div>
+          <span className="text-xs text-[rgb(120,120,120)]">{intakeFollowUpCount > 0 ? `${intakeFollowUpCount} need attention` : "Hotel + Treatment"}</span>
+        </Link>
+        <Link to={createPageUrl("AdminConciergeInbox")} className={`flex items-center justify-between rounded-xl border px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all ${conciergeRequests.length > 0 ? "border-[rgb(150,170,155)]" : "border-[rgb(235,225,213)]"}`}>
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-[rgb(150,170,155)]" />
+            <span className="text-sm font-medium text-[rgb(45,45,45)]">Concierge</span>
+          </div>
+          <span className="text-xs text-[rgb(120,120,120)]">{conciergeRequests.length > 0 ? `${conciergeRequests.length} unread` : "Inbox"}</span>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
