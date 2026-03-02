@@ -421,6 +421,13 @@ export default function AdminDashboard() {
         { icon: Users, label: "Staff Controls", page: "StaffControls" },
       ],
     },
+    {
+      title: "Projects & Archives",
+      color: "rgb(120,120,120)",
+      tiles: [
+        { icon: Archive, label: "Square Archive", page: "AdminSquareBackup" },
+      ],
+    },
   ];
 
   if (!user) {
