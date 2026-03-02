@@ -158,6 +158,13 @@ export default function AdminConciergeInbox() {
 
   return (
     <div className="h-screen flex flex-col bg-[rgb(248,246,242)] overflow-hidden">
+      {intakeModal && (
+        <CreateIntakeModal
+          inq={intakeModal}
+          onClose={() => setIntakeModal(null)}
+          onCreated={() => queryClient.invalidateQueries(['pkg-inquiries-inbox'])}
+        />
+      )}
       {/* Sticky Header */}
       <header className="bg-white border-b border-[rgb(235,225,213)] px-4 py-3 flex-shrink-0">
         <div className="flex items-center gap-3">
