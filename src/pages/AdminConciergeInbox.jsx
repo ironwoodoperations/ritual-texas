@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, MessageSquare, Package, CheckCircle, Clock, Mail, Plus, X, Save } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Package, CheckCircle, Clock, Mail, Plus, X, Save, CalendarCheck, UserX } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 
