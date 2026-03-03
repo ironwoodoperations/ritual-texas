@@ -35,10 +35,76 @@ async function addEvent(base44, payload) {
 // ========== SYNC STUBS: Replace with your existing API pulls ==========
 
 async function syncCloudbeds(base44, sinceIso) {
-  // TODO: Implement actual Cloudbeds sync
-  // Use your existing cloudbedsUpcomingReservations function as a base
-  // Return array: [{ externalId, firstName, lastName, email, phone, eventType, startAt, endAt, status, title, amount, meta }, ...]
-  return [];
+  try {
+    const rows = await base44.entities.SiteSettings.filter({ key: 'CLOUDBEDS_ACCESS_TOKEN' });
+    if (rows.length === 0) return [];
+
+    let accessToken = rows[0].value;
+    const propertyRow = await base44.entities.SiteSettings.filter({ key: 'CLOUDBEDS_PROPERTY_ID' });
+    const propertyId = propertyRow.length > 0 ? propertyRow[0].value : null;
+    
+    if (!accessToken || !propertyId) return [];
+
+    const today = new Date();
+    const future = new Date();
+    future.setDate(future.getDate() + 90);
+    const fmt = (d) => d.toISOString().slice(0, 10);
+
+    const url = `https://hotels.cloudbeds.com/api/v1.1/getReservations?propertyID=${encodeURIComponent(propertyId)}&checkInFrom=${fmt(today)}&checkInTo=${fmt(future)}&pageSize=100&pageNumber=1`;
+    
+    let resp = await fetch(url, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    // Auto-refresh if expired
+    if (!resp.ok && (resp.status === 401 || resp.status === 403)) {
+      const refreshToken = await base44.asServiceRole.entities.SiteSettings.filter({ key: 'CLOUDBEDS_REFRESH_TOKEN' });
+      if (refreshToken.length > 0) {
+        const form = new URLSearchParams();
+        form.set('grant_type', 'refresh_token');
+        form.set('client_id', Deno.env.get('CLOUDBEDS_CLIENT_ID'));
+        form.set('client_secret', Deno.env.get('CLOUDBEDS_CLIENT_SECRET'));
+        form.set('refresh_token', refreshToken[0].value);
+
+        const tokenResp = await fetch('https://hotels.cloudbeds.com/api/v1.1/access_token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: form.toString()
+        });
+
+        const tokenJson = await tokenResp.json();
+        accessToken = tokenJson?.access_token || tokenJson?.data?.access_token;
+        if (accessToken) {
+          await base44.asServiceRole.entities.SiteSettings.update(rows[0].id, { value: accessToken });
+          resp = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+        }
+      }
+    }
+
+    if (!resp.ok) return [];
+    const json = await resp.json();
+    if (!json?.success || !json?.data) return [];
+
+    return (json.data || []).map(r => ({
+      externalId: r.reservationID,
+      contactExternalId: r.reservationID,
+      firstName: (r.guestName || '').split(' ')[0],
+      lastName: (r.guestName || '').split(' ').slice(1).join(' '),
+      fullName: r.guestName,
+      email: r.guestEmail,
+      phone: r.guestPhone || '',
+      eventType: 'hotel_stay',
+      startAt: r.startDate ? new Date(r.startDate).toISOString() : new Date().toISOString(),
+      endAt: r.endDate ? new Date(r.endDate).toISOString() : null,
+      status: r.status,
+      title: `${r.roomTypeName || 'Room'} Stay`,
+      amount: Number(r.total) || 0,
+      meta: { roomNumber: r.roomNumber, adults: r.adults, children: r.children }
+    }));
+  } catch (e) {
+    console.error('Cloudbeds sync error:', e.message);
+    return [];
+  }
 }
 
 async function syncSquare(base44, sinceIso) {
