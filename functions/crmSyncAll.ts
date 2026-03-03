@@ -184,8 +184,74 @@ async function syncSquare(base44, sinceIso) {
 }
 
 async function syncAcuity(base44, sinceIso) {
-  // TODO: Implement actual Acuity sync (historical)
-  return [];
+  try {
+    const userId = Deno.env.get('ACUITY_USER_ID');
+    const apiKey = Deno.env.get('ACUITY_API_KEY');
+
+    if (!userId || !apiKey) return [];
+
+    const auth = btoa(`${userId}:${apiKey}`);
+    const headers = {
+      'Authorization': `Basic ${auth}`,
+      'Content-Type': 'application/json'
+    };
+
+    // Fetch appointments
+    const sinceDate = new Date(sinceIso);
+    const fromDate = sinceDate.toISOString().split('T')[0];
+    const toDate = new Date();
+    toDate.setDate(toDate.getDate() + 90);
+    const untilDate = toDate.toISOString().split('T')[0];
+
+    const appointmentsResp = await fetch(`https://acuityscheduling.com/api/v1/appointments?minDate=${fromDate}&maxDate=${untilDate}`, {
+      headers,
+      method: 'GET'
+    });
+    if (!appointmentsResp.ok) return [];
+    const appointments = await appointmentsResp.json();
+    const appointmentList = Array.isArray(appointments) ? appointments : [];
+
+    // Fetch clients
+    const clientsResp = await fetch(`https://acuityscheduling.com/api/v1/clients`, {
+      headers,
+      method: 'GET'
+    });
+    if (!clientsResp.ok) return [];
+    const clients = await clientsResp.json();
+    const clientsMap = {};
+    if (Array.isArray(clients)) {
+      clients.forEach(c => {
+        clientsMap[c.id] = c;
+      });
+    }
+
+    return appointmentList.map(apt => {
+      const client = clientsMap[apt.clientID] || {};
+      const fullName = client.firstName && client.lastName 
+        ? `${client.firstName} ${client.lastName}`
+        : client.firstName || client.lastName || '';
+
+      return {
+        externalId: String(apt.id),
+        clientExternalId: String(apt.clientID),
+        firstName: client.firstName || '',
+        lastName: client.lastName || '',
+        fullName: fullName,
+        email: client.email || '',
+        phone: client.phone || '',
+        eventType: 'treatment',
+        startAt: apt.datetime ? new Date(apt.datetime).toISOString() : new Date().toISOString(),
+        endAt: apt.endTime ? new Date(apt.endTime).toISOString() : null,
+        status: apt.status || 'pending',
+        title: apt.type || 'Appointment',
+        amount: Number(apt.price) || 0,
+        meta: { typeID: apt.typeID, calendarID: apt.calendarID }
+      };
+    });
+  } catch (e) {
+    console.error('Acuity sync error:', e.message);
+    return [];
+  }
 }
 
 async function syncSimplyBook(base44, sinceIso) {
