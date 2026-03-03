@@ -89,9 +89,14 @@ function GuestCard({ reservation, spaBookings }) {
           <h2 className="text-2xl font-light text-[rgb(107,85,64)] mt-2">{reservation.guestName}</h2>
           <p className="text-sm text-[rgb(150,150,150)] font-mono mt-0.5">#{reservation.reservationID}</p>
         </div>
-        <div className="text-right text-sm text-[rgb(107,85,64)]">
-          <p className="font-medium">Prepared {format(new Date(), 'MMMM d, yyyy')}</p>
-          <p className="text-xs text-[rgb(150,150,150)] mt-1">Welcome to Hotel RITUAL</p>
+        <div className="flex items-start gap-4 no-print">
+          <div className="text-right text-sm text-[rgb(107,85,64)]">
+            <p className="font-medium">Prepared {format(new Date(), 'MMMM d, yyyy')}</p>
+            <p className="text-xs text-[rgb(150,150,150)] mt-1">Welcome to Hotel RITUAL</p>
+          </div>
+          <button onClick={() => setExpanded(false)} className="p-1.5 hover:bg-[rgb(235,225,213)] rounded-lg transition-colors">
+            <X className="w-5 h-5 text-[rgb(150,150,150)] hover:text-[rgb(107,85,64)]" />
+          </button>
         </div>
       </div>
 
