@@ -102,11 +102,16 @@ Deno.serve(async (req) => {
       const resLookup2 = (!resLookup.ok) ? await callCloudbeds('getReservation', 'GET', { reservationID }, accessToken, propertyId) : resLookup;
       
       // Get subReservationID from the reservation data
+      // guestList is an object keyed by guestID; each guest has rooms[]
       const resData = resLookup2.json?.data;
-      const rooms = resData?.rooms || resData?.guestList || [];
       let subReservationID = null;
-      if (Array.isArray(rooms) && rooms.length > 0) {
-        subReservationID = rooms[0]?.subReservationID || rooms[0]?.sub_reservation_id;
+      if (resData?.guestList && typeof resData.guestList === 'object') {
+        for (const guest of Object.values(resData.guestList)) {
+          if (Array.isArray(guest.rooms) && guest.rooms.length > 0) {
+            subReservationID = guest.rooms[0]?.subReservationID;
+            if (subReservationID) break;
+          }
+        }
       }
       if (!subReservationID && resData?.subReservationID) subReservationID = resData.subReservationID;
 
