@@ -519,7 +519,7 @@ export default function ItineraryPage() {
                                   </div>
                                 )}
                               </div>
-                              {item.type === 'spa' && item.status && (
+                              {item.type === 'spa' && item.status && !['create', 'change'].includes(item.status.toLowerCase()) && (
                                 <span className="text-xs px-3 py-1 rounded-full whitespace-nowrap ml-3" style={{ backgroundColor: '#C4A55C', color: 'white' }}>
                                   {item.status.replace('booking.', '')}
                                 </span>
