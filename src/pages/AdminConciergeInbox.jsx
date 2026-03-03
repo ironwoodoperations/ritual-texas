@@ -358,6 +358,7 @@ export default function AdminConciergeInbox() {
                               <UserX className="w-3 h-3" /> Completed — Not Booked
                             </button>
                           )}
+                        </div>
                       </div>
                     </div>
                     <button
