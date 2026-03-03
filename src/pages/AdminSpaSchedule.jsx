@@ -220,9 +220,12 @@ export default function AdminSpaSchedule() {
                               {fmtTime(b.startAt)}
                               {endTime ? ` – ${fmtTime(endTime.toISOString())}` : ''}
                               {b.durationMinutes ? ` (${b.durationMinutes} min)` : ''}
+                              {b.price ? ` · $${Number(b.price).toFixed(0)}` : ''}
                             </div>
                             <div style={{ fontSize: '13px', color: '#555', marginTop: '2px' }}>
-                              Guest: {b.email || b.phone || '—'}
+                              {b.clientName ? <span style={{ fontWeight: '500' }}>{b.clientName}</span> : null}
+                              {b.clientName && (b.email || b.phone) ? ' · ' : ''}
+                              {b.email || b.phone || (!b.clientName ? '—' : '')}
                             </div>
                           </div>
                           <span
