@@ -60,6 +60,14 @@ export default function Treatments() {
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ fontWeight: 800, color: '#1B1B1B' }}>{treatment.duration_minutes} min · ${treatment.price}</div>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {treatment.video_url && (
+                    <button
+                      onClick={() => setExpandedVideo(isExpanded ? null : treatment.id)}
+                      style={{ background: '#C57C5D', color: '#FCF9F4', border: 'none', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, cursor: 'pointer', fontSize: '14px' }}
+                    >
+                      {isExpanded ? '✕ Close' : '▶ Watch Video'}
+                    </button>
+                  )}
                   {(!treatment.booking_mode || treatment.booking_mode === 'book_online') && (
                     <a 
                       href={treatment.name?.toLowerCase().includes('sound bath') && treatment.name?.toLowerCase().includes('group')
@@ -104,14 +112,6 @@ export default function Treatments() {
                         </button>
                       </div>
                     )}
-                  {treatment.video_url && (
-                    <button
-                      onClick={() => setExpandedVideo(isExpanded ? null : treatment.id)}
-                      style={{ background: '#C57C5D', color: '#FCF9F4', border: 'none', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, cursor: 'pointer', fontSize: '14px' }}
-                    >
-                      {isExpanded ? '✕ Close' : '▶ Watch Video'}
-                    </button>
-                  )}
                 </div>
                 </div>
 

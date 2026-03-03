@@ -48,6 +48,7 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import About from './pages/About';
+import AdminAcuityImport from './pages/AdminAcuityImport';
 import AdminBookings from './pages/AdminBookings';
 import AdminCatering from './pages/AdminCatering';
 import AdminCateringMenu from './pages/AdminCateringMenu';
@@ -73,8 +74,10 @@ import AdminRestaurant from './pages/AdminRestaurant';
 import AdminRestaurantSales from './pages/AdminRestaurantSales';
 import AdminRooms from './pages/AdminRooms';
 import AdminSeedData from './pages/AdminSeedData';
+import AdminSimplybookImport from './pages/AdminSimplybookImport';
 import AdminSpaSchedule from './pages/AdminSpaSchedule';
 import AdminSquareBackup from './pages/AdminSquareBackup';
+import AdminSquareImport from './pages/AdminSquareImport';
 import AdminTodayItineraries from './pages/AdminTodayItineraries';
 import AdminTreatments from './pages/AdminTreatments';
 import Amenities from './pages/Amenities';
@@ -103,14 +106,12 @@ import afterBooking from './pages/afterBooking';
 import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
-import AdminSquareImport from './pages/AdminSquareImport';
-import AdminAcuityImport from './pages/AdminAcuityImport';
-import AdminSimplybookImport from './pages/AdminSimplybookImport';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "About": About,
+    "AdminAcuityImport": AdminAcuityImport,
     "AdminBookings": AdminBookings,
     "AdminCatering": AdminCatering,
     "AdminCateringMenu": AdminCateringMenu,
@@ -136,8 +137,10 @@ export const PAGES = {
     "AdminRestaurantSales": AdminRestaurantSales,
     "AdminRooms": AdminRooms,
     "AdminSeedData": AdminSeedData,
+    "AdminSimplybookImport": AdminSimplybookImport,
     "AdminSpaSchedule": AdminSpaSchedule,
     "AdminSquareBackup": AdminSquareBackup,
+    "AdminSquareImport": AdminSquareImport,
     "AdminTodayItineraries": AdminTodayItineraries,
     "AdminTreatments": AdminTreatments,
     "Amenities": Amenities,
@@ -166,9 +169,6 @@ export const PAGES = {
     "booking": booking,
     "concierge": concierge,
     "itinerary": itinerary,
-    "AdminSquareImport": AdminSquareImport,
-    "AdminAcuityImport": AdminAcuityImport,
-    "AdminSimplybookImport": AdminSimplybookImport,
 }
 
 export const pagesConfig = {
