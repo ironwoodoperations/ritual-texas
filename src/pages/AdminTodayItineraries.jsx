@@ -267,6 +267,7 @@ export default function AdminTodayItineraries() {
     }
   });
 
+  const allCards = [...arrivalsWithSpa, ...spaOnlyGuests];
   const isLoading = cbLoading || spaLoading;
 
   if (!user) {
