@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Leaf, Printer, RefreshCw, Sparkles } from 'lucide-react';
+import { ArrowLeft, Leaf, Printer, RefreshCw, Sparkles, Mail, MessageCircle, Check } from 'lucide-react';
 import { format } from 'date-fns';
 
 function todayStr() {
@@ -20,7 +20,56 @@ function fmtTime(iso) {
   return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
-function GuestItinerary({ reservation, spaBookings }) {
+function buildSmsText(reservation, spaBookings) {
+  const checkIn = fmtDate(reservation.checkIn);
+  const checkOut = fmtDate(reservation.checkOut);
+  let msg = `🌿 RITUAL – Your Stay Itinerary\n\nHi ${reservation.guestName}! We're excited to welcome you.\n\n📅 Check-In: ${checkIn} at 3:00 PM\n📅 Check-Out: ${checkOut} at 11:00 AM\n🏠 Room: ${reservation.roomName || 'See front desk'}\n\n✨ During Your Stay:\n• Breakfast: 8–10 AM daily\n• Sauna & rainshower anytime`;
+  if (spaBookings.length > 0) {
+    msg += `\n\n💆 Spa Appointments:`;
+    spaBookings.forEach(b => {
+      msg += `\n• ${b.serviceName || 'Spa Treatment'}`;
+      if (b.startAt) msg += ` – ${format(new Date(b.startAt), 'MMM d')} at ${fmtTime(b.startAt)}`;
+      if (b.durationMinutes) msg += ` (${b.durationMinutes} min)`;
+      if (b.staffName) msg += ` w/ ${b.staffName}`;
+    });
+  }
+  msg += `\n\nQuestions? Text us: (903) 810-6695\n\nRest. Restore. Return. 🌿`;
+  return msg;
+}
+
+function GuestCard({ reservation, spaBookings }) {
+  const [emailAddr, setEmailAddr] = useState(reservation.guestEmail || '');
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [emailError, setEmailError] = useState('');
+
+  const handleEmail = async () => {
+    if (!emailAddr) { setEmailError('Enter an email address'); return; }
+    setSending(true);
+    setEmailError('');
+    try {
+      await base44.functions.invoke('sendItineraryEmail', {
+        guestName: reservation.guestName,
+        guestEmail: emailAddr,
+        confirmationCode: reservation.reservationID,
+        checkIn: reservation.checkIn,
+        checkOut: reservation.checkOut,
+        roomType: reservation.roomName,
+        totalAmount: reservation.total ? Number(reservation.total) : null,
+        spaBookings,
+      });
+      setSent(true);
+      setTimeout(() => setSent(false), 4000);
+    } catch (e) {
+      setEmailError('Failed to send. Try again.');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const smsBody = encodeURIComponent(buildSmsText(reservation, spaBookings));
+  const smsHref = `sms:?&body=${smsBody}`;
+
   return (
     <div className="itinerary-card bg-white border border-[rgb(235,225,213)] rounded-2xl p-8 mb-8 print:mb-0 print:border-0 print:rounded-none print:p-6 print:break-after-page">
       {/* Header */}
@@ -104,8 +153,40 @@ function GuestItinerary({ reservation, spaBookings }) {
         </div>
       )}
 
+      {/* Send Actions — hidden from print */}
+      <div className="no-print mt-6 pt-6 border-t border-[rgb(235,225,213)] space-y-3">
+        {/* Email */}
+        <div className="flex items-center gap-2">
+          <input
+            type="email"
+            value={emailAddr}
+            onChange={e => { setEmailAddr(e.target.value); setEmailError(''); }}
+            placeholder="Guest email"
+            className="flex-1 border border-[rgb(235,225,213)] rounded-lg px-3 py-2 text-sm text-[rgb(45,45,45)] bg-[rgb(248,246,242)] focus:outline-none focus:border-[rgb(150,170,155)]"
+          />
+          <button
+            onClick={handleEmail}
+            disabled={sending}
+            className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg bg-[rgb(150,170,155)] text-white hover:bg-[rgb(130,150,135)] disabled:opacity-60 transition-colors"
+          >
+            {sent ? <Check className="w-4 h-4" /> : <Mail className="w-4 h-4" />}
+            {sending ? 'Sending…' : sent ? 'Sent!' : 'Email'}
+          </button>
+        </div>
+        {emailError && <p className="text-xs text-red-500">{emailError}</p>}
+
+        {/* Text */}
+        <a
+          href={smsHref}
+          className="flex items-center justify-center gap-2 w-full px-4 py-2 text-sm rounded-lg border border-[rgb(107,85,64)] text-[rgb(107,85,64)] hover:bg-[rgb(235,225,213)] transition-colors"
+        >
+          <MessageCircle className="w-4 h-4" />
+          Open Text Message
+        </a>
+      </div>
+
       {/* Footer */}
-      <div className="pt-4 border-t border-[rgb(235,225,213)] text-center text-xs text-[rgb(150,150,150)]">
+      <div className="pt-4 mt-4 border-t border-[rgb(235,225,213)] text-center text-xs text-[rgb(150,150,150)]">
         540 El Paso Street · Jacksonville, Texas 75766 · (903) 810-6695 · Rest. Restore. Return.
       </div>
     </div>
@@ -139,10 +220,8 @@ export default function AdminTodayItineraries() {
     enabled: !!user,
   });
 
-  // Filter to today's arrivals
   const todayArrivals = (cloudbedsData?.reservations || []).filter(r => r.checkIn === today);
 
-  // For each arrival, find their spa bookings by email
   const arrivalsWithSpa = todayArrivals.map(r => {
     const guestEmail = (r.guestEmail || '').toLowerCase().trim();
     const spa = allSpaBookings.filter(b =>
@@ -218,7 +297,7 @@ export default function AdminTodayItineraries() {
           </div>
         ) : (
           arrivalsWithSpa.map(({ reservation, spaBookings }) => (
-            <GuestItinerary
+            <GuestCard
               key={reservation.reservationID}
               reservation={reservation}
               spaBookings={spaBookings}
