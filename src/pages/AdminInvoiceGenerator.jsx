@@ -109,7 +109,7 @@ function InvoiceList() {
 
       {/* Invoice rows */}
       <div className="space-y-2">
-        {invoices.map(inv => (
+        {displayed.map(inv => (
           <div key={inv.id} className="bg-white border border-[rgb(235,225,213)] rounded-xl px-4 py-3">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
