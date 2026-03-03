@@ -89,25 +89,31 @@ function GuestCard({ reservation, spaBookings }) {
       </div>
 
       {/* Stay Details */}
-      <div className="grid grid-cols-3 gap-6 mb-8">
-        <div>
-          <p className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-1">Check-In</p>
-          <p className="text-[rgb(107,85,64)] font-medium">{fmtDate(reservation.checkIn)}</p>
-          <p className="text-xs text-[rgb(150,150,150)] mt-0.5">3:00 PM</p>
+      {!reservation.spaOnly ? (
+        <div className="grid grid-cols-3 gap-6 mb-8">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-1">Check-In</p>
+            <p className="text-[rgb(107,85,64)] font-medium">{fmtDate(reservation.checkIn)}</p>
+            <p className="text-xs text-[rgb(150,150,150)] mt-0.5">3:00 PM</p>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-1">Check-Out</p>
+            <p className="text-[rgb(107,85,64)] font-medium">{fmtDate(reservation.checkOut)}</p>
+            <p className="text-xs text-[rgb(150,150,150)] mt-0.5">11:00 AM</p>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-1">Room</p>
+            <p className="text-[rgb(107,85,64)] font-medium">{reservation.roomName || '—'}</p>
+            {reservation.roomNumber && (
+              <p className="text-xs text-[rgb(150,150,150)] mt-0.5">Room {reservation.roomNumber}</p>
+            )}
+          </div>
         </div>
-        <div>
-          <p className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-1">Check-Out</p>
-          <p className="text-[rgb(107,85,64)] font-medium">{fmtDate(reservation.checkOut)}</p>
-          <p className="text-xs text-[rgb(150,150,150)] mt-0.5">11:00 AM</p>
+      ) : (
+        <div className="mb-6 bg-[rgb(248,246,242)] rounded-xl px-4 py-3 text-sm text-[rgb(107,85,64)]">
+          Spa-only guest · No hotel stay on file
         </div>
-        <div>
-          <p className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-1">Room</p>
-          <p className="text-[rgb(107,85,64)] font-medium">{reservation.roomName || '—'}</p>
-          {reservation.roomNumber && (
-            <p className="text-xs text-[rgb(150,150,150)] mt-0.5">Room {reservation.roomNumber}</p>
-          )}
-        </div>
-      </div>
+      )}
 
       {/* During Your Stay */}
       <div className="mb-6">
