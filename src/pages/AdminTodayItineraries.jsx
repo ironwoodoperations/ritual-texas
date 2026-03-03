@@ -297,7 +297,7 @@ export default function AdminTodayItineraries() {
             </Link>
             <div>
               <h1 className="text-xl font-light text-[rgb(107,85,64)]">Today's Itineraries</h1>
-              <p className="text-sm text-[rgb(150,150,150)]">{format(new Date(), 'EEEE, MMMM d, yyyy')} · {todayArrivals.length} arriving today</p>
+              <p className="text-sm text-[rgb(150,150,150)]">{format(new Date(), 'EEEE, MMMM d, yyyy')} · {todayArrivals.length} hotel · {spaOnlyGuests.length} spa-only</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
