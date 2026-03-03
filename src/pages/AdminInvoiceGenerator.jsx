@@ -209,9 +209,16 @@ function NewInvoice({ rooms, treatments, packages }) {
     }
   };
 
-  const total = lineItems.reduce((sum, it) => {
+  const subtotal = lineItems.reduce((sum, it) => {
     return sum + (parseFloat(it.amount) || 0) * (parseInt(it.quantity) || 1);
   }, 0);
+
+  const taxAmount = Object.entries(taxes).reduce((sum, [key, isChecked]) => {
+    if (!isChecked) return sum;
+    return sum + (subtotal * (taxRates[key] || 0) / 100);
+  }, 0);
+
+  const total = subtotal + taxAmount;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
