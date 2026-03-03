@@ -431,7 +431,7 @@ export default function ItineraryPage() {
                 </div>
               ))}
             </div>
-            <Button onClick={() => window.open(SQUARE_SERVICES_URL, '_blank')} variant="outline" style={{ borderColor: '#C57C5D', color: '#C57C5D' }}>
+            <Button onClick={() => window.open(SIMPLYBOOK_URL, '_blank')} variant="outline" style={{ borderColor: '#C57C5D', color: '#C57C5D' }}>
               <Sparkles className="w-4 h-4 mr-2" />
               Book Another Treatment
             </Button>
@@ -526,7 +526,7 @@ export default function ItineraryPage() {
                   Book a treatment any time. Add-ons are confirmed instantly in Square.
                 </p>
                 <Button
-                  onClick={() => window.open(SQUARE_SERVICES_URL, '_blank')}
+                  onClick={() => window.open(SIMPLYBOOK_URL, '_blank')}
                   className="w-full text-white font-medium py-6"
                   style={{ backgroundColor: '#C57C5D' }}
                 >
