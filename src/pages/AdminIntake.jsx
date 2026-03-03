@@ -212,7 +212,6 @@ function IntakeCard({ record, onUpdate }) {
     await base44.entities.HotelTreatmentIntake.update(record.id, form);
     onUpdate();
     setEditing(false);
-    setExpanded(false);
   }
 
   async function runAction(type) {
