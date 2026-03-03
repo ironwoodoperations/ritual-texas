@@ -99,6 +99,8 @@ import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
 import AdminTodayItineraries from './pages/AdminTodayItineraries';
+import AdminCreateReservation from './pages/AdminCreateReservation';
+import AdminInvoiceGenerator from './pages/AdminInvoiceGenerator';
 import __Layout from './Layout.jsx';
 
 
@@ -155,6 +157,8 @@ export const PAGES = {
     "concierge": concierge,
     "itinerary": itinerary,
     "AdminTodayItineraries": AdminTodayItineraries,
+    "AdminCreateReservation": AdminCreateReservation,
+    "AdminInvoiceGenerator": AdminInvoiceGenerator,
 }
 
 export const pagesConfig = {
