@@ -54,6 +54,7 @@ import AdminCateringMenu from './pages/AdminCateringMenu';
 import AdminCateringQuote from './pages/AdminCateringQuote';
 import AdminCloudbeds from './pages/AdminCloudbeds';
 import AdminConciergeInbox from './pages/AdminConciergeInbox';
+import AdminCreateReservation from './pages/AdminCreateReservation';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminHousekeeping from './pages/AdminHousekeeping';
 import AdminHousekeepingIssues from './pages/AdminHousekeepingIssues';
@@ -61,6 +62,7 @@ import AdminHousekeepingSetup from './pages/AdminHousekeepingSetup';
 import AdminHousekeepingTask from './pages/AdminHousekeepingTask';
 import AdminImages from './pages/AdminImages';
 import AdminIntake from './pages/AdminIntake';
+import AdminInvoiceGenerator from './pages/AdminInvoiceGenerator';
 import AdminKnowledge from './pages/AdminKnowledge';
 import AdminMedia from './pages/AdminMedia';
 import AdminPackageInquiries from './pages/AdminPackageInquiries';
@@ -71,6 +73,7 @@ import AdminRooms from './pages/AdminRooms';
 import AdminSeedData from './pages/AdminSeedData';
 import AdminSpaSchedule from './pages/AdminSpaSchedule';
 import AdminSquareBackup from './pages/AdminSquareBackup';
+import AdminTodayItineraries from './pages/AdminTodayItineraries';
 import AdminTreatments from './pages/AdminTreatments';
 import Amenities from './pages/Amenities';
 import AskRitual from './pages/AskRitual';
@@ -98,9 +101,6 @@ import afterBooking from './pages/afterBooking';
 import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
-import AdminTodayItineraries from './pages/AdminTodayItineraries';
-import AdminCreateReservation from './pages/AdminCreateReservation';
-import AdminInvoiceGenerator from './pages/AdminInvoiceGenerator';
 import __Layout from './Layout.jsx';
 
 
@@ -112,6 +112,7 @@ export const PAGES = {
     "AdminCateringQuote": AdminCateringQuote,
     "AdminCloudbeds": AdminCloudbeds,
     "AdminConciergeInbox": AdminConciergeInbox,
+    "AdminCreateReservation": AdminCreateReservation,
     "AdminDashboard": AdminDashboard,
     "AdminHousekeeping": AdminHousekeeping,
     "AdminHousekeepingIssues": AdminHousekeepingIssues,
@@ -119,6 +120,7 @@ export const PAGES = {
     "AdminHousekeepingTask": AdminHousekeepingTask,
     "AdminImages": AdminImages,
     "AdminIntake": AdminIntake,
+    "AdminInvoiceGenerator": AdminInvoiceGenerator,
     "AdminKnowledge": AdminKnowledge,
     "AdminMedia": AdminMedia,
     "AdminPackageInquiries": AdminPackageInquiries,
@@ -129,6 +131,7 @@ export const PAGES = {
     "AdminSeedData": AdminSeedData,
     "AdminSpaSchedule": AdminSpaSchedule,
     "AdminSquareBackup": AdminSquareBackup,
+    "AdminTodayItineraries": AdminTodayItineraries,
     "AdminTreatments": AdminTreatments,
     "Amenities": Amenities,
     "AskRitual": AskRitual,
@@ -156,9 +159,6 @@ export const PAGES = {
     "booking": booking,
     "concierge": concierge,
     "itinerary": itinerary,
-    "AdminTodayItineraries": AdminTodayItineraries,
-    "AdminCreateReservation": AdminCreateReservation,
-    "AdminInvoiceGenerator": AdminInvoiceGenerator,
 }
 
 export const pagesConfig = {

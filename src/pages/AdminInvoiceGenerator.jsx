@@ -1,18 +1,151 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Plus, Trash2, Loader2, CheckCircle2, ExternalLink, Copy } from 'lucide-react';
+import {
+  ArrowLeft, Plus, Trash2, Loader2, CheckCircle2, ExternalLink,
+  Copy, RefreshCw, FileText, DollarSign, AlertCircle, Clock
+} from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { format } from 'date-fns';
 
 const blankItem = () => ({ name: '', amount: '', quantity: '1' });
 
-export default function AdminInvoiceGenerator() {
-  const [user, setUser] = React.useState(null);
+const STATUS_COLOR = {
+  UNPAID: 'bg-yellow-100 text-yellow-800',
+  PAID: 'bg-green-100 text-green-800',
+  PARTIALLY_PAID: 'bg-blue-100 text-blue-800',
+  CANCELED: 'bg-gray-100 text-gray-500',
+  DRAFT: 'bg-purple-100 text-purple-700',
+  SCHEDULED: 'bg-indigo-100 text-indigo-700',
+};
+
+function fmtMoney(n) {
+  return `$${Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function fmtDate(s) {
+  if (!s) return '—';
+  try { return format(new Date(s), 'MMM d, yyyy'); } catch { return s; }
+}
+
+// ─── Invoice List Tab ─────────────────────────────────────────────────────────
+function InvoiceList() {
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['square-invoices'],
+    queryFn: async () => {
+      const res = await base44.functions.invoke('squareListInvoices', {});
+      return res.data;
+    },
+    staleTime: 60_000,
+  });
+
+  const refresh = async () => {
+    setRefreshing(true);
+    await queryClient.invalidateQueries({ queryKey: ['square-invoices'] });
+    setRefreshing(false);
+  };
+
+  const invoices = data?.invoices || [];
+  const outstanding = invoices.filter(i => ['UNPAID', 'PARTIALLY_PAID'].includes(i.status));
+  const totalOutstanding = outstanding.reduce((s, i) => s + (i.amountDue - i.amountPaid), 0);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-6 h-6 animate-spin text-[rgb(150,170,155)]" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Summary */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-white border border-[rgb(235,225,213)] rounded-xl p-4 text-center">
+          <div className="text-2xl font-light text-[rgb(107,85,64)]">{invoices.length}</div>
+          <div className="text-xs text-[rgb(150,150,150)] mt-1">All Invoices</div>
+        </div>
+        <div className="bg-white border border-yellow-200 rounded-xl p-4 text-center">
+          <div className="text-2xl font-light text-yellow-700">{outstanding.length}</div>
+          <div className="text-xs text-[rgb(150,150,150)] mt-1">Outstanding</div>
+        </div>
+        <div className="bg-white border border-[rgb(235,225,213)] rounded-xl p-4 text-center">
+          <div className="text-2xl font-light text-[rgb(107,85,64)]">{fmtMoney(totalOutstanding)}</div>
+          <div className="text-xs text-[rgb(150,150,150)] mt-1">Owed Total</div>
+        </div>
+      </div>
+
+      {/* Refresh */}
+      <div className="flex justify-end">
+        <button onClick={refresh} disabled={refreshing} className="flex items-center gap-1 text-xs text-[rgb(150,150,150)] hover:text-[rgb(107,85,64)]">
+          <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} /> Refresh from Square
+        </button>
+      </div>
+
+      {/* Invoice rows */}
+      <div className="space-y-2">
+        {invoices.map(inv => (
+          <div key={inv.id} className="bg-white border border-[rgb(235,225,213)] rounded-xl px-4 py-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs text-[rgb(150,150,150)] font-mono">#{inv.invoiceNumber}</span>
+                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[inv.status] || 'bg-gray-100 text-gray-600'}`}>
+                    {inv.status?.replace('_', ' ')}
+                  </span>
+                </div>
+                <div className="text-sm font-medium text-[rgb(45,45,45)] mt-0.5 truncate">{inv.recipientName || '—'}</div>
+                {inv.recipientEmail && <div className="text-xs text-[rgb(150,150,150)]">{inv.recipientEmail}</div>}
+                <div className="text-xs text-[rgb(150,150,150)] mt-0.5">{inv.title}</div>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="text-sm font-semibold text-[rgb(107,85,64)]">{fmtMoney(inv.amountDue)}</div>
+                {inv.amountPaid > 0 && (
+                  <div className="text-xs text-green-600">{fmtMoney(inv.amountPaid)} paid</div>
+                )}
+                <div className="text-xs text-[rgb(150,150,150)] mt-0.5">Due {fmtDate(inv.dueDate)}</div>
+              </div>
+            </div>
+            {inv.publicUrl && (
+              <div className="mt-2 flex items-center gap-2">
+                <a
+                  href={inv.publicUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-[rgb(150,170,155)] hover:underline flex items-center gap-1"
+                >
+                  <ExternalLink className="w-3 h-3" /> Open Payment Link
+                </a>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(inv.publicUrl); }}
+                  className="text-xs text-[rgb(150,150,150)] hover:text-[rgb(107,85,64)] flex items-center gap-1"
+                >
+                  <Copy className="w-3 h-3" /> Copy
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+        {invoices.length === 0 && (
+          <div className="text-center py-12 text-[rgb(150,150,150)] text-sm">No invoices found in Square.</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── New Invoice Tab ──────────────────────────────────────────────────────────
+function NewInvoice({ rooms, treatments, packages }) {
+  const queryClient = useQueryClient();
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [note, setNote] = useState('');
@@ -22,65 +155,60 @@ export default function AdminInvoiceGenerator() {
   const [result, setResult] = useState(null);
   const [copied, setCopied] = useState(false);
 
-  React.useEffect(() => {
-    base44.auth.me().then(u => {
-      setUser(u);
-      if (u.role !== 'admin') window.location.href = createPageUrl('Home');
-    }).catch(() => base44.auth.redirectToLogin(createPageUrl('AdminInvoiceGenerator')));
-  }, []);
-
-  // Pre-fill from packages
-  const { data: packages = [] } = useQuery({
-    queryKey: ['packages-invoice'],
-    queryFn: () => base44.entities.Package.list('sort_order'),
-    enabled: !!user,
-  });
-
   const setItem = (idx, key, val) => {
     setLineItems(items => items.map((it, i) => i === idx ? { ...it, [key]: val } : it));
   };
 
-  const addFromPackage = (pkg) => {
-    setLineItems(items => [
-      ...items.filter(it => it.name || it.amount),
-      { name: pkg.title, amount: String(pkg.price || ''), quantity: '1' },
-    ]);
+  // Quick-add from dropdown
+  const addCatalogItem = (val) => {
+    if (!val) return;
+    const [type, id] = val.split('::');
+    let entry = null;
+    if (type === 'room') {
+      const r = rooms.find(x => x.id === id);
+      if (r) entry = { name: `Room – ${r.name}`, amount: String(r.price_per_night || ''), quantity: '1' };
+    } else if (type === 'treatment') {
+      const t = treatments.find(x => x.id === id);
+      if (t) entry = { name: t.name, amount: String(t.price || ''), quantity: '1' };
+    } else if (type === 'pkg') {
+      const p = packages.find(x => x.id === id);
+      if (p) entry = { name: p.title, amount: String(p.price || ''), quantity: '1' };
+    }
+    if (entry) {
+      setLineItems(items => {
+        const clean = items.filter(it => it.name || it.amount);
+        return [...clean, entry];
+      });
+    }
   };
 
   const total = lineItems.reduce((sum, it) => {
-    const amt = parseFloat(it.amount) || 0;
-    const qty = parseInt(it.quantity) || 1;
-    return sum + amt * qty;
+    return sum + (parseFloat(it.amount) || 0) * (parseInt(it.quantity) || 1);
   }, 0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validItems = lineItems.filter(it => it.name && parseFloat(it.amount) > 0);
     if (!validItems.length) { alert('Add at least one line item with a name and amount.'); return; }
-
     setLoading(true);
     setResult(null);
-    try {
-      const res = await base44.functions.invoke('squareCreateInvoice', {
-        customerName,
-        customerEmail,
-        note,
-        dueDate: dueDate || undefined,
-        lineItems: validItems.map(it => ({
-          name: it.name,
-          amount: parseFloat(it.amount),
-          quantity: parseInt(it.quantity) || 1,
-        })),
-      });
-      if (res.data?.success) {
-        setResult({ success: true, publicUrl: res.data.publicUrl, invoiceId: res.data.invoiceId });
-      } else {
-        setResult({ success: false, error: res.data?.error || 'Invoice creation failed' });
-      }
-    } catch (e) {
-      setResult({ success: false, error: e.message });
-    } finally {
-      setLoading(false);
+    const res = await base44.functions.invoke('squareCreateInvoice', {
+      customerName,
+      customerEmail,
+      note,
+      dueDate: dueDate || undefined,
+      lineItems: validItems.map(it => ({
+        name: it.name,
+        amount: parseFloat(it.amount),
+        quantity: parseInt(it.quantity) || 1,
+      })),
+    });
+    setLoading(false);
+    if (res.data?.success) {
+      setResult({ success: true, publicUrl: res.data.publicUrl, invoiceId: res.data.invoiceId });
+      queryClient.invalidateQueries({ queryKey: ['square-invoices'] });
+    } else {
+      setResult({ success: false, error: res.data?.error || 'Invoice creation failed' });
     }
   };
 
@@ -92,67 +220,48 @@ export default function AdminInvoiceGenerator() {
     }
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-2 border-[rgb(150,170,155)] border-t-transparent rounded-full" />
-      </div>
-    );
-  }
+  const resetForm = () => {
+    setCustomerName(''); setCustomerEmail(''); setNote(''); setDueDate('');
+    setLineItems([blankItem()]); setResult(null);
+  };
 
   return (
-    <div className="min-h-screen bg-[rgb(248,246,242)]">
-      <header className="bg-white border-b border-[rgb(235,225,213)] px-6 py-4 sticky top-0 z-40">
-        <div className="max-w-2xl mx-auto flex items-center gap-4">
-          <Link to={createPageUrl('AdminDashboard')} className="p-2 hover:bg-[rgb(235,225,213)] rounded">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <h1 className="text-xl font-light text-[rgb(107,85,64)]">Invoice Generator</h1>
-            <p className="text-sm text-[rgb(150,150,150)]">Create a Square invoice with a payment link</p>
+    <div className="space-y-5">
+      {result?.success && (
+        <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle2 className="w-5 h-5 text-green-600" />
+            <p className="font-medium text-green-800">Invoice created & emailed to {customerEmail}!</p>
           </div>
-        </div>
-      </header>
-
-      <main className="max-w-2xl mx-auto p-6 space-y-6">
-
-        {/* Result Banner */}
-        {result?.success && (
-          <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <CheckCircle2 className="w-5 h-5 text-green-600" />
-              <p className="font-medium text-green-800">Invoice created & emailed to {customerEmail}!</p>
-            </div>
-            {result.publicUrl && (
-              <div className="space-y-2">
-                <p className="text-sm text-green-700">Payment link:</p>
-                <div className="flex items-center gap-2">
-                  <input
-                    readOnly
-                    value={result.publicUrl}
-                    className="flex-1 text-sm border border-green-200 rounded-lg px-3 py-2 bg-white font-mono"
-                  />
-                  <Button size="sm" variant="outline" onClick={copyLink} className="shrink-0 border-green-300 text-green-700">
-                    {copied ? 'Copied!' : <><Copy className="w-4 h-4 mr-1" />Copy</>}
+          {result.publicUrl && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <input readOnly value={result.publicUrl} className="flex-1 text-sm border border-green-200 rounded-lg px-3 py-2 bg-white font-mono" />
+                <Button size="sm" variant="outline" onClick={copyLink} className="shrink-0 border-green-300 text-green-700">
+                  {copied ? 'Copied!' : <><Copy className="w-4 h-4 mr-1" />Copy</>}
+                </Button>
+                <a href={result.publicUrl} target="_blank" rel="noopener noreferrer">
+                  <Button size="sm" variant="outline" className="shrink-0 border-green-300 text-green-700">
+                    <ExternalLink className="w-4 h-4" />
                   </Button>
-                  <a href={result.publicUrl} target="_blank" rel="noopener noreferrer">
-                    <Button size="sm" variant="outline" className="shrink-0 border-green-300 text-green-700">
-                      <ExternalLink className="w-4 h-4" />
-                    </Button>
-                  </a>
-                </div>
+                </a>
               </div>
-            )}
-          </div>
-        )}
-        {result?.error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">{result.error}</div>
-        )}
+            </div>
+          )}
+          <button onClick={resetForm} className="mt-3 text-sm text-green-700 hover:underline">Create another invoice</button>
+        </div>
+      )}
+      {result?.error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0" /> {result.error}
+        </div>
+      )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+      {!result?.success && (
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Customer */}
-          <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-6">
-            <h2 className="text-sm uppercase tracking-widest text-[rgb(150,150,150)] mb-4">Customer</h2>
+          <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5">
+            <h2 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-4">Customer</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-xs text-[rgb(107,85,64)]">Full Name *</Label>
@@ -165,28 +274,52 @@ export default function AdminInvoiceGenerator() {
             </div>
           </div>
 
-          {/* Quick-add from packages */}
-          {packages.length > 0 && (
-            <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-6">
-              <h2 className="text-sm uppercase tracking-widest text-[rgb(150,150,150)] mb-3">Quick-Add Package</h2>
-              <div className="flex flex-wrap gap-2">
-                {packages.filter(p => p.is_active).map(pkg => (
-                  <button
-                    key={pkg.id}
-                    type="button"
-                    onClick={() => addFromPackage(pkg)}
-                    className="px-3 py-1.5 text-sm rounded-lg border border-[rgb(235,225,213)] text-[rgb(107,85,64)] hover:bg-[rgb(235,225,213)] transition-colors"
-                  >
-                    {pkg.title} — ${pkg.price?.toLocaleString()}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Quick-add catalog */}
+          <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5">
+            <h2 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-3">Add from Catalog</h2>
+            <Select onValueChange={addCatalogItem}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a room, treatment, or package to add…" />
+              </SelectTrigger>
+              <SelectContent>
+                {rooms.length > 0 && (
+                  <>
+                    <div className="px-3 py-1.5 text-[11px] uppercase tracking-widest text-[rgb(150,150,150)] font-semibold">Rooms</div>
+                    {rooms.filter(r => r.is_available !== false).map(r => (
+                      <SelectItem key={r.id} value={`room::${r.id}`}>
+                        {r.name} — ${r.price_per_night}/night
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
+                {treatments.length > 0 && (
+                  <>
+                    <div className="px-3 py-1.5 text-[11px] uppercase tracking-widest text-[rgb(150,150,150)] font-semibold">Treatments</div>
+                    {treatments.filter(t => t.is_available !== false).map(t => (
+                      <SelectItem key={t.id} value={`treatment::${t.id}`}>
+                        {t.name} — ${t.price} ({t.duration_minutes}min)
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
+                {packages.length > 0 && (
+                  <>
+                    <div className="px-3 py-1.5 text-[11px] uppercase tracking-widest text-[rgb(150,150,150)] font-semibold">Packages</div>
+                    {packages.filter(p => p.is_active !== false).map(p => (
+                      <SelectItem key={p.id} value={`pkg::${p.id}`}>
+                        {p.title} — ${p.price}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-[rgb(150,150,150)] mt-2">Selecting an item adds it as a line item below. You can still edit the amount or description.</p>
+          </div>
 
           {/* Line Items */}
-          <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-6">
-            <h2 className="text-sm uppercase tracking-widest text-[rgb(150,150,150)] mb-4">Line Items</h2>
+          <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5">
+            <h2 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-4">Line Items</h2>
             <div className="space-y-3">
               {lineItems.map((item, idx) => (
                 <div key={idx} className="flex items-center gap-2">
@@ -197,7 +330,7 @@ export default function AdminInvoiceGenerator() {
                     className="flex-1"
                   />
                   <Input
-                    placeholder="Amount"
+                    placeholder="Price"
                     type="number"
                     min="0"
                     step="0.01"
@@ -226,23 +359,23 @@ export default function AdminInvoiceGenerator() {
               onClick={() => setLineItems(items => [...items, blankItem()])}
               className="mt-3 flex items-center gap-1 text-sm text-[rgb(150,170,155)] hover:text-[rgb(107,85,64)]"
             >
-              <Plus className="w-4 h-4" /> Add line item
+              <Plus className="w-4 h-4" /> Add custom line item
             </button>
             <div className="mt-4 pt-4 border-t border-[rgb(235,225,213)] flex justify-between">
               <span className="text-sm text-[rgb(150,150,150)]">Total</span>
-              <span className="font-medium text-[rgb(107,85,64)]">${total.toFixed(2)}</span>
+              <span className="font-semibold text-[rgb(107,85,64)]">{fmtMoney(total)}</span>
             </div>
           </div>
 
           {/* Options */}
-          <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-6 space-y-4">
-            <h2 className="text-sm uppercase tracking-widest text-[rgb(150,150,150)] mb-2">Invoice Options</h2>
+          <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5 space-y-4">
+            <h2 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-2">Invoice Options</h2>
             <div>
               <Label className="text-xs text-[rgb(107,85,64)]">Due Date</Label>
               <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="mt-1" />
             </div>
             <div>
-              <Label className="text-xs text-[rgb(107,85,64)]">Message / Note to Customer</Label>
+              <Label className="text-xs text-[rgb(107,85,64)]">Note to Customer</Label>
               <Textarea value={note} onChange={e => setNote(e.target.value)} className="mt-1" rows={2} placeholder="Thank you for choosing Hotel RITUAL…" />
             </div>
           </div>
@@ -254,9 +387,84 @@ export default function AdminInvoiceGenerator() {
           >
             {loading ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating Invoice…</>
-            ) : `Create & Send Invoice — $${total.toFixed(2)}`}
+            ) : `Create & Send Invoice — ${fmtMoney(total)}`}
           </Button>
         </form>
+      )}
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+export default function AdminInvoiceGenerator() {
+  const [user, setUser] = React.useState(null);
+  const [tab, setTab] = useState('invoices');
+
+  React.useEffect(() => {
+    base44.auth.me().then(u => {
+      setUser(u);
+      if (u.role !== 'admin') window.location.href = createPageUrl('Home');
+    }).catch(() => base44.auth.redirectToLogin(createPageUrl('AdminInvoiceGenerator')));
+  }, []);
+
+  const { data: rooms = [] } = useQuery({
+    queryKey: ['rooms-invoice'],
+    queryFn: () => base44.entities.Room.list('name'),
+    enabled: !!user,
+  });
+  const { data: treatments = [] } = useQuery({
+    queryKey: ['treatments-invoice'],
+    queryFn: () => base44.entities.Treatment.list('sort_order'),
+    enabled: !!user,
+  });
+  const { data: packages = [] } = useQuery({
+    queryKey: ['packages-invoice'],
+    queryFn: () => base44.entities.Package.list('sort_order'),
+    enabled: !!user,
+  });
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-2 border-[rgb(150,170,155)] border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[rgb(248,246,242)]">
+      <header className="bg-white border-b border-[rgb(235,225,213)] px-6 py-4 sticky top-0 z-40">
+        <div className="max-w-2xl mx-auto flex items-center gap-4">
+          <Link to={createPageUrl('AdminDashboard')} className="p-2 hover:bg-[rgb(235,225,213)] rounded">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <h1 className="text-xl font-light text-[rgb(107,85,64)]">Invoices</h1>
+            <p className="text-sm text-[rgb(150,150,150)]">Square invoice management</p>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-2xl mx-auto p-6">
+        {/* Tabs */}
+        <div className="flex gap-1 bg-[rgb(235,225,213)] rounded-xl p-1 mb-6">
+          {[
+            { key: 'invoices', label: 'All Invoices', icon: FileText },
+            { key: 'new', label: 'New Invoice', icon: Plus },
+          ].map(t => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white text-[rgb(107,85,64)] shadow-sm' : 'text-[rgb(107,85,64)] hover:bg-white/50'}`}
+            >
+              <t.icon className="w-4 h-4" />
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'invoices' && <InvoiceList />}
+        {tab === 'new' && <NewInvoice rooms={rooms} treatments={treatments} packages={packages} />}
       </main>
     </div>
   );
