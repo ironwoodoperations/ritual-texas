@@ -30,6 +30,9 @@ Deno.serve(async (req) => {
       results = await base44.asServiceRole.entities.SpaBooking.filter({ phone }, 'startAt', 50);
     }
 
+    // Only show SimplyBook bookings (exclude old Square bookings)
+    results = results.filter(b => b.source !== 'square');
+
     return Response.json({ 
       success: true, 
       spaBookings: results || [] 
