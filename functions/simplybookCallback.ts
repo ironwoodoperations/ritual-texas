@@ -121,12 +121,20 @@ Deno.serve(async (req) => {
       createdAt: new Date().toISOString(),
     };
 
-    const attachResp = await base44.asServiceRole.functions.invoke("attachSpaToItinerary", spaBookingPayload);
+    // Upsert directly using service role (no extra function hop)
+    let action = "created";
+    const existing = await base44.asServiceRole.entities.SpaBooking.filter({ simplybookBookingId: String(bookingId) });
+    if (existing && existing.length > 0) {
+      await base44.asServiceRole.entities.SpaBooking.update(existing[0].id, spaBookingPayload);
+      action = "updated";
+    } else {
+      await base44.asServiceRole.entities.SpaBooking.create(spaBookingPayload);
+    }
 
     return Response.json(
       {
         received: true,
-        action: attachResp?.data?.action || "processed",
+        action,
         simplybookBookingId: bookingId,
       },
       { status: 200 }
