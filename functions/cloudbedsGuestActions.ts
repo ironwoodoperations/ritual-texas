@@ -92,17 +92,32 @@ Deno.serve(async (req) => {
 
     let result;
 
-    if (action === 'checkin') {
-      result = await callCloudbeds('postRoomCheckIn', 'POST', { reservationID }, accessToken, propertyId);
-      if (!result.ok && (result.status === 401 || result.status === 403)) {
+    if (action === 'checkin' || action === 'checkout') {
+      // First fetch the reservation to get the subReservationID
+      const resLookup = await callCloudbeds('getReservation', 'GET', { reservationID }, accessToken, propertyId);
+      if (!resLookup.ok && (resLookup.status === 401 || resLookup.status === 403)) {
         accessToken = await refreshToken(base44);
-        result = await callCloudbeds('postRoomCheckIn', 'POST', { reservationID }, accessToken, propertyId);
       }
-    } else if (action === 'checkout') {
-      result = await callCloudbeds('postRoomCheckOut', 'POST', { reservationID }, accessToken, propertyId);
+      const resLookup2 = (!resLookup.ok) ? await callCloudbeds('getReservation', 'GET', { reservationID }, accessToken, propertyId) : resLookup;
+      
+      // Get subReservationID from the reservation data
+      const resData = resLookup2.json?.data;
+      const rooms = resData?.rooms || resData?.guestList || [];
+      let subReservationID = null;
+      if (Array.isArray(rooms) && rooms.length > 0) {
+        subReservationID = rooms[0]?.subReservationID || rooms[0]?.sub_reservation_id;
+      }
+      if (!subReservationID && resData?.subReservationID) subReservationID = resData.subReservationID;
+
+      if (!subReservationID) {
+        return Response.json({ success: false, error: 'Could not find subReservationID for this reservation. The guest may need to be checked in from Cloudbeds directly.', detail: resData });
+      }
+
+      const endpoint = action === 'checkin' ? 'postRoomCheckIn' : 'postRoomCheckOut';
+      result = await callCloudbeds(endpoint, 'POST', { reservationID, subReservationID }, accessToken, propertyId);
       if (!result.ok && (result.status === 401 || result.status === 403)) {
         accessToken = await refreshToken(base44);
-        result = await callCloudbeds('postRoomCheckOut', 'POST', { reservationID }, accessToken, propertyId);
+        result = await callCloudbeds(endpoint, 'POST', { reservationID, subReservationID }, accessToken, propertyId);
       }
     } else if (action === 'payment') {
       if (!amount) return Response.json({ error: 'Missing amount for payment' }, { status: 400 });
