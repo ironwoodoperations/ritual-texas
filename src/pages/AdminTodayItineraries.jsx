@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Leaf, Printer, RefreshCw, Sparkles, Mail, MessageCircle, Check } from 'lucide-react';
+import { ArrowLeft, Leaf, Printer, RefreshCw, Sparkles, Mail, MessageCircle, Check, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 
 function todayStr() {
