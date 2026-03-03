@@ -117,19 +117,13 @@ export default function Treatments() {
                 <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(59,72,49,.10)' }}>
                   <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', background: '#000', borderRadius: '12px', overflow: 'hidden' }}>
                     {(() => {
-                      let embedUrl = treatment.video_url;
-                      // Handle youtu.be/VIDEO_ID format
-                      if (embedUrl.includes('youtu.be/')) {
-                        const videoId = embedUrl.split('youtu.be/')[1]?.split('?')[0];
-                        if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}`;
-                      }
-                      // Handle youtube.com/watch?v=VIDEO_ID format
-                      else if (embedUrl.includes('watch?v=')) {
-                        embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
-                      }
-                      // Handle youtube.com/embed/VIDEO_ID format (already correct)
-                      else if (!embedUrl.includes('/embed/')) {
-                        embedUrl = embedUrl.replace('youtube.com', 'youtube.com/embed');
+                      let url = treatment.video_url;
+                      if (url.includes('youtu.be/')) {
+                        const videoId = url.split('youtu.be/')[1]?.split(/[?&=\s]/)[0];
+                        if (videoId) url = `https://www.youtube.com/embed/${videoId}`;
+                      } else if (url.includes('watch?v=')) {
+                        const videoId = url.split('watch?v=')[1]?.split(/[&\s]/)[0];
+                        if (videoId) url = `https://www.youtube.com/embed/${videoId}`;
                       }
                       return (
                         <iframe
@@ -141,7 +135,7 @@ export default function Treatments() {
                             height: '100%',
                             border: 'none'
                           }}
-                          src={embedUrl}
+                          src={url}
                           title={treatment.name}
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
