@@ -41,18 +41,27 @@ async function refreshToken(base44) {
 }
 
 async function callCloudbeds(endpoint, method, params, token, propertyId) {
-  const url = `https://hotels.cloudbeds.com/api/v1.1/${endpoint}`;
-  const body = new URLSearchParams({ propertyID: propertyId, ...params });
-  const resp = await fetch(url, {
+  const allParams = { propertyID: propertyId, ...params };
+  let url = `https://hotels.cloudbeds.com/api/v1.1/${endpoint}`;
+  
+  // For GET requests use query string, for POST/PUT use form body
+  const fetchOptions = {
     method,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: body.toString(),
-  });
+    headers: { Authorization: `Bearer ${token}` },
+  };
+
+  if (method === 'GET') {
+    url += '?' + new URLSearchParams(allParams).toString();
+  } else {
+    fetchOptions.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+    fetchOptions.body = new URLSearchParams(allParams).toString();
+  }
+
+  const resp = await fetch(url, fetchOptions);
   const text = await resp.text();
-  return { ok: resp.ok, status: resp.status, json: JSON.parse(text) };
+  let json;
+  try { json = JSON.parse(text); } catch { json = { raw: text }; }
+  return { ok: resp.ok, status: resp.status, json };
 }
 
 Deno.serve(async (req) => {
