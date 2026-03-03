@@ -103,6 +103,9 @@ import afterBooking from './pages/afterBooking';
 import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
+import AdminSquareImport from './pages/AdminSquareImport';
+import AdminAcuityImport from './pages/AdminAcuityImport';
+import AdminSimplybookImport from './pages/AdminSimplybookImport';
 import __Layout from './Layout.jsx';
 
 
@@ -163,6 +166,9 @@ export const PAGES = {
     "booking": booking,
     "concierge": concierge,
     "itinerary": itinerary,
+    "AdminSquareImport": AdminSquareImport,
+    "AdminAcuityImport": AdminAcuityImport,
+    "AdminSimplybookImport": AdminSimplybookImport,
 }
 
 export const pagesConfig = {
