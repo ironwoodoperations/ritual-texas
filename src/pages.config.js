@@ -101,6 +101,7 @@ import afterBooking from './pages/afterBooking';
 import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
+import AdminMasterCRM from './pages/AdminMasterCRM';
 import __Layout from './Layout.jsx';
 
 
@@ -159,6 +160,7 @@ export const PAGES = {
     "booking": booking,
     "concierge": concierge,
     "itinerary": itinerary,
+    "AdminMasterCRM": AdminMasterCRM,
 }
 
 export const pagesConfig = {
