@@ -85,6 +85,35 @@ export default function AdminSpaSchedule() {
     }
   };
 
+  const handleSendTipRequest = () => {
+    if (!tipModal || !tipLink) return;
+    
+    const smsBody = encodeURIComponent(`💰 Tip Request\n\nThank you for your service! Tip here:\n${tipLink}`);
+    const emailSubject = encodeURIComponent('Tip Request');
+    const emailBody = encodeURIComponent(`Thank you for your service!\n\nTip here: ${tipLink}`);
+    
+    // Open native share options or provide both options
+    const hasPhone = tipModal.phone;
+    const hasEmail = tipModal.email;
+    
+    if (hasPhone && hasEmail) {
+      // Show choice
+      const choice = confirm('Send via text message? (Cancel to send email)');
+      if (choice && hasPhone) {
+        window.location.href = `sms:${tipModal.phone}?body=${smsBody}`;
+      } else if (hasEmail) {
+        window.location.href = `mailto:${tipModal.email}?subject=${emailSubject}&body=${emailBody}`;
+      }
+    } else if (hasPhone) {
+      window.location.href = `sms:${tipModal.phone}?body=${smsBody}`;
+    } else if (hasEmail) {
+      window.location.href = `mailto:${tipModal.email}?subject=${emailSubject}&body=${emailBody}`;
+    }
+    
+    setTipModal(null);
+    setTipLink('');
+  };
+
   return (
     <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
       {/* Header */}
