@@ -43,28 +43,14 @@ function GuestCard({ reservation, spaBookings }) {
   const [sent, setSent] = useState(false);
   const [emailError, setEmailError] = useState('');
 
-  const handleEmail = async () => {
+  const handleEmail = () => {
     if (!emailAddr) { setEmailError('Enter an email address'); return; }
-    setSending(true);
     setEmailError('');
-    try {
-      await base44.functions.invoke('sendItineraryEmail', {
-        guestName: reservation.guestName,
-        guestEmail: emailAddr,
-        confirmationCode: reservation.reservationID,
-        checkIn: reservation.checkIn,
-        checkOut: reservation.checkOut,
-        roomType: reservation.roomName,
-        totalAmount: reservation.total ? Number(reservation.total) : null,
-        spaBookings,
-      });
-      setSent(true);
-      setTimeout(() => setSent(false), 4000);
-    } catch (e) {
-      setEmailError('Failed to send. Try again.');
-    } finally {
-      setSending(false);
-    }
+    // Open Gmail compose with pre-filled recipient
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(emailAddr)}&subject=${encodeURIComponent(`Your Hotel RITUAL Itinerary – ${reservation.guestName}`)}`;
+    window.open(gmailUrl, '_blank');
+    setSent(true);
+    setTimeout(() => setSent(false), 4000);
   };
 
   const smsBody = encodeURIComponent(buildSmsText(reservation, spaBookings));
