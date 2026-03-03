@@ -58,7 +58,27 @@ function GuestCard({ reservation, spaBookings }) {
   const smsHref = `sms:?&body=${smsBody}`;
 
   return (
-    <div className="itinerary-card bg-white border border-[rgb(235,225,213)] rounded-2xl p-8 mb-8 print:mb-0 print:border-0 print:rounded-none print:p-6 print:break-after-page">
+    <div className="itinerary-card bg-white border border-[rgb(235,225,213)] rounded-2xl mb-8 print:mb-0 print:border-0 print:rounded-none print:p-6 print:break-after-page overflow-hidden print:p-8" style={{ padding: expanded ? '2rem' : 0 }}>
+      {/* Collapsed Header */}
+      {!expanded && (
+        <button
+          onClick={() => setExpanded(true)}
+          className="w-full flex items-center justify-between p-4 hover:bg-[rgb(248,246,242)] transition-colors no-print"
+        >
+          <div className="flex items-center gap-3">
+            <Leaf className="w-4 h-4 text-[rgb(150,170,155)] shrink-0" />
+            <div className="text-left">
+              <p className="font-medium text-[rgb(107,85,64)]">{reservation.guestName}</p>
+              <p className="text-xs text-[rgb(150,150,150)]">{emailAddr}</p>
+            </div>
+          </div>
+          <ChevronDown className="w-4 h-4 text-[rgb(150,170,155)]" />
+        </button>
+      )}
+
+      {/* Full Content */}
+      {expanded && (
+        <>
       {/* Header */}
       <div className="flex items-start justify-between mb-6 pb-4 border-b border-[rgb(235,225,213)]">
         <div>
