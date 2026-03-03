@@ -49,15 +49,21 @@ Deno.serve(async (req) => {
         const lastName = nameParts.slice(1).join(' ') || '';
 
         // Upsert contact
-        const contactResp = await base44.functions.invoke('crmUpsertContact', {
-          firstName,
-          lastName,
-          fullName,
-          email,
-          phone,
-          source: 'cloudbeds',
-          externalId: reservationId
-        });
+        let contactResp;
+        try {
+          contactResp = await base44.functions.invoke('crmUpsertContact', {
+            firstName,
+            lastName,
+            fullName,
+            email,
+            phone,
+            source: 'cloudbeds',
+            externalId: reservationId
+          });
+        } catch (funcErr) {
+          errors.push(`Contact upsert failed for ${fullName}: ${funcErr.message}`);
+          continue;
+        }
 
         if (contactResp.data?.error) {
           errors.push(`Row ${fullName}: ${contactResp.data.error}`);
@@ -65,7 +71,10 @@ Deno.serve(async (req) => {
         }
 
         const contactId = contactResp.data?.id;
-        if (!contactId) continue;
+        if (!contactId) {
+          errors.push(`No contact ID returned for ${fullName}`);
+          continue;
+        }
 
         contactsCreated++;
 
@@ -81,37 +90,41 @@ Deno.serve(async (req) => {
 
           // Parse dates (MM/DD/YYYY format)
           if (checkInStr) {
-            const [m, d, y] = checkInStr.split('/');
+            const [m, d, y] = String(checkInStr).split('/');
             if (m && d && y) {
               checkInDate = new Date(`${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}T00:00:00Z`).toISOString();
             }
           }
           if (checkOutStr) {
-            const [m, d, y] = checkOutStr.split('/');
+            const [m, d, y] = String(checkOutStr).split('/');
             if (m && d && y) {
               checkOutDate = new Date(`${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}T00:00:00Z`).toISOString();
             }
           }
 
           if (checkInDate) {
-            await base44.functions.invoke('crmAddEvent', {
-              contactId,
-              source: 'cloudbeds',
-              externalId: reservationId,
-              eventType: 'hotel_stay',
-              startAt: checkInDate,
-              endAt: checkOutDate || checkInDate,
-              status: row.Status || 'confirmed',
-              title: roomType,
-              amount: total,
-              meta: {
-                roomNumber: row['Room Number'] || '',
-                nights: row.Nights || 0,
-                adults: row.Adults || 0,
-                children: row.Children || 0
-              }
-            });
-            eventsCreated++;
+            try {
+              await base44.functions.invoke('crmAddEvent', {
+                contactId,
+                source: 'cloudbeds',
+                externalId: reservationId,
+                eventType: 'hotel_stay',
+                startAt: checkInDate,
+                endAt: checkOutDate || checkInDate,
+                status: row.Status || 'confirmed',
+                title: roomType,
+                amount: total,
+                meta: {
+                  roomNumber: row['Room Number'] || '',
+                  nights: row.Nights || 0,
+                  adults: row.Adults || 0,
+                  children: row.Children || 0
+                }
+              });
+              eventsCreated++;
+            } catch (eventErr) {
+              errors.push(`Event creation failed for ${fullName}: ${eventErr.message}`);
+            }
           }
         }
       } catch (e) {
