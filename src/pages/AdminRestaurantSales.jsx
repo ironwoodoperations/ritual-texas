@@ -24,6 +24,7 @@ export default function AdminRestaurantSales() {
   const todayStr = useMemo(() => todayStrLocal(), []);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState("");
+  const [syncError, setSyncError] = useState(null);
 
   const weekStart = useMemo(() => {
     const d = new Date();
