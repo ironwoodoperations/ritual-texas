@@ -510,9 +510,10 @@ export default function ItineraryPage() {
                                 )}
                                 {item.bullets && (
                                   <ul className="text-sm mt-2 list-disc pl-5" style={{ color: '#1B1B1B' }}>
-                                    {item.bullets.map((b, i) => (
-                                      <li key={i}>{typeof b === 'string' && b.startsWith('__link__') ? (() => { const [, label, href] = b.split('|'); return <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: '#C57C5D', textDecoration: 'underline' }}>{label}</a>; })() : b}</li>
-                                    ))}
+                                    {item.bullets.map((b, i) => <li key={i}>{b}</li>)}
+                                    {item.spaLink && (
+                                      <li>Book a spa treatment: <a href="https://ritualtexas.simplybook.me/v2/" target="_blank" rel="noopener noreferrer" style={{ color: '#C57C5D', textDecoration: 'underline' }}>ritualtexas.simplybook.me</a></li>
+                                    )}
                                   </ul>
                                 )}
                                 {item.meta && (
