@@ -204,7 +204,7 @@ function GuestCard({ reservation, spaBookings }) {
       </div>
         </>
       )}
-    </div>
+      </div>
   );
 }
 
