@@ -326,18 +326,29 @@ export default function AdminTodayItineraries() {
           <div className="text-center py-16 text-[rgb(107,85,64)]">
             {cloudbedsData?.error || 'Could not load Cloudbeds reservations.'}
           </div>
-        ) : arrivalsWithSpa.length === 0 ? (
+        ) : allCards.length === 0 ? (
           <div className="text-center py-24 text-[rgb(150,150,150)]">
-            <p className="text-lg font-light">No arrivals today.</p>
+            <p className="text-lg font-light">No hotel arrivals or spa appointments today.</p>
           </div>
         ) : (
-          arrivalsWithSpa.map(({ reservation, spaBookings }) => (
-            <GuestCard
-              key={reservation.reservationID}
-              reservation={reservation}
-              spaBookings={spaBookings}
-            />
-          ))
+          <>
+            {arrivalsWithSpa.length > 0 && (
+              <div className="mb-2">
+                <p className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-4">Hotel Arrivals</p>
+                {arrivalsWithSpa.map(({ reservation, spaBookings }) => (
+                  <GuestCard key={reservation.reservationID} reservation={reservation} spaBookings={spaBookings} />
+                ))}
+              </div>
+            )}
+            {spaOnlyGuests.length > 0 && (
+              <div>
+                <p className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-4">Spa Guests Today</p>
+                {spaOnlyGuests.map(({ reservation, spaBookings }, i) => (
+                  <GuestCard key={i} reservation={reservation} spaBookings={spaBookings} />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
