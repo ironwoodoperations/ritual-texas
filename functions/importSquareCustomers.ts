@@ -104,6 +104,7 @@ Deno.serve(async (req) => {
       createdContacts,
       createdEvents,
       totalProcessed: customers.length,
+      skippedNoData,
       errors: errors.length > 0 ? errors.slice(0, 10) : null
     });
   } catch (error) {
