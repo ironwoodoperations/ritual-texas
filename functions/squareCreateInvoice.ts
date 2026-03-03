@@ -147,8 +147,10 @@ Deno.serve(async (req) => {
 
 async function getLocationId(baseUrl, accessToken) {
   const resp = await fetch(`${baseUrl}/v2/locations`, {
-    headers: { Authorization: `Bearer ${accessToken}`, 'Square-Version': '2024-01-18' },
+    headers: { Authorization: `Bearer ${accessToken}`, 'Square-Version': '2024-01-18', 'Content-Type': 'application/json' },
   });
   const data = await resp.json();
-  return data?.locations?.[0]?.id;
+  // Prefer active locations
+  const active = (data?.locations || []).find(l => l.status === 'ACTIVE') || data?.locations?.[0];
+  return active?.id || null;
 }
