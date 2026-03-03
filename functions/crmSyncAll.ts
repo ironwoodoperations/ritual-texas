@@ -189,8 +189,69 @@ async function syncAcuity(base44, sinceIso) {
 }
 
 async function syncSimplyBook(base44, sinceIso) {
-  // TODO: Implement actual SimplyBook sync (reconciliation)
-  return [];
+  try {
+    const apiKey = Deno.env.get('SIMPLYBOOK_API_KEY');
+    const companyLogin = Deno.env.get('SIMPLYBOOK_COMPANY_LOGIN');
+
+    if (!apiKey || !companyLogin) return [];
+
+    const headers = {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    };
+
+    // Fetch clients
+    const clientsResp = await fetch(`https://user-api.simplybook.me/api/v3/${companyLogin}/clients`, {
+      headers,
+      method: 'GET'
+    });
+    if (!clientsResp.ok) return [];
+    const clientsJson = await clientsResp.json();
+    const clientsMap = {};
+    if (Array.isArray(clientsJson)) {
+      clientsJson.forEach(c => {
+        clientsMap[c.id] = c;
+      });
+    }
+
+    // Fetch bookings
+    const sinceDate = new Date(sinceIso);
+    const fromDate = sinceDate.toISOString().split('T')[0];
+    const toDate = new Date();
+    toDate.setDate(toDate.getDate() + 90);
+    const untilDate = toDate.toISOString().split('T')[0];
+
+    const bookingsResp = await fetch(`https://user-api.simplybook.me/api/v3/${companyLogin}/bookings?from_date=${fromDate}&to_date=${untilDate}`, {
+      headers,
+      method: 'GET'
+    });
+    if (!bookingsResp.ok) return [];
+    const bookingsJson = await bookingsResp.json();
+    const bookings = Array.isArray(bookingsJson) ? bookingsJson : [];
+
+    return bookings.map(booking => {
+      const client = clientsMap[booking.client_id] || {};
+      return {
+        externalId: booking.id,
+        clientExternalId: booking.client_id,
+        firstName: client.first_name || '',
+        lastName: client.last_name || '',
+        fullName: `${client.first_name || ''} ${client.last_name || ''}`.trim(),
+        email: client.email || '',
+        phone: client.phone || '',
+        eventType: 'treatment',
+        startAt: booking.start_date ? new Date(booking.start_date).toISOString() : new Date().toISOString(),
+        endAt: booking.end_date ? new Date(booking.end_date).toISOString() : null,
+        status: booking.status || 'pending',
+        title: booking.service_name || 'Service',
+        amount: Number(booking.price) || 0,
+        meta: { serviceId: booking.service_id, staffId: booking.staff_id }
+      };
+    });
+  } catch (e) {
+    console.error('SimplyBook sync error:', e.message);
+    return [];
+  }
 }
 
 // ========================================================================
