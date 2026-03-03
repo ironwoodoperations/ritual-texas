@@ -92,13 +92,16 @@ Deno.serve(async (req) => {
     }
 
     const startAt = booking?.start_date_time || booking?.start || booking?.startAt || booking?.datetime || "";
-    const durationMinutes = booking?.duration || booking?.duration_minutes || booking?.durationMinutes || 0;
-    const serviceName = booking?.service_name || booking?.service?.name || booking?.event_name || booking?.event?.name || booking?.serviceName || "";
-    const staffName = booking?.provider_name || booking?.performer_name || booking?.unit_name || booking?.staffName || "";
+    const durationMinutes = Number(booking?.event_duration || booking?.duration || booking?.duration_minutes || booking?.durationMinutes || 0);
+    const serviceName = booking?.event_name || booking?.service_name || booking?.service?.name || booking?.event?.name || booking?.serviceName || "";
+    const serviceId = booking?.event_id ? String(booking.event_id) : "";
+    const staffName = booking?.unit_name || booking?.provider_name || booking?.performer_name || booking?.staffName || "";
+    const staffId = booking?.unit_id ? String(booking.unit_id) : "";
+    const clientName = booking?.client_name || booking?.client?.name || "";
     const email = booking?.client_email || booking?.client?.email || booking?.email || "";
     const phone = booking?.client_phone || booking?.client?.phone || booking?.phone || "";
-    const price = booking?.price || booking?.amount || booking?.total || 0;
-    const paid = booking?.paid || booking?.is_paid || false;
+    const price = Number(booking?.event_price || booking?.price || booking?.amount || booking?.total || 0);
+    const paid = Boolean(booking?.paid || booking?.is_paid || booking?.invoice?.payment_received > 0);
 
     const spaBookingPayload = {
       source: "simplybook",
