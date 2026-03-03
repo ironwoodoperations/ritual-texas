@@ -41,6 +41,7 @@ export default function AdminCloudbedsImport() {
     try {
       setLoading(true);
       setError(null);
+      setResult(null);
 
       // Upload file
       const uploadResp = await base44.integrations.Core.UploadFile({ file });
@@ -75,8 +76,9 @@ export default function AdminCloudbedsImport() {
         json_schema: schema
       });
 
-      if (extractResp.status !== 'success' || !extractResp.output) {
-        setError('Failed to parse file');
+      if (extractResp.status !== 'success' || !extractResp.output || extractResp.output.length === 0) {
+        setError(`Parse error: ${extractResp.details || 'No data extracted from file'}`);
+        setLoading(false);
         return;
       }
 
@@ -93,9 +95,10 @@ export default function AdminCloudbedsImport() {
 
       setResult(importResp.data);
       setFile(null);
+      setLoading(false);
     } catch (e) {
+      console.error('Import error:', e);
       setError(e.message || 'Import failed');
-    } finally {
       setLoading(false);
     }
   };
