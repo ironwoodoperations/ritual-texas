@@ -52,6 +52,7 @@ export default function AdminRestaurantSales() {
   async function syncToday() {
     setSyncing(true);
     setSyncMsg("");
+    setSyncError(null);
     try {
       const res = await base44.functions.invoke("toast_sync_today_summary", { date: todayStr });
       await refetch();
@@ -60,10 +61,10 @@ export default function AdminRestaurantSales() {
       } else if (res.data?.ok) {
         setSyncMsg(`✅ Synced — Sales ${fmt(res.data.netSales)}, Labor ${fmt(res.data.laborTotalCost)}`);
       } else {
-        setSyncMsg(`❌ ${res.data?.error || "Unknown error"}`);
+        setSyncError(res.data?.error || JSON.stringify(res.data));
       }
     } catch (e) {
-      setSyncMsg(`❌ ${e.message}`);
+      setSyncError(e.message);
     } finally {
       setSyncing(false);
     }
