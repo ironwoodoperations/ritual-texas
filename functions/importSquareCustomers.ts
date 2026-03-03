@@ -28,6 +28,7 @@ Deno.serve(async (req) => {
 
     let createdContacts = 0;
     let createdEvents = 0;
+    let skippedNoData = 0;
     const errors = [];
 
     // Process in batches of 50
@@ -44,6 +45,7 @@ Deno.serve(async (req) => {
           const phone = customer.phone_number || customer.phone || '';
 
           if (!fullName && !email && !phone) {
+            skippedNoData++;
             return null;
           }
 
