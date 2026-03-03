@@ -512,7 +512,7 @@ export default function ItineraryPage() {
                                   <ul className="text-sm mt-2 list-disc pl-5" style={{ color: '#1B1B1B' }}>
                                     {item.bullets.map((b, i) => <li key={i}>{b}</li>)}
                                     {item.spaLink && (
-                                      <li>Book a spa treatment: <a href="https://ritualtexas.simplybook.me/v2/" target="_blank" rel="noopener noreferrer" style={{ color: '#C57C5D', textDecoration: 'underline' }}>ritualtexas.simplybook.me</a></li>
+                                     <li>{spaBookings.length > 0 ? 'Book another spa treatment' : 'Book a spa treatment'} — <a href="https://ritualtexas.simplybook.me/v2/" target="_blank" rel="noopener noreferrer" style={{ color: '#C57C5D', textDecoration: 'underline' }}>click here</a></li>
                                     )}
                                   </ul>
                                 )}
