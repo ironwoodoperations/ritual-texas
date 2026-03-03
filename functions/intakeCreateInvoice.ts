@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
       lineItems.push({
         name: `Hotel Stay (${nights} night${nights === 1 ? '' : 's'})`,
         quantity: String(nights),
-        unitPrice: { amount: 25000, currency: 'USD' }, // $250
+        unit_price_money: { amount: 25000, currency: 'USD' }, // $250
         description: `${intake.roomRequested || 'Standard Room'} - ${intake.checkInDate} to ${intake.checkOutDate}`,
       });
     }
@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
         lineItems.push({
           name: treatment,
           quantity: '1',
-          unitPrice: { amount: 15000, currency: 'USD' }, // $150 default
+          unit_price_money: { amount: 15000, currency: 'USD' }, // $150 default
           description: intake.treatmentsRequested || 'Treatment',
         });
       }
