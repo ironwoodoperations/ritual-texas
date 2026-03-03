@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { 
   Calendar, Search, Eye, 
   Mail, Phone, MoreHorizontal, Leaf, ArrowLeft, RefreshCw,
-  LogIn, LogOut, CreditCard, Loader2
+  LogIn, LogOut, CreditCard, Loader2, Plus
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
@@ -137,13 +137,21 @@ export default function AdminBookings() {
               <p className="text-sm text-[rgb(45,45,45)]">Manage all reservations</p>
             </div>
           </div>
-          <Link 
-            to={createPageUrl('AdminDashboard')}
-            className="flex items-center gap-2 text-[rgb(150,170,155)]"
-          >
-            <Leaf className="w-5 h-5" />
-            <span className="text-sm">Dashboard</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to={createPageUrl('AdminCreateReservation')}
+              className="flex items-center gap-2 px-3 py-2 text-sm bg-[rgb(150,170,155)] text-white rounded-lg hover:bg-[rgb(130,150,135)]"
+            >
+              <Plus className="w-4 h-4" /> New Reservation
+            </Link>
+            <Link 
+              to={createPageUrl('AdminDashboard')}
+              className="flex items-center gap-2 text-[rgb(150,170,155)] ml-2"
+            >
+              <Leaf className="w-5 h-5" />
+              <span className="text-sm">Dashboard</span>
+            </Link>
+          </div>
         </div>
       </header>
 
