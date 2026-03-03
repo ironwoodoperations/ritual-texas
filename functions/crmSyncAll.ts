@@ -134,6 +134,8 @@ async function syncSquare(base44, sinceIso) {
       });
     }
 
+    const results = [];
+
     // Fetch appointments
     const appointmentsResp = await fetch(`${baseUrl}/v2/appointments/search`, {
       headers,
@@ -148,35 +150,83 @@ async function syncSquare(base44, sinceIso) {
         }
       })
     });
-    if (!appointmentsResp.ok) return [];
-    const appointmentsJson = await appointmentsResp.json();
-    const appointments = appointmentsJson.appointments || [];
+    if (appointmentsResp.ok) {
+      const appointmentsJson = await appointmentsResp.json();
+      const appointments = appointmentsJson.appointments || [];
+      appointments.forEach(apt => {
+        const customer = customersMap[apt.customerId] || {};
+        const primaryPhone = customer.phoneNumber || '';
+        const primaryEmail = (customer.emailAddress || '');
+        const name = customer.givenName || customer.familyName 
+          ? `${customer.givenName || ''} ${customer.familyName || ''}`.trim()
+          : customer.nickName || '';
 
-    return appointments.map(apt => {
-      const customer = customersMap[apt.customerId] || {};
-      const primaryPhone = customer.phoneNumber || '';
-      const primaryEmail = (customer.emailAddress || '');
-      const name = customer.givenName || customer.familyName 
-        ? `${customer.givenName || ''} ${customer.familyName || ''}`.trim()
-        : customer.nickName || '';
+        results.push({
+          externalId: apt.id,
+          contactExternalId: apt.customerId,
+          firstName: customer.givenName || name.split(' ')[0] || '',
+          lastName: customer.familyName || name.split(' ').slice(1).join(' ') || '',
+          fullName: name,
+          email: primaryEmail,
+          phone: primaryPhone,
+          eventType: 'treatment',
+          startAt: apt.startAt || new Date().toISOString(),
+          endAt: apt.endAt || null,
+          status: apt.status || 'pending',
+          title: 'Appointment',
+          amount: 0,
+          meta: { customerId: apt.customerId, locationId: apt.locationId }
+        });
+      });
+    }
 
-      return {
-        externalId: apt.id,
-        contactExternalId: apt.customerId,
-        firstName: customer.givenName || name.split(' ')[0] || '',
-        lastName: customer.familyName || name.split(' ').slice(1).join(' ') || '',
-        fullName: name,
-        email: primaryEmail,
-        phone: primaryPhone,
-        eventType: 'treatment',
-        startAt: apt.startAt || new Date().toISOString(),
-        endAt: apt.endAt || null,
-        status: apt.status || 'pending',
-        title: apt.locationId ? `Square Appointment` : 'Appointment',
-        amount: 0,
-        meta: { customerId: apt.customerId, locationId: apt.locationId }
-      };
+    // Fetch invoices
+    const sinceDateStr = new Date(sinceIso).toISOString().split('T')[0];
+    const invoicesResp = await fetch(`${baseUrl}/v2/invoices/search`, {
+      headers,
+      method: 'POST',
+      body: JSON.stringify({
+        query: {
+          filter: {
+            invoiceDateRange: {
+              startDate: sinceDateStr
+            }
+          }
+        }
+      })
     });
+    if (invoicesResp.ok) {
+      const invoicesJson = await invoicesResp.json();
+      const invoices = invoicesJson.invoices || [];
+      invoices.forEach(inv => {
+        const customer = customersMap[inv.customerId] || {};
+        const primaryPhone = customer.phoneNumber || '';
+        const primaryEmail = (customer.emailAddress || '');
+        const name = customer.givenName || customer.familyName 
+          ? `${customer.givenName || ''} ${customer.familyName || ''}`.trim()
+          : customer.nickName || '';
+        const totalMoney = inv.totalMoney || {};
+
+        results.push({
+          externalId: inv.id,
+          contactExternalId: inv.customerId,
+          firstName: customer.givenName || name.split(' ')[0] || '',
+          lastName: customer.familyName || name.split(' ').slice(1).join(' ') || '',
+          fullName: name,
+          email: primaryEmail,
+          phone: primaryPhone,
+          eventType: 'treatment',
+          startAt: inv.invoiceDate ? new Date(inv.invoiceDate).toISOString() : new Date().toISOString(),
+          endAt: null,
+          status: inv.status || 'pending',
+          title: 'Invoice',
+          amount: totalMoney.amount ? totalMoney.amount / 100 : 0,
+          meta: { customerId: inv.customerId, invoiceNumber: inv.invoiceNumber }
+        });
+      });
+    }
+
+    return results;
   } catch (e) {
     console.error('Square sync error:', e.message);
     return [];
