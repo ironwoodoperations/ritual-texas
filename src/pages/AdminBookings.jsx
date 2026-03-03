@@ -451,10 +451,10 @@ export default function AdminBookings() {
               {paymentMethod === 'cash' && (
                 <div className="text-xs text-[rgb(150,150,150)]">Cash payment — recorded in Cloudbeds</div>
               )}
-              
+
               {paymentMethod === 'card' && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-xs text-amber-800"><strong>Credit Card Processing:</strong> Stripe integration coming soon. For now, process card payments outside this system and record as cash.</p>
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-xs text-blue-800"><strong>Card Payment:</strong> Will be processed through Cloudbeds payment gateway and recorded in reservation.</p>
                 </div>
               )}
 
