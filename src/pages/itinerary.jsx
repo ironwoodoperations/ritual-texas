@@ -166,7 +166,7 @@ export default function ItineraryPage() {
         bullets: [
           'Breakfast: 8:00–10:00 AM daily',
           'Sauna & rainshower available anytime during your stay',
-          'Spa treatments can be booked through Square (link above)',
+          'Spa treatments can be booked through the SimplyBook portal (link above)',
         ],
       });
     }
