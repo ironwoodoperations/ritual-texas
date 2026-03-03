@@ -31,6 +31,8 @@ export default function AdminBookings() {
   const [actionResult, setActionResult] = useState({}); // reservationID -> message
   const [paymentModal, setPaymentModal] = useState(null); // { reservationID, guestName, balance }
   const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' or 'card'
+  const [cardError, setCardError] = useState('');
   const queryClient = useQueryClient();
 
   const runAction = async (reservationID, action, extra = {}) => {
