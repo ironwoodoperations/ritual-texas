@@ -58,6 +58,7 @@ function InvoiceList() {
   const invoices = data?.invoices || [];
   const outstanding = invoices.filter(i => ['UNPAID', 'PARTIALLY_PAID'].includes(i.status));
   const totalOutstanding = outstanding.reduce((s, i) => s + (i.amountDue - i.amountPaid), 0);
+  const displayed = filter === 'outstanding' ? outstanding : invoices;
 
   if (isLoading) {
     return (
