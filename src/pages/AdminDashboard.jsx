@@ -431,9 +431,10 @@ export default function AdminDashboard() {
       ],
     },
     {
-      title: "Projects & Archives",
+      title: "Data Management",
       color: "rgb(120,120,120)",
       tiles: [
+        { icon: Upload, label: "Import Cloudbeds", page: "AdminCloudbedsImport" },
         { icon: Archive, label: "Square Archive", page: "AdminSquareBackup" },
       ],
     },
