@@ -523,7 +523,7 @@ export default function ItineraryPage() {
               <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
                 <h2 className="text-2xl font-light mb-4" style={{ color: '#3B4831' }}>Spa & Wellness</h2>
                 <p className="text-sm mb-6" style={{ color: '#1B1B1B' }}>
-                  Book a treatment any time. Add-ons are confirmed instantly in Square.
+                  Book a treatment any time through our SimplyBook portal.
                 </p>
                 <Button
                   onClick={() => window.open(SIMPLYBOOK_URL, '_blank')}
