@@ -281,7 +281,36 @@ function IntakeCard({ record, onUpdate }) {
                 {record.selectedTreatments?.length > 0 && <div className="col-span-2 sm:col-span-3"><span className="text-xs text-[rgb(150,150,150)]">Selected Treatments</span><div className="flex flex-wrap gap-1.5 mt-1">{record.selectedTreatments.map(t => <span key={t} className="text-xs bg-[rgb(240,235,228)] text-[rgb(107,85,64)] px-2 py-0.5 rounded-full">{t}</span>)}</div></div>}
                 {record.ccLast4 && <div className="col-span-2 sm:col-span-3 border border-[rgb(235,225,213)] rounded-xl p-3 flex items-center gap-3"><CreditCard className="w-4 h-4 text-[rgb(150,150,150)] shrink-0" /><span className="text-sm text-[rgb(45,45,45)]">{record.ccType && `${record.ccType} · `}•••• {record.ccLast4}{record.ccExpiry && ` · Exp ${record.ccExpiry}`}{record.ccName && ` · ${record.ccName}`}</span>{record.ccNotes && <span className="text-xs text-[rgb(150,150,150)] ml-2">{record.ccNotes}</span>}</div>}
               </div>
-              <button onClick={() => setEditing(true)} className="px-4 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]">Edit</button>
+
+              {/* Action buttons */}
+              <div className="space-y-3">
+                {actionMsg && (
+                  <div className={`text-xs p-3 rounded-xl ${actionMsg.success ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                    {actionMsg.text}
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => runAction('SendQuote')} disabled={actioning} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-xs text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] disabled:opacity-50">
+                    📧 Send Quote
+                  </button>
+                  {record.checkInDate && record.checkOutDate && (
+                    <button onClick={() => runAction('BookHotel')} disabled={actioning} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-xs text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] disabled:opacity-50">
+                      🏨 Book Hotel
+                    </button>
+                  )}
+                  {record.selectedTreatments?.length > 0 && (
+                    <button onClick={() => runAction('BookTreatments')} disabled={actioning} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-xs text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] disabled:opacity-50">
+                      ✨ Book Treatments
+                    </button>
+                  )}
+                  {(record.checkInDate || record.selectedTreatments?.length > 0) && (
+                    <button onClick={() => runAction('CreateInvoice')} disabled={actioning} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-xs text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] disabled:opacity-50">
+                      💳 Create Invoice
+                    </button>
+                  )}
+                  <button onClick={() => setEditing(true)} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-xs text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]">Edit</button>
+                </div>
+              </div>
             </div>
           )}
         </div>
