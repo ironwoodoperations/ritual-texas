@@ -126,11 +126,7 @@ Deno.serve(async (req) => {
     // Step 4: Publish invoice
     const pubResp = await fetch(`${baseUrl}/v2/invoices/${invoiceId}/publish`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        'Square-Version': '2024-01-18',
-      },
+      headers: sqHeaders,
       body: JSON.stringify({ version: invData.invoice.version, idempotency_key: `publish-${Date.now()}` }),
     });
     const pubData = await pubResp.json();
