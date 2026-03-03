@@ -44,7 +44,8 @@ Deno.serve(async (req) => {
     const token = await getToastToken();
 
     const iso = body.date || todayISO();
-    const yyyymmdd = Number(iso.replace(/-/g, ""));
+    // Toast date format for cash management / reports API: YYYYMMDD integer
+    const yyyymmdd = iso.replace(/-/g, "");
 
     const authHeaders = {
       Authorization: `Bearer ${token}`,
@@ -52,92 +53,45 @@ Deno.serve(async (req) => {
       "Content-Type": "application/json",
     };
 
-    // ── Try Analytics v2 first ──────────────────────────────────────────────
     let netSales = 0;
-    let grossSales = 0;
-    let ordersCount = 0;
-    let guestCount = 0;
     let laborTotalCost = 0;
     let laborTotalHours = 0;
-    let rawMetrics = null;
-    let rawLabor = null;
-    let method = "unknown";
+    let method = "none";
+    let debugInfo = {};
 
-    // Attempt 1: ERA analytics async report
-    const metricsPostRes = await fetch(`${API_BASE}/era/v1/metrics`, {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({
-        startBusinessDate: yyyymmdd,
-        endBusinessDate: yyyymmdd,
-        restaurantIds: [restaurantGuid],
-        excludedRestaurantIds: [],
-        groupBy: [],
-      }),
-    });
+    // ── Attempt 1: Restaurant Cashflow / Sales Summary endpoint ──────────────
+    const cashflowRes = await fetch(
+      `${API_BASE}/cashmgmt/v1/shifts?businessDate=${yyyymmdd}`,
+      { headers: authHeaders }
+    );
+    debugInfo.cashflowStatus = cashflowRes.status;
 
-    if (metricsPostRes.ok) {
-      const metricsGuid = await metricsPostRes.json();
-
-      // Poll up to 3 times with 2s delay
-      let metricsData = null;
-      for (let i = 0; i < 3; i++) {
-        if (i > 0) await new Promise(r => setTimeout(r, 2000));
-        const getRes = await fetch(`${API_BASE}/era/v1/metrics/${metricsGuid}`, { headers: authHeaders });
-        if (getRes.status === 202) continue; // still processing
-        if (getRes.ok) { metricsData = await getRes.json(); break; }
-      }
-
-      if (metricsData && metricsData._status !== "pending") {
-        netSales = safeNum(metricsData?.netSalesAmount ?? metricsData?.netSales ?? 0);
-        grossSales = safeNum(metricsData?.grossSalesAmount ?? metricsData?.grossSales ?? 0);
-        ordersCount = safeNum(metricsData?.ordersCount ?? 0);
-        guestCount = safeNum(metricsData?.guestCount ?? 0);
-        rawMetrics = metricsData;
-        method = "era_metrics";
+    if (cashflowRes.ok) {
+      const shifts = await cashflowRes.json();
+      debugInfo.shiftsCount = Array.isArray(shifts) ? shifts.length : 'not array';
+      // each shift has netSales
+      if (Array.isArray(shifts)) {
+        for (const shift of shifts) {
+          netSales += safeNum(shift.netSales ?? shift.netAmount ?? 0);
+        }
+        method = "cashflow_shifts";
       }
     }
 
-    // Labor via ERA
-    const laborPostRes = await fetch(`${API_BASE}/era/v1/labor/day`, {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({
-        startBusinessDate: yyyymmdd,
-        endBusinessDate: yyyymmdd,
-        restaurantIds: [restaurantGuid],
-        excludedRestaurantIds: [],
-        groupBy: [],
-      }),
-    });
-
-    if (laborPostRes.ok) {
-      const laborGuid = await laborPostRes.json();
-      let laborData = null;
-      for (let i = 0; i < 3; i++) {
-        if (i > 0) await new Promise(r => setTimeout(r, 2000));
-        const getRes = await fetch(`${API_BASE}/era/v1/labor/${laborGuid}`, { headers: authHeaders });
-        if (getRes.status === 202) continue;
-        if (getRes.ok) { laborData = await getRes.json(); break; }
-      }
-      if (laborData && laborData._status !== "pending") {
-        laborTotalHours = safeNum(laborData?.totalHours ?? 0);
-        laborTotalCost = safeNum(laborData?.totalCost ?? laborData?.totalLaborCost ?? 0);
-        rawLabor = laborData;
-      }
-    }
-
-    // Attempt 2: Fallback — orders bulk if ERA gave nothing
-    if (netSales === 0 && method === "unknown") {
-      const startDate = `${iso}T00:00:00.000-0600`;
-      const endDate = `${iso}T23:59:59.999-0600`;
+    // ── Attempt 2: Orders v2 ordersBulk — sum netAmount from checks ──────────
+    if (netSales === 0) {
+      // Use CST offset (UTC-6) since restaurant is in Texas
+      const startDate = `${iso}T00:00:00.000-06:00`;
+      const endDate = `${iso}T23:59:59.999-06:00`;
       let page = 1;
       let allOrders = [];
+
       while (true) {
         const ordersRes = await fetch(
           `${API_BASE}/orders/v2/ordersBulk?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&pageSize=100&page=${page}`,
           { headers: authHeaders }
         );
+        debugInfo.ordersBulkStatus = ordersRes.status;
         if (!ordersRes.ok) break;
         const data = await ordersRes.json();
         const orders = Array.isArray(data) ? data : (data.orders || []);
@@ -145,45 +99,76 @@ Deno.serve(async (req) => {
         if (orders.length < 100) break;
         page++;
       }
+
+      debugInfo.ordersCount = allOrders.length;
+
       for (const order of allOrders) {
-        if (order.voided) continue;
+        if (order.voided || order.deleted) continue;
         for (const check of (order.checks || [])) {
-          if (check.voided) continue;
-          netSales += safeNum(check.totalAmount);
+          if (check.voided || check.deleted) continue;
+          // netAmount = totalAmount minus tax. We want net sales = totalAmount - tax
+          // But for sales reporting, use: totalAmount (which IS the net sales in Toast's definition)
+          // Toast "net sales" = gross - discounts (before tax)
+          // check.netAmount exists in some API versions
+          const amount = safeNum(check.netAmount ?? check.totalAmount ?? 0);
+          netSales += amount;
         }
       }
-      ordersCount = allOrders.length;
-      method = "orders_bulk_fallback";
+
+      if (allOrders.length > 0) method = "orders_bulk";
     }
 
-    // Attempt 3: Fallback labor — time entries
-    if (laborTotalCost === 0) {
-      const startDate = `${iso}T00:00:00.000-0600`;
-      const endDate = `${iso}T23:59:59.999-0600`;
-      const laborRes = await fetch(
-        `${API_BASE}/labor/v1/timeEntries?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`,
+    // ── Attempt 3: Try the reporting/v1 daily summary if still 0 ─────────────
+    if (netSales === 0) {
+      const summaryRes = await fetch(
+        `${API_BASE}/reporting/v1/cashDrawer?businessDate=${yyyymmdd}`,
         { headers: authHeaders }
       );
-      if (laborRes.ok) {
-        const laborData = await laborRes.json();
-        const entries = Array.isArray(laborData) ? laborData : (laborData.timeEntries || []);
-        for (const entry of entries) {
+      debugInfo.summaryStatus = summaryRes.status;
+      if (summaryRes.ok) {
+        const summary = await summaryRes.json();
+        debugInfo.summaryKeys = Object.keys(summary);
+        netSales = safeNum(summary.netSales ?? summary.netSalesAmount ?? 0);
+        if (netSales > 0) method = "reporting_cashDrawer";
+      }
+    }
+
+    // ── Labor: time entries ───────────────────────────────────────────────────
+    const startDate = `${iso}T00:00:00.000-06:00`;
+    const endDate = `${iso}T23:59:59.999-06:00`;
+    const laborRes = await fetch(
+      `${API_BASE}/labor/v1/timeEntries?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`,
+      { headers: authHeaders }
+    );
+    debugInfo.laborStatus = laborRes.status;
+
+    if (laborRes.ok) {
+      const laborData = await laborRes.json();
+      const entries = Array.isArray(laborData) ? laborData : (laborData.timeEntries || []);
+      debugInfo.laborEntries = entries.length;
+      for (const entry of entries) {
+        const inTime = entry.inDate ? new Date(entry.inDate) : null;
+        const outTime = entry.outDate ? new Date(entry.outDate) : null;
+        if (inTime && outTime) {
+          const hrs = (outTime - inTime) / 3600000;
+          laborTotalHours += hrs;
+        } else {
           laborTotalHours += safeNum(entry.regularHours) + safeNum(entry.overtimeHours);
-          laborTotalCost += safeNum(entry.regularPay) + safeNum(entry.overtimePay);
         }
-        if (entries.length > 0) rawLabor = { entries: entries.length };
+        laborTotalCost += safeNum(entry.regularPay ?? entry.hourlyWage) + safeNum(entry.overtimePay ?? 0);
       }
     }
 
     const salesPerLaborHour = laborTotalHours > 0 ? Number((netSales / laborTotalHours).toFixed(2)) : 0;
-    const pending = rawMetrics === null && method === "unknown";
 
     // Upsert
     const existing = await base44.asServiceRole.entities.ToastDailySummary.filter({ businessDate: iso });
     const payload = {
       businessDate: iso,
-      netSales, grossSales, ordersCount, guestCount,
-      laborTotalHours, laborTotalCost, salesPerLaborHour,
+      netSales,
+      laborTotalCost,
+      laborHours: laborTotalHours,
+      salesPerLaborHour,
       updatedAt: new Date().toISOString(),
     };
     if (existing?.[0]?.id) {
@@ -192,8 +177,8 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.ToastDailySummary.create(payload);
     }
 
-    return Response.json({ ok: true, businessDate: iso, netSales, laborTotalCost, salesPerLaborHour, ordersCount, method, pending });
+    return Response.json({ ok: true, businessDate: iso, netSales, laborTotalCost, laborHours: laborTotalHours, salesPerLaborHour, method, debug: debugInfo });
   } catch (e) {
-    return Response.json({ ok: false, error: e.message }, { status: 500 });
+    return Response.json({ ok: false, error: e.message, stack: e.stack }, { status: 500 });
   }
 });
