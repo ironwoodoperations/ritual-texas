@@ -43,8 +43,10 @@ Deno.serve(async (req) => {
           const fullName = `${firstName} ${lastName}`.trim();
           const email = customer.email || '';
           const phone = customer.phone_number || customer.phone || '';
+          const address = customer.address || '';
 
-          if (!fullName && !email && !phone) {
+          // Require name AND at least one contact method
+          if (!fullName || (!email && !phone && !address)) {
             skippedNoData++;
             return null;
           }
