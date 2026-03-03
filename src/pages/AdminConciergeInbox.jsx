@@ -140,6 +140,11 @@ export default function AdminConciergeInbox() {
     onSuccess: () => queryClient.invalidateQueries(['pkg-inquiries-inbox']),
   });
 
+  const deletePkgMutation = useMutation({
+    mutationFn: (id) => base44.entities.PackageInquiry.delete(id),
+    onSuccess: () => queryClient.invalidateQueries(['pkg-inquiries-inbox']),
+  });
+
   const newContacts = contactLeads.filter(l => l.status === 'new');
   const newPackageInquiries = packageInquiries.filter(i => i.status === 'new');
 
