@@ -60,10 +60,11 @@ export default function ItineraryPage() {
 
     try {
       if (nextMode === 'HOTEL') {
-        const response = await fetch(
-          `/functions/cloudbedsReservationsLookup?confirmation=${encodeURIComponent(nextConfirmation)}&contact=${encodeURIComponent(nextContact)}`
-        );
-        const data = await response.json();
+        const response = await base44.functions.invoke('cloudbedsReservationsLookup', {
+          confirmation: nextConfirmation,
+          contact: nextContact,
+        });
+        const data = response.data;
 
         if (data.success && data.reservation) {
           setReservation(data.reservation);
