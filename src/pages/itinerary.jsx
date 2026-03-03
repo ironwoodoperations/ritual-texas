@@ -163,7 +163,7 @@ export default function ItineraryPage() {
       items.push({
         type: 'info',
         label: 'During Your Stay',
-        dt: toDateSafe(`${reservation.checkIn}T08:00:00`),
+        dt: toDateSafe(`${reservation.checkIn}T15:01:00`),
         bullets: [
           'Breakfast: 8:00–10:00 AM daily',
           'Sauna & rainshower available anytime during your stay',
