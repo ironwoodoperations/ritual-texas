@@ -58,6 +58,9 @@ Deno.serve(async (req) => {
     }
 
     // Step 2: Create order
+    const locationId = await getLocationId(baseUrl, accessToken);
+    if (!locationId) return Response.json({ success: false, error: 'No Square location found' });
+
     const orderLineItems = lineItems.map(item => ({
       name: item.name,
       quantity: String(item.quantity || 1),
@@ -69,14 +72,10 @@ Deno.serve(async (req) => {
 
     const orderResp = await fetch(`${baseUrl}/v2/orders`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        'Square-Version': '2024-01-18',
-      },
+      headers: sqHeaders,
       body: JSON.stringify({
         order: {
-          location_id: await getLocationId(baseUrl, accessToken),
+          location_id: locationId,
           customer_id: customerId,
           line_items: orderLineItems,
         },
