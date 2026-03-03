@@ -376,6 +376,45 @@ export default function AdminBookings() {
         }
       </main>
 
+      {/* Payment Modal */}
+      <Dialog open={!!paymentModal} onOpenChange={() => setPaymentModal(null)}>
+        <DialogContent className="max-w-sm bg-[rgb(248,246,242)]">
+          <DialogHeader>
+            <DialogTitle className="text-[rgb(107,85,64)] font-light">Take Payment</DialogTitle>
+          </DialogHeader>
+          {paymentModal && (
+            <div className="space-y-4 mt-2">
+              <p className="text-sm text-[rgb(45,45,45)]">Guest: <strong>{paymentModal.guestName}</strong></p>
+              {paymentModal.balance != null && (
+                <p className="text-sm text-[rgb(45,45,45)]">Balance due: <strong className="text-[rgb(107,85,64)]">${Number(paymentModal.balance).toFixed(2)}</strong></p>
+              )}
+              <div>
+                <label className="text-xs uppercase tracking-wide text-[rgb(150,150,150)] mb-1 block">Amount ($)</label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={paymentAmount}
+                  onChange={e => setPaymentAmount(e.target.value)}
+                  className="border-[rgb(235,225,213)]"
+                />
+              </div>
+              <div className="text-xs text-[rgb(150,150,150)]">Payment type: Cash — recorded in Cloudbeds</div>
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => setPaymentModal(null)} className="px-4 py-2 text-sm border border-[rgb(235,225,213)] rounded-lg text-[rgb(107,85,64)]">Cancel</button>
+                <button
+                  onClick={handlePayment}
+                  disabled={!paymentAmount || !!actionLoading[paymentModal.reservationID]}
+                  className="px-4 py-2 text-sm bg-[rgb(107,85,64)] text-white rounded-lg hover:bg-[rgb(85,65,45)] disabled:opacity-50 flex items-center gap-2"
+                >
+                  {actionLoading[paymentModal.reservationID] === 'payment' ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                  Post Payment
+                </button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Booking Detail Modal */}
       <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[rgb(248,246,242)]">
