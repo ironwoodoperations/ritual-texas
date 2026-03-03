@@ -202,6 +202,8 @@ function GuestCard({ reservation, spaBookings }) {
       <div className="pt-4 mt-4 border-t border-[rgb(235,225,213)] text-center text-xs text-[rgb(150,150,150)]">
         540 El Paso Street · Jacksonville, Texas 75766 · (903) 810-6695 · Rest. Restore. Return.
       </div>
+        </>
+      )}
     </div>
   );
 }
