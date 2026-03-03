@@ -59,58 +59,60 @@ export default function Treatments() {
               </p>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ fontWeight: 800, color: '#1B1B1B' }}>{treatment.duration_minutes} min · ${treatment.price}</div>
-                {(!treatment.booking_mode || treatment.booking_mode === 'book_online') && (
-                  <a 
-                    href={treatment.name?.toLowerCase().includes('sound bath') && treatment.name?.toLowerCase().includes('group')
-                      ? 'https://book.squareup.com/classes/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/classes'
-                      : `/booking?treatment=${treatment.slug || treatment.name.toLowerCase().replace(/\s+/g, '-')}`}
-                    target={treatment.name?.toLowerCase().includes('sound bath') && treatment.name?.toLowerCase().includes('group') ? '_blank' : undefined}
-                    rel={treatment.name?.toLowerCase().includes('sound bath') && treatment.name?.toLowerCase().includes('group') ? 'noopener noreferrer' : undefined}
-                    style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}
-                  >
-                    {treatment.name?.toLowerCase().includes('sound bath') && treatment.name?.toLowerCase().includes('group') ? 'Register for Class' : 'Book Now'}
-                  </a>
-                )}
-                {treatment.booking_mode === 'request_info' && (
-                  <button
-                    onClick={() => setRequestTreatment(treatment)}
-                    style={{ background: '#8B7355', color: '#FCF9F4', border: 'none', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, cursor: 'pointer', fontSize: '14px' }}
-                  >
-                    Request Info
-                  </button>
-                )}
-                {treatment.booking_mode === 'call_to_book' && (
-                  <a
-                    href="tel:9038106695"
-                    style={{ textDecoration: 'none', background: '#3B4831', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}
-                  >
-                    Call to Book
-                  </a>
-                )}
-                {treatment.booking_mode === 'call_and_info' && (
-                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                     <a
-                       href="tel:9038106695"
-                       style={{ textDecoration: 'none', background: '#3B4831', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}
-                     >
-                       Call to Book
-                     </a>
-                     <button
-                       onClick={() => setRequestTreatment(treatment)}
-                       style={{ background: '#8B7355', color: '#FCF9F4', border: 'none', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, cursor: 'pointer', fontSize: '14px' }}
-                     >
-                       Get More Info
-                     </button>
-                   </div>
-                 )}
-                {treatment.video_url && (
-                  <button
-                    onClick={() => setExpandedVideo(isExpanded ? null : treatment.id)}
-                    style={{ background: '#C57C5D', color: '#FCF9F4', border: 'none', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, cursor: 'pointer', fontSize: '14px' }}
-                  >
-                    {isExpanded ? '✕ Close' : '▶ Watch Video'}
-                  </button>
-                )}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {(!treatment.booking_mode || treatment.booking_mode === 'book_online') && (
+                    <a 
+                      href={treatment.name?.toLowerCase().includes('sound bath') && treatment.name?.toLowerCase().includes('group')
+                        ? 'https://book.squareup.com/classes/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/classes'
+                        : `/booking?treatment=${treatment.slug || treatment.name.toLowerCase().replace(/\s+/g, '-')}`}
+                      target={treatment.name?.toLowerCase().includes('sound bath') && treatment.name?.toLowerCase().includes('group') ? '_blank' : undefined}
+                      rel={treatment.name?.toLowerCase().includes('sound bath') && treatment.name?.toLowerCase().includes('group') ? 'noopener noreferrer' : undefined}
+                      style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}
+                    >
+                      {treatment.name?.toLowerCase().includes('sound bath') && treatment.name?.toLowerCase().includes('group') ? 'Register for Class' : 'Book Now'}
+                    </a>
+                  )}
+                  {treatment.booking_mode === 'request_info' && (
+                    <button
+                      onClick={() => setRequestTreatment(treatment)}
+                      style={{ background: '#8B7355', color: '#FCF9F4', border: 'none', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, cursor: 'pointer', fontSize: '14px' }}
+                    >
+                      Request Info
+                    </button>
+                  )}
+                  {treatment.booking_mode === 'call_to_book' && (
+                    <a
+                      href="tel:9038106695"
+                      style={{ textDecoration: 'none', background: '#3B4831', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}
+                    >
+                      Call to Book
+                    </a>
+                  )}
+                  {treatment.booking_mode === 'call_and_info' && (
+                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <a
+                          href="tel:9038106695"
+                          style={{ textDecoration: 'none', background: '#3B4831', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}
+                        >
+                          Call to Book
+                        </a>
+                        <button
+                          onClick={() => setRequestTreatment(treatment)}
+                          style={{ background: '#8B7355', color: '#FCF9F4', border: 'none', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, cursor: 'pointer', fontSize: '14px' }}
+                        >
+                          Get More Info
+                        </button>
+                      </div>
+                    )}
+                  {treatment.video_url && (
+                    <button
+                      onClick={() => setExpandedVideo(isExpanded ? null : treatment.id)}
+                      style={{ background: '#C57C5D', color: '#FCF9F4', border: 'none', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, cursor: 'pointer', fontSize: '14px' }}
+                    >
+                      {isExpanded ? '✕ Close' : '▶ Watch Video'}
+                    </button>
+                  )}
+                </div>
                 </div>
 
                 {isExpanded && treatment.video_url && (
