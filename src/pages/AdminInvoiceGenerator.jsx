@@ -395,10 +395,22 @@ function NewInvoice({ rooms, treatments, packages }) {
             >
               <Plus className="w-4 h-4" /> Add custom line item
             </button>
-            <div className="mt-4 pt-4 border-t border-[rgb(235,225,213)] flex justify-between">
-              <span className="text-sm text-[rgb(150,150,150)]">Total</span>
-              <span className="font-semibold text-[rgb(107,85,64)]">{fmtMoney(total)}</span>
-            </div>
+            <div className="mt-4 pt-4 border-t border-[rgb(235,225,213)] space-y-2">
+               <div className="flex justify-between text-sm">
+                 <span className="text-[rgb(150,150,150)]">Subtotal</span>
+                 <span className="text-[rgb(107,85,64)]">{fmtMoney(subtotal)}</span>
+               </div>
+               {taxAmount > 0 && (
+                 <div className="flex justify-between text-sm">
+                   <span className="text-[rgb(150,150,150)]">Taxes</span>
+                   <span className="text-[rgb(107,85,64)]">{fmtMoney(taxAmount)}</span>
+                 </div>
+               )}
+               <div className="flex justify-between font-semibold">
+                 <span className="text-[rgb(107,85,64)]">Total</span>
+                 <span className="text-[rgb(107,85,64)]">{fmtMoney(total)}</span>
+               </div>
+             </div>
           </div>
 
           {/* Taxes */}
