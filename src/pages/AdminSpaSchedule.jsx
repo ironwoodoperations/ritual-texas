@@ -33,6 +33,8 @@ export default function AdminSpaSchedule() {
   const [loading, setLoading] = useState(false);
   const [bookings, setBookings] = useState([]);
   const [allStaff, setAllStaff] = useState([]);
+  const [tipModal, setTipModal] = useState(null);
+  const [tipLink, setTipLink] = useState('');
 
   const load = async () => {
     setLoading(true);
