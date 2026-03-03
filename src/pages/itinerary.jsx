@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { CalendarDays, CheckCircle, Clock, Coffee, Droplets, Phone, MessageCircle, Sparkles, Printer } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-const SQUARE_SERVICES_URL = "https://book.squareup.com/appointments/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/services";
+const SIMPLYBOOK_URL = "https://ritualtexas.simplybook.me/v2/";
 const CONCIERGE_PHONE = "9038106695";
 const CONCIERGE_SMS = "+19038106695";
 

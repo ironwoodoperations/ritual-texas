@@ -70,6 +70,7 @@ import AdminRestaurantSales from './pages/AdminRestaurantSales';
 import AdminRooms from './pages/AdminRooms';
 import AdminSeedData from './pages/AdminSeedData';
 import AdminSpaSchedule from './pages/AdminSpaSchedule';
+import AdminSquareBackup from './pages/AdminSquareBackup';
 import AdminTreatments from './pages/AdminTreatments';
 import Amenities from './pages/Amenities';
 import AskRitual from './pages/AskRitual';
@@ -97,7 +98,6 @@ import afterBooking from './pages/afterBooking';
 import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
-import AdminSquareBackup from './pages/AdminSquareBackup';
 import __Layout from './Layout.jsx';
 
 
@@ -125,6 +125,7 @@ export const PAGES = {
     "AdminRooms": AdminRooms,
     "AdminSeedData": AdminSeedData,
     "AdminSpaSchedule": AdminSpaSchedule,
+    "AdminSquareBackup": AdminSquareBackup,
     "AdminTreatments": AdminTreatments,
     "Amenities": Amenities,
     "AskRitual": AskRitual,
@@ -152,7 +153,6 @@ export const PAGES = {
     "booking": booking,
     "concierge": concierge,
     "itinerary": itinerary,
-    "AdminSquareBackup": AdminSquareBackup,
 }
 
 export const pagesConfig = {
