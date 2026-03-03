@@ -93,16 +93,16 @@ Deno.serve(async (req) => {
     let result;
 
     if (action === 'checkin') {
-      result = await callCloudbeds('putGuestCheckin', 'PUT', { reservationID }, accessToken, propertyId);
+      result = await callCloudbeds('postRoomCheckIn', 'POST', { reservationID }, accessToken, propertyId);
       if (!result.ok && (result.status === 401 || result.status === 403)) {
         accessToken = await refreshToken(base44);
-        result = await callCloudbeds('putGuestCheckin', 'PUT', { reservationID }, accessToken, propertyId);
+        result = await callCloudbeds('postRoomCheckIn', 'POST', { reservationID }, accessToken, propertyId);
       }
     } else if (action === 'checkout') {
-      result = await callCloudbeds('putGuestCheckout', 'PUT', { reservationID }, accessToken, propertyId);
+      result = await callCloudbeds('postRoomCheckOut', 'POST', { reservationID }, accessToken, propertyId);
       if (!result.ok && (result.status === 401 || result.status === 403)) {
         accessToken = await refreshToken(base44);
-        result = await callCloudbeds('putGuestCheckout', 'PUT', { reservationID }, accessToken, propertyId);
+        result = await callCloudbeds('postRoomCheckOut', 'POST', { reservationID }, accessToken, propertyId);
       }
     } else if (action === 'payment') {
       if (!amount) return Response.json({ error: 'Missing amount for payment' }, { status: 400 });
