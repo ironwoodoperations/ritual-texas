@@ -31,12 +31,13 @@ Deno.serve(async (req) => {
     let skippedNoData = 0;
     const errors = [];
 
-    // Process in batches of 50
-    const batchSize = 50;
+    // Process in smaller batches sequentially to avoid timeouts
+    const batchSize = 20;
     for (let i = 0; i < customers.length; i += batchSize) {
       const batch = customers.slice(i, i + batchSize);
       
-      const promises = batch.map(async (customer) => {
+      // Process each customer sequentially within batch
+      for (const customer of batch) {
         try {
           const firstName = customer.first_name || customer.firstName || '';
           const lastName = customer.last_name || customer.lastName || '';
@@ -48,7 +49,7 @@ Deno.serve(async (req) => {
           // Require name AND at least one contact method
           if (!fullName || (!email && !phone && !address)) {
             skippedNoData++;
-            return null;
+            continue;
           }
 
           // Upsert contact
@@ -65,7 +66,7 @@ Deno.serve(async (req) => {
           });
 
           if (contactRes.data?.id) {
-            let eventCreated = false;
+            createdContacts++;
             
             // Create event if there's order data
             if (customer.total_money || customer.created_at) {
@@ -80,25 +81,16 @@ Deno.serve(async (req) => {
                   startAt: customer.created_at,
                   status: 'completed'
                 });
-                eventCreated = true;
+                createdEvents++;
               } catch (e) {
                 console.warn(`Failed to create event for customer ${customer.id}:`, e.message);
               }
             }
-            
-            return { contact: true, event: eventCreated };
           }
         } catch (e) {
           errors.push(`Customer ${customer.email || customer.id}: ${e.message}`);
-          return null;
         }
-      });
-
-      const results = await Promise.all(promises);
-      results.forEach((result) => {
-        if (result?.contact) createdContacts++;
-        if (result?.event) createdEvents++;
-      });
+      }
     }
 
     return Response.json({
