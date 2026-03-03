@@ -116,20 +116,38 @@ export default function Treatments() {
                 {isExpanded && treatment.video_url && (
                 <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(59,72,49,.10)' }}>
                   <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', background: '#000', borderRadius: '12px', overflow: 'hidden' }}>
-                    <iframe
-                      style={{ 
-                        position: 'absolute', 
-                        top: 0, 
-                        left: 0, 
-                        width: '100%', 
-                        height: '100%',
-                        border: 'none'
-                      }}
-                      src={treatment.video_url.replace('watch?v=', 'embed/')}
-                      title={treatment.name}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
+                    {(() => {
+                      let embedUrl = treatment.video_url;
+                      // Handle youtu.be/VIDEO_ID format
+                      if (embedUrl.includes('youtu.be/')) {
+                        const videoId = embedUrl.split('youtu.be/')[1]?.split('?')[0];
+                        if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                      }
+                      // Handle youtube.com/watch?v=VIDEO_ID format
+                      else if (embedUrl.includes('watch?v=')) {
+                        embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
+                      }
+                      // Handle youtube.com/embed/VIDEO_ID format (already correct)
+                      else if (!embedUrl.includes('/embed/')) {
+                        embedUrl = embedUrl.replace('youtube.com', 'youtube.com/embed');
+                      }
+                      return (
+                        <iframe
+                          style={{ 
+                            position: 'absolute', 
+                            top: 0, 
+                            left: 0, 
+                            width: '100%', 
+                            height: '100%',
+                            border: 'none'
+                          }}
+                          src={embedUrl}
+                          title={treatment.name}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      );
+                    })()}
                   </div>
                 </div>
                 )}
