@@ -39,7 +39,8 @@ export default function AdminTreatments() {
     not_for: '',
     duration_minutes: 60,
     price: 0,
-    is_available: true
+    is_available: true,
+    video_url: ''
   });
 
   useEffect(() => {
@@ -106,7 +107,8 @@ export default function AdminTreatments() {
       duration_minutes: 60,
       price: 0,
       booking_mode: 'book_online',
-      is_available: true
+      is_available: true,
+      video_url: ''
     });
   };
 
@@ -123,7 +125,8 @@ export default function AdminTreatments() {
       duration_minutes: treatment.duration_minutes || 60,
       price: treatment.price || 0,
       booking_mode: treatment.booking_mode || 'book_online',
-      is_available: treatment.is_available !== false
+      is_available: treatment.is_available !== false,
+      video_url: treatment.video_url || ''
     });
     setIsFormOpen(true);
   };
@@ -398,6 +401,16 @@ export default function AdminTreatments() {
                 onChange={(e) => setFormData({...formData, not_for: e.target.value})}
                 placeholder="Those with certain medical conditions..."
                 rows={2}
+              />
+            </div>
+
+            <div>
+              <Label>YouTube Video URL (optional)</Label>
+              <Input
+                type="url"
+                value={formData.video_url}
+                onChange={(e) => setFormData({...formData, video_url: e.target.value})}
+                placeholder="https://www.youtube.com/watch?v=..."
               />
             </div>
 
