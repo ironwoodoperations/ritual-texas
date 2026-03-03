@@ -233,6 +233,40 @@ export default function AdminTodayItineraries() {
     return { reservation: r, spaBookings: spa };
   });
 
+  // Spa-only guests: have an appointment today but no hotel check-in today
+  const hotelGuestEmails = new Set(todayArrivals.map(r => (r.guestEmail || '').toLowerCase().trim()));
+  const todaySpaBookings = allSpaBookings.filter(b =>
+    b.status !== 'booking.cancelled' &&
+    b.startAt?.slice(0, 10) === today
+  );
+  const spaOnlyGuests = [];
+  const seen = new Set();
+  todaySpaBookings.forEach(b => {
+    const email = (b.email || '').toLowerCase().trim();
+    if (!hotelGuestEmails.has(email) && !seen.has(email || b.clientName)) {
+      seen.add(email || b.clientName);
+      // Find all today's bookings for this guest
+      const guestSpa = todaySpaBookings.filter(x =>
+        (x.email || '').toLowerCase().trim() === email ||
+        (!email && x.clientName === b.clientName)
+      );
+      spaOnlyGuests.push({
+        reservation: {
+          guestName: b.clientName || 'Guest',
+          guestEmail: b.email || '',
+          reservationID: null,
+          checkIn: null,
+          checkOut: null,
+          roomName: null,
+          roomNumber: null,
+          total: null,
+          spaOnly: true,
+        },
+        spaBookings: guestSpa,
+      });
+    }
+  });
+
   const isLoading = cbLoading || spaLoading;
 
   if (!user) {
