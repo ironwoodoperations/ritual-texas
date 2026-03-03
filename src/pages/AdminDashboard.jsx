@@ -8,7 +8,7 @@ import {
   Users, Sparkles, ArrowRight, Bell, UtensilsCrossed, ChefHat,
   BedDouble, ClipboardList, FileText, Image, LogOut, Leaf,
   CalendarDays, BookOpen, Brush, AlertTriangle, BedSingle,
-  MessageSquare, Activity, BadgeDollarSign, Timer, Archive,
+  MessageSquare, Activity, BadgeDollarSign, Timer, Archive, Printer,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
