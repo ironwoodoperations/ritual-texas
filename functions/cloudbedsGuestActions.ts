@@ -137,6 +137,9 @@ Deno.serve(async (req) => {
           description: 'Admin payment via dashboard',
         }, accessToken, propertyId);
       }
+    } else if (action === 'debug_reservation') {
+      const res = await callCloudbeds('getReservation', 'GET', { reservationID }, accessToken, propertyId);
+      return Response.json({ success: true, data: res.json });
     } else {
       return Response.json({ error: 'Unknown action' }, { status: 400 });
     }
