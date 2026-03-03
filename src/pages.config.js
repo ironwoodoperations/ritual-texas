@@ -64,6 +64,7 @@ import AdminImages from './pages/AdminImages';
 import AdminIntake from './pages/AdminIntake';
 import AdminInvoiceGenerator from './pages/AdminInvoiceGenerator';
 import AdminKnowledge from './pages/AdminKnowledge';
+import AdminMasterCRM from './pages/AdminMasterCRM';
 import AdminMedia from './pages/AdminMedia';
 import AdminPackageInquiries from './pages/AdminPackageInquiries';
 import AdminPackages from './pages/AdminPackages';
@@ -101,7 +102,7 @@ import afterBooking from './pages/afterBooking';
 import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
-import AdminMasterCRM from './pages/AdminMasterCRM';
+import AdminCloudbedsImport from './pages/AdminCloudbedsImport';
 import __Layout from './Layout.jsx';
 
 
@@ -123,6 +124,7 @@ export const PAGES = {
     "AdminIntake": AdminIntake,
     "AdminInvoiceGenerator": AdminInvoiceGenerator,
     "AdminKnowledge": AdminKnowledge,
+    "AdminMasterCRM": AdminMasterCRM,
     "AdminMedia": AdminMedia,
     "AdminPackageInquiries": AdminPackageInquiries,
     "AdminPackages": AdminPackages,
@@ -160,7 +162,7 @@ export const PAGES = {
     "booking": booking,
     "concierge": concierge,
     "itinerary": itinerary,
-    "AdminMasterCRM": AdminMasterCRM,
+    "AdminCloudbedsImport": AdminCloudbedsImport,
 }
 
 export const pagesConfig = {
