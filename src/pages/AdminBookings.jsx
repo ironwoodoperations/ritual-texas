@@ -53,21 +53,30 @@ export default function AdminBookings() {
   const handlePayment = async () => {
     if (!paymentModal || !paymentAmount) return;
     
-    if (paymentMethod === 'card') {
-      // For card payments, use a Stripe token or similar
-      setCardError('Credit card processing requires Stripe integration. Currently in development.');
-      return;
-    }
-    
-    // Cash payment
-    await runAction(paymentModal.reservationID, 'payment', { 
-      amount: parseFloat(paymentAmount),
-      paymentMethod: 'cash'
-    });
-    setPaymentModal(null);
-    setPaymentAmount('');
-    setPaymentMethod('cash');
     setCardError('');
+    setActionLoading(prev => ({ ...prev, [paymentModal.reservationID]: 'payment' }));
+    
+    try {
+      const res = await base44.functions.invoke('cloudbedsProcessPayment', {
+        reservationID: paymentModal.reservationID,
+        amount: parseFloat(paymentAmount),
+        paymentMethod: paymentMethod === 'card' ? 'card' : 'cash',
+      });
+
+      if (res.data?.success) {
+        setPaymentModal(null);
+        setPaymentAmount('');
+        setPaymentMethod('cash');
+        refetchCloudbeds();
+        setActionResult(prev => ({ ...prev, [paymentModal.reservationID]: '✓ Payment recorded' }));
+      } else {
+        setCardError(res.data?.error || 'Payment failed');
+      }
+    } catch (e) {
+      setCardError(e.message || 'Payment error');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [paymentModal.reservationID]: null }));
+    }
   };
 
   useEffect(() => {
