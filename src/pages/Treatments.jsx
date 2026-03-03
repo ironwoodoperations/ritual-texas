@@ -5,6 +5,7 @@ import TreatmentRequestForm from '@/components/TreatmentRequestForm';
 
 export default function Treatments() {
   const [requestTreatment, setRequestTreatment] = useState(null);
+  const [expandedVideo, setExpandedVideo] = useState(null);
 
   const { data: treatments, isLoading } = useQuery({
     queryKey: ['treatments'],
@@ -36,7 +37,9 @@ export default function Treatments() {
         </header>
 
         <div style={{ display: 'grid', gap: '14px' }}>
-          {treatments?.map((treatment) => (
+          {treatments?.map((treatment) => {
+            const isExpanded = expandedVideo === treatment.id;
+            return (
             <article 
               key={treatment.id}
               style={{ 
@@ -44,7 +47,8 @@ export default function Treatments() {
                 borderRadius: '18px', 
                 padding: '18px', 
                 boxShadow: '0 10px 30px rgba(0,0,0,.08)', 
-                border: '1px solid rgba(59,72,49,.10)' 
+                border: '1px solid rgba(59,72,49,.10)',
+                transition: 'all 0.3s ease'
               }}
             >
               <h2 style={{ margin: 0, color: '#3B4831', fontFamily: 'serif', fontSize: '24px' }}>
@@ -84,25 +88,55 @@ export default function Treatments() {
                   </a>
                 )}
                 {treatment.booking_mode === 'call_and_info' && (
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <a
-                      href="tel:9038106695"
-                      style={{ textDecoration: 'none', background: '#3B4831', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}
-                    >
-                      Call to Book
-                    </a>
-                    <button
-                      onClick={() => setRequestTreatment(treatment)}
-                      style={{ background: '#8B7355', color: '#FCF9F4', border: 'none', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, cursor: 'pointer', fontSize: '14px' }}
-                    >
-                      Get More Info
-                    </button>
-                  </div>
+                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                     <a
+                       href="tel:9038106695"
+                       style={{ textDecoration: 'none', background: '#3B4831', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}
+                     >
+                       Call to Book
+                     </a>
+                     <button
+                       onClick={() => setRequestTreatment(treatment)}
+                       style={{ background: '#8B7355', color: '#FCF9F4', border: 'none', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, cursor: 'pointer', fontSize: '14px' }}
+                     >
+                       Get More Info
+                     </button>
+                   </div>
+                 )}
+                {treatment.video_url && (
+                  <button
+                    onClick={() => setExpandedVideo(isExpanded ? null : treatment.id)}
+                    style={{ background: '#C57C5D', color: '#FCF9F4', border: 'none', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, cursor: 'pointer', fontSize: '14px' }}
+                  >
+                    {isExpanded ? '✕ Close' : '▶ Watch Video'}
+                  </button>
                 )}
-              </div>
-            </article>
-          ))}
-        </div>
+                </div>
+
+                {isExpanded && treatment.video_url && (
+                <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(59,72,49,.10)' }}>
+                  <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', background: '#000', borderRadius: '12px', overflow: 'hidden' }}>
+                    <iframe
+                      style={{ 
+                        position: 'absolute', 
+                        top: 0, 
+                        left: 0, 
+                        width: '100%', 
+                        height: '100%',
+                        border: 'none'
+                      }}
+                      src={treatment.video_url.replace('watch?v=', 'embed/')}
+                      title={treatment.name}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+                )}
+                </article>
+                );
+                })}
+                </div>
 
         {treatments?.length === 0 && (
           <div style={{ textAlign: 'center', paddingTop: '40px', color: '#3B4831' }}>
