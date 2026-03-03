@@ -189,8 +189,9 @@ export default function ItineraryPage() {
         dt,
         meta: [
           `Time: ${formatTime(start)}`,
-          durationMinutes ? `Duration: ${durationMinutes} minutes` : null,
-          `Treatment Room: ${b.roomName || 'Ask Concierge'}`,
+          durationMinutes ? `Duration: ${durationMinutes} min` : null,
+          b.staffName ? `Provider: ${b.staffName}` : null,
+          b.price ? `Price: $${Number(b.price).toFixed(0)}` : null,
         ].filter(Boolean),
         status: (b.status || '').toString(),
       });
