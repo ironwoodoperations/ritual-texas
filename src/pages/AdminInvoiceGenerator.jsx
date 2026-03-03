@@ -86,10 +86,24 @@ function InvoiceList() {
         </div>
       </div>
 
-      {/* Refresh */}
-      <div className="flex justify-end">
+      {/* Filter toggle + Refresh */}
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1 bg-[rgb(235,225,213)] rounded-lg p-1">
+          {[
+            { key: 'outstanding', label: `Outstanding (${outstanding.length})` },
+            { key: 'all', label: `All (${invoices.length})` },
+          ].map(f => (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${filter === f.key ? 'bg-white text-[rgb(107,85,64)] shadow-sm' : 'text-[rgb(107,85,64)] hover:bg-white/50'}`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
         <button onClick={refresh} disabled={refreshing} className="flex items-center gap-1 text-xs text-[rgb(150,150,150)] hover:text-[rgb(107,85,64)]">
-          <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} /> Refresh from Square
+          <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
         </button>
       </div>
 
