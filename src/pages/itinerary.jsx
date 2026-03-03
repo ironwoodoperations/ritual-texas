@@ -385,7 +385,7 @@ export default function ItineraryPage() {
                   {reservation.guestName}
                 </h2>
                 <p className="text-sm font-medium mb-4" style={{ color: '#1B1B1B' }}>
-                  Confirmation Code: <span style={{ fontFamily: 'monospace', color: '#3B4831' }}>{reservation.confirmationCode}</span>
+                  Confirmation Code: <span style={{ fontFamily: 'monospace', color: '#3B4831' }}>{reservation.confirmationCode || reservation.reservationID}</span>
                 </p>
               </div>
               {getStatusBadge(reservation.status)}
