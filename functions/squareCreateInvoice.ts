@@ -22,14 +22,16 @@ Deno.serve(async (req) => {
       ? 'https://connect.squareup.com'
       : 'https://connect.squareupsandbox.com';
 
+    const sqHeaders = {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'Square-Version': '2024-01-18',
+    };
+
     // Step 1: Find or create customer
     const searchResp = await fetch(`${baseUrl}/v2/customers/search`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        'Square-Version': '2024-01-18',
-      },
+      headers: sqHeaders,
       body: JSON.stringify({ query: { filter: { email_address: { exact: customerEmail } } } }),
     });
     const searchData = await searchResp.json();
@@ -37,26 +39,22 @@ Deno.serve(async (req) => {
 
     if (!customerId) {
       const nameParts = customerName.trim().split(' ');
+      const createBody = {
+        given_name: nameParts[0] || customerName,
+        family_name: nameParts.slice(1).join(' ') || '.',
+        email_address: customerEmail,
+        idempotency_key: `create-customer-${customerEmail}-${Date.now()}`,
+      };
       const createResp = await fetch(`${baseUrl}/v2/customers`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          'Square-Version': '2024-01-18',
-        },
-        body: JSON.stringify({
-          given_name: nameParts[0],
-          family_name: nameParts.slice(1).join(' ') || '',
-          email_address: customerEmail,
-          idempotency_key: `create-customer-${Date.now()}`,
-        }),
+        headers: sqHeaders,
+        body: JSON.stringify(createBody),
       });
       const createData = await createResp.json();
       customerId = createData?.customer?.id;
-    }
-
-    if (!customerId) {
-      return Response.json({ success: false, error: 'Could not find or create Square customer' });
+      if (!customerId) {
+        return Response.json({ success: false, error: 'Could not create Square customer', detail: createData });
+      }
     }
 
     // Step 2: Create order
