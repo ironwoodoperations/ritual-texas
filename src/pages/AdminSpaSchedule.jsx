@@ -255,23 +255,33 @@ export default function AdminSpaSchedule() {
                               {b.price ? ` · $${Number(b.price).toFixed(0)}` : ''}
                             </div>
                             <div style={{ fontSize: '13px', color: '#555', marginTop: '2px' }}>
-                              {b.clientName ? <span style={{ fontWeight: '500' }}>{b.clientName}</span> : null}
-                              {b.clientName && (b.email || b.phone) ? ' · ' : ''}
-                              {b.email || b.phone || (!b.clientName ? '—' : '')}
+                                {b.clientName ? <span style={{ fontWeight: '500' }}>{b.clientName}</span> : null}
+                                {b.clientName && (b.email || b.phone) ? ' · ' : ''}
+                                {b.email || b.phone || (!b.clientName ? '—' : '')}
+                              </div>
                             </div>
-                          </div>
-                          <span
-                            style={{
-                              fontSize: '11px', fontWeight: '600', padding: '3px 10px',
-                              borderRadius: '999px', whiteSpace: 'nowrap',
-                              backgroundColor: color + '20', color: color,
-                              border: `1px solid ${color}40`
-                            }}
-                          >
-                            {statusLabel(b.status)}
-                          </span>
-                        </div>
-                      </div>
+                            <div className="flex items-center gap-2">
+                              <span
+                                style={{
+                                  fontSize: '11px', fontWeight: '600', padding: '3px 10px',
+                                  borderRadius: '999px', whiteSpace: 'nowrap',
+                                  backgroundColor: color + '20', color: color,
+                                  border: `1px solid ${color}40`
+                                }}
+                              >
+                                {statusLabel(b.status)}
+                              </span>
+                              <button
+                                onClick={() => { setTipModal(b); setTipLink(''); }}
+                                className="no-print flex items-center gap-1 px-2 py-1 text-xs rounded border border-[rgb(150,170,155)] text-[rgb(150,170,155)] hover:bg-[rgb(150,170,155)] hover:text-white transition-colors"
+                                title="Send tip request"
+                              >
+                                <Send className="w-3 h-3" />
+                                Tip
+                              </button>
+                            </div>
+                            </div>
+                            </div>
                     );
                   })}
                 </div>
