@@ -53,6 +53,7 @@ import AdminCatering from './pages/AdminCatering';
 import AdminCateringMenu from './pages/AdminCateringMenu';
 import AdminCateringQuote from './pages/AdminCateringQuote';
 import AdminCloudbeds from './pages/AdminCloudbeds';
+import AdminCloudbedsImport from './pages/AdminCloudbedsImport';
 import AdminConciergeInbox from './pages/AdminConciergeInbox';
 import AdminCreateReservation from './pages/AdminCreateReservation';
 import AdminDashboard from './pages/AdminDashboard';
@@ -102,7 +103,6 @@ import afterBooking from './pages/afterBooking';
 import booking from './pages/booking';
 import concierge from './pages/concierge';
 import itinerary from './pages/itinerary';
-import AdminCloudbedsImport from './pages/AdminCloudbedsImport';
 import __Layout from './Layout.jsx';
 
 
@@ -113,6 +113,7 @@ export const PAGES = {
     "AdminCateringMenu": AdminCateringMenu,
     "AdminCateringQuote": AdminCateringQuote,
     "AdminCloudbeds": AdminCloudbeds,
+    "AdminCloudbedsImport": AdminCloudbedsImport,
     "AdminConciergeInbox": AdminConciergeInbox,
     "AdminCreateReservation": AdminCreateReservation,
     "AdminDashboard": AdminDashboard,
@@ -162,7 +163,6 @@ export const PAGES = {
     "booking": booking,
     "concierge": concierge,
     "itinerary": itinerary,
-    "AdminCloudbedsImport": AdminCloudbedsImport,
 }
 
 export const pagesConfig = {

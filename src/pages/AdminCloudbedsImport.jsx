@@ -98,7 +98,13 @@ export default function AdminCloudbedsImport() {
       setLoading(false);
     } catch (e) {
       console.error('Import error:', e);
-      setError(e.message || 'Import failed');
+      let errorMsg = e.message || 'Import failed';
+      if (e.response?.data) {
+        errorMsg = JSON.stringify(e.response.data, null, 2);
+      } else if (e.response?.status) {
+        errorMsg = `HTTP ${e.response.status}: ${e.response.statusText || 'Server error'}\nDetails: ${e.response.data ? JSON.stringify(e.response.data, null, 2) : 'No response data'}`;
+      }
+      setError(errorMsg);
       setLoading(false);
     }
   };
