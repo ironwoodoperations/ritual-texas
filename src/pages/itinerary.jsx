@@ -422,13 +422,27 @@ export default function ItineraryPage() {
             <h2 className="text-lg font-light mb-4" style={{ color: '#3B4831' }}>Your Spa Appointments</h2>
             <div className="space-y-2 mb-4">
               {spaBookings.map((booking) => (
-                <div key={booking.id || booking.squareBookingId} className="flex items-center justify-between py-2 border-b last:border-b-0" style={{ borderColor: '#F0E8DD' }}>
-                  <span className="text-sm font-medium" style={{ color: '#3B4831' }}>
-                    {booking.serviceName || booking.service || 'Spa Service'}
-                  </span>
-                  <span className="text-sm" style={{ color: '#1B1B1B' }}>
-                    {booking.startAt ? new Date(booking.startAt).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—'}
-                  </span>
+                <div key={booking.id || booking.squareBookingId} className="py-3 border-b last:border-b-0" style={{ borderColor: '#F0E8DD' }}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-medium" style={{ color: '#3B4831' }}>
+                        {booking.serviceName || booking.service || 'Spa Service'}
+                      </div>
+                      {booking.staffName && (
+                        <div className="text-xs mt-0.5" style={{ color: '#888' }}>Provider: {booking.staffName}</div>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-sm" style={{ color: '#1B1B1B' }}>
+                        {booking.startAt ? new Date(booking.startAt).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—'}
+                      </div>
+                      <div className="text-xs mt-0.5" style={{ color: '#888' }}>
+                        {booking.durationMinutes ? `${booking.durationMinutes} min` : ''}
+                        {booking.durationMinutes && booking.price ? ' · ' : ''}
+                        {booking.price ? `$${Number(booking.price).toFixed(0)}` : ''}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
