@@ -114,11 +114,7 @@ Deno.serve(async (req) => {
 
     const invResp = await fetch(`${baseUrl}/v2/invoices`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        'Square-Version': '2024-01-18',
-      },
+      headers: sqHeaders,
       body: JSON.stringify(invoiceBody),
     });
     const invData = await invResp.json();
