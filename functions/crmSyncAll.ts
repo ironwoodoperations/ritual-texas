@@ -108,10 +108,79 @@ async function syncCloudbeds(base44, sinceIso) {
 }
 
 async function syncSquare(base44, sinceIso) {
-  // TODO: Implement actual Square sync
-  // Pull customers + appointments
-  // Return array of normalized records
-  return [];
+  try {
+    const accessToken = Deno.env.get('SQUARE_ACCESS_TOKEN');
+    const env = Deno.env.get('SQUARE_ENV') || 'production';
+    const baseUrl = env === 'sandbox' ? 'https://connect.squareSandbox.com' : 'https://connect.squareup.com';
+
+    if (!accessToken) return [];
+
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    };
+
+    // Fetch customers
+    const customersResp = await fetch(`${baseUrl}/v2/customers`, {
+      headers,
+      method: 'GET'
+    });
+    if (!customersResp.ok) return [];
+    const customersJson = await customersResp.json();
+    const customersMap = {};
+    if (customersJson.customers) {
+      customersJson.customers.forEach(c => {
+        customersMap[c.id] = c;
+      });
+    }
+
+    // Fetch appointments
+    const appointmentsResp = await fetch(`${baseUrl}/v2/appointments/search`, {
+      headers,
+      method: 'POST',
+      body: JSON.stringify({
+        query: {
+          filter: {
+            startAt: {
+              startAt: sinceIso
+            }
+          }
+        }
+      })
+    });
+    if (!appointmentsResp.ok) return [];
+    const appointmentsJson = await appointmentsResp.json();
+    const appointments = appointmentsJson.appointments || [];
+
+    return appointments.map(apt => {
+      const customer = customersMap[apt.customerId] || {};
+      const primaryPhone = customer.phoneNumber || '';
+      const primaryEmail = (customer.emailAddress || '');
+      const name = customer.givenName || customer.familyName 
+        ? `${customer.givenName || ''} ${customer.familyName || ''}`.trim()
+        : customer.nickName || '';
+
+      return {
+        externalId: apt.id,
+        contactExternalId: apt.customerId,
+        firstName: customer.givenName || name.split(' ')[0] || '',
+        lastName: customer.familyName || name.split(' ').slice(1).join(' ') || '',
+        fullName: name,
+        email: primaryEmail,
+        phone: primaryPhone,
+        eventType: 'treatment',
+        startAt: apt.startAt || new Date().toISOString(),
+        endAt: apt.endAt || null,
+        status: apt.status || 'pending',
+        title: apt.locationId ? `Square Appointment` : 'Appointment',
+        amount: 0,
+        meta: { customerId: apt.customerId, locationId: apt.locationId }
+      };
+    });
+  } catch (e) {
+    console.error('Square sync error:', e.message);
+    return [];
+  }
 }
 
 async function syncAcuity(base44, sinceIso) {
