@@ -43,8 +43,9 @@ async function refreshToken(base44) {
 async function callCloudbeds(endpoint, method, params, token, propertyId) {
   const allParams = { propertyID: propertyId, ...params };
   // Use v1.3 API for check-in/out, v1.1 for payments
-  const apiVersion = (endpoint.includes('CheckIn') || endpoint.includes('CheckOut')) ? 'v1.3' : 'v1.1';
-  const baseHost = (endpoint.includes('CheckIn') || endpoint.includes('CheckOut')) ? 'api.cloudbeds.com' : 'hotels.cloudbeds.com';
+  const isNewApi = endpoint.includes('CheckIn') || endpoint.includes('CheckOut');
+  const apiVersion = isNewApi ? 'v1.3' : 'v1.1';
+  const baseHost = isNewApi ? 'api.cloudbeds.com' : 'hotels.cloudbeds.com';
   let url = `https://${baseHost}/api/${apiVersion}/${endpoint}`;
   
   // For GET requests use query string, for POST/PUT use form body
