@@ -217,13 +217,17 @@ export default function AdminBookings() {
                       <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Check-Out</th>
                       <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Balance</th>
                       <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[rgb(235,225,213)]">
-                    {cloudbedsReservations.length === 0 && (
-                      <tr><td colSpan={6} className="text-center p-8 text-[rgb(45,45,45)]">No upcoming reservations found.</td></tr>
-                    )}
-                    {cloudbedsReservations.map(r => (
+                      <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Actions</th>
+                      </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[rgb(235,225,213)]">
+                      {cloudbedsReservations.length === 0 && (
+                      <tr><td colSpan={7} className="text-center p-8 text-[rgb(45,45,45)]">No upcoming reservations found.</td></tr>
+                      )}
+                      {cloudbedsReservations.map(r => {
+                      const loading = actionLoading[r.reservationID];
+                      const result = actionResult[r.reservationID];
+                      return (
                       <tr key={r.reservationID} className="hover:bg-[rgb(248,246,242)]">
                         <td className="p-4">
                           <p className="font-medium text-[rgb(107,85,64)]">{r.guestName}</p>
@@ -240,8 +244,41 @@ export default function AdminBookings() {
                         <td className="p-4">
                           <Badge className="bg-green-100 text-green-800 capitalize">{r.status}</Badge>
                         </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <button
+                              disabled={!!loading}
+                              onClick={() => runAction(r.reservationID, 'checkin')}
+                              title="Check In"
+                              className="flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-[rgb(150,170,155)] text-white hover:bg-[rgb(130,150,135)] disabled:opacity-50"
+                            >
+                              {loading === 'checkin' ? <Loader2 className="w-3 h-3 animate-spin" /> : <LogIn className="w-3 h-3" />}
+                              Check In
+                            </button>
+                            <button
+                              disabled={!!loading}
+                              onClick={() => runAction(r.reservationID, 'checkout')}
+                              title="Check Out"
+                              className="flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-[rgb(107,85,64)] text-white hover:bg-[rgb(85,65,45)] disabled:opacity-50"
+                            >
+                              {loading === 'checkout' ? <Loader2 className="w-3 h-3 animate-spin" /> : <LogOut className="w-3 h-3" />}
+                              Check Out
+                            </button>
+                            <button
+                              disabled={!!loading}
+                              onClick={() => { setPaymentModal({ reservationID: r.reservationID, guestName: r.guestName, balance: r.balance }); setPaymentAmount(r.balance != null ? String(Number(r.balance).toFixed(2)) : ''); }}
+                              title="Take Payment"
+                              className="flex items-center gap-1 px-2 py-1 text-xs rounded-md border border-[rgb(107,85,64)] text-[rgb(107,85,64)] hover:bg-[rgb(235,225,213)] disabled:opacity-50"
+                            >
+                              <CreditCard className="w-3 h-3" />
+                              Payment
+                            </button>
+                          </div>
+                          {result && <p className={`text-xs mt-1 ${result.startsWith('✓') ? 'text-green-600' : 'text-red-500'}`}>{result}</p>}
+                        </td>
                       </tr>
-                    ))}
+                      );
+                      })}
                   </tbody>
                 </table>
               </div>
