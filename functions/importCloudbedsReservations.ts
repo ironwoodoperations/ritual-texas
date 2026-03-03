@@ -65,12 +65,12 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        if (contactResp.data?.error) {
-          errors.push(`Row ${fullName}: ${contactResp.data.error}`);
+        if (!contactResp.data?.ok) {
+          errors.push(`Row ${fullName}: ${contactResp.data?.error || 'Contact upsert failed'}`);
           continue;
         }
 
-        const contactId = contactResp.data?.id;
+        const contactId = contactResp.data?.id || contactResp.data?.contact?.id;
         if (!contactId) {
           errors.push(`No contact ID returned for ${fullName}`);
           continue;

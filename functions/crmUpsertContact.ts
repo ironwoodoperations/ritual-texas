@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return Response.json({ ok: true, contact });
+    return Response.json({ ok: true, id: contact.id, contact });
   } catch (error) {
     return Response.json({ ok: false, error: error.message }, { status: 500 });
   }
