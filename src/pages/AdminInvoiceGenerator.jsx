@@ -401,18 +401,51 @@ function NewInvoice({ rooms, treatments, packages }) {
             </div>
           </div>
 
+          {/* Taxes */}
+           <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5 space-y-3">
+             <h2 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-3">Taxes</h2>
+             <div className="space-y-2">
+               {[
+                 { key: 'stateTax', label: 'State Tax', defaultRate: 6.25 },
+                 { key: 'cityTax', label: 'City Tax', defaultRate: 0 },
+                 { key: 'hotelTax', label: 'Hotel Tax', defaultRate: 2 },
+               ].map(tax => (
+                 <div key={tax.key} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[rgb(248,246,242)]">
+                   <input
+                     type="checkbox"
+                     checked={taxes[tax.key]}
+                     onChange={e => setTaxes(prev => ({ ...prev, [tax.key]: e.target.checked }))}
+                     className="rounded w-4 h-4"
+                   />
+                   <label className="flex-1 text-sm text-[rgb(45,45,45)] cursor-pointer">{tax.label}</label>
+                   <div className="flex items-center gap-1">
+                     <input
+                       type="number"
+                       step="0.01"
+                       value={taxRates[tax.key]}
+                       onChange={e => setTaxRates(prev => ({ ...prev, [tax.key]: parseFloat(e.target.value) || 0 }))}
+                       disabled={!taxes[tax.key]}
+                       className="w-16 px-2 py-1 text-xs text-right border border-[rgb(235,225,213)] rounded disabled:opacity-50"
+                     />
+                     <span className="text-xs text-[rgb(150,150,150)] w-6">%</span>
+                   </div>
+                 </div>
+               ))}
+             </div>
+           </div>
+
           {/* Options */}
-          <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5 space-y-4">
-            <h2 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-2">Invoice Options</h2>
-            <div>
-              <Label className="text-xs text-[rgb(107,85,64)]">Due Date</Label>
-              <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="mt-1" />
-            </div>
-            <div>
-              <Label className="text-xs text-[rgb(107,85,64)]">Note to Customer</Label>
-              <Textarea value={note} onChange={e => setNote(e.target.value)} className="mt-1" rows={2} placeholder="Thank you for choosing Hotel RITUAL…" />
-            </div>
-          </div>
+           <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5 space-y-4">
+             <h2 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-2">Invoice Options</h2>
+             <div>
+               <Label className="text-xs text-[rgb(107,85,64)]">Due Date</Label>
+               <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="mt-1" />
+             </div>
+             <div>
+               <Label className="text-xs text-[rgb(107,85,64)]">Note to Customer</Label>
+               <Textarea value={note} onChange={e => setNote(e.target.value)} className="mt-1" rows={2} placeholder="Thank you for choosing Hotel RITUAL…" />
+             </div>
+           </div>
 
           <Button
             type="submit"
