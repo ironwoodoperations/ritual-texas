@@ -394,6 +394,7 @@ export default function AdminDashboard() {
         { icon: BedDouble, label: "Rooms", page: "AdminRooms" },
         { icon: FileText, label: "Packages", page: "AdminPackages" },
         { icon: Printer, label: "Today's Itineraries", page: "AdminTodayItineraries" },
+        { icon: FileText, label: "Invoice Generator", page: "AdminInvoiceGenerator" },
       ],
     },
     {
