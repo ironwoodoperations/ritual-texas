@@ -38,6 +38,7 @@ function fmtDate(s) {
 function InvoiceList() {
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
+  const [filter, setFilter] = useState('outstanding');
 
   const { data, isLoading } = useQuery({
     queryKey: ['square-invoices'],
