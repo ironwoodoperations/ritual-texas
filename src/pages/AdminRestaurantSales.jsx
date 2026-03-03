@@ -107,6 +107,13 @@ export default function AdminRestaurantSales() {
           </div>
         )}
 
+        {syncError && (
+          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+            <p className="text-xs font-semibold text-red-600 mb-1">Sync Error</p>
+            <pre className="text-xs text-red-700 whitespace-pre-wrap break-all">{syncError}</pre>
+          </div>
+        )}
+
         {/* Today */}
         <section>
           <p className="text-xs tracking-widest font-medium text-[rgb(150,150,150)] mb-3">TODAY · {todayStr}</p>
