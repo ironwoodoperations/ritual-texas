@@ -167,7 +167,7 @@ export default function ItineraryPage() {
         bullets: [
           'Breakfast: 8:00–10:00 AM daily',
           'Sauna & rainshower available anytime during your stay',
-          'Spa treatments can be booked through the SimplyBook portal (link above)',
+          'Spa treatments can be booked at ritualtexas.simplybook.me or by calling (903) 810-6695',
         ],
       });
     }
