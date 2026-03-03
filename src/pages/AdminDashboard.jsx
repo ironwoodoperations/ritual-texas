@@ -435,6 +435,9 @@ export default function AdminDashboard() {
       color: "rgb(120,120,120)",
       tiles: [
         { icon: Upload, label: "Import Cloudbeds", page: "AdminCloudbedsImport" },
+        { icon: Upload, label: "Import Square", page: "AdminSquareImport" },
+        { icon: Upload, label: "Import Acuity", page: "AdminAcuityImport" },
+        { icon: Upload, label: "Import SimplyBook", page: "AdminSimplybookImport" },
         { icon: Archive, label: "Square Archive", page: "AdminSquareBackup" },
       ],
     },
