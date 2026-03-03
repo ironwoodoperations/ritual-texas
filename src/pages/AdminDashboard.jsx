@@ -424,6 +424,13 @@ export default function AdminDashboard() {
       ],
     },
     {
+      title: "CRM & Marketing",
+      color: "rgb(150,170,155)",
+      tiles: [
+        { icon: Users, label: "Master CRM", page: "AdminMasterCRM" },
+      ],
+    },
+    {
       title: "Projects & Archives",
       color: "rgb(120,120,120)",
       tiles: [
