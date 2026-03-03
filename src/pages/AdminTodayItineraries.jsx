@@ -42,6 +42,7 @@ function GuestCard({ reservation, spaBookings }) {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [emailError, setEmailError] = useState('');
+  const [expanded, setExpanded] = useState(false);
 
   const handleEmail = () => {
     if (!emailAddr) { setEmailError('Enter an email address'); return; }
