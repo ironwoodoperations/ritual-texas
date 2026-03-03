@@ -27,7 +27,33 @@ export default function AdminBookings() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [activeTab, setActiveTab] = useState('cloudbeds');
+  const [actionLoading, setActionLoading] = useState({}); // reservationID -> action
+  const [actionResult, setActionResult] = useState({}); // reservationID -> message
+  const [paymentModal, setPaymentModal] = useState(null); // { reservationID, guestName, balance }
+  const [paymentAmount, setPaymentAmount] = useState('');
   const queryClient = useQueryClient();
+
+  const runAction = async (reservationID, action, extra = {}) => {
+    setActionLoading(prev => ({ ...prev, [reservationID]: action }));
+    setActionResult(prev => ({ ...prev, [reservationID]: null }));
+    try {
+      const res = await base44.functions.invoke('cloudbedsGuestActions', { action, reservationID, ...extra });
+      const msg = res.data?.success ? '✓ Done' : (res.data?.error || 'Error');
+      setActionResult(prev => ({ ...prev, [reservationID]: msg }));
+      if (res.data?.success) refetchCloudbeds();
+    } catch (e) {
+      setActionResult(prev => ({ ...prev, [reservationID]: 'Error' }));
+    } finally {
+      setActionLoading(prev => ({ ...prev, [reservationID]: null }));
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!paymentModal || !paymentAmount) return;
+    await runAction(paymentModal.reservationID, 'payment', { amount: parseFloat(paymentAmount) });
+    setPaymentModal(null);
+    setPaymentAmount('');
+  };
 
   useEffect(() => {
     const loadUser = async () => {
