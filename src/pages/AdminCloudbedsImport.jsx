@@ -85,7 +85,14 @@ export default function AdminCloudbedsImport() {
         rows: extractResp.output
       });
 
+      if (importResp.data?.error) {
+        setError(importResp.data.error);
+        setLoading(false);
+        return;
+      }
+
       setResult(importResp.data);
+      setFile(null);
     } catch (e) {
       setError(e.message || 'Import failed');
     } finally {
