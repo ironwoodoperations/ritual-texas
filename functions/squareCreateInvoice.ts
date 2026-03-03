@@ -101,6 +101,13 @@ Deno.serve(async (req) => {
           due_date: dueDate || new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
           automatic_payment_source: 'NONE',
         }],
+        accepted_payment_methods: {
+          card: true,
+          square_gift_card: false,
+          bank_account: false,
+          buy_now_pay_later: false,
+          cash_app_pay: false,
+        },
         delivery_method: 'EMAIL',
         title: 'Hotel RITUAL – Package Invoice',
         description: note || 'Thank you for choosing Hotel RITUAL.',
