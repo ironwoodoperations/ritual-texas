@@ -205,12 +205,28 @@ function IntakeForm({ initial = BLANK, onSave, onCancel }) {
 function IntakeCard({ record, onUpdate }) {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [actioning, setActioning] = useState(null);
+  const [actionMsg, setActionMsg] = useState(null);
 
   async function save(form) {
     await base44.entities.HotelTreatmentIntake.update(record.id, form);
     onUpdate();
     setEditing(false);
     setExpanded(false);
+  }
+
+  async function runAction(type) {
+    setActioning(type);
+    setActionMsg(null);
+    try {
+      let payload = { intake: record };
+      const res = await base44.functions.invoke(`intake${type}`, payload);
+      setActionMsg({ success: true, text: res.data?.message || `${type} completed` });
+      setTimeout(() => { setActionMsg(null); onUpdate(); }, 2000);
+    } catch (err) {
+      setActionMsg({ success: false, text: err.message });
+    }
+    setActioning(null);
   }
 
   const contactIcon = record.preferredContactMethod === "email" ? <Mail className="w-3 h-3" /> : record.preferredContactMethod === "text" ? <MessageSquare className="w-3 h-3" /> : <Phone className="w-3 h-3" />;
