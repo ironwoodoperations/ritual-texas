@@ -132,8 +132,22 @@ export default function AdminCloudbedsImport() {
           </button>
 
           {error && (
-            <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-              {error}
+            <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="text-red-700 font-medium mb-3">Error:</div>
+              <textarea
+                readOnly
+                value={error}
+                className="w-full p-3 bg-white border border-red-300 rounded text-sm text-red-700 font-mono h-24"
+              />
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(error);
+                  alert('Error copied to clipboard');
+                }}
+                className="mt-2 px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+              >
+                Copy Error
+              </button>
             </div>
           )}
 
