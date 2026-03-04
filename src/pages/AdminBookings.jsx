@@ -180,47 +180,30 @@ export default function AdminBookings() {
       </header>
 
       <main className="max-w-6xl mx-auto p-6">
-        {/* Cloudbeds Connect Banner */}
-        {cloudbedsData && !cloudbedsData.success && cloudbedsData.error?.toLowerCase().includes('token') || cloudbedsData?.error?.toLowerCase().includes('connect') || cloudbedsData?.error?.toLowerCase().includes('oauth') ? (
-          <div className="mb-4 flex items-center justify-between gap-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-            <p className="text-sm text-amber-800">⚠️ Cloudbeds is not connected. Click to authorize and sync reservations.</p>
-            <a
-              href="/functions/cloudbedsOAuthStart"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 bg-[rgb(107,85,64)] text-white text-sm rounded-lg hover:opacity-90 whitespace-nowrap"
+        {/* Tabs */}
+        <div className="flex items-center gap-3 mb-6 flex-wrap">
+          <div className="flex gap-1 bg-[rgb(235,225,213)] p-1 rounded-lg">
+            <button
+              onClick={() => setActiveTab('cloudbeds')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'cloudbeds' ? 'bg-white text-[rgb(107,85,64)] shadow-sm' : 'text-[rgb(107,85,64)] hover:bg-white/50'}`}
             >
-              <Link2 className="w-4 h-4" /> Connect Cloudbeds
-            </a>
+              Cloudbeds (Upcoming)
+            </button>
+            <button
+              onClick={() => setActiveTab('local')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'local' ? 'bg-white text-[rgb(107,85,64)] shadow-sm' : 'text-[rgb(107,85,64)] hover:bg-white/50'}`}
+            >
+              Local Bookings
+            </button>
           </div>
-        ) : null}
-
-        {/* Always-visible Connect button */}
-        <div className="flex items-center justify-between mb-4">
           <a
             href="/functions/cloudbedsOAuthStart"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 py-2 text-xs border border-[rgb(235,225,213)] rounded-lg text-[rgb(107,85,64)] hover:bg-[rgb(235,225,213)] transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-[rgb(107,85,64)] text-[rgb(107,85,64)] rounded-lg hover:bg-[rgb(235,225,213)] transition-colors"
           >
-            <Link2 className="w-3.5 h-3.5" /> Reconnect Cloudbeds OAuth
+            <Link2 className="w-4 h-4" /> Connect Cloudbeds
           </a>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-1 mb-6 bg-[rgb(235,225,213)] p-1 rounded-lg w-fit">
-          <button
-            onClick={() => setActiveTab('cloudbeds')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'cloudbeds' ? 'bg-white text-[rgb(107,85,64)] shadow-sm' : 'text-[rgb(107,85,64)] hover:bg-white/50'}`}
-          >
-            Cloudbeds (Upcoming)
-          </button>
-          <button
-            onClick={() => setActiveTab('local')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'local' ? 'bg-white text-[rgb(107,85,64)] shadow-sm' : 'text-[rgb(107,85,64)] hover:bg-white/50'}`}
-          >
-            Local Bookings
-          </button>
         </div>
 
         {/* Filters */}
