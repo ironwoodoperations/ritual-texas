@@ -202,6 +202,20 @@ function IntakeForm({ initial = BLANK, onSave, onCancel }) {
   );
 }
 
+function ActionBtn({ label, actionKey, completed, actioning, onClick }) {
+  const done = completed[actionKey];
+  return (
+    <button
+      onClick={onClick}
+      disabled={!!actioning}
+      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs disabled:opacity-50 transition-colors ${done ? 'border-green-300 bg-green-50 text-green-700' : 'border-[rgb(235,225,213)] text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]'}`}
+    >
+      {done && <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />}
+      {label}
+    </button>
+  );
+}
+
 function IntakeCard({ record, onUpdate }) {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
