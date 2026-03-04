@@ -222,7 +222,20 @@ function IntakeCard({ record, onUpdate }) {
   const [editing, setEditing] = useState(false);
   const [actioning, setActioning] = useState(null);
   const [actionMsg, setActionMsg] = useState(null);
-  const [completed, setCompleted] = useState({}); // tracks which actions succeeded
+
+  // Persist completed actions in localStorage keyed by record id
+  const storageKey = `intake_completed_${record.id}`;
+  const [completed, setCompleted] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch { return {}; }
+  });
+
+  function markCompleted(key) {
+    setCompleted(c => {
+      const next = { ...c, [key]: true };
+      try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }
 
   async function save(form) {
     await base44.entities.HotelTreatmentIntake.update(record.id, form);
