@@ -102,13 +102,15 @@ Deno.serve(async (req) => {
     }
 
     let accessToken = await getSettingValue(base44, 'CLOUDBEDS_ACCESS_TOKEN');
-    const propertyId = await getSettingValue(base44, 'CLOUDBEDS_PROPERTY_ID');
+    const propertyId =
+      await getSettingValue(base44, 'CLOUDBEDS_PROPERTY_ID') ||
+      Deno.env.get('CLOUDBEDS_PROPERTY_ID');
 
     if (!accessToken) {
       return Response.json({ success: false, error: 'No CLOUDBEDS_ACCESS_TOKEN found. Re-authorize Cloudbeds.' }, { status: 200 });
     }
     if (!propertyId) {
-      return Response.json({ success: false, error: 'Missing CLOUDBEDS_PROPERTY_ID in SiteSettings.' }, { status: 200 });
+      return Response.json({ success: false, error: 'Missing CLOUDBEDS_PROPERTY_ID.' }, { status: 200 });
     }
 
     // Try with current token, auto-refresh once if expired
