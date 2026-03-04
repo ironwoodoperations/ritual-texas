@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
 
     const { first: guestFirstName, last: guestLastName } = splitName(guestName);
 
-    const propertyId = await getSetting(base44, "cloudbeds_property_id");
+    const propertyId = await getSetting(base44, "CLOUDBEDS_PROPERTY_ID", "cloudbeds_property_id") || Deno.env.get("CLOUDBEDS_PROPERTY_ID");
     if (!propertyId) return Response.json({ error: "Cloudbeds property ID not configured" }, { status: 400 });
 
     let token = await getToken(base44);
