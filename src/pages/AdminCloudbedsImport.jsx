@@ -167,7 +167,44 @@ export default function AdminCloudbedsImport() {
   return (
     <div className="min-h-screen bg-[rgb(248,246,242)] p-6">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-light text-[rgb(107,85,64)] mb-8">Import Cloudbeds Reservations</h1>
+        <h1 className="text-3xl font-light text-[rgb(107,85,64)] mb-8">Import Cloudbeds Data</h1>
+
+        {/* Profiles Import */}
+        <div className="bg-white rounded-2xl border border-[rgb(235,225,213)] p-8 mb-6">
+          <h2 className="text-xl font-light text-[rgb(107,85,64)] mb-2">Import Guest Profiles</h2>
+          <p className="text-sm text-[rgb(150,150,150)] mb-6">Upload the Cloudbeds Profiles export (CSV or XLSX) — name, email, phone.</p>
+          <div className="mb-6">
+            <input
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) { setProfileFile(f); setProfileError(null); setProfileResult(null); } }}
+              className="w-full px-4 py-3 border border-[rgb(235,225,213)] rounded-lg focus:outline-none focus:border-[rgb(150,170,155)]"
+            />
+            {profileFile && <p className="text-sm text-[rgb(150,170,155)] mt-2">✓ {profileFile.name}</p>}
+          </div>
+          <button
+            onClick={handleProfileImport}
+            disabled={!profileFile || profileLoading}
+            className="w-full px-6 py-3 bg-[rgb(107,85,64)] text-white rounded-lg hover:bg-[rgb(87,65,44)] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+          >
+            {profileLoading && <Loader className="w-4 h-4 animate-spin" />}
+            {profileLoading ? 'Importing...' : 'Import Profiles'}
+          </button>
+          {profileError && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{profileError}</div>
+          )}
+          {profileResult && (
+            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+              <div className="font-medium mb-1">✓ Profiles Imported</div>
+              <p>Contacts upserted: {profileResult.contactsCreated}</p>
+              <p>Skipped (no name): {profileResult.skipped}</p>
+              <p>Total rows: {profileResult.totalRows}</p>
+              {profileResult.errors?.length > 0 && <p className="text-red-600 mt-1">Errors: {profileResult.errors.length}</p>}
+            </div>
+          )}
+        </div>
+
+        {/* Reservations Import */}
 
         <div className="bg-white rounded-2xl border border-[rgb(235,225,213)] p-8">
           <div className="mb-6">
