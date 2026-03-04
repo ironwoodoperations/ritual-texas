@@ -174,7 +174,7 @@ function InvoiceList() {
         ))}
         {displayed.length === 0 && (
           <div className="text-center py-12 text-[rgb(150,150,150)] text-sm">
-            {filter === 'outstanding' ? 'No outstanding invoices — you\'re all caught up! 🎉' : 'No invoices found in Square.'}
+            {q ? `No invoices match "${search}".` : filter === 'outstanding' ? 'No outstanding invoices — you\'re all caught up! 🎉' : 'No invoices found in Square.'}
           </div>
         )}
       </div>
