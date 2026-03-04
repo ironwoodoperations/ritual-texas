@@ -30,7 +30,10 @@ Deno.serve(async (req) => {
     if (!intake?.selectedTreatments?.length) {
       return Response.json({ error: 'No treatments selected' }, { status: 400 });
     }
-    if (!intake?.guestName || !intake?.guestEmail) {
+    // Support both field name conventions
+    const guestEmail = intake?.guestEmail || intake?.email;
+    const guestName = intake?.guestName;
+    if (!guestName || !guestEmail) {
       return Response.json({ error: 'Guest name and email required' }, { status: 400 });
     }
     if (!intake?.preferredTreatmentDate) {

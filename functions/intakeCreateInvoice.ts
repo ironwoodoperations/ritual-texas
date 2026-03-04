@@ -11,7 +11,10 @@ Deno.serve(async (req) => {
 
     const { intake } = await req.json();
 
-    if (!intake?.guestEmail || !intake?.guestName) {
+    // Support both field name conventions
+    const guestEmail = intake?.guestEmail || intake?.email;
+    const guestName = intake?.guestName;
+    if (!guestEmail || !guestName) {
       return Response.json({ error: 'Guest name and email required' }, { status: 400 });
     }
 
