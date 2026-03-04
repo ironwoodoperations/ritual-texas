@@ -218,16 +218,46 @@ function IntakeCard({ record, onUpdate }) {
     setActioning(type);
     setActionMsg(null);
     try {
-      // Merge top-level record fields with nested data fields so backend gets guestName, email, etc.
       const intakeData = { id: record.id, ...(record.data || {}), ...record };
-      delete intakeData.data; // avoid duplication
-      const res = await base44.functions.invoke(`intake${type}`, { intake: intakeData });
-      const data = res.data;
-      if (data?.error) {
-        setActionMsg({ success: false, text: data.error, detail: JSON.stringify(data, null, 2) });
+      delete intakeData.data;
+
+      if (type === 'SendQuote') {
+        // Download PDF and open mailto
+        const res = await base44.functions.invoke('intakeSendQuote', { intake: intakeData });
+        const blob = new Blob([res.data], { type: 'application/pdf' });
+        const filename = `RITUAL-Quote-${intakeData.guestName?.replace(/\s+/g, '-') || 'Guest'}.pdf`;
+
+        // Trigger download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+
+        // Open mailto pre-filled
+        const subject = encodeURIComponent('Your Hotel RITUAL Wellness Retreat Quote');
+        const body = encodeURIComponent(
+          `Hi ${intakeData.guestName},\n\nThank you for your interest in Hotel RITUAL! Please find your personalized wellness retreat quote attached.\n\nWe look forward to welcoming you.\n\nWarm regards,\nHotel RITUAL\n(903) 810-6695`
+        );
+        const to = encodeURIComponent(intakeData.email || intakeData.guestEmail || '');
+        setTimeout(() => {
+          window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+        }, 500);
+
+        setActionMsg({ success: true, text: 'Quote PDF downloaded — attach it to the email that just opened.' });
+        setTimeout(() => setActionMsg(null), 6000);
       } else {
-        setActionMsg({ success: true, text: data?.message || `${type} completed` });
-        setTimeout(() => { setActionMsg(null); onUpdate(); }, 3000);
+        const res = await base44.functions.invoke(`intake${type}`, { intake: intakeData });
+        const data = res.data;
+        if (data?.error) {
+          setActionMsg({ success: false, text: data.error, detail: JSON.stringify(data, null, 2) });
+        } else {
+          setActionMsg({ success: true, text: data?.message || `${type} completed` });
+          setTimeout(() => { setActionMsg(null); onUpdate(); }, 3000);
+        }
       }
     } catch (err) {
       const status = err.response?.status;
