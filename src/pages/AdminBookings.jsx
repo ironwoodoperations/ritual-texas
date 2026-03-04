@@ -50,25 +50,21 @@ export default function AdminBookings() {
     }
   };
 
-  const handlePayment = async () => {
+  const handleCashPayment = async () => {
     if (!paymentModal || !paymentAmount) return;
-    
     setCardError('');
     setActionLoading(prev => ({ ...prev, [paymentModal.reservationID]: 'payment' }));
-    
     try {
-      const res = await base44.functions.invoke('cloudbedsProcessPayment', {
+      const res = await base44.functions.invoke('cloudbedsGuestActions', {
+        action: 'payment',
         reservationID: paymentModal.reservationID,
         amount: parseFloat(paymentAmount),
-        paymentMethod: paymentMethod === 'card' ? 'card' : 'cash',
       });
-
       if (res.data?.success) {
         setPaymentModal(null);
         setPaymentAmount('');
-        setPaymentMethod('cash');
         refetchCloudbeds();
-        setActionResult(prev => ({ ...prev, [paymentModal.reservationID]: '✓ Payment recorded' }));
+        setActionResult(prev => ({ ...prev, [paymentModal.reservationID]: '✓ Cash payment recorded' }));
       } else {
         setCardError(res.data?.error || 'Payment failed');
       }
@@ -77,6 +73,10 @@ export default function AdminBookings() {
     } finally {
       setActionLoading(prev => ({ ...prev, [paymentModal.reservationID]: null }));
     }
+  };
+
+  const openInCloudbeds = (reservationID) => {
+    window.open(`https://hotels.cloudbeds.com/hotel/reservations#reservation/${reservationID}`, '_blank', 'noopener,noreferrer');
   };
 
   useEffect(() => {
