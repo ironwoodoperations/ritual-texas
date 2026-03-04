@@ -213,9 +213,16 @@ function NewInvoice({ rooms, treatments, packages }) {
     return sum + (parseFloat(it.amount) || 0) * (parseInt(it.quantity) || 1);
   }, 0);
 
+  // Taxes only apply to hotel/room items (not treatments)
+  const taxableSubtotal = lineItems.reduce((sum, it) => {
+    const isTreatment = it._type === 'treatment';
+    if (isTreatment) return sum;
+    return sum + (parseFloat(it.amount) || 0) * (parseInt(it.quantity) || 1);
+  }, 0);
+
   const taxAmount = Object.entries(taxes).reduce((sum, [key, isChecked]) => {
     if (!isChecked) return sum;
-    return sum + (subtotal * (taxRates[key] || 0) / 100);
+    return sum + (taxableSubtotal * (taxRates[key] || 0) / 100);
   }, 0);
 
   const total = subtotal + taxAmount;
