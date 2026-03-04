@@ -294,7 +294,7 @@ function IntakeCard({ record, onUpdate }) {
         if (data?.error) {
           setActionMsg({ success: false, text: data.error, detail: JSON.stringify(data, null, 2) });
         } else {
-          setCompleted(c => ({ ...c, [type]: true }));
+          markCompleted(type);
           setActionMsg({ success: true, text: data?.message || `${type} completed` });
           setTimeout(() => { setActionMsg(null); onUpdate(); }, 3000);
         }
