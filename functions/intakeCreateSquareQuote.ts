@@ -1,0 +1,178 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+function clean(s) { return String(s ?? "").trim(); }
+function emailNorm(s) { return clean(s).toLowerCase(); }
+
+function nightsBetween(checkIn, checkOut) {
+  const a = new Date(checkIn + "T00:00:00");
+  const b = new Date(checkOut + "T00:00:00");
+  const ms = b.getTime() - a.getTime();
+  const n = Math.round(ms / (1000 * 60 * 60 * 24));
+  return Math.max(1, n);
+}
+
+Deno.serve(async (req) => {
+  const base44 = createClientFromRequest(req);
+  try {
+    const user = await base44.auth.me();
+    if (user?.role !== "admin") return Response.json({ error: "Admin only" }, { status: 403 });
+
+    const { intake } = await req.json();
+
+    const guestName = clean(intake?.guestName);
+    const guestEmail = emailNorm(intake?.email || intake?.guestEmail || "");
+    const checkIn = clean(intake?.checkInDate);
+    const checkOut = clean(intake?.checkOutDate);
+
+    if (!guestName) return Response.json({ error: "Guest name required" }, { status: 400 });
+    if (!guestEmail) return Response.json({ error: "Guest email required" }, { status: 400 });
+    if (!checkIn || !checkOut) return Response.json({ error: "Check-in and check-out dates required" }, { status: 400 });
+
+    const nights = nightsBetween(checkIn, checkOut);
+    const ROOM_RATE = 198;
+
+    const accessToken = Deno.env.get("SQUARE_ACCESS_TOKEN");
+    const env = Deno.env.get("SQUARE_ENV") || "production";
+    const baseUrl = env === "production"
+      ? "https://connect.squareup.com"
+      : "https://connect.squareupsandbox.com";
+
+    const sqHeaders = {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      "Square-Version": "2024-01-18",
+    };
+
+    // Get location
+    const locResp = await fetch(`${baseUrl}/v2/locations`, { headers: sqHeaders });
+    const locData = await locResp.json();
+    const location = (locData?.locations || []).find(l => l.status === "ACTIVE") || locData?.locations?.[0];
+    if (!location) return Response.json({ error: "No Square location found" }, { status: 500 });
+    const locationId = location.id;
+
+    // Find or create customer
+    const searchResp = await fetch(`${baseUrl}/v2/customers/search`, {
+      method: "POST",
+      headers: sqHeaders,
+      body: JSON.stringify({ query: { filter: { email_address: { exact: guestEmail } } } }),
+    });
+    const searchData = await searchResp.json();
+    let customerId = searchData?.customers?.[0]?.id;
+
+    if (!customerId) {
+      const nameParts = guestName.trim().split(/\s+/);
+      const createResp = await fetch(`${baseUrl}/v2/customers`, {
+        method: "POST",
+        headers: sqHeaders,
+        body: JSON.stringify({
+          given_name: nameParts[0] || guestName,
+          family_name: nameParts.slice(1).join(" ") || ".",
+          email_address: guestEmail,
+          phone_number: clean(intake?.phone) || undefined,
+          idempotency_key: `create-${guestEmail}-${Date.now()}`,
+        }),
+      });
+      const createData = await createResp.json();
+      customerId = createData?.customer?.id;
+      if (!customerId) return Response.json({ error: "Could not create Square customer", detail: createData }, { status: 500 });
+    }
+
+    // Build line items
+    const lineItems = [];
+    lineItems.push({
+      name: `Hotel Stay - ${nights} night${nights === 1 ? "" : "s"} (${checkIn} to ${checkOut})`,
+      quantity: String(nights),
+      base_price_money: { amount: ROOM_RATE * 100, currency: "USD" },
+    });
+
+    if (intake?.roomRequested) {
+      lineItems[0].name = `${intake.roomRequested} - ${nights} night${nights === 1 ? "" : "s"} (${checkIn} to ${checkOut})`;
+    }
+
+    // Treatment line items with price lookup
+    const selected = Array.isArray(intake?.selectedTreatments) ? intake.selectedTreatments : [];
+    for (const tName of selected) {
+      const name = clean(tName);
+      if (!name) continue;
+      let price = 0;
+      try {
+        const found = await base44.asServiceRole.entities.Treatment.filter({ name: name.split(" ")[0] });
+        if (found?.[0]?.price) price = Number(found[0].price);
+        else {
+          // Try by name prefix match
+          const all = await base44.asServiceRole.entities.Treatment.list();
+          const match = all.find(t => name.toLowerCase().includes(t.name.toLowerCase()) || t.name.toLowerCase().includes(name.split(" ")[0].toLowerCase()));
+          if (match?.price) price = Number(match.price);
+        }
+      } catch { /* ignore */ }
+      lineItems.push({
+        name,
+        quantity: "1",
+        base_price_money: { amount: Math.round(price * 100), currency: "USD" },
+      });
+    }
+
+    // Create order
+    const orderResp = await fetch(`${baseUrl}/v2/orders`, {
+      method: "POST",
+      headers: sqHeaders,
+      body: JSON.stringify({
+        order: {
+          location_id: locationId,
+          customer_id: customerId,
+          line_items: lineItems,
+        },
+        idempotency_key: `order-quote-${Date.now()}`,
+      }),
+    });
+    const orderData = await orderResp.json();
+    const orderId = orderData?.order?.id;
+    if (!orderId) return Response.json({ error: "Could not create order", detail: orderData }, { status: 500 });
+
+    // Create invoice
+    const notes = clean(intake?.internalNotes || intake?.treatmentsRequested || "");
+    const dueDate = checkIn || new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+    const invResp = await fetch(`${baseUrl}/v2/invoices`, {
+      method: "POST",
+      headers: sqHeaders,
+      body: JSON.stringify({
+        invoice: {
+          order_id: orderId,
+          primary_recipient: { customer_id: customerId },
+          payment_requests: [{
+            request_type: "BALANCE",
+            due_date: dueDate,
+            automatic_payment_source: "NONE",
+          }],
+          accepted_payment_methods: { card: true, square_gift_card: false, bank_account: false, buy_now_pay_later: false, cash_app_pay: false },
+          delivery_method: "EMAIL",
+          title: "Hotel RITUAL - Wellness Retreat Quote",
+          description: notes ? `Notes: ${notes}` : "Thank you for your interest in Hotel RITUAL. Please review your personalized retreat quote below.",
+        },
+        idempotency_key: `invoice-quote-${Date.now()}`,
+      }),
+    });
+    const invData = await invResp.json();
+    const invoiceId = invData?.invoice?.id;
+    if (!invoiceId) return Response.json({ error: "Could not create invoice", detail: invData }, { status: 500 });
+
+    // Publish (sends email automatically)
+    const pubResp = await fetch(`${baseUrl}/v2/invoices/${invoiceId}/publish`, {
+      method: "POST",
+      headers: sqHeaders,
+      body: JSON.stringify({ version: invData.invoice.version, idempotency_key: `publish-quote-${Date.now()}` }),
+    });
+    const pubData = await pubResp.json();
+    const publicUrl = pubData?.invoice?.public_url || invData?.invoice?.public_url;
+
+    return Response.json({
+      success: true,
+      invoiceId,
+      publicUrl,
+      nights,
+      message: `Quote sent to ${guestEmail} via Square — ${nights} night${nights === 1 ? "" : "s"} + ${selected.length} treatment${selected.length === 1 ? "" : "s"}`,
+    });
+  } catch (e) {
+    return Response.json({ error: e.message }, { status: 500 });
+  }
+});
