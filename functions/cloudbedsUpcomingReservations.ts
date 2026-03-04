@@ -56,10 +56,15 @@ Deno.serve(async (req) => {
     }
 
     let accessToken = await getSettingValue(base44, 'CLOUDBEDS_ACCESS_TOKEN');
-    const propertyId = await getSettingValue(base44, 'CLOUDBEDS_PROPERTY_ID');
+    const propertyId =
+      await getSettingValue(base44, 'CLOUDBEDS_PROPERTY_ID') ||
+      Deno.env.get('CLOUDBEDS_PROPERTY_ID');
 
-    if (!accessToken || !propertyId) {
-      return Response.json({ success: false, error: 'Cloudbeds not configured.' }, { status: 200 });
+    if (!accessToken) {
+      return Response.json({ success: false, error: 'Cloudbeds not connected. Please complete OAuth setup in Admin → Cloudbeds.' }, { status: 200 });
+    }
+    if (!propertyId) {
+      return Response.json({ success: false, error: 'CLOUDBEDS_PROPERTY_ID not set.' }, { status: 200 });
     }
 
     // Today's date as start, 30 days out as end (faster, enough for operations)
