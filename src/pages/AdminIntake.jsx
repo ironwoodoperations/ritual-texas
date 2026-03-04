@@ -251,33 +251,27 @@ function IntakeCard({ record, onUpdate }) {
       delete intakeData.data;
 
       if (type === 'SendQuote') {
-        const res = await base44.functions.invoke('intakeSendQuote', { intake: intakeData }, { responseType: 'arraybuffer' });
-        const bytes = res?.data ?? res;
-        const blob = new Blob([bytes], { type: 'application/pdf' });
-        const filename = `RITUAL-Quote-${intakeData.guestName?.replace(/\s+/g, '-') || 'Guest'}.pdf`;
-        const url = window.URL.createObjectURL(blob);
-
-        // Open PDF in new tab first (fixes iPad Safari rendering)
-        window.open(url, '_blank', 'noopener,noreferrer');
-
-        // Also trigger download
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-
-        // Keep blob alive for 2 min (iPad needs it)
-        setTimeout(() => window.URL.revokeObjectURL(url), 120000);
-
-        const subject = encodeURIComponent('Your Hotel RITUAL Wellness Retreat Quote');
-        const body = encodeURIComponent(`Hi ${intakeData.guestName},\n\nThank you for your interest in Hotel RITUAL! I prepared your personalized retreat quote.\n\nIf you'd like, I can also text it to you.\n\nWarm regards,\nHotel RITUAL\n(903) 810-6695`);
-        const to = encodeURIComponent(intakeData.email || intakeData.guestEmail || '');
-        setTimeout(() => { window.location.href = `mailto:${to}?subject=${subject}&body=${body}`; }, 600);
-        markCompleted('SendQuote');
-        setActionMsg({ success: true, text: 'Quote opened in a new tab + downloaded. Use Share → Mail from the PDF tab to attach (fastest on iPad).' });
-        setTimeout(() => setActionMsg(null), 7000);
+        const email = intakeData.email || intakeData.guestEmail || '';
+        if (!email) {
+          setActionMsg({ success: false, text: 'Guest email is required to send a Square quote.' });
+          setActioning(null);
+          return;
+        }
+        if (!intakeData.checkInDate || !intakeData.checkOutDate) {
+          setActionMsg({ success: false, text: 'Check-in and check-out dates are required to send a quote.' });
+          setActioning(null);
+          return;
+        }
+        const res = await base44.functions.invoke('intakeCreateSquareQuote', { intake: intakeData });
+        const data = res.data;
+        if (data?.error) {
+          setActionMsg({ success: false, text: data.error, detail: JSON.stringify(data, null, 2) });
+        } else {
+          markCompleted('SendQuote');
+          const linkPart = data.publicUrl ? ` View: ${data.publicUrl}` : '';
+          setActionMsg({ success: true, text: `${data.message || 'Quote sent via Square email!'}${linkPart}` });
+          setTimeout(() => setActionMsg(null), 8000);
+        }
 
       } else if (type === 'AddToCRM') {
         const nameParts = intakeData.guestName?.trim().split(' ') || [];
