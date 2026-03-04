@@ -281,7 +281,7 @@ function IntakeCard({ record, onUpdate }) {
           tags: ['intake'],
         });
         if (res.data?.ok) {
-          setCompleted(c => ({ ...c, AddToCRM: true }));
+          markCompleted('AddToCRM');
           setActionMsg({ success: true, text: 'Guest added / updated in CRM.' });
           setTimeout(() => setActionMsg(null), 4000);
         } else {
