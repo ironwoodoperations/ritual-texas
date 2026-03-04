@@ -266,7 +266,7 @@ function IntakeCard({ record, onUpdate }) {
         const body = encodeURIComponent(`Hi ${intakeData.guestName},\n\nThank you for your interest in Hotel RITUAL! Please find your personalized wellness retreat quote attached.\n\nWe look forward to welcoming you.\n\nWarm regards,\nHotel RITUAL\n(903) 810-6695`);
         const to = encodeURIComponent(intakeData.email || intakeData.guestEmail || '');
         setTimeout(() => { window.location.href = `mailto:${to}?subject=${subject}&body=${body}`; }, 500);
-        setCompleted(c => ({ ...c, SendQuote: true }));
+        markCompleted('SendQuote');
         setActionMsg({ success: true, text: 'Quote PDF downloaded — attach it to the email that just opened.' });
         setTimeout(() => setActionMsg(null), 6000);
 
