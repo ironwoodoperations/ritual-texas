@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { 
   Calendar, Search, Eye, 
   Mail, Phone, MoreHorizontal, Leaf, ArrowLeft, RefreshCw,
-  LogIn, LogOut, CreditCard, Loader2, Plus
+  LogIn, LogOut, CreditCard, Loader2, Plus, Link2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
