@@ -59,7 +59,17 @@ function InvoiceList() {
   const invoices = data?.invoices || [];
   const outstanding = invoices.filter(i => ['UNPAID', 'PARTIALLY_PAID'].includes(i.status));
   const totalOutstanding = outstanding.reduce((s, i) => s + (i.amountDue - i.amountPaid), 0);
-  const displayed = filter === 'outstanding' ? outstanding : invoices;
+  const base = filter === 'outstanding' ? outstanding : invoices;
+  const q = search.toLowerCase().trim();
+  const displayed = q
+    ? base.filter(i =>
+        (i.recipientName || '').toLowerCase().includes(q) ||
+        (i.recipientEmail || '').toLowerCase().includes(q) ||
+        (i.recipientPhone || '').replace(/\D/g, '').includes(q.replace(/\D/g, '')) ||
+        (i.title || '').toLowerCase().includes(q) ||
+        String(i.invoiceNumber || '').includes(q)
+      )
+    : base;
 
   if (isLoading) {
     return (
