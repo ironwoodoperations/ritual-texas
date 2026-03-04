@@ -97,6 +97,17 @@ function InvoiceList() {
         </div>
       </div>
 
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(150,150,150)]" />
+        <input
+          placeholder="Search by name, email, or phone…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="w-full pl-9 pr-4 py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm bg-white focus:outline-none focus:border-[rgb(198,182,165)]"
+        />
+      </div>
+
       {/* Filter toggle + Refresh */}
       <div className="flex items-center justify-between">
         <div className="flex gap-1 bg-[rgb(235,225,213)] rounded-lg p-1">
