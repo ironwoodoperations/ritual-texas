@@ -115,6 +115,55 @@ export default function AdminCloudbedsImport() {
     }
   };
 
+  const handleProfileImport = async () => {
+    if (!profileFile) { setProfileError('Please select a file'); return; }
+    try {
+      setProfileLoading(true);
+      setProfileError(null);
+      setProfileResult(null);
+
+      const uploadResp = await base44.integrations.Core.UploadFile({ file: profileFile });
+      const fileUrl = uploadResp.file_url;
+
+      const schema = {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            'Name': { type: 'string' },
+            'Full Name': { type: 'string' },
+            'First Name': { type: 'string' },
+            'Last Name': { type: 'string' },
+            'Email': { type: 'string' },
+            'Email Address': { type: 'string' },
+            'Phone': { type: 'string' },
+            'Phone Number': { type: 'string' },
+            'Mobile': { type: 'string' },
+            'Profile ID': { type: 'string' },
+            'Guest ID': { type: 'string' },
+          }
+        }
+      };
+
+      const extractResp = await base44.integrations.Core.ExtractDataFromUploadedFile({ file_url: fileUrl, json_schema: schema });
+      if (extractResp.status !== 'success' || !extractResp.output?.length) {
+        setProfileError(`Parse error: ${extractResp.details || 'No data extracted'}`);
+        setProfileLoading(false);
+        return;
+      }
+
+      const importResp = await base44.functions.invoke('importCloudbedsProfiles', { profiles: extractResp.output });
+      if (importResp.data?.error) { setProfileError(importResp.data.error); setProfileLoading(false); return; }
+
+      setProfileResult(importResp.data);
+      setProfileFile(null);
+      setProfileLoading(false);
+    } catch (e) {
+      setProfileError(e.message || 'Import failed');
+      setProfileLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[rgb(248,246,242)] p-6">
       <div className="max-w-2xl mx-auto">
