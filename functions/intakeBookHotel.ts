@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
       endDate: intake.checkOutDate,
       guestFirstName: intake.guestName.split(' ')[0] || intake.guestName,
       guestLastName: intake.guestName.split(' ').slice(1).join(' ') || '.',
-      guestEmail: intake.guestEmail,
+      guestEmail: guestEmail,
       guestPhone: intake.phone || '',
       adults: String(intake.numberOfGuests || 1),
       children: '0',
