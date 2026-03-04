@@ -58,7 +58,8 @@ Deno.serve(async (req) => {
 
     const { intake } = await req.json();
 
-    if (!intake?.checkInDate || !intake?.checkOutDate || !intake?.guestName || !intake?.guestEmail) {
+    const guestEmail = intake?.guestEmail || intake?.email;
+    if (!intake?.checkInDate || !intake?.checkOutDate || !intake?.guestName || !guestEmail) {
       return Response.json({ error: 'Check-in, check-out, guest name and email are required' }, { status: 400 });
     }
 
