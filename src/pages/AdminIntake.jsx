@@ -295,8 +295,14 @@ function IntakeCard({ record, onUpdate }) {
               {/* Action buttons */}
               <div className="space-y-3">
                 {actionMsg && (
-                  <div className={`text-xs p-3 rounded-xl ${actionMsg.success ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                    {actionMsg.text}
+                  <div className={`text-xs rounded-xl border ${actionMsg.success ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                    <div className="px-3 py-2 font-medium">{actionMsg.text}</div>
+                    {actionMsg.detail && (
+                      <div className="border-t border-red-200 px-3 py-2">
+                        <p className="text-[10px] font-semibold text-red-400 uppercase tracking-widest mb-1">Error Detail</p>
+                        <pre className="whitespace-pre-wrap break-all font-mono text-[11px] text-red-600 max-h-40 overflow-y-auto">{actionMsg.detail}</pre>
+                      </div>
+                    )}
                   </div>
                 )}
                 <div className="flex flex-wrap gap-2">
