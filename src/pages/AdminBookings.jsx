@@ -420,53 +420,55 @@ export default function AdminBookings() {
 
       {/* Payment Modal */}
       <Dialog open={!!paymentModal} onOpenChange={() => { setPaymentModal(null); setPaymentMethod('cash'); setCardError(''); }}>
-        <DialogContent className="max-w-sm bg-[rgb(248,246,242)]">
+        <DialogContent className="max-w-md bg-[rgb(248,246,242)]">
           <DialogHeader>
             <DialogTitle className="text-[rgb(107,85,64)] font-light">Take Payment</DialogTitle>
           </DialogHeader>
           {paymentModal && (
             <div className="space-y-4 mt-2">
-              <p className="text-sm text-[rgb(45,45,45)]">Guest: <strong>{paymentModal.guestName}</strong></p>
-              {paymentModal.balance != null && (
-                <p className="text-sm text-[rgb(45,45,45)]">Balance due: <strong className="text-[rgb(107,85,64)]">${Number(paymentModal.balance).toFixed(2)}</strong></p>
-              )}
-              
-              {/* Payment Method Selection */}
-              <div className="flex gap-2">
+              <div className="bg-white rounded-lg border border-[rgb(235,225,213)] p-3">
+                <p className="text-sm text-[rgb(45,45,45)]">Guest: <strong>{paymentModal.guestName}</strong></p>
+                {paymentModal.balance != null && (
+                  <p className="text-sm text-[rgb(45,45,45)]">Balance due: <strong className="text-[rgb(107,85,64)]">${Number(paymentModal.balance).toFixed(2)}</strong></p>
+                )}
+                <p className="text-xs text-[rgb(150,150,150)] mt-1">Reservation: {paymentModal.reservationID}</p>
+              </div>
+
+              {/* Card Payment via Cloudbeds */}
+              <div className="border-2 border-[rgb(107,85,64)] rounded-xl p-4 bg-white">
+                <p className="text-sm font-semibold text-[rgb(107,85,64)] mb-1">💳 Card Payment</p>
+                <p className="text-xs text-[rgb(45,45,45)] mb-3">Opens Cloudbeds directly in a secure new window where you can enter card details and process the payment.</p>
                 <button
-                  onClick={() => { setPaymentMethod('cash'); setCardError(''); }}
-                  className={`flex-1 py-2 text-sm rounded-lg font-medium transition-all ${paymentMethod === 'cash' ? 'bg-[rgb(107,85,64)] text-white' : 'bg-white border border-[rgb(235,225,213)] text-[rgb(107,85,64)]'}`}
+                  onClick={() => { openInCloudbeds(paymentModal.reservationID); }}
+                  className="w-full py-2.5 text-sm bg-[rgb(107,85,64)] text-white rounded-lg hover:bg-[rgb(85,65,45)] flex items-center justify-center gap-2"
                 >
-                  💵 Cash
-                </button>
-                <button
-                  onClick={() => setPaymentMethod('card')}
-                  className={`flex-1 py-2 text-sm rounded-lg font-medium transition-all ${paymentMethod === 'card' ? 'bg-[rgb(107,85,64)] text-white' : 'bg-white border border-[rgb(235,225,213)] text-[rgb(107,85,64)]'}`}
-                >
-                  💳 Card
+                  <CreditCard className="w-4 h-4" /> Open in Cloudbeds to Process Card
                 </button>
               </div>
 
-              <div>
-                <label className="text-xs uppercase tracking-wide text-[rgb(150,150,150)] mb-1 block">Amount ($)</label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={paymentAmount}
-                  onChange={e => setPaymentAmount(e.target.value)}
-                  className="border-[rgb(235,225,213)]"
-                />
-              </div>
-
-              {paymentMethod === 'cash' && (
-                <div className="text-xs text-[rgb(150,150,150)]">Cash payment — recorded in Cloudbeds</div>
-              )}
-
-              {paymentMethod === 'card' && (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-xs text-blue-800"><strong>Card Payment:</strong> Will be processed through Cloudbeds payment gateway and recorded in reservation.</p>
+              {/* Cash Payment */}
+              <div className="border border-[rgb(235,225,213)] rounded-xl p-4 bg-white">
+                <p className="text-sm font-semibold text-[rgb(45,45,45)] mb-1">💵 Cash / Record Payment</p>
+                <p className="text-xs text-[rgb(150,150,150)] mb-3">Record a cash payment — posts directly to the Cloudbeds reservation ledger.</p>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="Amount"
+                    value={paymentAmount}
+                    onChange={e => setPaymentAmount(e.target.value)}
+                    className="border-[rgb(235,225,213)] flex-1"
+                  />
+                  <button
+                    onClick={handleCashPayment}
+                    disabled={!paymentAmount || !!actionLoading[paymentModal?.reservationID]}
+                    className="px-4 py-2 text-sm bg-[rgb(150,170,155)] text-white rounded-lg hover:bg-[rgb(130,150,135)] disabled:opacity-50 flex items-center gap-2 whitespace-nowrap"
+                  >
+                    {actionLoading[paymentModal?.reservationID] === 'payment' ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    Post Cash
+                  </button>
                 </div>
-              )}
+              </div>
 
               {cardError && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -474,16 +476,8 @@ export default function AdminBookings() {
                 </div>
               )}
 
-              <div className="flex gap-2 justify-end">
-                <button onClick={() => { setPaymentModal(null); setPaymentMethod('cash'); setCardError(''); }} className="px-4 py-2 text-sm border border-[rgb(235,225,213)] rounded-lg text-[rgb(107,85,64)]">Cancel</button>
-                <button
-                  onClick={handlePayment}
-                  disabled={!paymentAmount || !!actionLoading[paymentModal?.reservationID]}
-                  className="px-4 py-2 text-sm bg-[rgb(107,85,64)] text-white rounded-lg hover:bg-[rgb(85,65,45)] disabled:opacity-50 flex items-center gap-2"
-                >
-                  {actionLoading[paymentModal?.reservationID] === 'payment' ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
-                  Post Payment
-                </button>
+              <div className="flex justify-end">
+                <button onClick={() => { setPaymentModal(null); setPaymentMethod('cash'); setCardError(''); }} className="px-4 py-2 text-sm border border-[rgb(235,225,213)] rounded-lg text-[rgb(107,85,64)]">Close</button>
               </div>
             </div>
           )}
