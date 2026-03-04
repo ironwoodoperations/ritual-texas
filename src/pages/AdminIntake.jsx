@@ -427,7 +427,10 @@ export default function AdminIntake() {
 
   const filtered = records.filter(r => {
     const matchSearch = !search || r.guestName?.toLowerCase().includes(search.toLowerCase()) || r.phone?.includes(search) || r.email?.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === "all" || r.bookingStatus === statusFilter;
+    let matchStatus;
+    if (statusFilter === "all") matchStatus = true;
+    else if (statusFilter === "active") matchStatus = r.bookingStatus !== "archived" && r.bookingStatus !== "declined";
+    else matchStatus = r.bookingStatus === statusFilter;
     return matchSearch && matchStatus;
   });
 
