@@ -355,25 +355,30 @@ function IntakeCard({ record, onUpdate }) {
                   </div>
                 )}
                 <div className="flex flex-wrap gap-2">
-                  <button onClick={() => runAction('SendQuote')} disabled={actioning} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-xs text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] disabled:opacity-50">
-                    📧 Send Quote
-                  </button>
+                  <ActionBtn label="📧 Send Quote" actionKey="SendQuote" completed={completed} actioning={actioning} onClick={() => runAction('SendQuote')} />
                   {record.checkInDate && record.checkOutDate && (
-                    <button onClick={() => runAction('BookHotel')} disabled={actioning} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-xs text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] disabled:opacity-50">
-                      🏨 Book Hotel
-                    </button>
+                    <ActionBtn label="🏨 Book Hotel" actionKey="BookHotel" completed={completed} actioning={actioning} onClick={() => runAction('BookHotel')} />
                   )}
                   {record.selectedTreatments?.length > 0 && (
-                    <button onClick={() => runAction('BookTreatments')} disabled={actioning} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-xs text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] disabled:opacity-50">
-                      ✨ Book Treatments
-                    </button>
+                    <ActionBtn label="✨ Book Treatments" actionKey="BookTreatments" completed={completed} actioning={actioning} onClick={() => runAction('BookTreatments')} />
                   )}
                   {(record.checkInDate || record.selectedTreatments?.length > 0) && (
-                    <button onClick={() => runAction('CreateInvoice')} disabled={actioning} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-xs text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] disabled:opacity-50">
-                      💳 Create Invoice
-                    </button>
+                    <ActionBtn label="💳 Create Invoice" actionKey="CreateInvoice" completed={completed} actioning={actioning} onClick={() => runAction('CreateInvoice')} />
                   )}
+                  <ActionBtn label="👤 Add to CRM" actionKey="AddToCRM" completed={completed} actioning={actioning} onClick={() => runAction('AddToCRM')} />
                   <button onClick={() => setEditing(true)} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-xs text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]">Edit</button>
+                </div>
+                <div className="pt-2 border-t border-[rgb(235,225,213)] flex items-center gap-3">
+                  <button
+                    onClick={handleArchive}
+                    disabled={!!actioning}
+                    className={`px-4 py-2 rounded-xl text-xs font-medium transition-colors disabled:opacity-50 ${completed.AddToCRM ? 'bg-[rgb(107,85,64)] text-white hover:opacity-90' : 'bg-[rgb(235,225,213)] text-[rgb(150,150,150)] cursor-not-allowed'}`}
+                  >
+                    ✅ Finished & Archive
+                  </button>
+                  {!completed.AddToCRM && (
+                    <span className="text-xs text-[rgb(180,150,130)]">Add to CRM first to enable archiving</span>
+                  )}
                 </div>
               </div>
             </div>
