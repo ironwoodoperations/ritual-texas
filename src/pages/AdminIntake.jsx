@@ -207,6 +207,7 @@ function IntakeCard({ record, onUpdate }) {
   const [editing, setEditing] = useState(false);
   const [actioning, setActioning] = useState(null);
   const [actionMsg, setActionMsg] = useState(null);
+  const [completed, setCompleted] = useState({}); // tracks which actions succeeded
 
   async function save(form) {
     await base44.entities.HotelTreatmentIntake.update(record.id, form);
@@ -222,12 +223,9 @@ function IntakeCard({ record, onUpdate }) {
       delete intakeData.data;
 
       if (type === 'SendQuote') {
-        // Download PDF and open mailto
         const res = await base44.functions.invoke('intakeSendQuote', { intake: intakeData }, { responseType: 'arraybuffer' });
         const blob = new Blob([res.data], { type: 'application/pdf' });
         const filename = `RITUAL-Quote-${intakeData.guestName?.replace(/\s+/g, '-') || 'Guest'}.pdf`;
-
-        // Trigger download
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -236,25 +234,39 @@ function IntakeCard({ record, onUpdate }) {
         a.click();
         window.URL.revokeObjectURL(url);
         a.remove();
-
-        // Open mailto pre-filled
         const subject = encodeURIComponent('Your Hotel RITUAL Wellness Retreat Quote');
-        const body = encodeURIComponent(
-          `Hi ${intakeData.guestName},\n\nThank you for your interest in Hotel RITUAL! Please find your personalized wellness retreat quote attached.\n\nWe look forward to welcoming you.\n\nWarm regards,\nHotel RITUAL\n(903) 810-6695`
-        );
+        const body = encodeURIComponent(`Hi ${intakeData.guestName},\n\nThank you for your interest in Hotel RITUAL! Please find your personalized wellness retreat quote attached.\n\nWe look forward to welcoming you.\n\nWarm regards,\nHotel RITUAL\n(903) 810-6695`);
         const to = encodeURIComponent(intakeData.email || intakeData.guestEmail || '');
-        setTimeout(() => {
-          window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
-        }, 500);
-
+        setTimeout(() => { window.location.href = `mailto:${to}?subject=${subject}&body=${body}`; }, 500);
+        setCompleted(c => ({ ...c, SendQuote: true }));
         setActionMsg({ success: true, text: 'Quote PDF downloaded — attach it to the email that just opened.' });
         setTimeout(() => setActionMsg(null), 6000);
+
+      } else if (type === 'AddToCRM') {
+        const nameParts = intakeData.guestName?.trim().split(' ') || [];
+        const res = await base44.functions.invoke('crmUpsertContact', {
+          firstName: nameParts[0] || intakeData.guestName,
+          lastName: nameParts.slice(1).join(' ') || '',
+          fullName: intakeData.guestName,
+          email: intakeData.email || intakeData.guestEmail || '',
+          phone: intakeData.phone || '',
+          tags: ['intake'],
+        });
+        if (res.data?.ok) {
+          setCompleted(c => ({ ...c, AddToCRM: true }));
+          setActionMsg({ success: true, text: 'Guest added / updated in CRM.' });
+          setTimeout(() => setActionMsg(null), 4000);
+        } else {
+          setActionMsg({ success: false, text: res.data?.error || 'CRM error' });
+        }
+
       } else {
         const res = await base44.functions.invoke(`intake${type}`, { intake: intakeData });
         const data = res.data;
         if (data?.error) {
           setActionMsg({ success: false, text: data.error, detail: JSON.stringify(data, null, 2) });
         } else {
+          setCompleted(c => ({ ...c, [type]: true }));
           setActionMsg({ success: true, text: data?.message || `${type} completed` });
           setTimeout(() => { setActionMsg(null); onUpdate(); }, 3000);
         }
@@ -262,13 +274,18 @@ function IntakeCard({ record, onUpdate }) {
     } catch (err) {
       const status = err.response?.status;
       const detail = err.response?.data ? JSON.stringify(err.response.data, null, 2) : null;
-      setActionMsg({
-        success: false,
-        text: `${status ? `HTTP ${status}: ` : ''}${err.message}`,
-        detail,
-      });
+      setActionMsg({ success: false, text: `${status ? `HTTP ${status}: ` : ''}${err.message}`, detail });
     }
     setActioning(null);
+  }
+
+  async function handleArchive() {
+    if (!completed.AddToCRM) {
+      setActionMsg({ success: false, text: 'Please add this guest to the CRM before archiving.' });
+      return;
+    }
+    await base44.entities.HotelTreatmentIntake.update(record.id, { bookingStatus: 'declined' });
+    onUpdate();
   }
 
   const contactIcon = record.preferredContactMethod === "email" ? <Mail className="w-3 h-3" /> : record.preferredContactMethod === "text" ? <MessageSquare className="w-3 h-3" /> : <Phone className="w-3 h-3" />;
