@@ -62,22 +62,22 @@ Deno.serve(async (req) => {
     const searchResp = await fetch(`${baseUrl}/v2/customers/search`, {
       method: 'POST',
       headers: sqHeaders,
-      body: JSON.stringify({ query: { filter: { email_address: { exact: intake.guestEmail } } } }),
+      body: JSON.stringify({ query: { filter: { email_address: { exact: guestEmail } } } }),
     });
     const searchData = await searchResp.json();
     let customerId = searchData?.customers?.[0]?.id;
 
     if (!customerId) {
-      const nameParts = intake.guestName.trim().split(' ');
+      const nameParts = guestName.trim().split(' ');
       const createResp = await fetch(`${baseUrl}/v2/customers`, {
         method: 'POST',
         headers: sqHeaders,
         body: JSON.stringify({
-          given_name: nameParts[0] || intake.guestName,
+          given_name: nameParts[0] || guestName,
           family_name: nameParts.slice(1).join(' ') || '.',
-          email_address: intake.guestEmail,
+          email_address: guestEmail,
           phone_number: intake.phone || undefined,
-          idempotency_key: `intake-customer-${intake.guestEmail}-${Date.now()}`,
+          idempotency_key: `intake-customer-${guestEmail}-${Date.now()}`,
         }),
       });
       const createData = await createResp.json();
@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
           accepted_payment_methods: { card: true, square_gift_card: false, bank_account: false, buy_now_pay_later: false, cash_app_pay: false },
           delivery_method: 'EMAIL',
           title: 'Hotel RITUAL – Package Invoice',
-          description: intake.internalNotes || `Wellness Retreat for ${intake.guestName}`,
+          description: intake.internalNotes || `Wellness Retreat for ${guestName}`,
         },
         idempotency_key: `intake-invoice-${intake.id || Date.now()}`,
       }),
@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
       success: true,
       invoiceId,
       publicUrl,
-      message: `Invoice created and sent to ${intake.guestEmail}`,
+      message: `Invoice created and sent to ${guestEmail}`,
     });
 
   } catch (error) {

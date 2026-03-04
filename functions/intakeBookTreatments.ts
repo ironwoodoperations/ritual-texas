@@ -72,12 +72,12 @@ Deno.serve(async (req) => {
     const bookingTime = (intake.preferredTreatmentTime || '10:00').replace(/[^0-9:]/g, '').padEnd(5, '0');
 
     // Build client info
-    const nameParts = intake.guestName.trim().split(' ');
+    const nameParts = guestName.trim().split(' ');
     const clientData = {
-      name: intake.guestName,
-      email: intake.guestEmail,
+      name: guestName,
+      email: guestEmail,
       phone: intake.phone || '',
-      firstName: nameParts[0] || intake.guestName,
+      firstName: nameParts[0] || guestName,
       lastName: nameParts.slice(1).join(' ') || '.',
     };
 
@@ -127,8 +127,8 @@ Deno.serve(async (req) => {
       const localBooking = await base44.entities.SpaBooking.create({
         simplybookBookingId,
         simplybookBookingHash: sbBooking?.hash || '',
-        clientName: intake.guestName,
-        email: intake.guestEmail,
+        clientName: guestName,
+        email: guestEmail,
         phone: intake.phone || '',
         serviceName: matched.name,
         service: String(serviceId),
