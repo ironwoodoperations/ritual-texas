@@ -176,10 +176,10 @@ function NewInvoice({ rooms, treatments, packages }) {
     cityTax: false,
     hotelTax: false,
   });
-  const [taxRates, setTaxRates] = useState({
+  const [taxRates] = useState({
     stateTax: 6.25,
-    cityTax: 0,
-    hotelTax: 2,
+    cityTax: 2,
+    hotelTax: 15,
   });
 
   const setItem = (idx, key, val) => {
