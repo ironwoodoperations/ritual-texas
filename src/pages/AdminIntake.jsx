@@ -218,8 +218,10 @@ function IntakeCard({ record, onUpdate }) {
     setActioning(type);
     setActionMsg(null);
     try {
-      let payload = { intake: record };
-      const res = await base44.functions.invoke(`intake${type}`, payload);
+      // Merge top-level record fields with nested data fields so backend gets guestName, email, etc.
+      const intakeData = { id: record.id, ...(record.data || {}), ...record };
+      delete intakeData.data; // avoid duplication
+      const res = await base44.functions.invoke(`intake${type}`, { intake: intakeData });
       const data = res.data;
       if (data?.error) {
         setActionMsg({ success: false, text: data.error, detail: JSON.stringify(data, null, 2) });
