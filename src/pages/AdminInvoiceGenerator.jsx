@@ -39,6 +39,7 @@ function InvoiceList() {
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('outstanding');
+  const [search, setSearch] = useState('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['square-invoices'],
