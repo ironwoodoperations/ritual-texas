@@ -108,7 +108,7 @@ function InvoiceList() {
         <input
           placeholder="Search by name, email, or phone…"
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={e => handleSearch(e.target.value)}
           className="w-full pl-9 pr-4 py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm bg-white focus:outline-none focus:border-[rgb(198,182,165)]"
         />
       </div>
