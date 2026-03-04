@@ -298,7 +298,7 @@ function IntakeCard({ record, onUpdate }) {
       setActionMsg({ success: false, text: 'Please add this guest to the CRM before archiving.' });
       return;
     }
-    await base44.entities.HotelTreatmentIntake.update(record.id, { bookingStatus: 'declined' });
+    await base44.entities.HotelTreatmentIntake.update(record.id, { bookingStatus: 'archived' });
     onUpdate();
   }
 
