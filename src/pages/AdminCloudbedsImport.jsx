@@ -207,6 +207,8 @@ export default function AdminCloudbedsImport() {
         {/* Reservations Import */}
 
         <div className="bg-white rounded-2xl border border-[rgb(235,225,213)] p-8">
+          <h2 className="text-xl font-light text-[rgb(107,85,64)] mb-2">Import Reservations</h2>
+          <p className="text-sm text-[rgb(150,150,150)] mb-6">Upload the Cloudbeds Reservations export (XLSX).</p>
           <div className="mb-6">
             <label className="block text-sm font-medium text-[rgb(45,45,45)] mb-3">
               Select Cloudbeds Export (XLSX)
