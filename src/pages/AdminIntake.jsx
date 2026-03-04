@@ -407,7 +407,7 @@ export default function AdminIntake() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("active");
   const [showNew, setShowNew] = useState(false);
 
   async function load() {
