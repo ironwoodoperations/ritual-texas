@@ -167,6 +167,7 @@ function IntakeForm({ initial = BLANK, onSave, onCancel }) {
             <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
             <option value="declined">Declined</option>
+            <option value="archived">Archived</option>
           </select>
         </div>
       </div>
