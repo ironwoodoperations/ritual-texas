@@ -472,7 +472,7 @@ export default function AdminIntake() {
             <option value="new_inquiry">New Inquiry</option>
             <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
-            <option value="declined">Declined</option>
+            <option value="declined">Declined / Archived</option>
           </select>
         </div>
 
