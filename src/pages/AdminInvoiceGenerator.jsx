@@ -186,28 +186,20 @@ function NewInvoice({ rooms, treatments, packages }) {
     setLineItems(items => items.map((it, i) => i === idx ? { ...it, [key]: val } : it));
   };
 
-  const RITUAL_ROOMS = [
-    { id: 'suite1', name: 'Suite 1', price: '' },
-    { id: 'suite2', name: 'Suite 2', price: '' },
-    { id: 'suite3', name: 'Suite 3', price: '' },
-    { id: 'suite5', name: 'Suite 5', price: '' },
-    { id: 'carriage', name: 'Carriage House', price: '' },
-  ];
-
   // Quick-add from dropdown
   const addCatalogItem = (val) => {
     if (!val) return;
     const [type, id] = val.split('::');
     let entry = null;
     if (type === 'room') {
-      const r = RITUAL_ROOMS.find(x => x.id === id);
-      if (r) entry = { name: `Room – ${r.name}`, amount: String(r.price || ''), quantity: '1', _type: 'room' };
+      const r = rooms.find(x => x.id === id);
+      if (r) entry = { name: r.name, amount: String(r.price_per_night || ''), quantity: '1', _type: 'room' };
     } else if (type === 'treatment') {
       const t = treatments.find(x => x.id === id);
       if (t) entry = { name: t.name, amount: String(t.price || ''), quantity: '1', _type: 'treatment' };
     } else if (type === 'pkg') {
       const p = packages.find(x => x.id === id);
-      if (p) entry = { name: p.title, amount: String(p.price || ''), quantity: '1', _type: 'pkg' };
+      if (p) entry = { name: p.title, amount: String(p.price || ''), quantity: '1', _type: 'room' };
     }
     if (entry) {
       setLineItems(items => {
