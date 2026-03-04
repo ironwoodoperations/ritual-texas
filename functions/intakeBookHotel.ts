@@ -7,46 +7,45 @@ function splitName(fullName) {
   return { first: parts[0] || "Guest", last: parts.slice(1).join(" ") || "Ritual" };
 }
 
-async function getSetting(base44, key) {
-  const found = await base44.asServiceRole.entities.AppSetting.filter({ key });
-  return found?.[0]?.value ?? null;
+// Read a key from SiteSettings or AppSetting (checks both, uppercase and lowercase)
+async function getSetting(base44, ...keys) {
+  for (const key of keys) {
+    for (const entity of ["SiteSettings", "AppSetting"]) {
+      try {
+        const found = await base44.asServiceRole.entities[entity].filter({ key });
+        if (found?.[0]?.value) return found[0].value;
+      } catch { /* entity may not exist */ }
+    }
+  }
+  return null;
 }
+
 async function upsertSetting(base44, key, value) {
-  const existing = await base44.asServiceRole.entities.AppSetting.filter({ key });
-  if (existing?.[0]?.id) {
-    await base44.asServiceRole.entities.AppSetting.update(existing[0].id, { value });
-  } else {
-    await base44.asServiceRole.entities.AppSetting.create({ key, value });
+  // Always write back to SiteSettings (canonical location)
+  try {
+    const existing = await base44.asServiceRole.entities.SiteSettings.filter({ key });
+    if (existing?.[0]?.id) {
+      await base44.asServiceRole.entities.SiteSettings.update(existing[0].id, { value });
+    } else {
+      await base44.asServiceRole.entities.SiteSettings.create({ key, value });
+    }
+  } catch {
+    // fallback to AppSetting
+    const existing = await base44.asServiceRole.entities.AppSetting.filter({ key });
+    if (existing?.[0]?.id) {
+      await base44.asServiceRole.entities.AppSetting.update(existing[0].id, { value });
+    } else {
+      await base44.asServiceRole.entities.AppSetting.create({ key, value });
+    }
   }
 }
 
 async function refreshCloudbedsToken(base44) {
-  const refreshToken = await getSetting(base44, "cloudbeds_refresh_token");
+  const refreshToken = await getSetting(base44, "CLOUDBEDS_REFRESH_TOKEN", "cloudbeds_refresh_token");
   if (!refreshToken) throw new Error("Cloudbeds not connected. Complete OAuth in Admin → Bookings.");
-
-  const res = await fetch("https://hotels.cloudbeds.com/api/v1.1/access_token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: refreshToken,
-      client_id: Deno.env.get("CLOUDBEDS_CLIENT_ID") || "",
-      client_secret: Deno.env.get("CLOUDBEDS_CLIENT_SECRET") || "",
-    }),
-  });
-  const text = await res.text();
-  if (!res.ok) throw new Error(`Cloudbeds token refresh failed: ${text}`);
-  const data = JSON.parse(text);
-  const accessToken = data?.access_token || data?.data?.access_token;
-  const newRefresh = data?.refresh_token || data?.data?.refresh_token;
-  if (!accessToken) throw new Error("Cloudbeds token refresh returned no access_token");
-  await upsertSetting(base44, "cloudbeds_access_token", accessToken);
-  if (newRefresh) await upsertSetting(base44, "cloudbeds_refresh_token", newRefresh);
-  return accessToken;
-}
-
+...
 async function getToken(base44) {
-  let token = await getSetting(base44, "cloudbeds_access_token");
+  let token = await getSetting(base44, "CLOUDBEDS_ACCESS_TOKEN", "cloudbeds_access_token");
   if (!token) token = await refreshCloudbedsToken(base44);
   return token;
 }
