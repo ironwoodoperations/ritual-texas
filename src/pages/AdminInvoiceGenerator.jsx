@@ -549,7 +549,7 @@ export default function AdminInvoiceGenerator() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-xl font-light text-[rgb(107,85,64)]">Invoices</h1>
+            <h1 className="text-xl font-light text-[rgb(107,85,64)]">Square Invoices</h1>
             <p className="text-sm text-[rgb(150,150,150)]">Square invoice management</p>
           </div>
         </div>
