@@ -388,7 +388,7 @@ function IntakeCard({ record, onUpdate }) {
                     disabled={!!actioning}
                     className={`px-4 py-2 rounded-xl text-xs font-medium transition-colors disabled:opacity-50 ${completed.AddToCRM ? 'bg-[rgb(107,85,64)] text-white hover:opacity-90' : 'bg-[rgb(235,225,213)] text-[rgb(150,150,150)] cursor-not-allowed'}`}
                   >
-                    ✅ Finished & Archive
+                    Finished &amp; Archive
                   </button>
                   {!completed.AddToCRM && (
                     <span className="text-xs text-[rgb(180,150,130)]">Add to CRM first to enable archiving</span>
