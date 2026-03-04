@@ -62,10 +62,10 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Cloudbeds not configured.' }, { status: 200 });
     }
 
-    // Today's date as start, 90 days out as end
+    // Today's date as start, 30 days out as end (faster, enough for operations)
     const today = new Date();
     const future = new Date();
-    future.setDate(future.getDate() + 90);
+    future.setDate(future.getDate() + 30);
     const fmt = (d) => d.toISOString().slice(0, 10);
 
     const fetchReservations = async (token) => {
