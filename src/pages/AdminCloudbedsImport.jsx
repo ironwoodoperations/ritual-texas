@@ -9,6 +9,12 @@ export default function AdminCloudbedsImport() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+
+  const [profileFile, setProfileFile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileResult, setProfileResult] = useState(null);
+  const [profileError, setProfileError] = useState(null);
+
   const navigate = useNavigate();
 
   React.useEffect(() => {
