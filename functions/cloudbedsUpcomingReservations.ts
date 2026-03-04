@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
         `?propertyID=${encodeURIComponent(propertyId)}` +
         `&checkInFrom=${fmt(today)}` +
         `&checkInTo=${fmt(future)}` +
-        `&pageSize=100` +
+        `&pageSize=50` +
         `&pageNumber=1`;
 
       const resp = await fetch(url, {
