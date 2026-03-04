@@ -427,37 +427,33 @@ function NewInvoice({ rooms, treatments, packages }) {
           </div>
 
           {/* Taxes */}
-           <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5 space-y-3">
-             <h2 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-3">Taxes</h2>
-             <div className="space-y-2">
-               {[
-                 { key: 'stateTax', label: 'State Tax', defaultRate: 6.25 },
-                 { key: 'cityTax', label: 'City Tax', defaultRate: 0 },
-                 { key: 'hotelTax', label: 'Hotel Tax', defaultRate: 2 },
-               ].map(tax => (
-                 <div key={tax.key} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[rgb(248,246,242)]">
-                   <input
-                     type="checkbox"
-                     checked={taxes[tax.key]}
-                     onChange={e => setTaxes(prev => ({ ...prev, [tax.key]: e.target.checked }))}
-                     className="rounded w-4 h-4"
-                   />
-                   <label className="flex-1 text-sm text-[rgb(45,45,45)] cursor-pointer">{tax.label}</label>
-                   <div className="flex items-center gap-1">
-                     <input
-                       type="number"
-                       step="0.01"
-                       value={taxRates[tax.key]}
-                       onChange={e => setTaxRates(prev => ({ ...prev, [tax.key]: parseFloat(e.target.value) || 0 }))}
-                       disabled={!taxes[tax.key]}
-                       className="w-16 px-2 py-1 text-xs text-right border border-[rgb(235,225,213)] rounded disabled:opacity-50"
-                     />
-                     <span className="text-xs text-[rgb(150,150,150)] w-6">%</span>
-                   </div>
-                 </div>
-               ))}
-             </div>
-           </div>
+          <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5 space-y-3">
+            <div className="flex items-start justify-between">
+              <h2 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)]">Taxes (Hotel Items Only)</h2>
+            </div>
+            <p className="text-xs text-[rgb(150,150,150)]">Texas hotel taxes apply to room/stay charges only — not treatments.</p>
+            <div className="space-y-2">
+              {[
+                { key: 'stateTax', label: 'State Tax (Texas)', rate: 6.25 },
+                { key: 'cityTax', label: 'City Tax', rate: 2 },
+                { key: 'hotelTax', label: 'Hotel Tax', rate: 15 },
+              ].map(tax => (
+                <div key={tax.key} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[rgb(248,246,242)]">
+                  <input
+                    type="checkbox"
+                    checked={taxes[tax.key]}
+                    onChange={e => setTaxes(prev => ({ ...prev, [tax.key]: e.target.checked }))}
+                    className="rounded w-4 h-4 accent-[rgb(150,170,155)]"
+                  />
+                  <label className="flex-1 text-sm text-[rgb(45,45,45)] cursor-pointer">{tax.label}</label>
+                  <span className="text-sm font-medium text-[rgb(107,85,64)]">{tax.rate}%</span>
+                </div>
+              ))}
+            </div>
+            {taxableSubtotal < subtotal && taxes.stateTax || taxes.cityTax || taxes.hotelTax ? (
+              <p className="text-xs text-[rgb(150,170,155)]">Taxes calculated on {fmtMoney(taxableSubtotal)} (hotel items only)</p>
+            ) : null}
+          </div>
 
           {/* Options */}
            <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5 space-y-4">
