@@ -223,7 +223,7 @@ function IntakeCard({ record, onUpdate }) {
 
       if (type === 'SendQuote') {
         // Download PDF and open mailto
-        const res = await base44.functions.invoke('intakeSendQuote', { intake: intakeData });
+        const res = await base44.functions.invoke('intakeSendQuote', { intake: intakeData }, { responseType: 'arraybuffer' });
         const blob = new Blob([res.data], { type: 'application/pdf' });
         const filename = `RITUAL-Quote-${intakeData.guestName?.replace(/\s+/g, '-') || 'Guest'}.pdf`;
 
