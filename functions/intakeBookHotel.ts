@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
     // Save locally too
     await base44.entities.Booking.create({
       guest_name: intake.guestName,
-      guest_email: intake.guestEmail,
+      guest_email: guestEmail,
       guest_phone: intake.phone || '',
       room_name: intake.roomRequested || rooms.find(r => r.roomID === roomId)?.roomName || 'TBD',
       check_in_date: intake.checkInDate,
