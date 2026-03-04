@@ -386,7 +386,7 @@ function IntakeCard({ record, onUpdate }) {
                   </div>
                 )}
                 <div className="flex flex-wrap gap-2">
-                  <ActionBtn label="📧 Send Quote" actionKey="SendQuote" completed={completed} actioning={actioning} onClick={() => runAction('SendQuote')} />
+                  <ActionBtn label="📧 Send Quote (Square)" actionKey="SendQuote" completed={completed} actioning={actioning} onClick={() => runAction('SendQuote')} />
                   {record.checkInDate && record.checkOutDate && (
                     <ActionBtn label="🏨 Book Hotel" actionKey="BookHotel" completed={completed} actioning={actioning} onClick={() => runAction('BookHotel')} />
                   )}
