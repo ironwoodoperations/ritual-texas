@@ -220,10 +220,21 @@ function IntakeCard({ record, onUpdate }) {
     try {
       let payload = { intake: record };
       const res = await base44.functions.invoke(`intake${type}`, payload);
-      setActionMsg({ success: true, text: res.data?.message || `${type} completed` });
-      setTimeout(() => { setActionMsg(null); onUpdate(); }, 2000);
+      const data = res.data;
+      if (data?.error) {
+        setActionMsg({ success: false, text: data.error, detail: JSON.stringify(data, null, 2) });
+      } else {
+        setActionMsg({ success: true, text: data?.message || `${type} completed` });
+        setTimeout(() => { setActionMsg(null); onUpdate(); }, 3000);
+      }
     } catch (err) {
-      setActionMsg({ success: false, text: err.message });
+      const status = err.response?.status;
+      const detail = err.response?.data ? JSON.stringify(err.response.data, null, 2) : null;
+      setActionMsg({
+        success: false,
+        text: `${status ? `HTTP ${status}: ` : ''}${err.message}`,
+        detail,
+      });
     }
     setActioning(null);
   }
