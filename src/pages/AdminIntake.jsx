@@ -471,11 +471,13 @@ export default function AdminIntake() {
             <input placeholder="Search by name, phone, email…" value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-9 pr-4 py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm bg-white focus:outline-none focus:border-[rgb(198,182,165)]" />
           </div>
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="px-3 py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm bg-white focus:outline-none">
+            <option value="active">Active (default)</option>
             <option value="all">All Statuses</option>
             <option value="new_inquiry">New Inquiry</option>
             <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
-            <option value="declined">Declined / Archived</option>
+            <option value="declined">Declined</option>
+            <option value="archived">Archived</option>
           </select>
         </div>
 
