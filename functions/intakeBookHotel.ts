@@ -153,6 +153,7 @@ Deno.serve(async (req) => {
       rooms: roomsPayload,
     });
     params.set("paymentMethod", "credit_card");
+    params.set("guestCountry", "US");
     if (guestPhone) params.set("guestPhone", guestPhone);
     if (notes) params.set("notes", notes);
 
