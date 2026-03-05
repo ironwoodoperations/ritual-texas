@@ -161,7 +161,18 @@ function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa
             <UtensilsCrossed className="w-4 h-4 text-[rgb(196,155,145)]" />
             <span className="text-sm font-medium text-[rgb(45,45,45)]">Restaurant</span>
           </div>
-          <span className="text-xs text-[rgb(120,120,120)]">Sales {fmtMoney(toastToday?.netSales)} · Labor {fmtMoney(toastToday?.laborTotalCost)} · {restaurantLeadsCount} leads</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-[rgb(120,120,120)]">Sales {fmtMoney(toastToday?.netSales)} · Labor {fmtMoney(toastToday?.laborTotalCost)} · {restaurantLeadsCount} leads</span>
+            <a href="https://www.toasttab.com/restaurants/admin/home" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-1.5 py-1 hover:bg-[rgb(248,246,242)] transition-all">
+              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/40f320a3a_download.png" alt="Toast" className="w-3.5 h-3.5" />
+            </a>
+            <a href="https://loman.ai" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-1.5 py-1 hover:bg-[rgb(248,246,242)] transition-all">
+              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/3fe6aa7ba_download.jpeg" alt="Loman AI" className="w-3.5 h-3.5" />
+            </a>
+            <a href="https://www.sonos.com/en-us/shop?utm_campaign=rta_sonos_search_us_brand_core&utm_medium=cpc&utm_source=google&utm_content=rta_sonos_search_us_brand_core&utm_term=sonos&gclsrc=aw.ds&gad_source=1&gad_campaignid=23593370564&gbraid=0AAAAADo4HCepZTd3hBezW1pERk96txMXt&gclid=Cj0KCQiA8KTNBhD_ARIsAOvp6DJXkmdLxUo2BXCSXR08H6syL8EMOGhmjNAqsrZ8Ozmgx-_JfbbwEDYaAjAsEALw_wcB" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-1.5 py-1 hover:bg-[rgb(248,246,242)] transition-all">
+              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/74431a740_download2.png" alt="Sonos" className="w-3.5 h-3.5" />
+            </a>
+          </div>
         </Link>
       </div>
     </div>
