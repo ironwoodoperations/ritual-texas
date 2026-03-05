@@ -191,7 +191,7 @@ Deno.serve(async (req) => {
       invoiceId,
       publicUrl,
       nights,
-      message: `Quote sent to ${guestEmail} via Square — ${nights} night${nights === 1 ? "" : "s"} + ${selected.length} treatment${selected.length === 1 ? "" : "s"}`,
+      message: `Quote sent to ${guestEmail} via Square — ${nights} night${nights === 1 ? "" : "s"} + ${selected.length + ctbSelected.length} treatment${(selected.length + ctbSelected.length) === 1 ? "" : "s"}`,
     });
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 });
