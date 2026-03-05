@@ -6,6 +6,7 @@ import TreatmentRequestForm from '@/components/TreatmentRequestForm';
 export default function Treatments() {
   const [requestTreatment, setRequestTreatment] = useState(null);
   const [expandedVideo, setExpandedVideo] = useState(null);
+  const [showBooking, setShowBooking] = useState(false);
 
   const { data: treatments, isLoading } = useQuery({
     queryKey: ['treatments'],
@@ -30,10 +31,25 @@ export default function Treatments() {
   return (
     <section style={{ background: '#F0E8DD', padding: '26px 16px', minHeight: '100vh' }}>
       <div style={{ maxWidth: '980px', margin: '0 auto' }}>
-        <header style={{ marginBottom: '14px' }}>
+        <header style={{ marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 style={{ margin: 0, color: '#3B4831', fontFamily: 'serif', fontSize: '34px', letterSpacing: '.2px' }}>
             Spa Treatments
           </h1>
+          <button
+            onClick={() => setShowBooking(!showBooking)}
+            style={{ 
+              background: '#3B4831', 
+              color: '#FCF9F4', 
+              border: 'none', 
+              padding: '10px 16px', 
+              borderRadius: '14px', 
+              fontWeight: 800, 
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            {showBooking ? 'Close Booking' : 'Book Online'}
+          </button>
         </header>
 
         <div style={{ display: 'grid', gap: '14px' }}>
@@ -166,6 +182,21 @@ export default function Treatments() {
         {treatments?.length === 0 && (
           <div style={{ textAlign: 'center', paddingTop: '40px', color: '#3B4831' }}>
             No treatments available at this time.
+          </div>
+        )}
+
+        {showBooking && (
+          <div style={{ marginTop: '40px', background: '#FCF9F4', borderRadius: '18px', padding: '20px', border: '1px solid rgba(59,72,49,.10)', boxShadow: '0 10px 30px rgba(0,0,0,.08)' }}>
+            <iframe
+              src="https://ritualtexas.simplybook.me"
+              style={{
+                width: '100%',
+                height: '600px',
+                border: 'none',
+                borderRadius: '12px'
+              }}
+              title="SimplyBook Booking"
+            />
           </div>
         )}
       </div>
