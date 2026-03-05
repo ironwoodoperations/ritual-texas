@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
     const guestPhone = intake.phone || intake.guestPhone || "";
     const adults = intake.numberOfGuests || 1;
     const notes = intake.internalNotes || intake.treatmentsRequested || "";
-    const roomTypeID = intake.cloudbedsRoomTypeId || intake.roomTypeID || "";
+    let roomTypeID = intake.cloudbedsRoomTypeId || intake.roomTypeID || "";
 
     // Get auth
     let accessToken = await getAnySetting(base44, [
