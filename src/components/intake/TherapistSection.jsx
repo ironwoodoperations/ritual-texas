@@ -47,7 +47,7 @@ export default function TherapistSection({ form, onChange, sbEntries, ctbEntries
   }
 
   function openSmsToTherapist() {
-    if (!selectedTherapist) return;
+    if (!selectedTherapist?.phone) return;
     const body = encodeURIComponent(buildTextBody());
     const phone = selectedTherapist.phone.replace(/\D/g, "");
     window.open(`sms:${phone}&body=${body}`, "_blank");
