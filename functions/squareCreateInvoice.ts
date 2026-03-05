@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { customerEmail, customerName, lineItems, note, dueDate } = body;
+    const { customerEmail, customerName, lineItems, note, dueDate, sendNow = true } = body;
     // lineItems: [{ name, amount (in dollars), quantity }]
 
     if (!customerEmail || !customerName || !lineItems || lineItems.length === 0) {
