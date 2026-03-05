@@ -480,21 +480,21 @@ export default function AdminDashboard() {
 
         {/* Section nav tiles */}
         {sections.map((section, si) => (
-          <div key={section.title} className="mb-8">
+          <div key={section.title} className={section.title === "Data Management" ? "mb-4" : "mb-8"}>
             <h2 className="text-xs tracking-widest font-medium mb-3" style={{ color: section.color }}>
               {section.title.toUpperCase()}
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <div className={section.title === "Data Management" ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2" : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"}>
               {section.tiles.map((tile, ti) => (
                 <motion.div key={tile.page} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: (si * 4 + ti) * 0.03 }}>
-                  <Link to={createPageUrl(tile.page)} className="block bg-white border border-[rgb(235,225,213)] rounded-xl p-4 hover:shadow-md hover:border-[rgb(198,182,165)] transition-all group relative">
+                  <Link to={createPageUrl(tile.page)} className={`block bg-white border border-[rgb(235,225,213)] rounded-xl hover:shadow-md hover:border-[rgb(198,182,165)] transition-all group relative ${section.title === "Data Management" ? "p-2" : "p-4"}`}>
                     {tile.badge > 0 && (
                       <span className="absolute top-3 right-3 min-w-[20px] h-5 px-1 rounded-full text-white text-xs flex items-center justify-center font-bold" style={{ background: section.color }}>
                         {tile.badge}
                       </span>
                     )}
-                    <tile.icon className="w-6 h-6 mb-3" style={{ color: section.color }} />
-                    <p className="text-sm font-medium text-[rgb(45,45,45)] group-hover:text-[rgb(107,85,64)] leading-tight">{tile.label}</p>
+                    <tile.icon className={`${section.title === "Data Management" ? "w-4 h-4 mb-1" : "w-6 h-6 mb-3"}`} style={{ color: section.color }} />
+                    <p className={`${section.title === "Data Management" ? "text-xs" : "text-sm"} font-medium text-[rgb(45,45,45)] group-hover:text-[rgb(107,85,64)] leading-tight`}>{tile.label}</p>
                   </Link>
                 </motion.div>
               ))}
