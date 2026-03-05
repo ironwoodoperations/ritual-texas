@@ -18,34 +18,37 @@ Deno.serve(async (req) => {
 
     const adminHeaders = { "Content-Type": "application/json", "X-Company-Login": company, "X-User-Token": adminToken };
 
-    // Get all clients to see real IDs
-    const clientList = await (await fetch("https://user-api.simplybook.me/admin/", {
+    // Try book with clientData object instead of client_id
+    const book1 = await (await fetch("https://user-api.simplybook.me/admin/", {
       method: "POST",
       headers: adminHeaders,
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getClientList", params: [null, null, null, 1, 10] }),
+      body: JSON.stringify({
+        jsonrpc: "2.0", id: 1, method: "book",
+        params: ["2", "2", "2026-03-10 10:00:00", null, { name: "SCOTT DEVORE", email: "csdevore@outlook.com", phone: "+14095048185" }],
+      }),
     })).json();
 
-    // Try getClientById
-    const getClient = await (await fetch("https://user-api.simplybook.me/admin/", {
+    // Try book with SCOTT's id "1" but pass clientData too
+    const book2 = await (await fetch("https://user-api.simplybook.me/admin/", {
       method: "POST",
       headers: adminHeaders,
-      body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "getClientById", params: ["3"] }),
+      body: JSON.stringify({
+        jsonrpc: "2.0", id: 2, method: "book",
+        params: ["2", "2", "2026-03-10 10:00:00", "1", { name: "SCOTT DEVORE", email: "csdevore@outlook.com", phone: "+14095048185" }],
+      }),
     })).json();
 
-    // Try book with client_id from getClientList
-    const clients = clientList?.result || [];
-    const firstClientId = Array.isArray(clients) && clients[0]?.id;
+    // Try bookByToken – maybe admin needs a client token
+    const book3 = await (await fetch("https://user-api.simplybook.me/admin/", {
+      method: "POST",
+      headers: adminHeaders,
+      body: JSON.stringify({
+        jsonrpc: "2.0", id: 3, method: "bookByAdmin",
+        params: ["2", "2", "2026-03-10 10:00:00", "1", null],
+      }),
+    })).json();
 
-    let bookResult = null;
-    if (firstClientId) {
-      bookResult = await (await fetch("https://user-api.simplybook.me/admin/", {
-        method: "POST",
-        headers: adminHeaders,
-        body: JSON.stringify({ jsonrpc: "2.0", id: 3, method: "book", params: ["2", "2", "2026-03-10 10:00:00", String(firstClientId), null] }),
-      })).json();
-    }
-
-    return Response.json({ clientList: clientList?.result, getClient, firstClientId, bookResult });
+    return Response.json({ book_no_client_id: book1, book_with_clientdata: book2, bookByAdmin: book3 });
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 });
   }
