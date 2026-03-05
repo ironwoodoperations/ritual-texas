@@ -42,11 +42,12 @@ const BLANK = {
   guestName: "", phone: "", email: "", preferredContactMethod: "phone",
   checkInDate: "", checkOutDate: "", numberOfGuests: 1, numberOfChildren: 0,
   cloudbedsRoomTypeId: "", flexibleOnRoom: false, hotelNotes: "",
-  howDidYouHearAboutUs: "", additionalGuests: [],
+  additionalGuests: [],
   selectedTreatments: [], callToBookTreatments: [],
   treatmentsRequested: "",
   therapistAssigned: "", therapistStatus: "not_contacted",
   therapistFollowUpDate: "", therapistNotes: "",
+  howDidYouHearAboutUs: "",
   bookingStatus: "new_inquiry", followUpDate: "", internalNotes: "",
   ccName: "", ccNumber: "", ccLast4: "", ccExpiry: "", ccCvc: "", ccType: "", ccNotes: "",
 };
@@ -196,53 +197,17 @@ function IntakeForm({ initial = BLANK, roomTypes = [], callToBookTreatments = []
               <textarea placeholder="Ground floor, early check-in, pet, anniversary setup…" value={form.hotelNotes} onChange={e => set("hotelNotes", e.target.value)} className={fieldCls + " resize-none h-16"} />
             </Field>
           </div>
-          <div className="sm:col-span-2">
-            <Field label="How Did You Hear About Us?">
-              <textarea placeholder="Google, Instagram, referral, travel agent, etc…" value={form.howDidYouHearAboutUs} onChange={e => set("howDidYouHearAboutUs", e.target.value)} className={fieldCls + " resize-none h-12"} />
-            </Field>
-          </div>
         </div>
-
-        {/* Additional Guests */}
-        {form.numberOfGuests > 1 && (
-          <div className="mt-6 pt-6 border-t border-[rgb(220,210,200)]">
-            <h3 className="text-sm font-semibold text-[rgb(107,85,64)] mb-4">Additional Guests</h3>
-            {Array.from({ length: form.numberOfGuests - 1 }).map((_, idx) => {
-              const guestIdx = idx + 1;
-              const guest = (form.additionalGuests || [])[idx] || {};
-              const updateGuest = (key, val) => {
-                const updated = [...(form.additionalGuests || [])];
-                updated[idx] = { ...updated[idx], [key]: val };
-                set("additionalGuests", updated);
-              };
-              return (
-                <div key={guestIdx} className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 mb-6 pb-6 border-b border-[rgb(220,210,200)] last:border-0">
-                  <Field label={`Guest ${guestIdx} Name`}>
-                    <input placeholder="First Last" value={guest.name || ""} onChange={e => updateGuest("name", e.target.value)} className={fieldCls} />
-                  </Field>
-                  <Field label={`Guest ${guestIdx} Email`}>
-                    <input placeholder="guest@email.com" value={guest.email || ""} onChange={e => updateGuest("email", e.target.value)} className={fieldCls} />
-                  </Field>
-                  <Field label={`Guest ${guestIdx} Phone`}>
-                    <input placeholder="(555) 000-0000" value={guest.phone || ""} onChange={e => updateGuest("phone", e.target.value)} className={fieldCls} />
-                  </Field>
-                </div>
-              );
-            })}
-          </div>
-        )}
       </Section>
 
-      {/* Treatments — SimplyBook + Call-to-book — Per Guest */}
+      {/* Treatments — SimplyBook + Call-to-book */}
       <Section title="Spa & Wellness · Treatments">
-        <p className="text-xs text-[rgb(170,140,110)] mb-4">Add treatments for each guest in the room. SimplyBook supports multiple bookings.</p>
         <TreatmentSlotPicker
           sbEntries={sbEntries}
           ctbEntries={ctbEntries}
           callToBookTreatments={callToBookTreatments}
           onSbChange={setSbEntries}
           onCtbChange={setCtbEntries}
-          guestCount={form.numberOfGuests}
         />
         <div className="mt-5">
           <Field label="Additional Treatment Notes">
@@ -295,9 +260,62 @@ function IntakeForm({ initial = BLANK, roomTypes = [], callToBookTreatments = []
         </div>
       </Section>
 
-      {/* Card on File */}
-      <Section title="Card on File · Payment Information">
+      {/* Additional Guests (Multi-guest for Cloudbeds) */}
+      <Section title="Additional Guests · For Multi-Guest Reservations">
+        <p className="text-xs text-[rgb(170,140,110)] mb-4">Add info for 2nd, 3rd, 4th guests as Cloudbeds requires.</p>
+        <div className="space-y-4">
+          {form.additionalGuests.map((guest, idx) => (
+            <div key={idx} className="bg-[rgb(250,248,245)] border border-[rgb(220,210,200)] rounded-lg p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+                <Field label="Guest Name">
+                  <input placeholder="First Last" value={guest.name} onChange={e => {
+                    const updated = [...form.additionalGuests];
+                    updated[idx].name = e.target.value;
+                    set("additionalGuests", updated);
+                  }} className={fieldCls} />
+                </Field>
+                <Field label="Email">
+                  <input placeholder="guest@email.com" value={guest.email} onChange={e => {
+                    const updated = [...form.additionalGuests];
+                    updated[idx].email = e.target.value;
+                    set("additionalGuests", updated);
+                  }} className={fieldCls} />
+                </Field>
+                <Field label="Phone">
+                  <input placeholder="(555) 000-0000" value={guest.phone} onChange={e => {
+                    const updated = [...form.additionalGuests];
+                    updated[idx].phone = e.target.value;
+                    set("additionalGuests", updated);
+                  }} className={fieldCls} />
+                </Field>
+              </div>
+              <button
+                type="button"
+                onClick={() => set("additionalGuests", form.additionalGuests.filter((_, i) => i !== idx))}
+                className="mt-2 text-xs text-red-600 hover:text-red-700"
+              >
+                Remove Guest
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => set("additionalGuests", [...form.additionalGuests, { name: "", email: "", phone: "" }])}
+            className="text-xs text-[rgb(107,85,64)] hover:underline"
+          >
+            + Add Another Guest
+          </button>
+        </div>
+      </Section>
+
+      {/* Marketing Source & Card on File */}
+      <Section title="Marketing & Payment">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+          <div className="sm:col-span-2">
+            <Field label="How Did You Hear About Us?">
+              <textarea placeholder="Referral, online search, social media, wedding planner…" value={form.howDidYouHearAboutUs} onChange={e => set("howDidYouHearAboutUs", e.target.value)} className={fieldCls + " resize-none h-12"} />
+            </Field>
+          </div>
           <Field label="Cardholder Name">
             <input placeholder="Name on card" value={form.ccName} onChange={e => set("ccName", e.target.value)} className={fieldCls} />
           </Field>
@@ -310,22 +328,17 @@ function IntakeForm({ initial = BLANK, roomTypes = [], callToBookTreatments = []
               <option value="Discover">Discover</option>
             </select>
           </Field>
-          <div className="sm:col-span-2">
-            <Field label="Full Card Number">
-              <input type="password" placeholder="•••• •••• •••• ••••" value={form.ccNumber} onChange={e => set("ccNumber", e.target.value)} className={fieldCls} maxLength={19} />
-            </Field>
-          </div>
+          <Field label="Full Card Number">
+            <input type="password" placeholder="•••• •••• •••• ••••" value={form.ccNumber} onChange={e => set("ccNumber", e.target.value)} className={fieldCls} />
+          </Field>
           <Field label="Expiry MM/YY">
             <input placeholder="MM/YY" value={form.ccExpiry} onChange={e => set("ccExpiry", e.target.value)} className={fieldCls} maxLength={5} />
           </Field>
           <Field label="CVC">
             <input type="password" placeholder="•••" value={form.ccCvc} onChange={e => set("ccCvc", e.target.value)} className={fieldCls} maxLength={4} />
           </Field>
-          <Field label="Last 4 Digits">
-            <input placeholder="0000" value={form.ccLast4} onChange={e => set("ccLast4", e.target.value)} className={fieldCls} maxLength={4} />
-          </Field>
           <div className="sm:col-span-2">
-            <Field label="Card Notes">
+            <Field label="Payment Notes">
               <textarea placeholder="Deposit auth amount, date, any notes…" value={form.ccNotes} onChange={e => set("ccNotes", e.target.value)} className={fieldCls + " resize-none h-14"} />
             </Field>
           </div>
@@ -541,7 +554,16 @@ function IntakeCard({ record, onUpdate, roomTypes, loadingRooms, callToBookTreat
                 )}
                 {record.internalNotes && <div className="col-span-2 sm:col-span-3 bg-white rounded-xl p-3 border border-[rgb(220,210,200)]"><p className="text-[10px] text-[rgb(150,130,110)] uppercase tracking-widest font-semibold mb-1">Notes</p><p className="whitespace-pre-wrap text-sm">{record.internalNotes}</p></div>}
                 {record.therapistNotes && <div className="col-span-2 sm:col-span-3 bg-[rgb(245,250,246)] rounded-xl p-3 border border-[rgb(210,230,215)]"><p className="text-[10px] text-[rgb(100,150,110)] uppercase tracking-widest font-semibold mb-1">Therapist Notes</p><p className="whitespace-pre-wrap text-sm">{record.therapistNotes}</p></div>}
-                {record.ccLast4 && <div className="col-span-2 sm:col-span-3 border border-[rgb(220,210,200)] rounded-xl p-3 flex items-center gap-3"><CreditCard className="w-4 h-4 text-[rgb(150,150,150)] shrink-0" /><span className="text-sm">{record.ccType && `${record.ccType} · `}•••• {record.ccLast4}{record.ccExpiry && ` · ${record.ccExpiry}`}{record.ccName && ` · ${record.ccName}`}</span></div>}
+                {record.additionalGuests && record.additionalGuests.length > 0 && (
+                  <div className="col-span-2 sm:col-span-3">
+                    <p className="text-[10px] text-[rgb(150,130,110)] uppercase tracking-widest font-semibold mb-2">Additional Guests</p>
+                    <div className="space-y-1 text-sm text-[rgb(45,45,45)]">
+                      {record.additionalGuests.map((g, i) => <div key={i}>{g.name} {g.email && `· ${g.email}`} {g.phone && `· ${g.phone}`}</div>)}
+                    </div>
+                  </div>
+                )}
+                {record.howDidYouHearAboutUs && <div className="col-span-2 sm:col-span-3"><p className="text-[10px] text-[rgb(150,130,110)] uppercase tracking-widest font-semibold mb-1">Referral Source</p><p className="text-sm">{record.howDidYouHearAboutUs}</p></div>}
+                {record.ccNumber && <div className="col-span-2 sm:col-span-3 border border-[rgb(220,210,200)] rounded-xl p-3 flex items-center gap-3"><CreditCard className="w-4 h-4 text-[rgb(150,150,150)] shrink-0" /><span className="text-sm">{record.ccType && `${record.ccType} · `}•••• •••• •••• {record.ccNumber?.slice(-4)}{record.ccExpiry && ` · ${record.ccExpiry}`}{record.ccName && ` · ${record.ccName}`}</span></div>}
               </div>
 
               {actionMsg && (
