@@ -387,18 +387,26 @@ function NewInvoice({ rooms, treatments, packages }) {
     return sum + (parseFloat(it.amount) || 0) * (parseInt(it.quantity) || 1);
   }, 0);
 
-  // Taxes only apply to hotel/room items (not treatments)
-  const taxableSubtotal = lineItems.reduce((sum, it) => {
-    const isTreatment = it._type === 'treatment';
-    if (isTreatment) return sum;
+  // Taxable bases
+  const hotelSubtotal = lineItems.reduce((sum, it) => {
+    if (it._type !== 'room') return sum;
+    return sum + (parseFloat(it.amount) || 0) * (parseInt(it.quantity) || 1);
+  }, 0);
+  const retailSubtotal = lineItems.reduce((sum, it) => {
+    if (it._type === 'treatment' || it._type === 'room') return sum;
     return sum + (parseFloat(it.amount) || 0) * (parseInt(it.quantity) || 1);
   }, 0);
 
-  const taxAmount = Object.entries(taxes).reduce((sum, [key, isChecked]) => {
-    if (!isChecked) return sum;
-    return sum + (taxableSubtotal * (taxRates[key] || 0) / 100);
-  }, 0);
+  // Individual tax line amounts (for display and sending)
+  const activeTaxLines = ALL_TAXES
+    .filter(t => taxes[t.key])
+    .map(t => {
+      const base = HOTEL_TAXES.some(h => h.key === t.key) ? hotelSubtotal : retailSubtotal;
+      return { ...t, amount: base * t.rate / 100, base };
+    })
+    .filter(t => t.amount > 0);
 
+  const taxAmount = activeTaxLines.reduce((s, t) => s + t.amount, 0);
   const total = subtotal + taxAmount;
 
   const handleSubmit = async (e, sendNow = true) => {
