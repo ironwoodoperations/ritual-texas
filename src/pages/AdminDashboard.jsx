@@ -371,7 +371,6 @@ export default function AdminDashboard() {
       tiles: [
         { icon: UtensilsCrossed, label: "Restaurant", page: "AdminRestaurant", badge: restaurantLeadsCount || null },
         { icon: ChefHat, label: "Catering", page: "AdminCatering" },
-        { icon: BadgeDollarSign, label: "Sales & Labor", page: "AdminRestaurantSales" },
       ],
     },
     {
