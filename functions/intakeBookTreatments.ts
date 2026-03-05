@@ -11,7 +11,7 @@ async function sbRPC(url, method, params, headers = {}) {
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
   });
   const json = await resp.json();
-  if (json?.error) throw new Error(`SimplyBook RPC error: ${JSON.stringify(json.error)}`);
+  if (json?.error) throw new Error(`SimplyBook RPC error [${method}]: ${JSON.stringify(json.error)}`);
   return json?.result ?? json;
 }
 
@@ -33,60 +33,73 @@ Deno.serve(async (req) => {
       return Response.json({ error: "No treatments selected" }, { status: 400 });
     }
 
-    const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
     const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
-    if (!apiKey || !company) {
-      return Response.json({ error: "SimplyBook not configured" }, { status: 500 });
+    const adminLogin = Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
+    const adminPassword = Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
+    const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
+
+    if (!company || !adminLogin || !adminPassword) {
+      return Response.json({ error: "SimplyBook admin credentials not configured" }, { status: 500 });
     }
 
-    // 1) Authenticate via JSON-RPC
-    const token = await sbRPC("https://user-api.simplybook.me/login", "getToken", [company, apiKey]);
-    if (!token || typeof token !== "string") {
-      return Response.json({ error: "Failed to get SimplyBook token", detail: token }, { status: 500 });
+    // 1) Get admin token via getUserToken on the /login endpoint
+    const adminToken = await sbRPC("https://user-api.simplybook.me/login", "getUserToken", [company, adminLogin, adminPassword]);
+    if (!adminToken || typeof adminToken !== "string") {
+      return Response.json({ error: "Failed to get SimplyBook admin token", detail: adminToken }, { status: 500 });
     }
 
-    const sbHeaders = { "X-Company-Login": company, "X-Token": token };
+    // Admin API uses /admin/ endpoint and X-User-Token header
+    const adminHeaders = { "X-Company-Login": company, "X-User-Token": adminToken };
+    const adminUrl = "https://user-api.simplybook.me/admin/";
 
-    // 2) Get service list
-    const servicesRaw = await sbRPC("https://user-api.simplybook.me", "getServiceList", [], sbHeaders);
-    const services = servicesRaw && typeof servicesRaw === "object" ? Object.entries(servicesRaw).map(([id, s]) => ({ id, ...s })) : [];
+    // Also get user token for service/unit list
+    const userToken = await sbRPC("https://user-api.simplybook.me/login", "getToken", [company, apiKey]);
+    const userHeaders = { "X-Company-Login": company, "X-Token": userToken };
 
-    // 3) Get performer (staff) list
-    const performersRaw = await sbRPC("https://user-api.simplybook.me", "getUnitList", [], sbHeaders);
-    const performers = performersRaw && typeof performersRaw === "object" ? Object.entries(performersRaw).map(([id, p]) => ({ id, ...p })) : [];
+    // 2) Get services and performers in parallel
+    const [servicesRaw, performersRaw] = await Promise.all([
+      sbRPC("https://user-api.simplybook.me", "getEventList", [], userHeaders),
+      sbRPC("https://user-api.simplybook.me", "getUnitList", [], userHeaders),
+    ]);
 
-    // 4) Find or create client using the correct SimplyBook RPC methods
+    const services = servicesRaw && typeof servicesRaw === "object" ? servicesRaw : {};
+    const performers = performersRaw && typeof performersRaw === "object" ? performersRaw : {};
+
+    // 3) Find or create client via admin API
     let clientId = null;
+
+    // Search for existing client
     if (guestEmail) {
       try {
-        const clientList = await sbRPC("https://user-api.simplybook.me", "getClientByEmail", [guestEmail], sbHeaders);
-        if (clientList && (clientList.id || clientList.client_id)) {
-          clientId = String(clientList.id || clientList.client_id);
-        }
+        const clientList = await sbRPC(adminUrl, "getClientList", [
+          { email: guestEmail }, null, 0, 1
+        ], adminHeaders);
+        const arr = clientList && typeof clientList === "object" ? Object.values(clientList) : [];
+        const found = arr.find((c) => String(c.email || "").toLowerCase() === guestEmail);
+        if (found) clientId = String(found.id);
       } catch (e) {
-        // client not found, will create below
+        // not found, will create
       }
     }
 
     if (!clientId) {
-      const newClient = await sbRPC("https://user-api.simplybook.me", "createClient", [{
+      // addClient is the correct admin API method
+      const newClient = await sbRPC(adminUrl, "addClient", [{
         name: guestName,
         email: guestEmail || undefined,
         phone: phone || undefined,
-      }], sbHeaders);
-      clientId = String(newClient?.id || newClient?.client_id || newClient || "");
+      }], adminHeaders);
+      clientId = String(newClient?.id || newClient || "");
       if (!clientId || clientId === "null" || clientId === "undefined") {
         return Response.json({ error: "Failed to create SimplyBook client", detail: newClient }, { status: 500 });
       }
     }
 
-    // 5) Book each treatment
+    // 4) Book each treatment via admin API
     const created = [];
     const errors = [];
 
-    const treatmentList = Array.isArray(intake.selectedTreatments) ? intake.selectedTreatments : [];
-
-    for (const item of treatmentList) {
+    for (const item of intake.selectedTreatments) {
       let entry = item;
       if (typeof item === "string") {
         try { entry = JSON.parse(item); } catch { entry = { serviceName: item }; }
@@ -94,7 +107,6 @@ Deno.serve(async (req) => {
 
       const treatmentName = entry.serviceName || entry.name || "";
       const explicitServiceId = entry.serviceId || entry.id || null;
-
       const bookingDate = entry.date || "";
       const rawTime = (entry.time || "10:00").replace(/[^0-9:]/g, "");
       const time = rawTime.includes(":") ? rawTime : (rawTime.length === 4 ? `${rawTime.slice(0, 2)}:${rawTime.slice(2)}` : rawTime);
@@ -104,11 +116,16 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Match service
+      // Match service by ID or name
       const needle = String(treatmentName).toLowerCase();
-      const svc = explicitServiceId
-        ? services.find(s => String(s.id) === String(explicitServiceId))
-        : services.find(s => String(s.name || "").toLowerCase().includes(needle) || needle.includes(String(s.name || "").toLowerCase()));
+      let svc = null;
+      for (const [id, s] of Object.entries(services)) {
+        if (explicitServiceId && String(id) === String(explicitServiceId)) { svc = { id, ...s }; break; }
+        if (!explicitServiceId && (String(s.name || "").toLowerCase().includes(needle) || needle.includes(String(s.name || "").toLowerCase()))) {
+          svc = { id, ...s };
+          break;
+        }
+      }
 
       if (!svc) {
         errors.push(`Service not found: "${treatmentName}"`);
@@ -118,23 +135,22 @@ Deno.serve(async (req) => {
       // Match staff
       const useStaffId = entry.staffId
         ? String(entry.staffId)
-        : (performers[0]?.id || null);
+        : (svc.unit_map?.[0] ? String(svc.unit_map[0]) : Object.keys(performers)[0] || null);
 
       const startDateTime = `${bookingDate} ${time}:00`;
 
-      let sbBookingId = null;
       try {
-        const bookingResult = await sbRPC("https://user-api.simplybook.me", "addBooking", [
+        // Admin API book method
+        const bookingResult = await sbRPC(adminUrl, "book", [
           String(svc.id),
-          useStaffId ? String(useStaffId) : null,
+          useStaffId,
           startDateTime,
-          clientId,
-          { name: guestName, email: guestEmail || "", phone: phone || "" },
-        ], sbHeaders);
+          String(clientId),
+        ], adminHeaders);
 
-        sbBookingId = String(bookingResult?.id || bookingResult || "");
+        const sbBookingId = String(bookingResult?.id || bookingResult || "");
 
-        const local = await base44.entities.SpaBooking.create({
+        await base44.entities.SpaBooking.create({
           simplybookBookingId: sbBookingId,
           clientName: guestName,
           email: guestEmail,
@@ -148,7 +164,7 @@ Deno.serve(async (req) => {
           status: "create",
         });
 
-        created.push({ simplybookId: sbBookingId, local });
+        created.push({ simplybookId: sbBookingId, service: svc.name || treatmentName });
       } catch (bookErr) {
         errors.push(`Booking failed for "${treatmentName}": ${bookErr.message}`);
       }
