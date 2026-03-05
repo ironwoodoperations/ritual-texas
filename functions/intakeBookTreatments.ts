@@ -55,18 +55,20 @@ Deno.serve(async (req) => {
     const performersRaw = await sbRPC("https://user-api.simplybook.me", "getUnitList", [], sbHeaders);
     const performers = performersRaw && typeof performersRaw === "object" ? Object.entries(performersRaw).map(([id, p]) => ({ id, ...p })) : [];
 
-    // 4) Find or create client
+    // 4) Find or create client using the correct SimplyBook RPC methods
     let clientId = null;
     if (guestEmail) {
-      const clientList = await sbRPC("https://user-api.simplybook.me", "getClientList", [{ email: guestEmail }], sbHeaders);
-      const arr = clientList && typeof clientList === "object" ? Object.values(clientList) : [];
-      const found = arr.find((c) => String(c.email || "").toLowerCase() === guestEmail);
-      if (found) clientId = String(found.id || found.client_id);
+      try {
+        const clientList = await sbRPC("https://user-api.simplybook.me", "getClientByEmail", [guestEmail], sbHeaders);
+        if (clientList && (clientList.id || clientList.client_id)) {
+          clientId = String(clientList.id || clientList.client_id);
+        }
+      } catch (e) {
+        // client not found, will create below
+      }
     }
 
     if (!clientId) {
-      const [firstName, ...rest] = guestName.split(/\s+/).filter(Boolean);
-      const lastName = rest.join(" ") || "Guest";
       const newClient = await sbRPC("https://user-api.simplybook.me", "createClient", [{
         name: guestName,
         email: guestEmail || undefined,
