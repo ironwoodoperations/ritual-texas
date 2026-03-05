@@ -18,37 +18,31 @@ Deno.serve(async (req) => {
 
     const adminHeaders = { "Content-Type": "application/json", "X-Company-Login": company, "X-User-Token": adminToken };
 
-    // Try book with clientData object instead of client_id
-    const book1 = await (await fetch("https://user-api.simplybook.me/admin/", {
+    // Get client login token for client id "1"
+    const clientToken = await (await fetch("https://user-api.simplybook.me/admin/", {
       method: "POST",
       headers: adminHeaders,
-      body: JSON.stringify({
-        jsonrpc: "2.0", id: 1, method: "book",
-        params: ["2", "2", "2026-03-10 10:00:00", null, { name: "SCOTT DEVORE", email: "csdevore@outlook.com", phone: "+14095048185" }],
-      }),
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getClientToken", params: ["1"] }),
     })).json();
 
-    // Try book with SCOTT's id "1" but pass clientData too
-    const book2 = await (await fetch("https://user-api.simplybook.me/admin/", {
+    // Try getOrCreateClient
+    const getOrCreate = await (await fetch("https://user-api.simplybook.me/admin/", {
       method: "POST",
       headers: adminHeaders,
-      body: JSON.stringify({
-        jsonrpc: "2.0", id: 2, method: "book",
-        params: ["2", "2", "2026-03-10 10:00:00", "1", { name: "SCOTT DEVORE", email: "csdevore@outlook.com", phone: "+14095048185" }],
-      }),
+      body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "getOrCreateClient", params: [{ name: "SCOTT DEVORE", email: "csdevore@outlook.com" }] }),
     })).json();
 
-    // Try bookByToken – maybe admin needs a client token
-    const book3 = await (await fetch("https://user-api.simplybook.me/admin/", {
-      method: "POST",
-      headers: adminHeaders,
-      body: JSON.stringify({
-        jsonrpc: "2.0", id: 3, method: "bookByAdmin",
-        params: ["2", "2", "2026-03-10 10:00:00", "1", null],
-      }),
-    })).json();
+    // Try booking with client login token
+    let bookWithToken = null;
+    if (clientToken?.result) {
+      bookWithToken = await (await fetch("https://user-api.simplybook.me", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Company-Login": company, "X-Token": clientToken.result },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 3, method: "book", params: ["2", "2", "2026-03-10 10:00:00", null, { name: "SCOTT DEVORE", email: "csdevore@outlook.com" }] }),
+      })).json();
+    }
 
-    return Response.json({ book_no_client_id: book1, book_with_clientdata: book2, bookByAdmin: book3 });
+    return Response.json({ clientToken, getOrCreate, bookWithToken });
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 });
   }
