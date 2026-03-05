@@ -116,7 +116,14 @@ Deno.serve(async (req) => {
         "CLOUDBEDS_PROPERTY_ID", "cloudbeds_property_id", "cloudbedsPropertyId"
       ])) || Deno.env.get("CLOUDBEDS_PROPERTY_ID");
 
-    if (!accessToken) throw new Error("Cloudbeds not connected. Please complete OAuth setup.");
+    // If no access token found, try refreshing from the refresh token
+    if (!accessToken) {
+      try {
+        accessToken = await refreshAccessToken(base44);
+      } catch (refreshErr) {
+        throw new Error("Cloudbeds not connected. Please complete OAuth setup in Admin → Cloudbeds. (" + refreshErr.message + ")");
+      }
+    }
     if (!propertyId) throw new Error("Cloudbeds property ID not configured.");
 
     // Fetch all room types (not filtered by availability) if not provided
