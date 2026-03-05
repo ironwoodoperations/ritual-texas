@@ -3,23 +3,16 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.20";
 function clean(s) {
   return String(s ?? "").trim();
 }
-function normalizeEmail(email) {
-  return clean(email).toLowerCase();
-}
 
-async function sbFetch(url, apiKey, init = {}) {
+async function sbRPC(url, method, params, headers = {}) {
   const resp = await fetch(url, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      ...(init.headers || {}),
-    },
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...headers },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
   });
-  const text = await resp.text();
-  let json = null;
-  try { json = JSON.parse(text); } catch { /* keep text */ }
-  return { ok: resp.ok, status: resp.status, text, json };
+  const json = await resp.json();
+  if (json?.error) throw new Error(`SimplyBook RPC error: ${JSON.stringify(json.error)}`);
+  return json?.result ?? json;
 }
 
 Deno.serve(async (req) => {
@@ -32,88 +25,66 @@ Deno.serve(async (req) => {
     const { intake } = await req.json();
 
     const guestName = clean(intake?.guestName);
-    const guestEmail = normalizeEmail(intake?.guestEmail || intake?.email);
+    const guestEmail = clean(intake?.guestEmail || intake?.email || "").toLowerCase();
     const phone = clean(intake?.phone);
 
-    if (!guestName || !guestEmail) return Response.json({ error: "Guest name and email required" }, { status: 400 });
-    if (!Array.isArray(intake?.selectedTreatments) || !intake.selectedTreatments.length) return Response.json({ error: "No treatments selected" }, { status: 400 });
+    if (!guestName) return Response.json({ error: "Guest name required" }, { status: 400 });
+    if (!Array.isArray(intake?.selectedTreatments) || !intake.selectedTreatments.length) {
+      return Response.json({ error: "No treatments selected" }, { status: 400 });
+    }
 
     const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
     const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
     if (!apiKey || !company) {
-      return Response.json({ error: "SimplyBook not configured: SIMPLYBOOK_API_KEY / SIMPLYBOOK_COMPANY_LOGIN" }, { status: 500 });
+      return Response.json({ error: "SimplyBook not configured" }, { status: 500 });
     }
 
-    const base = `https://user-api.simplybook.me/api/v3/${company}`;
+    // 1) Authenticate via JSON-RPC
+    const token = await sbRPC("https://user-api.simplybook.me/login", "getToken", [company, apiKey]);
+    if (!token || typeof token !== "string") {
+      return Response.json({ error: "Failed to get SimplyBook token", detail: token }, { status: 500 });
+    }
 
-    // 1) Find or create client via search, then create if not found
-    const [firstName, ...rest] = guestName.split(/\s+/).filter(Boolean);
-    const lastName = rest.join(" ") || "Guest";
+    const sbHeaders = { "X-Company-Login": company, "X-Token": token };
 
-    // Search by email
-    const searchResp = await sbFetch(`${base}/clients?search=${encodeURIComponent(guestEmail)}&limit=10`, apiKey);
+    // 2) Get service list
+    const servicesRaw = await sbRPC("https://user-api.simplybook.me", "getServiceList", [], sbHeaders);
+    const services = servicesRaw && typeof servicesRaw === "object" ? Object.entries(servicesRaw).map(([id, s]) => ({ id, ...s })) : [];
+
+    // 3) Get performer (staff) list
+    const performersRaw = await sbRPC("https://user-api.simplybook.me", "getUnitList", [], sbHeaders);
+    const performers = performersRaw && typeof performersRaw === "object" ? Object.entries(performersRaw).map(([id, p]) => ({ id, ...p })) : [];
+
+    // 4) Find or create client
     let clientId = null;
-
-    if (searchResp.ok && Array.isArray(searchResp.json)) {
-      const found = searchResp.json.find((c) => String(c.email || "").toLowerCase() === guestEmail);
-      if (found) clientId = found.id || found.client_id;
+    if (guestEmail) {
+      const clientList = await sbRPC("https://user-api.simplybook.me", "getClientList", [{ email: guestEmail }], sbHeaders);
+      const arr = clientList && typeof clientList === "object" ? Object.values(clientList) : [];
+      const found = arr.find((c) => String(c.email || "").toLowerCase() === guestEmail);
+      if (found) clientId = String(found.id || found.client_id);
     }
 
     if (!clientId) {
-      // Create new client
-      const createResp = await sbFetch(`${base}/clients`, apiKey, {
-        method: "POST",
-        body: JSON.stringify({
-          name: guestName,
-          email: guestEmail,
-          phone: phone || "",
-        }),
-      });
-
-      if (!createResp.ok) {
-        return Response.json(
-          { error: "SimplyBook client create failed", detail: createResp.json || createResp.text },
-          { status: 500 }
-        );
-      }
-
-      // Response may be the client object or wrap it
-      const created = createResp.json;
-      clientId = created?.id || created?.client_id || created?.data?.id;
-
-      if (!clientId) {
-        return Response.json({ error: "SimplyBook client id missing after create", detail: created }, { status: 500 });
+      const [firstName, ...rest] = guestName.split(/\s+/).filter(Boolean);
+      const lastName = rest.join(" ") || "Guest";
+      const newClient = await sbRPC("https://user-api.simplybook.me", "createClient", [{
+        name: guestName,
+        email: guestEmail || undefined,
+        phone: phone || undefined,
+      }], sbHeaders);
+      clientId = String(newClient?.id || newClient?.client_id || newClient || "");
+      if (!clientId || clientId === "null" || clientId === "undefined") {
+        return Response.json({ error: "Failed to create SimplyBook client", detail: newClient }, { status: 500 });
       }
     }
 
-    // 2) Services list
-    const servicesResp = await sbFetch(`${base}/services`, apiKey);
-    if (!servicesResp.ok) {
-      return Response.json({ error: "SimplyBook services fetch failed", detail: servicesResp.json || servicesResp.text }, { status: 500 });
-    }
-    const services = Array.isArray(servicesResp.json) ? servicesResp.json : [];
-
-    // 3) Staff list
-    let staffId = null;
-    const staffResp = await sbFetch(`${base}/staff`, apiKey);
-    if (staffResp.ok) {
-      const staff = Array.isArray(staffResp.json) ? staffResp.json : [];
-      if (clean(intake?.preferredTherapist)) {
-        const pref = clean(intake.preferredTherapist).toLowerCase();
-        const match = staff.find((s) => String(s.name || "").toLowerCase().includes(pref));
-        staffId = match?.id || match?.staff_id || null;
-      }
-      if (!staffId) staffId = staff?.[0]?.id || staff?.[0]?.staff_id || null;
-    }
-
+    // 5) Book each treatment
     const created = [];
     const errors = [];
 
-    // selectedTreatments are JSON-stringified objects: {serviceId, serviceName, date, time, staffId, ...}
     const treatmentList = Array.isArray(intake.selectedTreatments) ? intake.selectedTreatments : [];
 
     for (const item of treatmentList) {
-      // Parse the stored JSON entry
       let entry = item;
       if (typeof item === "string") {
         try { entry = JSON.parse(item); } catch { entry = { serviceName: item }; }
@@ -122,11 +93,9 @@ Deno.serve(async (req) => {
       const treatmentName = entry.serviceName || entry.name || "";
       const explicitServiceId = entry.serviceId || entry.id || null;
 
-      // Date and time come from the entry itself (each slot has its own date/time)
-      const bookingDate = entry.date || clean(intake.preferredTreatmentDate || "");
-      const rawTime = entry.time || clean(intake.preferredTreatmentTime || "10:00");
-      const timeRaw = rawTime.replace(/[^0-9:]/g, "");
-      const time = (timeRaw.length === 4 ? `${timeRaw.slice(0, 2)}:${timeRaw.slice(2)}` : timeRaw).padEnd(5, "0");
+      const bookingDate = entry.date || "";
+      const rawTime = (entry.time || "10:00").replace(/[^0-9:]/g, "");
+      const time = rawTime.includes(":") ? rawTime : (rawTime.length === 4 ? `${rawTime.slice(0, 2)}:${rawTime.slice(2)}` : rawTime);
 
       if (!bookingDate) {
         errors.push(`No date for "${treatmentName}" — skipping`);
@@ -136,60 +105,51 @@ Deno.serve(async (req) => {
       // Match service
       const needle = String(treatmentName).toLowerCase();
       const svc = explicitServiceId
-        ? services.find(s => String(s.id || s.service_id) === String(explicitServiceId))
-        : services.find(s =>
-            String(s.name || "").toLowerCase().includes(needle) || needle.includes(String(s.name || "").toLowerCase())
-          );
+        ? services.find(s => String(s.id) === String(explicitServiceId))
+        : services.find(s => String(s.name || "").toLowerCase().includes(needle) || needle.includes(String(s.name || "").toLowerCase()));
 
       if (!svc) {
-        errors.push(`Service not found in SimplyBook: "${treatmentName}"`);
+        errors.push(`Service not found: "${treatmentName}"`);
         continue;
       }
 
-      const serviceId = svc.id || svc.service_id;
-      if (!serviceId) {
-        errors.push(`Service missing id in SimplyBook: "${treatmentName}"`);
-        continue;
+      // Match staff
+      const useStaffId = entry.staffId
+        ? String(entry.staffId)
+        : (performers[0]?.id || null);
+
+      const startDateTime = `${bookingDate} ${time}:00`;
+
+      let sbBookingId = null;
+      try {
+        const bookingResult = await sbRPC("https://user-api.simplybook.me", "book", [
+          String(svc.id),
+          useStaffId ? String(useStaffId) : null,
+          startDateTime,
+          clientId,
+          { name: guestName, email: guestEmail || "", phone: phone || "" },
+        ], sbHeaders);
+
+        sbBookingId = String(bookingResult?.id || bookingResult || "");
+
+        const local = await base44.entities.SpaBooking.create({
+          simplybookBookingId: sbBookingId,
+          clientName: guestName,
+          email: guestEmail,
+          phone,
+          serviceName: svc.name || treatmentName,
+          service: String(svc.id),
+          startAt: `${bookingDate}T${time}:00`,
+          durationMinutes: Number(entry.duration || svc?.duration || 60),
+          price: Number(entry.price || svc?.price || 0),
+          source: "simplybook",
+          status: "create",
+        });
+
+        created.push({ simplybookId: sbBookingId, local });
+      } catch (bookErr) {
+        errors.push(`Booking failed for "${treatmentName}": ${bookErr.message}`);
       }
-
-      // Use staffId from the entry (auto-assigned when slot was picked) or fall back to fetched staffId
-      const useStaffId = entry.staffId || staffId;
-
-      const createBookingPayload = {
-        client_id: clientId,
-        service_id: serviceId,
-        start_date: `${bookingDate}T${time}:00`,
-      };
-      if (useStaffId) createBookingPayload.staff_id = useStaffId;
-
-      const bResp = await sbFetch(`${base}/bookings`, apiKey, {
-        method: "POST",
-        body: JSON.stringify(createBookingPayload),
-      });
-
-      if (!bResp.ok) {
-        errors.push(`Booking failed for "${treatmentName}": ${bResp.status} ${(bResp.json && JSON.stringify(bResp.json)) || bResp.text}`);
-        continue;
-      }
-
-      const sbBooking = bResp.json;
-
-      const local = await base44.entities.SpaBooking.create({
-        simplybookBookingId: String(sbBooking?.id || ""),
-        simplybookBookingHash: sbBooking?.hash || "",
-        clientName: guestName,
-        email: guestEmail,
-        phone,
-        serviceName: svc.name || treatmentName,
-        service: String(serviceId),
-        startAt: `${bookingDate}T${time}:00`,
-        durationMinutes: Number(entry.duration || svc?.duration || 60),
-        price: Number(entry.price || svc?.price || 0),
-        source: "simplybook",
-        status: "create",
-      });
-
-      created.push({ simplybook: sbBooking, local });
     }
 
     return Response.json({
