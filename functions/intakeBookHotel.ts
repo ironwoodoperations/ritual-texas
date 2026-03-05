@@ -152,6 +152,7 @@ Deno.serve(async (req) => {
       children: "0",
       rooms: roomsPayload,
     });
+    params.set("paymentMethod", "credit_card");
     if (guestPhone) params.set("guestPhone", guestPhone);
     if (notes) params.set("notes", notes);
 
