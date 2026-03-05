@@ -300,18 +300,36 @@ export default function AdminSpaSchedule() {
       <div style={{ marginTop: '24px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px' }}>
         <h2 style={{ fontSize: '18px', fontWeight: '600', margin: '0 0 16px 0' }}>Provider Tip Links</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <a href="https://square.link/u/RjHBTMQP" target="_blank" rel="noopener noreferrer" className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors">
+          <button 
+            onClick={() => {
+              const msg = encodeURIComponent('Thank you for choosing Hotel Ritual and Spa.\n\nTip here: https://square.link/u/RjHBTMQP');
+              window.location.href = `sms:?body=${msg}`;
+            }}
+            className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors text-left"
+          >
             <div style={{ fontWeight: '600', fontSize: '15px', marginBottom: '4px', color: '#2d2d2d' }}>Bishop</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>square.link/u/RjHBTMQP</div>
-          </a>
-          <a href="https://square.link/u/6A73E4eT" target="_blank" rel="noopener noreferrer" className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors">
+            <div style={{ fontSize: '12px', color: '#666' }}>Click to text tip link</div>
+          </button>
+          <button 
+            onClick={() => {
+              const msg = encodeURIComponent('Thank you for choosing Hotel Ritual and Spa.\n\nTip here: https://square.link/u/6A73E4eT');
+              window.location.href = `sms:?body=${msg}`;
+            }}
+            className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors text-left"
+          >
             <div style={{ fontWeight: '600', fontSize: '15px', marginBottom: '4px', color: '#2d2d2d' }}>Whitney</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>square.link/u/6A73E4eT</div>
-          </a>
-          <a href="https://square.link/u/PVPH7ZFj" target="_blank" rel="noopener noreferrer" className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors">
+            <div style={{ fontSize: '12px', color: '#666' }}>Click to text tip link</div>
+          </button>
+          <button 
+            onClick={() => {
+              const msg = encodeURIComponent('Thank you for choosing Hotel Ritual and Spa.\n\nTip here: https://square.link/u/PVPH7ZFj');
+              window.location.href = `sms:?body=${msg}`;
+            }}
+            className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors text-left"
+          >
             <div style={{ fontWeight: '600', fontSize: '15px', marginBottom: '4px', color: '#2d2d2d' }}>Tanita</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>square.link/u/PVPH7ZFj</div>
-          </a>
+            <div style={{ fontSize: '12px', color: '#666' }}>Click to text tip link</div>
+          </button>
         </div>
       </div>
 
