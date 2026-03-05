@@ -180,8 +180,8 @@ Deno.serve(async (req) => {
         serviceName: svc.name || treatmentName,
         service: String(serviceId),
         startAt: `${bookingDate}T${time}:00`,
-        durationMinutes: Number(svc?.duration || 60),
-        price: Number(svc?.price || 0),
+        durationMinutes: Number(entry.duration || svc?.duration || 60),
+        price: Number(entry.price || svc?.price || 0),
         source: "simplybook",
         status: "create",
       });
