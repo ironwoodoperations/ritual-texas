@@ -119,24 +119,23 @@ Deno.serve(async (req) => {
     if (!accessToken) throw new Error("Cloudbeds not connected. Please complete OAuth setup.");
     if (!propertyId) throw new Error("Cloudbeds property ID not configured.");
 
-    // Fetch available rooms to get a valid roomID
-    let roomID = intake.cloudbedsRoomId || intake.roomID || "";
-    if (!roomID && !roomTypeID) {
-      // Try to find available rooms for the dates
+    // Fetch available room types if not provided
+    if (!roomTypeID) {
       const availResp = await fetch(
         `https://hotels.cloudbeds.com/api/v1.1/getAvailableRoomTypes?propertyID=${propertyId}&startDate=${startDate}&endDate=${endDate}`,
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
       const availJson = await availResp.json();
       const firstType = availJson?.data?.[0];
-      if (firstType?.roomTypeID) roomTypeID = firstType.roomTypeID;
-      if (firstType?.rooms?.[0]?.roomID) roomID = firstType.rooms[0].roomID;
+      if (firstType?.roomTypeID) roomTypeID = String(firstType.roomTypeID);
+    }
+
+    if (!roomTypeID) {
+      return Response.json({ error: "No room type ID provided and none available for those dates." }, { status: 400 });
     }
 
     // Cloudbeds expects adults/children as JSON arrays (one entry per room)
-    const roomEntry = {};
-    if (roomTypeID) roomEntry.roomTypeID = roomTypeID;
-    if (roomID) roomEntry.roomID = roomID;
+    const roomEntry = { roomTypeID, quantity: 1 };
 
     const params = new URLSearchParams({
       propertyID: propertyId,
