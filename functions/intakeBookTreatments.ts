@@ -112,7 +112,12 @@ Deno.serve(async (req) => {
     const created = [];
     const errors = [];
 
-    for (const treatmentName of intake.selectedTreatments) {
+    // selectedTreatments can now be array of objects {id, name} or plain strings
+    const treatmentList = Array.isArray(intake.selectedTreatments) ? intake.selectedTreatments : [];
+
+    for (const treatment of treatmentList) {
+      const treatmentName = typeof treatment === "object" ? treatment.name : treatment;
+      const explicitId = typeof treatment === "object" ? treatment.id : null;
       const needle = String(treatmentName || "").toLowerCase();
       const svc = services.find((s) =>
         String(s.name || "").toLowerCase().includes(needle) || needle.includes(String(s.name || "").toLowerCase())
