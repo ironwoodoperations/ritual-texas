@@ -32,11 +32,15 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'send') {
-      // Resend invoice notification
+      // Resend invoice notification - fetch latest version first
+      const getResp = await fetch(`${baseUrl}/v2/invoices/${invoiceId}`, { headers: sqHeaders });
+      const getInvData = await getResp.json();
+      if (getInvData.errors) return Response.json({ success: false, error: getInvData.errors[0]?.detail });
+      
       const resp = await fetch(`${baseUrl}/v2/invoices/${invoiceId}/send`, {
         method: 'POST',
         headers: sqHeaders,
-        body: JSON.stringify({ idempotency_key: `send-${invoiceId}-${Date.now()}` }),
+        body: JSON.stringify({ version: getInvData.invoice.version, idempotency_key: `send-${invoiceId}-${Date.now()}` }),
       });
       const data = await resp.json();
       if (data.errors) return Response.json({ success: false, error: data.errors[0]?.detail });
