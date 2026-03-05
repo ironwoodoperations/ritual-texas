@@ -476,6 +476,9 @@ export default function AdminDashboard() {
           <a href="https://www.toasttab.com/restaurants/admin/home" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
             <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/40f320a3a_download.png" alt="Toast" className="w-6 h-6" />
           </a>
+          <a href="https://squareup.com/us/en" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/1bcdee3bb_images.jpeg" alt="Square" className="w-6 h-6" />
+          </a>
         </div>
 
         {/* Section nav tiles */}
