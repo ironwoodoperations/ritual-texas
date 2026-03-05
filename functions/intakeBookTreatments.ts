@@ -46,24 +46,25 @@ Deno.serve(async (req) => {
 
     const base = `https://user-api.simplybook.me/api/v3/${company}`;
 
-    // 1) Find or create client
-    const clientsResp = await sbFetch(`${base}/clients`, apiKey);
-    if (!clientsResp.ok) {
-      return Response.json({ error: "SimplyBook clients fetch failed", detail: clientsResp.json || clientsResp.text }, { status: 500 });
+    // 1) Find or create client via search, then create if not found
+    const [firstName, ...rest] = guestName.split(/\s+/).filter(Boolean);
+    const lastName = rest.join(" ") || "Guest";
+
+    // Search by email
+    const searchResp = await sbFetch(`${base}/clients?search=${encodeURIComponent(guestEmail)}&limit=10`, apiKey);
+    let clientId = null;
+
+    if (searchResp.ok && Array.isArray(searchResp.json)) {
+      const found = searchResp.json.find((c) => String(c.email || "").toLowerCase() === guestEmail);
+      if (found) clientId = found.id || found.client_id;
     }
 
-    const clients = Array.isArray(clientsResp.json) ? clientsResp.json : [];
-    let client = clients.find((c) => String(c.email || "").toLowerCase() === guestEmail);
-
-    if (!client) {
-      const [firstName, ...rest] = guestName.split(/\s+/).filter(Boolean);
-      const lastName = rest.join(" ") || "Ritual";
-
+    if (!clientId) {
+      // Create new client
       const createResp = await sbFetch(`${base}/clients`, apiKey, {
         method: "POST",
         body: JSON.stringify({
-          first_name: firstName || "Guest",
-          last_name: lastName,
+          name: guestName,
           email: guestEmail,
           phone: phone || "",
         }),
@@ -75,12 +76,14 @@ Deno.serve(async (req) => {
           { status: 500 }
         );
       }
-      client = createResp.json;
-    }
 
-    const clientId = client?.id || client?.client_id;
-    if (!clientId) {
-      return Response.json({ error: "SimplyBook client id missing after create/fetch", detail: client }, { status: 500 });
+      // Response may be the client object or wrap it
+      const created = createResp.json;
+      clientId = created?.id || created?.client_id || created?.data?.id;
+
+      if (!clientId) {
+        return Response.json({ error: "SimplyBook client id missing after create", detail: created }, { status: 500 });
+      }
     }
 
     // 2) Services list
