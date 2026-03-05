@@ -111,11 +111,15 @@ Deno.serve(async (req) => {
         body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getEventList", params: [] }),
       });
       const j = await r.json();
-      return j?.result ?? {};
+      // Handle both j.result and j.result.result (double-wrapped)
+      const raw = j?.result ?? {};
+      return raw?.result ?? raw;
     })();
     const services = typeof servicesRaw === "object" && !Array.isArray(servicesRaw)
       ? Object.entries(servicesRaw).map(([id, s]) => ({ id, ...s }))
       : [];
+
+    console.log("Services loaded:", services.map(s => `${s.id}:${s.name}`).join(" | "));
 
     // 4) Get performer list (user token)
     const performersRaw = await (async () => {
@@ -125,7 +129,8 @@ Deno.serve(async (req) => {
         body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getUnitList", params: [] }),
       });
       const j = await r.json();
-      return j?.result ?? {};
+      const raw = j?.result ?? {};
+      return raw?.result ?? raw;
     })();
     const performers = typeof performersRaw === "object" && !Array.isArray(performersRaw)
       ? Object.entries(performersRaw).map(([id, p]) => ({ id, ...p }))
