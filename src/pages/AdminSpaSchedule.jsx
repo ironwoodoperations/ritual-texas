@@ -428,6 +428,17 @@ export default function AdminSpaSchedule() {
               </button>
               <button
                 onClick={() => {
+                  if (providerTipModal?.link) {
+                    navigator.clipboard.writeText(providerTipModal.link);
+                    alert('Tip link copied to clipboard!');
+                  }
+                }}
+                className="px-4 py-2 text-sm border border-[rgb(150,170,155)] text-[rgb(150,170,155)] rounded-lg hover:bg-[rgb(150,170,155)] hover:text-white transition-colors flex items-center gap-2"
+              >
+                Copy Link
+              </button>
+              <button
+                onClick={() => {
                   if (providerTipModal && providerTipPhone) {
                     const msg = encodeURIComponent('Thank you for choosing Hotel Ritual and Spa.\n\nTip here: ' + providerTipModal.link);
                     window.location.href = `sms:${providerTipPhone}?body=${msg}`;
