@@ -37,61 +37,6 @@ export default function AdminSpaSchedule() {
   const [tipLink, setTipLink] = useState('');
   const [showBookingWidget, setShowBookingWidget] = useState(false);
 
-  useEffect(() => {
-    if (showBookingWidget) {
-      const script = document.createElement('script');
-      script.src = '//widget.simplybook.me/v2/widget/widget.js';
-      script.type = 'text/javascript';
-      script.async = true;
-      script.onload = () => {
-        window.SimplybookWidget = window.SimplybookWidget || function() {};
-        if (window.SimplybookWidget && typeof window.SimplybookWidget === 'function') {
-          try {
-            new window.SimplybookWidget({
-              widget_type: 'iframe',
-              url: 'https://ritualtexas.simplybook.me',
-              theme: 'emeri',
-              theme_settings: {
-                timeline_hide_unavailable: '1',
-                hide_past_days: '0',
-                timeline_show_end_time: '0',
-                timeline_modern_display: 'as_slots',
-                sb_base_color: '#836055',
-                display_item_mode: 'block',
-                booking_nav_bg_color: '#ffffff',
-                body_bg_color: '#f7f7f7',
-                sb_review_image: '',
-                dark_font_color: '#443936',
-                light_font_color: '#ffffff',
-                btn_color_1: '#a1776a',
-                sb_company_label_color: '#896d65',
-                hide_img_mode: '0',
-                sb_busy: '#c7b3b3',
-                sb_available: '#e2eaec'
-              },
-              timeline: 'modern',
-              datepicker: 'top_calendar',
-              is_rtl: false,
-              app_config: {
-                clear_session: 0,
-                allow_switch_to_ada: 0,
-                predefined: []
-              }
-            });
-          } catch (e) {
-            console.error('Failed to initialize SimplyBook widget:', e);
-          }
-        }
-      };
-      document.body.appendChild(script);
-      return () => {
-        if (document.body.contains(script)) {
-          document.body.removeChild(script);
-        }
-      };
-    }
-  }, [showBookingWidget]);
-
   const load = async () => {
     setLoading(true);
     try {
@@ -352,18 +297,22 @@ export default function AdminSpaSchedule() {
 
           {/* Book New Treatment Box */}
           {showBookingWidget && (
-          <div style={{ marginTop: '40px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px' }}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Book New Treatment</h2>
-              <button
-                onClick={() => setShowBookingWidget(false)}
-                style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#999' }}
-              >
-                ×
-              </button>
+            <div style={{ marginTop: '40px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px' }}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Book New Treatment</h2>
+                <button
+                  onClick={() => setShowBookingWidget(false)}
+                  style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#999' }}
+                >
+                  ×
+                </button>
+              </div>
+              <iframe 
+                src="https://ritualtexas.simplybook.me" 
+                style={{ width: '100%', height: '600px', border: 'none', borderRadius: '4px' }}
+                title="Book Treatment"
+              />
             </div>
-            <div className="w-full" id="simplybook-widget-container" style={{ minHeight: '600px' }} />
-          </div>
           )}
           </div>
 
