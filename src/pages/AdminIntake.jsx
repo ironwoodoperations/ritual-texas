@@ -107,7 +107,14 @@ function IntakeForm({ initial = BLANK, roomTypes = [], loading = false, onSave, 
 
   async function submit() {
     setSaving(true);
-    await onSave(form);
+    // Entity expects selectedTreatments as array of strings — store as "Name ($price)" for readability
+    // but pass the full objects via a parallel field for action buttons
+    const payload = {
+      ...form,
+      selectedTreatments: (form.selectedTreatments || []).map(t => typeof t === "object" ? t.name : t),
+      _selectedTreatmentsMeta: JSON.stringify(form.selectedTreatments || []),
+    };
+    await onSave(payload);
     setSaving(false);
   }
 
