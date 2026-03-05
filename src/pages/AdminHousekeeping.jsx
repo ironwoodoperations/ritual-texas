@@ -267,10 +267,17 @@ export default function AdminHousekeeping() {
             <h3 style={{ color: '#C6A85E', fontSize: '11px', letterSpacing: '3px', margin: '0 0 20px', fontFamily: 'sans-serif' }}>ADD MANUAL TASK</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
-                <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>ROOM *</label>
+                <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>PUBLIC SPACE</label>
+                <select value={newTask.publicSpaceId} onChange={e => setNewTask(t => ({ ...t, publicSpaceId: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', fontFamily: 'sans-serif' }}>
+                   <option value="">Select public space...</option>
+                   {publicSpaces.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>ROOM</label>
                 <select value={newTask.roomId} onChange={e => setNewTask(t => ({ ...t, roomId: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', fontFamily: 'sans-serif' }}>
-                  <option value="">Select room...</option>
-                  {rooms.map(r => <option key={r.id} value={r.id}>{r.roomNumber}</option>)}
+                   <option value="">Select room...</option>
+                   {rooms.map(r => <option key={r.id} value={r.id}>{r.roomNumber}</option>)}
                 </select>
               </div>
               <div>
@@ -304,8 +311,8 @@ export default function AdminHousekeeping() {
               </div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
                 <button onClick={() => setShowAddTask(false)} style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#9AA8B5', cursor: 'pointer', fontFamily: 'sans-serif' }}>Cancel</button>
-                <button onClick={() => createTaskMutation.mutate(newTask)} disabled={!newTask.roomId || createTaskMutation.isPending} style={{ flex: 2, padding: '10px', background: '#C6A85E', border: 'none', borderRadius: '8px', color: '#0C1C2C', cursor: 'pointer', fontWeight: 700, fontFamily: 'sans-serif', opacity: !newTask.roomId ? 0.5 : 1 }}>
-                  {createTaskMutation.isPending ? 'Creating…' : 'Create Task'}
+                <button onClick={() => createTaskMutation.mutate(newTask)} disabled={(!newTask.roomId && !newTask.publicSpaceId) || createTaskMutation.isPending} style={{ flex: 2, padding: '10px', background: '#C6A85E', border: 'none', borderRadius: '8px', color: '#0C1C2C', cursor: 'pointer', fontWeight: 700, fontFamily: 'sans-serif', opacity: (!newTask.roomId && !newTask.publicSpaceId) ? 0.5 : 1 }}>
+                   {createTaskMutation.isPending ? 'Creating…' : 'Create Task'}
                 </button>
               </div>
             </div>
