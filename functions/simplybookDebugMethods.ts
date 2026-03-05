@@ -16,62 +16,60 @@ Deno.serve(async (req) => {
     if (user?.role !== "admin") return Response.json({ error: "Admin only" }, { status: 403 });
 
     const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
+    const adminLogin = Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
+    const adminPassword = Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
     const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
-    const secretKey = Deno.env.get("SIMPLYBOOK_SECRET_KEY") || "";
 
     const tests = {};
-    tests["secretKey_set"] = !!secretKey;
+    tests["credentials"] = { company, adminLogin: !!adminLogin, adminPassword: !!adminPassword, apiKey: !!apiKey };
 
-    // Get user token
-    const userLoginResp = await sbRPC("https://user-api.simplybook.me/login", "getToken", [company, apiKey]);
-    const token = userLoginResp?.result;
-    if (!token) return Response.json({ error: "No user token", userLoginResp });
-    tests["userToken"] = "OK";
+    // Try the ADMIN API - different URL https://user-api.simplybook.me/admin
+    // Admin API uses: getToken(company, user, password) on the LOGIN endpoint
+    // Try with credentials as login, password
+    const r1 = await sbRPC("https://user-api.simplybook.me/login", "getToken", [company, adminLogin, adminPassword]);
+    tests["adminLogin_3args"] = r1?.result ? "GOT TOKEN: " + String(r1.result).substring(0, 20) : r1?.error;
 
-    const sbHeaders = { "X-Company-Login": company, "X-Token": token };
+    // Try lowercase 'admin' as user
+    const r2 = await sbRPC("https://user-api.simplybook.me/login", "getToken", [company, "admin", adminPassword]);
+    tests["adminLogin_adminuser"] = r2?.result ? "GOT TOKEN" : r2?.error;
 
-    const services = await sbRPC("https://user-api.simplybook.me", "getEventList", [], sbHeaders);
-    const units = await sbRPC("https://user-api.simplybook.me", "getUnitList", [], sbHeaders);
-    const svcId = Object.keys(services?.result || {})[0];
-    const unitId = Object.keys(units?.result || {})[0];
+    // Sometimes admin login uses the secret key as password
+    const secretKey = Deno.env.get("SIMPLYBOOK_SECRET_KEY") || "";
+    const r3 = await sbRPC("https://user-api.simplybook.me/login", "getToken", [company, adminLogin, secretKey]);
+    tests["adminLogin_secretAsPass"] = r3?.result ? "GOT TOKEN" : r3?.error;
 
-    // Try using the secret key to get a client token (for booking)
-    // SimplyBook allows booking by creating a client token using HMAC or by getClientToken
-    const r1 = await sbRPC("https://user-api.simplybook.me", "getClientToken", ["test@example.com", secretKey], sbHeaders);
-    tests["getClientToken"] = r1?.error ? r1.error : r1?.result;
+    // Try the REST v2 admin API for creating bookings
+    // POST https://user-api.simplybook.me/admin/booking
+    const userTokenResp = await sbRPC("https://user-api.simplybook.me/login", "getToken", [company, apiKey]);
+    const userToken = userTokenResp?.result;
+    if (userToken) {
+      const services = (await sbRPC("https://user-api.simplybook.me", "getEventList", [], { "X-Company-Login": company, "X-Token": userToken }))?.result || {};
+      const units = (await sbRPC("https://user-api.simplybook.me", "getUnitList", [], { "X-Company-Login": company, "X-Token": userToken }))?.result || {};
+      const svcId = Object.keys(services)[0];
+      const unitId = Object.keys(units)[0];
+      tests["svcId"] = svcId;
+      tests["unitId"] = unitId;
 
-    // Try with client login using email + HMAC
-    if (secretKey) {
-      // Some SimplyBook setups use: loginClient(email, hmac_hash)
-      // hmac = HMAC-SHA1(secretKey, email)
-      const encoder = new TextEncoder();
-      const keyData = encoder.encode(secretKey);
-      const msgData = encoder.encode("test@example.com");
-      const cryptoKey = await crypto.subtle.importKey("raw", keyData, { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
-      const sig = await crypto.subtle.sign("HMAC", cryptoKey, msgData);
-      const hmac = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, "0")).join("");
-
-      const r2 = await sbRPC("https://user-api.simplybook.me", "loginClient", ["test@example.com", hmac], sbHeaders);
-      tests["loginClient_hmac"] = r2?.error ? r2.error : r2?.result;
-
-      // If client token obtained, try booking with it
-      const clientToken = r2?.result;
-      if (clientToken) {
-        const sbHeadersWithClient = { ...sbHeaders, "X-Client-Token": clientToken };
-        const r3 = await sbRPC("https://user-api.simplybook.me", "book", [
-          svcId, unitId, "2026-03-10 10:00:00", null,
-          { name: "Test Guest", email: "test@example.com" }
-        ], sbHeadersWithClient);
-        tests["book_with_client_token"] = r3?.error ? r3.error : r3?.result;
-      }
+      // Try REST API for booking
+      const restResp = await fetch(`https://user-api.simplybook.me/admin/booking`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "X-Company-Login": company,
+          "X-Token": userToken,
+        },
+        body: JSON.stringify({
+          event_id: svcId,
+          unit_id: unitId,
+          start_date: "2026-03-10",
+          start_time: "10:00:00",
+          client: { name: "Test Guest", email: "test@example.com" }
+        }),
+      });
+      tests["restAdmin_booking_status"] = restResp.status;
+      const restBody = await restResp.text();
+      tests["restAdmin_booking_body"] = restBody.substring(0, 300);
     }
-
-    // Try bookingWithoutLogin (for accounts that allow it)
-    const r4 = await sbRPC("https://user-api.simplybook.me", "bookingWithoutLogin", [
-      svcId, unitId, "2026-03-10 10:00:00",
-      { name: "Test Guest", email: "test@example.com" }
-    ], sbHeaders);
-    tests["bookingWithoutLogin"] = r4?.error ? r4.error : r4?.result;
 
     return Response.json(tests);
   } catch (e) {
