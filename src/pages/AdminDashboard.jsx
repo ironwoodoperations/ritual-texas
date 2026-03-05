@@ -374,6 +374,13 @@ export default function AdminDashboard() {
       ],
     },
     {
+      title: "CRM & Marketing",
+      color: "rgb(150,170,155)",
+      tiles: [
+        { icon: Users, label: "Master CRM", page: "AdminMasterCRM" },
+      ],
+    },
+    {
       title: "Content & Settings",
       color: "rgb(198,182,165)",
       tiles: [
@@ -381,13 +388,6 @@ export default function AdminDashboard() {
         { icon: Image, label: "Image Library", page: "AdminImages" },
         { icon: BookOpen, label: "Media", page: "AdminMedia" },
         { icon: Users, label: "Staff Controls", page: "StaffControls" },
-      ],
-    },
-    {
-      title: "CRM & Marketing",
-      color: "rgb(150,170,155)",
-      tiles: [
-        { icon: Users, label: "Master CRM", page: "AdminMasterCRM" },
       ],
     },
     {
