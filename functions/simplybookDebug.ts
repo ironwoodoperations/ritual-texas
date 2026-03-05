@@ -18,21 +18,34 @@ Deno.serve(async (req) => {
 
     const adminHeaders = { "Content-Type": "application/json", "X-Company-Login": company, "X-User-Token": adminToken };
 
-    // book using admin token with client_id="3" (the one we just created)
-    const book1 = await (await fetch("https://user-api.simplybook.me/admin/", {
+    // Get all clients to see real IDs
+    const clientList = await (await fetch("https://user-api.simplybook.me/admin/", {
       method: "POST",
       headers: adminHeaders,
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "book", params: ["2", "2", "2026-03-10 10:00:00", "3", null] }),
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getClientList", params: [null, null, null, 1, 10] }),
     })).json();
 
-    // Also try with integer IDs
-    const book2 = await (await fetch("https://user-api.simplybook.me/admin/", {
+    // Try getClientById
+    const getClient = await (await fetch("https://user-api.simplybook.me/admin/", {
       method: "POST",
       headers: adminHeaders,
-      body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "book", params: [2, 2, "2026-03-10 10:00:00", 3, null] }),
+      body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "getClientById", params: ["3"] }),
     })).json();
 
-    return Response.json({ adminToken: !!adminToken, book_string_ids: book1, book_int_ids: book2 });
+    // Try book with client_id from getClientList
+    const clients = clientList?.result || [];
+    const firstClientId = Array.isArray(clients) && clients[0]?.id;
+
+    let bookResult = null;
+    if (firstClientId) {
+      bookResult = await (await fetch("https://user-api.simplybook.me/admin/", {
+        method: "POST",
+        headers: adminHeaders,
+        body: JSON.stringify({ jsonrpc: "2.0", id: 3, method: "book", params: ["2", "2", "2026-03-10 10:00:00", String(firstClientId), null] }),
+      })).json();
+    }
+
+    return Response.json({ clientList: clientList?.result, getClient, firstClientId, bookResult });
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 });
   }
