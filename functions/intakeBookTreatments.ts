@@ -103,25 +103,38 @@ Deno.serve(async (req) => {
       if (!staffId) staffId = staff?.[0]?.id || staff?.[0]?.staff_id || null;
     }
 
-    // 4) Create bookings
-    const bookingDate = clean(intake.preferredTreatmentDate); // YYYY-MM-DD
-    const timeRaw = clean(intake.preferredTreatmentTime || "10:00").replace(/[^0-9:]/g, "");
-    const time = (timeRaw.length === 4 ? `${timeRaw.slice(0, 2)}:${timeRaw.slice(2)}` : timeRaw).padEnd(5, "0");
-
     const created = [];
     const errors = [];
 
-    // selectedTreatments can now be array of objects {id, name} or plain strings
+    // selectedTreatments are JSON-stringified objects: {serviceId, serviceName, date, time, staffId, ...}
     const treatmentList = Array.isArray(intake.selectedTreatments) ? intake.selectedTreatments : [];
 
-    for (const treatment of treatmentList) {
-      const treatmentName = typeof treatment === "object" ? treatment.name : treatment;
-      const explicitId = typeof treatment === "object" ? treatment.id : null;
-      const needle = String(treatmentName || "").toLowerCase();
-      // Match by explicit SimplyBook ID first, then by name
-      const svc = explicitId
-        ? services.find(s => String(s.id || s.service_id) === String(explicitId))
-        : services.find((s) =>
+    for (const item of treatmentList) {
+      // Parse the stored JSON entry
+      let entry = item;
+      if (typeof item === "string") {
+        try { entry = JSON.parse(item); } catch { entry = { serviceName: item }; }
+      }
+
+      const treatmentName = entry.serviceName || entry.name || "";
+      const explicitServiceId = entry.serviceId || entry.id || null;
+
+      // Date and time come from the entry itself (each slot has its own date/time)
+      const bookingDate = entry.date || clean(intake.preferredTreatmentDate || "");
+      const rawTime = entry.time || clean(intake.preferredTreatmentTime || "10:00");
+      const timeRaw = rawTime.replace(/[^0-9:]/g, "");
+      const time = (timeRaw.length === 4 ? `${timeRaw.slice(0, 2)}:${timeRaw.slice(2)}` : timeRaw).padEnd(5, "0");
+
+      if (!bookingDate) {
+        errors.push(`No date for "${treatmentName}" — skipping`);
+        continue;
+      }
+
+      // Match service
+      const needle = String(treatmentName).toLowerCase();
+      const svc = explicitServiceId
+        ? services.find(s => String(s.id || s.service_id) === String(explicitServiceId))
+        : services.find(s =>
             String(s.name || "").toLowerCase().includes(needle) || needle.includes(String(s.name || "").toLowerCase())
           );
 
@@ -136,12 +149,15 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      // Use staffId from the entry (auto-assigned when slot was picked) or fall back to fetched staffId
+      const useStaffId = entry.staffId || staffId;
+
       const createBookingPayload = {
         client_id: clientId,
         service_id: serviceId,
         start_date: `${bookingDate}T${time}:00`,
       };
-      if (staffId) createBookingPayload.staff_id = staffId;
+      if (useStaffId) createBookingPayload.staff_id = useStaffId;
 
       const bResp = await sbFetch(`${base}/bookings`, apiKey, {
         method: "POST",
