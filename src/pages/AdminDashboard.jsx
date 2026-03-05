@@ -480,13 +480,13 @@ export default function AdminDashboard() {
           <div className="text-xs tracking-widest text-[rgb(150,150,150)] mb-2">QUICK LOGINS</div>
           <div className="grid grid-cols-7 gap-2">
             {[
-              { name: 'Cloudbeds', url: 'https://hotels.cloudbeds.com/hotel/login', img: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/b2392709e_download1.jpeg', bg: '#003580' },
-              { name: 'SimplyBook', url: 'https://simplybook.me/en/', img: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/ce2a541cc_download3.png', bg: '#ffffff' },
-              { name: 'Toast POS', url: 'https://www.toasttab.com/restaurants/admin', img: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/17a611d1a_download1.png', bg: '#f5e642' },
-              { name: 'Square', url: 'https://squareup.com/login', img: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/81130566f_images.jpeg', bg: '#ffffff' },
-              { name: 'Lonam AI', url: 'https://loman.ai', img: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/9202fdf0d_download.jpeg', bg: '#000000' },
-              { name: 'Sonos', url: 'https://login.sonos.com', img: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/529bf1052_download2.png', bg: '#000000' },
               { name: 'Optimum', url: 'https://www.optimum.net', img: 'https://logo.clearbit.com/optimum.net', bg: '#0057a8' },
+              { name: 'SimplyBook', url: 'https://simplybook.me/en/', img: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/ce2a541cc_download3.png', bg: '#ffffff' },
+              { name: 'Cloudbeds', url: 'https://hotels.cloudbeds.com/hotel/login', img: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/b2392709e_download1.jpeg', bg: '#003580' },
+              { name: 'Square', url: 'https://squareup.com/login', img: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/81130566f_images.jpeg', bg: '#ffffff' },
+              { name: 'Loman AI', url: 'https://loman.ai', img: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/9202fdf0d_download.jpeg', bg: '#000000' },
+              { name: 'Sonos', url: 'https://login.sonos.com', img: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/529bf1052_download2.png', bg: '#000000' },
+              { name: 'Toast POS', url: 'https://www.toasttab.com/restaurants/admin', img: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/17a611d1a_download1.png', bg: '#f5e642' },
             ].map(({ name, url, img, bg }) => (
               <a
                 key={name}
