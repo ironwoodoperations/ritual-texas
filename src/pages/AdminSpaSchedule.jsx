@@ -35,6 +35,9 @@ export default function AdminSpaSchedule() {
   const [allStaff, setAllStaff] = useState([]);
   const [tipModal, setTipModal] = useState(null);
   const [tipLink, setTipLink] = useState('');
+  const [tipPhone, setTipPhone] = useState('');
+  const [providerTipModal, setProviderTipModal] = useState(null);
+  const [providerTipPhone, setProviderTipPhone] = useState('');
   const [showBookingWidget, setShowBookingWidget] = useState(false);
 
   const load = async () => {
