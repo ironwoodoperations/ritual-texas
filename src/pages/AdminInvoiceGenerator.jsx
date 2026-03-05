@@ -393,17 +393,18 @@ function NewInvoice({ rooms, treatments, packages }) {
 
   const total = subtotal + taxAmount;
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, sendNow = true) => {
     e.preventDefault();
     const validItems = lineItems.filter(it => it.name && parseFloat(it.amount) > 0);
     if (!validItems.length) { alert('Add at least one line item with a name and amount.'); return; }
-    setLoading(true);
+    setLoading(sendNow ? 'send' : 'save');
     setResult(null);
     const res = await base44.functions.invoke('squareCreateInvoice', {
       customerName,
       customerEmail,
       note,
       dueDate: dueDate || undefined,
+      sendNow,
       lineItems: validItems.map(it => ({
         name: it.name,
         amount: parseFloat(it.amount),
@@ -412,7 +413,7 @@ function NewInvoice({ rooms, treatments, packages }) {
     });
     setLoading(false);
     if (res.data?.success) {
-      setResult({ success: true, publicUrl: res.data.publicUrl, invoiceId: res.data.invoiceId });
+      setResult({ success: true, saved: res.data.saved, publicUrl: res.data.publicUrl, invoiceId: res.data.invoiceId });
       queryClient.invalidateQueries({ queryKey: ['square-invoices'] });
     } else {
       setResult({ success: false, error: res.data?.error || 'Invoice creation failed' });
