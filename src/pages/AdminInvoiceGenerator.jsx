@@ -346,16 +346,9 @@ function NewInvoice({ rooms, treatments, packages }) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [taxes, setTaxes] = useState({
-    stateTax: false,
-    cityTax: false,
-    hotelTax: false,
-  });
-  const [taxRates] = useState({
-    stateTax: 6.25,
-    cityTax: 2,
-    hotelTax: 15,
-  });
+  const [taxes, setTaxes] = useState(
+    Object.fromEntries(ALL_TAXES.map(t => [t.key, false]))
+  );
 
   const setItem = (idx, key, val) => {
     setLineItems(items => items.map((it, i) => i === idx ? { ...it, [key]: val } : it));
