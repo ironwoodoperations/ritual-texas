@@ -16,44 +16,53 @@ Deno.serve(async (req) => {
     if (user?.role !== "admin") return Response.json({ error: "Admin only" }, { status: 403 });
 
     const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
-    const adminLogin = Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
-    const adminPassword = Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
     const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
 
-    // Try admin API login with correct URL
-    const adminLoginResp = await sbRPC("https://user-api.simplybook.me/login", "getToken", [company, adminLogin, adminPassword]);
-    const tests = {};
-    tests["adminLogin_userapi"] = adminLoginResp?.result ? "GOT TOKEN: " + String(adminLoginResp.result).substring(0, 20) : adminLoginResp?.error;
-
-    // Try 3-arg login on login endpoint
-    // The admin API requires SIMPLYBOOK_SECRET_KEY often
-    const secretKey = Deno.env.get("SIMPLYBOOK_SECRET_KEY") || "";
-    const r2 = await sbRPC("https://user-api.simplybook.me/login", "getToken", [company, adminLogin, adminPassword, secretKey]);
-    tests["adminLogin_withSecret"] = r2?.result ? "GOT TOKEN: " + String(r2.result).substring(0, 20) : r2?.error;
-
-    // Regular user API token
     const userLoginResp = await sbRPC("https://user-api.simplybook.me/login", "getToken", [company, apiKey]);
     const token = userLoginResp?.result;
-    tests["userToken"] = token ? "GOT TOKEN" : userLoginResp?.error;
+    if (!token) return Response.json({ error: "No token", userLoginResp });
 
-    if (token) {
-      const sbHeaders = { "X-Company-Login": company, "X-Token": token };
-      // Discover what methods exist - try getServiceList (alias)
-      const r3 = await sbRPC("https://user-api.simplybook.me", "getServiceList", [], sbHeaders);
-      tests["getServiceList"] = r3?.error ? r3.error : "OK: " + JSON.stringify(r3?.result || r3).substring(0, 100);
+    const sbHeaders = { "X-Company-Login": company, "X-Token": token };
+    const tests = {};
 
-      // Try making a booking with 'book' (we know this returns -32068 = needs client auth, not -32601 = not found)
-      // So 'book' IS a valid method. The issue is client auth. Let's try bookByAdmin
-      const r4 = await sbRPC("https://user-api.simplybook.me", "bookByAdmin", ["1", "1", "2026-03-10 10:00:00", null, { name: "Test", email: "t@t.com" }], sbHeaders);
-      tests["bookByAdmin"] = r4?.error ? r4.error : r4?.result;
+    // Test known-working methods
+    const r1 = await sbRPC("https://user-api.simplybook.me", "getEventList", [], sbHeaders);
+    tests["getEventList"] = r1?.error ? r1.error : "OK len=" + Object.keys(r1?.result || {}).length;
 
-      // Check if there's a client plugin
-      const r5 = await sbRPC("https://user-api.simplybook.me", "isPluginActivated", ["client_login"], sbHeaders);
-      tests["plugin_client_login"] = r5?.error ? r5.error : r5?.result;
+    const r2 = await sbRPC("https://user-api.simplybook.me", "getUnitList", [], sbHeaders);
+    tests["getUnitList"] = r2?.error ? r2.error : "OK len=" + Object.keys(r2?.result || {}).length;
 
-      const r6 = await sbRPC("https://user-api.simplybook.me", "getBookingRegistrationInfo", [null, null, null, null, { name: "Test", email: "t@t.com" }], sbHeaders);
-      tests["getBookingRegistrationInfo"] = r6?.error ? r6.error : "OK: " + JSON.stringify(r6?.result || r6).substring(0, 200);
-    }
+    // Get first real service/unit IDs
+    const services = r1?.result || {};
+    const units = r2?.result || {};
+    const svcId = Object.keys(services)[0];
+    const unitId = Object.keys(units)[0];
+
+    tests["svcId"] = svcId;
+    tests["unitId"] = unitId;
+
+    // book with no client id (pass null) — the 'book' method with proper args
+    // SimplyBook book() signature: book(event_id, unit_id, start_date_time, client_id, client_data)
+    // When client_login plugin active, client_id can be null and client_data used instead
+    const r3 = await sbRPC("https://user-api.simplybook.me", "book", [
+      svcId, unitId, "2026-03-10 10:00:00", null, 
+      { name: "Test Guest", email: "test@example.com", phone: "5550000" }
+    ], sbHeaders);
+    tests["book_null_client"] = r3?.error ? r3.error : r3?.result;
+
+    // Try passing 0 as client_id
+    const r4 = await sbRPC("https://user-api.simplybook.me", "book", [
+      svcId, unitId, "2026-03-10 10:00:00", 0,
+      { name: "Test Guest", email: "test@example.com", phone: "5550000" }
+    ], sbHeaders);
+    tests["book_zero_client"] = r4?.error ? r4.error : r4?.result;
+
+    // Try with additional "count" param
+    const r5 = await sbRPC("https://user-api.simplybook.me", "book", [
+      svcId, unitId, "2026-03-10 10:00:00", null, 
+      { name: "Test Guest", email: "test@example.com" }, 1
+    ], sbHeaders);
+    tests["book_with_count"] = r5?.error ? r5.error : r5?.result;
 
     return Response.json(tests);
   } catch (e) {
