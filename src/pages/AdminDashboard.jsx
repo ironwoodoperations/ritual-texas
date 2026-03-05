@@ -470,6 +470,12 @@ export default function AdminDashboard() {
           <a href="https://www.cloudbeds.com" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
             <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/a3efecc1b_download1.png" alt="Cloudbeds" className="w-6 h-6" />
           </a>
+          <a href="https://www.sonos.com/en-us/shop?utm_campaign=rta_sonos_search_us_brand_core&utm_medium=cpc&utm_source=google&utm_content=rta_sonos_search_us_brand_core&utm_term=sonos&gclsrc=aw.ds&gad_source=1&gad_campaignid=23593370564&gbraid=0AAAAADo4HCepZTd3hBezW1pERk96txMXt&gclid=Cj0KCQiA8KTNBhD_ARIsAOvp6DJXkmdLxUo2BXCSXR08H6syL8EMOGhmjNAqsrZ8Ozmgx-_JfbbwEDYaAjAsEALw_wcB" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/74431a740_download2.png" alt="Sonos" className="w-6 h-6" />
+          </a>
+          <a href="https://www.toasttab.com/restaurants/admin/home" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/40f320a3a_download.png" alt="Toast" className="w-6 h-6" />
+          </a>
         </div>
 
         {/* Section nav tiles */}
