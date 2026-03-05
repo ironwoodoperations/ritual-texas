@@ -94,7 +94,19 @@ function Field({ label, children }) {
 
 // ── Long-scroll intake form ────────────────────────────────────────────────────
 function IntakeForm({ initial = BLANK, roomTypes = [], loading = false, onSave, onCancel }) {
-  const [form, setForm] = useState({ ...BLANK, ...initial });
+  // Normalize selectedTreatments: always work with objects internally
+  const normalizeInitial = (init) => {
+    const raw = init.selectedTreatments || [];
+    const normalized = raw.map(item => {
+      if (typeof item === "object") return item;
+      // It's a string name — find matching treatment
+      const match = DB_TREATMENTS.find(t => t.name === item || item.includes(t.name));
+      return match || { id: item, name: item, price: 0, duration: 0 };
+    });
+    return { ...BLANK, ...init, selectedTreatments: normalized };
+  };
+
+  const [form, setForm] = useState(() => normalizeInitial(initial));
   const [saving, setSaving] = useState(false);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
