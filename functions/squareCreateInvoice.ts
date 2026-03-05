@@ -123,7 +123,16 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Could not create invoice', detail: invData });
     }
 
-    // Step 4: Publish invoice
+    // Step 4: Optionally publish invoice
+    if (!sendNow) {
+      return Response.json({
+        success: true,
+        invoiceId,
+        saved: true,
+        invoice: invData?.invoice,
+      });
+    }
+
     const pubResp = await fetch(`${baseUrl}/v2/invoices/${invoiceId}/publish`, {
       method: 'POST',
       headers: sqHeaders,
