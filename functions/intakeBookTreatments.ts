@@ -68,17 +68,15 @@ Deno.serve(async (req) => {
     // 3) Find or create client via admin API
     let clientId = null;
 
-    // Search for existing client by email
+    // Search by scanning full client list (search_string filter doesn't work by email)
     if (guestEmail) {
       try {
-        const clientList = await sbRPC(adminUrl, "getClientList", [
-          { search_string: guestEmail }, null, 0, 10
-        ], adminHeaders);
-        const arr = clientList && typeof clientList === "object" ? Object.values(clientList) : [];
+        const clientList = await sbRPC(adminUrl, "getClientList", [], adminHeaders);
+        const arr = Array.isArray(clientList) ? clientList : (typeof clientList === "object" ? Object.values(clientList) : []);
         const found = arr.find((c) => String(c.email || "").toLowerCase() === guestEmail);
         if (found) clientId = String(found.id);
       } catch (e) {
-        // not found, will create
+        // will create below
       }
     }
 
@@ -91,16 +89,12 @@ Deno.serve(async (req) => {
         }], adminHeaders);
         clientId = String(newClient?.id || newClient || "");
       } catch (e) {
-        // If client already exists, search again without email filter
+        // If client already exists (race or missed lookup), scan list again
         if (e.message.includes("already exist") && guestEmail) {
-          try {
-            const retry = await sbRPC(adminUrl, "getClientList", [
-              { search_string: guestEmail }, null, 0, 10
-            ], adminHeaders);
-            const arr = retry && typeof retry === "object" ? Object.values(retry) : [];
-            const found = arr.find((c) => String(c.email || "").toLowerCase() === guestEmail);
-            if (found) clientId = String(found.id);
-          } catch (_) {}
+          const retry = await sbRPC(adminUrl, "getClientList", [], adminHeaders);
+          const arr = Array.isArray(retry) ? retry : (typeof retry === "object" ? Object.values(retry) : []);
+          const found = arr.find((c) => String(c.email || "").toLowerCase() === guestEmail);
+          if (found) clientId = String(found.id);
         }
         if (!clientId) throw e;
       }
