@@ -42,12 +42,13 @@ const BLANK = {
   guestName: "", phone: "", email: "", preferredContactMethod: "phone",
   checkInDate: "", checkOutDate: "", numberOfGuests: 1, numberOfChildren: 0,
   cloudbedsRoomTypeId: "", flexibleOnRoom: false, hotelNotes: "",
+  howDidYouHearAboutUs: "", additionalGuests: [],
   selectedTreatments: [], callToBookTreatments: [],
   treatmentsRequested: "",
   therapistAssigned: "", therapistStatus: "not_contacted",
   therapistFollowUpDate: "", therapistNotes: "",
   bookingStatus: "new_inquiry", followUpDate: "", internalNotes: "",
-  ccName: "", ccLast4: "", ccExpiry: "", ccType: "", ccNotes: "",
+  ccName: "", ccNumber: "", ccLast4: "", ccExpiry: "", ccCvc: "", ccType: "", ccNotes: "",
 };
 
 const fieldCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transparent py-2 text-sm text-[rgb(45,45,45)] focus:outline-none focus:border-[rgb(107,85,64)] placeholder-[rgb(190,180,170)] transition-colors";
@@ -195,17 +196,53 @@ function IntakeForm({ initial = BLANK, roomTypes = [], callToBookTreatments = []
               <textarea placeholder="Ground floor, early check-in, pet, anniversary setup…" value={form.hotelNotes} onChange={e => set("hotelNotes", e.target.value)} className={fieldCls + " resize-none h-16"} />
             </Field>
           </div>
+          <div className="sm:col-span-2">
+            <Field label="How Did You Hear About Us?">
+              <textarea placeholder="Google, Instagram, referral, travel agent, etc…" value={form.howDidYouHearAboutUs} onChange={e => set("howDidYouHearAboutUs", e.target.value)} className={fieldCls + " resize-none h-12"} />
+            </Field>
+          </div>
         </div>
+
+        {/* Additional Guests */}
+        {form.numberOfGuests > 1 && (
+          <div className="mt-6 pt-6 border-t border-[rgb(220,210,200)]">
+            <h3 className="text-sm font-semibold text-[rgb(107,85,64)] mb-4">Additional Guests</h3>
+            {Array.from({ length: form.numberOfGuests - 1 }).map((_, idx) => {
+              const guestIdx = idx + 1;
+              const guest = (form.additionalGuests || [])[idx] || {};
+              const updateGuest = (key, val) => {
+                const updated = [...(form.additionalGuests || [])];
+                updated[idx] = { ...updated[idx], [key]: val };
+                set("additionalGuests", updated);
+              };
+              return (
+                <div key={guestIdx} className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 mb-6 pb-6 border-b border-[rgb(220,210,200)] last:border-0">
+                  <Field label={`Guest ${guestIdx} Name`}>
+                    <input placeholder="First Last" value={guest.name || ""} onChange={e => updateGuest("name", e.target.value)} className={fieldCls} />
+                  </Field>
+                  <Field label={`Guest ${guestIdx} Email`}>
+                    <input placeholder="guest@email.com" value={guest.email || ""} onChange={e => updateGuest("email", e.target.value)} className={fieldCls} />
+                  </Field>
+                  <Field label={`Guest ${guestIdx} Phone`}>
+                    <input placeholder="(555) 000-0000" value={guest.phone || ""} onChange={e => updateGuest("phone", e.target.value)} className={fieldCls} />
+                  </Field>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </Section>
 
-      {/* Treatments — SimplyBook + Call-to-book */}
+      {/* Treatments — SimplyBook + Call-to-book — Per Guest */}
       <Section title="Spa & Wellness · Treatments">
+        <p className="text-xs text-[rgb(170,140,110)] mb-4">Add treatments for each guest in the room. SimplyBook supports multiple bookings.</p>
         <TreatmentSlotPicker
           sbEntries={sbEntries}
           ctbEntries={ctbEntries}
           callToBookTreatments={callToBookTreatments}
           onSbChange={setSbEntries}
           onCtbChange={setCtbEntries}
+          guestCount={form.numberOfGuests}
         />
         <div className="mt-5">
           <Field label="Additional Treatment Notes">
@@ -259,8 +296,7 @@ function IntakeForm({ initial = BLANK, roomTypes = [], callToBookTreatments = []
       </Section>
 
       {/* Card on File */}
-      <Section title="Card on File · Internal Only">
-        <p className="text-xs text-[rgb(170,140,110)] mb-4 italic">⚠️ Reference info only — never enter full card numbers here.</p>
+      <Section title="Card on File · Payment Information">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
           <Field label="Cardholder Name">
             <input placeholder="Name on card" value={form.ccName} onChange={e => set("ccName", e.target.value)} className={fieldCls} />
@@ -274,11 +310,19 @@ function IntakeForm({ initial = BLANK, roomTypes = [], callToBookTreatments = []
               <option value="Discover">Discover</option>
             </select>
           </Field>
-          <Field label="Last 4 Digits">
-            <input placeholder="0000" value={form.ccLast4} onChange={e => set("ccLast4", e.target.value)} className={fieldCls} maxLength={4} />
-          </Field>
+          <div className="sm:col-span-2">
+            <Field label="Full Card Number">
+              <input type="password" placeholder="•••• •••• •••• ••••" value={form.ccNumber} onChange={e => set("ccNumber", e.target.value)} className={fieldCls} maxLength={19} />
+            </Field>
+          </div>
           <Field label="Expiry MM/YY">
             <input placeholder="MM/YY" value={form.ccExpiry} onChange={e => set("ccExpiry", e.target.value)} className={fieldCls} maxLength={5} />
+          </Field>
+          <Field label="CVC">
+            <input type="password" placeholder="•••" value={form.ccCvc} onChange={e => set("ccCvc", e.target.value)} className={fieldCls} maxLength={4} />
+          </Field>
+          <Field label="Last 4 Digits">
+            <input placeholder="0000" value={form.ccLast4} onChange={e => set("ccLast4", e.target.value)} className={fieldCls} maxLength={4} />
           </Field>
           <div className="sm:col-span-2">
             <Field label="Card Notes">
