@@ -629,15 +629,29 @@ function NewInvoice({ rooms, treatments, packages }) {
              </div>
            </div>
 
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white py-3 text-base"
-          >
-            {loading ? (
-              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating Invoice…</>
-            ) : `Create & Send Invoice — ${fmtMoney(total)}`}
-          </Button>
+          <div className="flex flex-col gap-3">
+            <Button
+              type="submit"
+              disabled={!!loading}
+              onClick={(e) => handleSubmit(e, true)}
+              className="w-full bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white py-3 text-base"
+            >
+              {loading === 'send' ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending Invoice…</>
+              ) : <><Send className="w-4 h-4 mr-2" />Create & Send Invoice — {fmtMoney(total)}</>}
+            </Button>
+            <Button
+              type="button"
+              disabled={!!loading}
+              onClick={(e) => handleSubmit(e, false)}
+              variant="outline"
+              className="w-full py-3 text-base border-[rgb(198,182,165)] text-[rgb(107,85,64)]"
+            >
+              {loading === 'save' ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving Draft…</>
+              ) : <><FileText className="w-4 h-4 mr-2" />Save as Draft (Don't Send)</>}
+            </Button>
+          </div>
         </form>
       )}
     </div>
