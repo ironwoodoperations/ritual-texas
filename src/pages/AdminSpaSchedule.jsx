@@ -121,14 +121,24 @@ export default function AdminSpaSchedule() {
   return (
     <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-3">
-          <Link to={createPageUrl('AdminDashboard')} className="text-[rgb(107,85,64)] hover:text-[rgb(150,170,155)]">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-3 mb-3">
+            <Link to={createPageUrl('AdminDashboard')} className="text-[rgb(107,85,64)] hover:text-[rgb(150,170,155)]">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+          </div>
+          <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '4px' }}>Spa Schedule</h1>
+          <p style={{ color: '#666' }}>View and export daily spa appointments from Square</p>
         </div>
-        <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '4px' }}>Spa Schedule</h1>
-        <p style={{ color: '#666' }}>View and export daily spa appointments from Square</p>
+        <div className="flex items-center gap-2">
+          <a href="https://simplybook.me/en/?ref=googleads_us_brand" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-2 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/9c8b32fe8_download3.png" alt="SimplyBook" className="w-5 h-5" />
+          </a>
+          <a href="https://www.optimum.net" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-2 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/31abe4610_download1.jpeg" alt="Optimum" className="w-5 h-5" />
+          </a>
+        </div>
       </div>
 
       {/* Calendar + Day view layout */}
