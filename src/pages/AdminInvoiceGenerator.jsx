@@ -329,16 +329,24 @@ function NewInvoice({ rooms, treatments, packages }) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [taxes, setTaxes] = useState({
-    stateTax: false,
-    cityTax: false,
-    hotelTax: false,
-  });
-  const [taxRates] = useState({
-    stateTax: 6.25,
-    cityTax: 2,
-    hotelTax: 15,
-  });
+  // Sales Tax (applies to retail items)
+  const SALES_TAXES = [
+    { key: 'sales_state',  label: 'State of Texas',                       rate: 6.25 },
+    { key: 'sales_city',   label: 'City of Jacksonville',                  rate: 1.00 },
+    { key: 'sales_jedc',   label: 'Jacksonville Economic Development (JEDC)', rate: 0.50 },
+    { key: 'sales_county', label: 'Cherokee County',                       rate: 0.50 },
+  ];
+  // Hotel Occupancy Tax (applies to hotel/room stays)
+  const HOTEL_TAXES = [
+    { key: 'hotel_state',  label: 'State of Texas',          rate: 6.00, note: 'Applies to stays $15+/day.' },
+    { key: 'hotel_city',   label: 'City of Jacksonville',    rate: 7.00, note: 'General municipal hotel tax.' },
+    { key: 'hotel_venue',  label: 'Jacksonville Venue Tax',  rate: 2.00, note: 'Voter-approved civic projects.' },
+  ];
+  const ALL_TAXES = [...SALES_TAXES, ...HOTEL_TAXES];
+
+  const [taxes, setTaxes] = useState(
+    Object.fromEntries(ALL_TAXES.map(t => [t.key, false]))
+  );
 
   const setItem = (idx, key, val) => {
     setLineItems(items => items.map((it, i) => i === idx ? { ...it, [key]: val } : it));
@@ -379,18 +387,26 @@ function NewInvoice({ rooms, treatments, packages }) {
     return sum + (parseFloat(it.amount) || 0) * (parseInt(it.quantity) || 1);
   }, 0);
 
-  // Taxes only apply to hotel/room items (not treatments)
-  const taxableSubtotal = lineItems.reduce((sum, it) => {
-    const isTreatment = it._type === 'treatment';
-    if (isTreatment) return sum;
+  // Taxable bases
+  const hotelSubtotal = lineItems.reduce((sum, it) => {
+    if (it._type !== 'room') return sum;
+    return sum + (parseFloat(it.amount) || 0) * (parseInt(it.quantity) || 1);
+  }, 0);
+  const retailSubtotal = lineItems.reduce((sum, it) => {
+    if (it._type === 'treatment' || it._type === 'room') return sum;
     return sum + (parseFloat(it.amount) || 0) * (parseInt(it.quantity) || 1);
   }, 0);
 
-  const taxAmount = Object.entries(taxes).reduce((sum, [key, isChecked]) => {
-    if (!isChecked) return sum;
-    return sum + (taxableSubtotal * (taxRates[key] || 0) / 100);
-  }, 0);
+  // Individual tax line amounts (for display and sending)
+  const activeTaxLines = ALL_TAXES
+    .filter(t => taxes[t.key])
+    .map(t => {
+      const base = HOTEL_TAXES.some(h => h.key === t.key) ? hotelSubtotal : retailSubtotal;
+      return { ...t, amount: base * t.rate / 100, base };
+    })
+    .filter(t => t.amount > 0);
 
+  const taxAmount = activeTaxLines.reduce((s, t) => s + t.amount, 0);
   const total = subtotal + taxAmount;
 
   const handleSubmit = async (e, sendNow = true) => {
@@ -569,18 +585,24 @@ function NewInvoice({ rooms, treatments, packages }) {
             >
               <Plus className="w-4 h-4" /> Add custom line item
             </button>
-            <div className="mt-4 pt-4 border-t border-[rgb(235,225,213)] space-y-2">
+            <div className="mt-4 pt-4 border-t border-[rgb(235,225,213)] space-y-1.5">
                <div className="flex justify-between text-sm">
                  <span className="text-[rgb(150,150,150)]">Subtotal</span>
                  <span className="text-[rgb(107,85,64)]">{fmtMoney(subtotal)}</span>
                </div>
+               {activeTaxLines.map(t => (
+                 <div key={t.key} className="flex justify-between text-sm">
+                   <span className="text-[rgb(150,150,150)]">{t.label} ({t.rate}%)</span>
+                   <span className="text-[rgb(107,85,64)]">{fmtMoney(t.amount)}</span>
+                 </div>
+               ))}
                {taxAmount > 0 && (
-                 <div className="flex justify-between text-sm">
-                   <span className="text-[rgb(150,150,150)]">Taxes</span>
+                 <div className="flex justify-between text-sm border-t border-dashed border-[rgb(235,225,213)] pt-1">
+                   <span className="text-[rgb(150,150,150)]">Total Tax</span>
                    <span className="text-[rgb(107,85,64)]">{fmtMoney(taxAmount)}</span>
                  </div>
                )}
-               <div className="flex justify-between font-semibold">
+               <div className="flex justify-between font-semibold pt-1 border-t border-[rgb(235,225,213)]">
                  <span className="text-[rgb(107,85,64)]">Total</span>
                  <span className="text-[rgb(107,85,64)]">{fmtMoney(total)}</span>
                </div>
@@ -588,53 +610,32 @@ function NewInvoice({ rooms, treatments, packages }) {
           </div>
 
           {/* Taxes */}
-          <div className="space-y-4">
-            {/* Sales Tax Section */}
-            <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5">
-              <h2 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-3">Sales Tax (Retail Items)</h2>
-              <p className="text-xs text-[rgb(150,150,150)] mb-3">Applies to non-hotel items. Combined rate: 8.25%</p>
-              <div className="space-y-2">
-                {SALES_TAXES.map(tax => (
-                  <div key={tax.key} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[rgb(248,246,242)]">
-                    <input
-                      type="checkbox"
-                      checked={taxes[tax.key] || false}
-                      onChange={e => setTaxes(prev => ({ ...prev, [tax.key]: e.target.checked }))}
-                      className="rounded w-4 h-4 accent-[rgb(150,170,155)]"
-                    />
-                    <div className="flex-1">
-                      <label className="block text-sm text-[rgb(45,45,45)] cursor-pointer font-medium">{tax.label}</label>
-                    </div>
-                    <span className="text-sm font-medium text-[rgb(107,85,64)]">{tax.rate}%</span>
-                  </div>
-                ))}
-              </div>
+          <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5 space-y-3">
+            <div className="flex items-start justify-between">
+              <h2 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)]">Taxes (Hotel Items Only)</h2>
             </div>
-
-            {/* Hotel Occupancy Tax Section */}
-            <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5">
-              <h2 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-3">Hotel Occupancy Tax (Room Stays)</h2>
-              <p className="text-xs text-[rgb(150,150,150)] mb-3">Applies to hotel/room items only. Combined rate: 15.00%</p>
-              <div className="space-y-2">
-                {HOTEL_TAXES.map(tax => (
-                  <div key={tax.key} className="p-3 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors">
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={taxes[tax.key] || false}
-                        onChange={e => setTaxes(prev => ({ ...prev, [tax.key]: e.target.checked }))}
-                        className="rounded w-4 h-4 accent-[rgb(150,170,155)]"
-                      />
-                      <div className="flex-1">
-                        <label className="block text-sm text-[rgb(45,45,45)] cursor-pointer font-medium">{tax.label}</label>
-                        {tax.note && <p className="text-xs text-[rgb(150,150,150)] mt-0.5">{tax.note}</p>}
-                      </div>
-                      <span className="text-sm font-medium text-[rgb(107,85,64)] shrink-0">{tax.rate}%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <p className="text-xs text-[rgb(150,150,150)]">Texas hotel taxes apply to room/stay charges only — not treatments.</p>
+            <div className="space-y-2">
+              {[
+                { key: 'stateTax', label: 'State Tax (Texas)', rate: 6.25 },
+                { key: 'cityTax', label: 'City Tax', rate: 2 },
+                { key: 'hotelTax', label: 'Hotel Tax', rate: 15 },
+              ].map(tax => (
+                <div key={tax.key} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[rgb(248,246,242)]">
+                  <input
+                    type="checkbox"
+                    checked={taxes[tax.key]}
+                    onChange={e => setTaxes(prev => ({ ...prev, [tax.key]: e.target.checked }))}
+                    className="rounded w-4 h-4 accent-[rgb(150,170,155)]"
+                  />
+                  <label className="flex-1 text-sm text-[rgb(45,45,45)] cursor-pointer">{tax.label}</label>
+                  <span className="text-sm font-medium text-[rgb(107,85,64)]">{tax.rate}%</span>
+                </div>
+              ))}
             </div>
+            {taxableSubtotal < subtotal && taxes.stateTax || taxes.cityTax || taxes.hotelTax ? (
+              <p className="text-xs text-[rgb(150,170,155)]">Taxes calculated on {fmtMoney(taxableSubtotal)} (hotel items only)</p>
+            ) : null}
           </div>
 
           {/* Options */}
