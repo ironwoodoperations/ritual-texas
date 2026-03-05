@@ -149,13 +149,24 @@ function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa
           </div>
           <span className="text-xs text-[rgb(120,120,120)]">{hkNeedsCount} open{hkIssues.length ? ` · ${hkIssues.length} issue${hkIssues.length === 1 ? "" : "s"}` : ""}</span>
         </Link>
-        <Link to={createPageUrl("AdminRestaurantSales")} className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
-          <div className="flex items-center gap-2">
-            <UtensilsCrossed className="w-4 h-4 text-[rgb(196,155,145)]" />
-            <span className="text-sm font-medium text-[rgb(45,45,45)]">Restaurant</span>
-          </div>
-          <span className="text-xs text-[rgb(120,120,120)]">Sales {fmtMoney(toastToday?.netSales)} · Labor {fmtMoney(toastToday?.laborTotalCost)} · {restaurantLeadsCount} leads</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link to={createPageUrl("AdminRestaurantSales")} className="flex-1 flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+            <div className="flex items-center gap-2">
+              <UtensilsCrossed className="w-4 h-4 text-[rgb(196,155,145)]" />
+              <span className="text-sm font-medium text-[rgb(45,45,45)]">Restaurant</span>
+            </div>
+            <span className="text-xs text-[rgb(120,120,120)]">Sales {fmtMoney(toastToday?.netSales)} · Labor {fmtMoney(toastToday?.laborTotalCost)} · {restaurantLeadsCount} leads</span>
+          </Link>
+          <a href="https://www.toasttab.com/restaurants/admin" target="_blank" rel="noopener noreferrer" title="Toast POS" className="w-9 h-9 rounded-xl overflow-hidden border border-[rgb(235,225,213)] hover:shadow-md shrink-0" style={{ background: '#f5e642' }}>
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/17a611d1a_download1.png" alt="Toast POS" className="w-full h-full object-cover" />
+          </a>
+          <a href="https://simplybook.me/en/login" target="_blank" rel="noopener noreferrer" title="Lonam AI" className="w-9 h-9 rounded-xl overflow-hidden border border-[rgb(235,225,213)] hover:shadow-md shrink-0" style={{ background: '#000000' }}>
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/9202fdf0d_download.jpeg" alt="Lonam AI" className="w-full h-full object-cover" />
+          </a>
+          <a href="https://login.sonos.com" target="_blank" rel="noopener noreferrer" title="Sonos" className="w-9 h-9 rounded-xl overflow-hidden border border-[rgb(235,225,213)] hover:shadow-md shrink-0" style={{ background: '#000000' }}>
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/529bf1052_download2.png" alt="Sonos" className="w-full h-full object-cover" />
+          </a>
+        </div>
       </div>
     </div>
   );
