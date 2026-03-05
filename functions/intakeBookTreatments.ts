@@ -111,15 +111,11 @@ Deno.serve(async (req) => {
         body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getEventList", params: [] }),
       });
       const j = await r.json();
-      // Handle both j.result and j.result.result (double-wrapped)
-      const raw = j?.result ?? {};
-      return raw?.result ?? raw;
+      return j?.result ?? {};
     })();
     const services = typeof servicesRaw === "object" && !Array.isArray(servicesRaw)
       ? Object.entries(servicesRaw).map(([id, s]) => ({ id, ...s }))
       : [];
-
-    console.log("Services loaded:", services.map(s => `${s.id}:${s.name}`).join(" | "));
 
     // 4) Get performer list (user token)
     const performersRaw = await (async () => {
@@ -129,8 +125,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getUnitList", params: [] }),
       });
       const j = await r.json();
-      const raw = j?.result ?? {};
-      return raw?.result ?? raw;
+      return j?.result ?? {};
     })();
     const performers = typeof performersRaw === "object" && !Array.isArray(performersRaw)
       ? Object.entries(performersRaw).map(([id, p]) => ({ id, ...p }))
@@ -147,7 +142,6 @@ Deno.serve(async (req) => {
           const arr = clientList && typeof clientList === "object" ? Object.values(clientList) : [];
           const found = arr.find((c) => String(c.email || "").toLowerCase() === guestEmail);
           if (found) clientId = String(found.id || found.client_id);
-          console.log("Client list count:", arr.length, "found:", clientId);
         } catch (e) {
           console.log("Client list scan failed:", e.message);
         }
@@ -155,27 +149,22 @@ Deno.serve(async (req) => {
 
       // Create client if not found
       if (!clientId) {
-        // Build client data — only include email if it looks valid
-        const clientData = { name: guestName };
-        if (guestEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) clientData.email = guestEmail;
-        if (phone) clientData.phone = phone;
-
         try {
-          const newClient = await sbAdminRPC("addClient", [clientData], adminToken, company);
+          const newClient = await sbAdminRPC("addClient", [{
+            name: guestName,
+            email: guestEmail || undefined,
+            phone: phone || undefined,
+          }], adminToken, company);
           clientId = String(newClient?.id || newClient?.client_id || newClient || "");
-          console.log("addClient result:", JSON.stringify(newClient));
         } catch (e) {
           // If "already exists" error, extract the ID from error data
           const errMsg = e.message || "";
-          const idMatch = errMsg.match(/"id"\s*:\s*"?(\d+)"?/);
-          if (idMatch) clientId = idMatch[1];
+          const match = errMsg.match(/"id"\s*:\s*"?(\d+)"?/);
+          if (match) clientId = match[1];
           else console.log("addClient failed:", errMsg);
         }
       }
     }
-
-    console.log("Final clientId:", clientId, "adminToken:", !!adminToken);
-    console.log("Services available:", services.map(s => `${s.id}:${s.name}`).join(", "));
 
     // 6) Book each treatment
     const created = [];
