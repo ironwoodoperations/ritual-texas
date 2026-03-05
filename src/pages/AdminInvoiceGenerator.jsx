@@ -407,20 +407,21 @@ function NewInvoice({ rooms, treatments, packages }) {
   const taxBreakdown = {};
   let totalTaxAmount = 0;
 
-  SALES_TAXES.forEach(tax => {
+  ALL_TAXES.forEach(tax => {
     if (taxes[tax.key]) {
-      const amount = (retailSubtotal * tax.rate) / 100;
-      taxBreakdown[tax.key] = amount;
-      totalTaxAmount += amount;
+      const base = HOTEL_TAXES.some(h => h.key === tax.key) ? hotelSubtotal : retailSubtotal;
+      const amount = (base * tax.rate) / 100;
+      if (amount > 0) {
+        taxBreakdown[tax.key] = amount;
+        totalTaxAmount += amount;
+      }
     }
   });
 
-  HOTEL_TAXES.forEach(tax => {
-    if (taxes[tax.key]) {
-      const amount = (hotelSubtotal * tax.rate) / 100;
-      taxBreakdown[tax.key] = amount;
-      totalTaxAmount += amount;
-    }
+  // Build active tax lines for invoice display
+  const activeTaxLines = Object.entries(taxBreakdown).map(([key, amount]) => {
+    const taxObj = ALL_TAXES.find(t => t.key === key);
+    return { ...taxObj, amount };
   });
 
   const total = subtotal + totalTaxAmount;
