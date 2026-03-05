@@ -400,6 +400,51 @@ export default function AdminSpaSchedule() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Provider Tip Phone Modal */}
+      <Dialog open={!!providerTipModal} onOpenChange={() => { setProviderTipModal(null); setProviderTipPhone(''); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-[rgb(107,85,64)]">Send Tip Link to {providerTipModal?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div>
+              <label className="text-xs uppercase tracking-wide text-[rgb(150,150,150)] mb-1 block">Phone Number</label>
+              <Input
+                type="tel"
+                placeholder="(555) 123-4567"
+                value={providerTipPhone}
+                onChange={(e) => setProviderTipPhone(e.target.value)}
+                className="border-[rgb(235,225,213)]"
+              />
+            </div>
+
+            <div className="flex gap-2 justify-end">
+              <button 
+                onClick={() => { setProviderTipModal(null); setProviderTipPhone(''); }} 
+                className="px-4 py-2 text-sm border border-[rgb(235,225,213)] rounded-lg text-[rgb(107,85,64)] hover:bg-[rgb(235,225,213)]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (providerTipModal && providerTipPhone) {
+                    const msg = encodeURIComponent('Thank you for choosing Hotel Ritual and Spa.\n\nTip here: ' + providerTipModal.link);
+                    window.location.href = `sms:${providerTipPhone}?body=${msg}`;
+                    setProviderTipModal(null);
+                    setProviderTipPhone('');
+                  }
+                }}
+                disabled={!providerTipPhone}
+                className="px-4 py-2 text-sm bg-[rgb(150,170,155)] text-white rounded-lg hover:bg-[rgb(130,150,135)] disabled:opacity-50 flex items-center gap-2"
+              >
+                <Send className="w-4 h-4" />
+                Send
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
