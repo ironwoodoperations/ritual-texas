@@ -15,7 +15,17 @@ const THERAPIST_STATUSES = [
 ];
 
 export default function TherapistSection({ form, onChange, sbEntries, ctbEntries }) {
-  const selectedTherapist = THERAPISTS.find(t => t.name === form.therapistAssigned);
+  const [therapists, setTherapists] = useState([]);
+  const [loadingStaff, setLoadingStaff] = useState(true);
+
+  useEffect(() => {
+    base44.functions.invoke("simplybookGetStaff", {})
+      .then(res => { if (res.data?.staff) setTherapists(res.data.staff); })
+      .catch(() => {})
+      .finally(() => setLoadingStaff(false));
+  }, []);
+
+  const selectedTherapist = therapists.find(t => t.name === form.therapistAssigned);
 
   // Build a summary of requested treatments for the text message
   function buildTextBody() {
