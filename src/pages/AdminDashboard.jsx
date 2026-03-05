@@ -438,7 +438,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Day in 60 Seconds Panel */}
-        <div className="mb-4">
+        <div className="mb-6">
           <DayIn60Panel
             arrivalsToday={arrivalsToday}
             departuresToday={departuresToday}
