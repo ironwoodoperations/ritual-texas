@@ -118,29 +118,24 @@ function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa
           </div>
           <span className="text-xs text-[rgb(120,120,120)]">{intakeFollowUpCount > 0 ? `${intakeFollowUpCount} need attention` : "Hotel + Treatment"}</span>
         </Link>
-        <Link to={createPageUrl("AdminBookings")} className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
-          <div className="flex items-center gap-2">
-            <BedSingle className="w-4 h-4 text-[rgb(107,85,64)]" />
-            <span className="text-sm font-medium text-[rgb(45,45,45)]">Hotel</span>
-          </div>
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
+          <Link to={createPageUrl("AdminBookings")} className="flex-1 flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+            <div className="flex items-center gap-2">
+              <BedSingle className="w-4 h-4 text-[rgb(107,85,64)]" />
+              <span className="text-sm font-medium text-[rgb(45,45,45)]">Hotel</span>
+            </div>
             <span className="text-xs text-[rgb(120,120,120)]">{arrivalsToday.length} arriving · {departuresToday.length} departing · {inHouseTonight.length} in-house</span>
-            <a href="https://hotels.cloudbeds.com/hotel/login" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="shrink-0">
-              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/b2392709e_download1.jpeg" alt="Cloudbeds" className="w-6 h-6 rounded object-cover" />
-            </a>
-          </div>
-        </Link>
+          </Link>
+          <a href="https://hotels.cloudbeds.com/hotel/login" target="_blank" rel="noopener noreferrer" title="Cloudbeds" className="w-9 h-9 rounded-xl overflow-hidden border border-[rgb(235,225,213)] hover:shadow-md shrink-0" style={{ background: '#003580' }}>
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/b2392709e_download1.jpeg" alt="Cloudbeds" className="w-full h-full object-cover" />
+          </a>
+        </div>
         <Link to={createPageUrl("AdminSpaSchedule")} className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[rgb(150,170,155)]" />
             <span className="text-sm font-medium text-[rgb(45,45,45)]">Spa Today</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-[rgb(120,120,120)]">{todaySpa.length} appts · {spaGapCount} gap{spaGapCount === 1 ? "" : "s"}</span>
-            <a href="https://simplybook.me/en/" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="shrink-0">
-              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/ce2a541cc_download3.png" alt="SimplyBook" className="w-6 h-6 rounded object-cover bg-white" />
-            </a>
-          </div>
+          <span className="text-xs text-[rgb(120,120,120)]">{todaySpa.length} appts · {spaGapCount} gap{spaGapCount === 1 ? "" : "s"}</span>
         </Link>
         <Link to={createPageUrl("AdminHousekeeping")} className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
           <div className="flex items-center gap-2">
