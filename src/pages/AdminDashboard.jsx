@@ -40,6 +40,7 @@ function fmtMoney(n) {
 }
 
 // ─── Intake Panel ─────────────────────────────────────────────────────────────
+// (WhitneyFocusPanel removed)
 function IntakePanel({ intakeForms, intakeNewInquiries }) {
   const allIntakes = [...intakeNewInquiries, ...intakeForms];
   const statusColor = (s) => {
