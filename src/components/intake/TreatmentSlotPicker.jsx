@@ -7,7 +7,7 @@ const selectCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transpa
 const labelCls = "block text-[10px] font-semibold tracking-widest text-[rgb(150,130,110)] uppercase mb-0.5";
 
 // A single SimplyBook treatment booking slot
-function SbSlotRow({ index, entry, onUpdate, onRemove }) {
+function SbSlotRow({ index, entry, onUpdate, onRemove, guestName }) {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [availableServices, setAvailableServices] = useState([]);
   const [slotsError, setSlotsError] = useState(null);
@@ -26,7 +26,7 @@ function SbSlotRow({ index, entry, onUpdate, onRemove }) {
         setAvailableServices(res.data?.services || []);
         setFetchedDate(date);
         // reset service/time if date changed
-        onUpdate(index, { ...entry, date, serviceId: "", serviceName: "", time: "", staffId: "", staffName: "", price: 0, duration: 0, slots: [] });
+        onUpdate(index, { ...entry, date, serviceId: "", serviceName: "", time: "", staffId: "", staffName: "", price: 0, duration: 0, slots: [], guestName: entry.guestName || guestName });
       }
     } catch (e) {
       setSlotsError(e.message);
@@ -35,14 +35,14 @@ function SbSlotRow({ index, entry, onUpdate, onRemove }) {
   }
 
   function handleDateChange(date) {
-    onUpdate(index, { ...entry, date, serviceId: "", serviceName: "", time: "", staffId: "", staffName: "", price: 0, duration: 0, slots: [] });
+    onUpdate(index, { ...entry, date, serviceId: "", serviceName: "", time: "", staffId: "", staffName: "", price: 0, duration: 0, slots: [], guestName: entry.guestName || guestName });
     fetchAvailability(date);
   }
 
   function handleServiceChange(svcId) {
     const svc = availableServices.find(s => s.id === svcId);
     if (!svc) {
-      onUpdate(index, { ...entry, serviceId: "", serviceName: "", time: "", staffId: "", staffName: "", price: 0, duration: 0, slots: [] });
+      onUpdate(index, { ...entry, serviceId: "", serviceName: "", time: "", staffId: "", staffName: "", price: 0, duration: 0, slots: [], guestName: entry.guestName || guestName });
       return;
     }
     onUpdate(index, {
@@ -55,6 +55,7 @@ function SbSlotRow({ index, entry, onUpdate, onRemove }) {
       duration: svc.duration,
       slots: svc.slots,
       time: svc.slots?.[0] || "",
+      guestName: entry.guestName || guestName,
     });
   }
 
@@ -72,10 +73,23 @@ function SbSlotRow({ index, entry, onUpdate, onRemove }) {
       </button>
 
       <p className="text-[10px] font-bold tracking-widest text-[rgb(150,130,110)] uppercase mb-3">
-        Treatment {index + 1}
+        Treatment {index + 1} {guestName && `· ${guestName}`}
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+        {/* Guest (for multi-guest) */}
+        {guestName !== undefined && (
+          <div>
+            <label className={labelCls}>Guest Name (Optional)</label>
+            <input
+              placeholder={guestName || "Guest name"}
+              value={entry.guestName || guestName}
+              onChange={e => onUpdate(index, { ...entry, guestName: e.target.value })}
+              className={fieldCls}
+            />
+          </div>
+        )}
+
         {/* Date */}
         <div>
           <label className={labelCls}>Date</label>
@@ -153,7 +167,7 @@ function SbSlotRow({ index, entry, onUpdate, onRemove }) {
 }
 
 // A single "call to book" treatment row
-function CtbRow({ index, entry, treatments, onUpdate, onRemove }) {
+function CtbRow({ index, entry, treatments, onUpdate, onRemove, guestName }) {
   return (
     <div className="relative border border-[rgb(220,210,200)] rounded-xl p-4 bg-[rgb(252,248,252)]">
       <button
@@ -164,9 +178,21 @@ function CtbRow({ index, entry, treatments, onUpdate, onRemove }) {
         <X className="w-4 h-4" />
       </button>
       <p className="text-[10px] font-bold tracking-widest text-[rgb(150,130,110)] uppercase mb-3">
-        Call-to-Book Treatment {index + 1}
+        Call-to-Book Treatment {index + 1} {guestName && `· ${guestName}`}
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+        {/* Guest (for multi-guest) */}
+        {guestName !== undefined && (
+          <div className="sm:col-span-2">
+            <label className={labelCls}>Guest Name (Optional)</label>
+            <input
+              placeholder={guestName || "Guest name"}
+              value={entry.guestName || guestName}
+              onChange={e => onUpdate(index, { ...entry, guestName: e.target.value })}
+              className={fieldCls}
+            />
+          </div>
+        )}
         <div className="sm:col-span-2">
           <label className={labelCls}>Treatment</label>
           <select
@@ -213,10 +239,10 @@ function CtbRow({ index, entry, treatments, onUpdate, onRemove }) {
   );
 }
 
-export default function TreatmentSlotPicker({ sbEntries, ctbEntries, callToBookTreatments, onSbChange, onCtbChange }) {
+export default function TreatmentSlotPicker({ sbEntries, ctbEntries, callToBookTreatments, onSbChange, onCtbChange, primaryGuestName }) {
   function addSb() {
     if (sbEntries.length >= 10) return;
-    onSbChange([...sbEntries, { date: "", serviceId: "", serviceName: "", time: "", staffId: "", staffName: "", price: 0, duration: 0, slots: [] }]);
+    onSbChange([...sbEntries, { date: "", serviceId: "", serviceName: "", time: "", staffId: "", staffName: "", price: 0, duration: 0, slots: [], guestName: primaryGuestName }]);
   }
 
   function removeSb(index) {
@@ -231,7 +257,7 @@ export default function TreatmentSlotPicker({ sbEntries, ctbEntries, callToBookT
 
   function addCtb() {
     if (ctbEntries.length >= 10) return;
-    onCtbChange([...ctbEntries, { id: "", name: "", price: 0, duration: 0, date: "", time: "" }]);
+    onCtbChange([...ctbEntries, { id: "", name: "", price: 0, duration: 0, date: "", time: "", guestName: primaryGuestName }]);
   }
 
   function removeCtb(index) {
@@ -255,7 +281,7 @@ export default function TreatmentSlotPicker({ sbEntries, ctbEntries, callToBookT
         <div className="flex items-center justify-between mb-3">
           <div>
             <label className={labelCls}>SimplyBook Treatments (Live Availability)</label>
-            <p className="text-xs text-[rgb(150,150,150)]">Pick a date → see what's available → choose time</p>
+            <p className="text-xs text-[rgb(150,150,150)]">Pick a date → see what's available → choose time. Add for each guest.</p>
           </div>
           <button
             type="button"
@@ -268,7 +294,7 @@ export default function TreatmentSlotPicker({ sbEntries, ctbEntries, callToBookT
         </div>
         <div className="space-y-3">
           {sbEntries.map((entry, i) => (
-            <SbSlotRow key={i} index={i} entry={entry} onUpdate={updateSb} onRemove={removeSb} />
+            <SbSlotRow key={i} index={i} entry={entry} onUpdate={updateSb} onRemove={removeSb} guestName={entry.guestName || primaryGuestName} />
           ))}
           {sbEntries.length === 0 && (
             <p className="text-xs text-[rgb(180,165,150)] italic">No SimplyBook treatments added yet.</p>
@@ -281,7 +307,7 @@ export default function TreatmentSlotPicker({ sbEntries, ctbEntries, callToBookT
         <div className="flex items-center justify-between mb-3">
           <div>
             <label className={labelCls}>Call-to-Book Treatments</label>
-            <p className="text-xs text-[rgb(150,150,150)]">Treatments requiring manual scheduling</p>
+            <p className="text-xs text-[rgb(150,150,150)]">Treatments requiring manual scheduling. Add for each guest.</p>
           </div>
           <button
             type="button"
@@ -294,7 +320,7 @@ export default function TreatmentSlotPicker({ sbEntries, ctbEntries, callToBookT
         </div>
         <div className="space-y-3">
           {ctbEntries.map((entry, i) => (
-            <CtbRow key={i} index={i} entry={entry} treatments={callToBookTreatments} onUpdate={updateCtb} onRemove={removeCtb} />
+            <CtbRow key={i} index={i} entry={entry} treatments={callToBookTreatments} onUpdate={updateCtb} onRemove={removeCtb} guestName={entry.guestName || primaryGuestName} />
           ))}
           {ctbEntries.length === 0 && (
             <p className="text-xs text-[rgb(180,165,150)] italic">No call-to-book treatments added yet.</p>
