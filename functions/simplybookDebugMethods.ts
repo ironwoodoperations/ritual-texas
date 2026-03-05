@@ -27,28 +27,26 @@ Deno.serve(async (req) => {
     const adminUrl = "https://user-api.simplybook.me/admin/";
     const tests = {};
 
-    // Try getClientList with various param formats
-    const r1 = await sbRPC(adminUrl, "getClientList", [], adminHeaders);
-    tests["getClientList_noargs_raw"] = r1?.error ? r1.error : "OK: " + JSON.stringify(r1?.result || r1).substring(0, 300);
+    // client ID 2 exists. Try book with different client ID formats
+    // book(event_id, unit_id, start_datetime, client_id)
+    // Try numeric vs string
+    const r1 = await sbRPC(adminUrl, "book", ["2", "2", "2026-03-15 10:00:00", 2], adminHeaders);
+    tests["book_clientInt"] = r1?.error ? r1.error : "OK: " + JSON.stringify(r1?.result || r1).substring(0, 300);
 
-    const r2 = await sbRPC(adminUrl, "getClientList", [null, null, 0, 5], adminHeaders);
-    tests["getClientList_paged_raw"] = r2?.error ? r2.error : "OK: " + JSON.stringify(r2?.result || r2).substring(0, 300);
+    const r2 = await sbRPC(adminUrl, "book", ["2", "2", "2026-03-15 10:00:00", "2"], adminHeaders);
+    tests["book_clientString"] = r2?.error ? r2.error : "OK: " + JSON.stringify(r2?.result || r2).substring(0, 300);
 
-    const r3 = await sbRPC(adminUrl, "getClientList", [{ search_string: "test@example.com" }, null, 0, 5], adminHeaders);
-    tests["getClientList_emailSearch_raw"] = r3?.error ? r3.error : "OK: " + JSON.stringify(r3?.result || r3).substring(0, 300);
+    // Try with client_id = 1 (real client SCOTT DEVORE)
+    const r3 = await sbRPC(adminUrl, "book", ["2", "2", "2026-03-15 10:00:00", "1"], adminHeaders);
+    tests["book_client1"] = r3?.error ? r3.error : "OK: " + JSON.stringify(r3?.result || r3).substring(0, 300);
 
-    // Try getClient (singular) with email
-    const r4 = await sbRPC(adminUrl, "getClient", [null, "test@example.com"], adminHeaders);
-    tests["getClient_byEmail"] = r4?.error ? r4.error : "OK: " + JSON.stringify(r4?.result || r4).substring(0, 300);
+    // Try addBook instead
+    const r4 = await sbRPC(adminUrl, "addBook", ["2", "2", "2026-03-15 10:00:00", "1"], adminHeaders);
+    tests["addBook"] = r4?.error ? r4.error : "OK: " + JSON.stringify(r4?.result || r4).substring(0, 300);
 
-    // Try addClient and capture the full error response
-    const r5 = await sbRPC(adminUrl, "addClient", [{ name: "Test Guest", email: "test@example.com", phone: "5550000000" }], adminHeaders);
-    tests["addClient_full"] = r5?.error ? r5.error : "OK: " + JSON.stringify(r5?.result || r5).substring(0, 300);
-
-    // The addClient error data field should contain the existing client ID
-    if (r5?.error?.data) {
-      tests["addClient_error_data"] = r5.error.data;
-    }
+    // book with extra params
+    const r5 = await sbRPC(adminUrl, "book", ["2", "2", "2026-03-15 10:00:00", 1, {}], adminHeaders);
+    tests["book_withEmptyExtra"] = r5?.error ? r5.error : "OK: " + JSON.stringify(r5?.result || r5).substring(0, 300);
 
     return Response.json(tests);
   } catch (e) {
