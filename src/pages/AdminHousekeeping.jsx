@@ -31,8 +31,10 @@ export default function AdminHousekeeping() {
   const [showAddTask, setShowAddTask] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [showAddNote, setShowAddNote] = useState(false);
+  const [showAddSpace, setShowAddSpace] = useState(false);
   const [newTask, setNewTask] = useState({ roomId: '', taskType: 'checkout', priority: 'normal', adminNotes: '', taskDate: today() });
   const [newNote, setNewNote] = useState({ scope: 'hotel', roomId: '', note: '', priority: 'normal' });
+  const [newSpace, setNewSpace] = useState({ name: '', description: '' });
   const qc = useQueryClient();
 
   const { data: tasks = [] } = useQuery({
@@ -65,15 +67,12 @@ export default function AdminHousekeeping() {
     queryFn: () => base44.entities.HkPublicSpace.list('sortOrder', 50),
   });
 
-  // Check if opening duties are complete for today
-  const { data: todayTasks = [] } = useQuery({
-    queryKey: ['hk-tasks-today', todayStrLocal()],
-    queryFn: () => base44.entities.HkTask.filter({ taskDate: todayStrLocal() }),
+  const { data: openingDuties = [] } = useQuery({
+    queryKey: ['hk-opening-duties'],
+    queryFn: () => base44.entities.HkTask.filter({ taskType: 'opening_duty', taskDate: today(), status: ['pending', 'in_progress'] }),
   });
 
-  const todayOpeningDuties = todayTasks.filter(t => t.taskType === 'opening_duty');
-  const openingDutiesComplete = todayOpeningDuties.length > 0 && todayOpeningDuties.every(t => t.status === 'completed');
-  const todayStrLocal = () => new Date().toISOString().split('T')[0];
+  const openingDutiesCompleted = openingDuties.every(t => t.status === 'completed');
 
   const createTaskMutation = useMutation({
     mutationFn: async (data) => {
@@ -102,16 +101,28 @@ export default function AdminHousekeeping() {
     onSuccess: () => qc.invalidateQueries(['hk-notes'])
   });
 
-  const filteredTasks = tasks.filter(t => {
-    // Block non-opening tasks if opening duties not complete
-    const isNonOpening = t.taskType !== 'opening_duty';
-    const isToday = t.taskDate === today();
-    if (isNonOpening && isToday && !openingDutiesComplete) return false;
+  const createSpaceMutation = useMutation({
+    mutationFn: (data) => base44.entities.HkPublicSpace.create(data),
+    onSuccess: () => { qc.invalidateQueries(['hk-public-spaces']); setShowAddSpace(false); setNewSpace({ name: '', description: '' }); }
+  });
 
+  const deleteSpaceMutation = useMutation({
+    mutationFn: (id) => base44.entities.HkPublicSpace.delete(id),
+    onSuccess: () => qc.invalidateQueries(['hk-public-spaces'])
+  });
+
+  // Check if opening duties block access
+  const canAccessOtherTasks = openingDutiesCompleted || openingDuties.length === 0;
+
+  const filteredTasks = tasks.filter(t => {
     if (tab === 'today') return t.taskDate === today() && t.status !== 'completed';
     if (tab === 'tomorrow') return t.taskDate === tomorrow();
     if (tab === 'open') return ['pending', 'in_progress', 'paused', 'needs_review'].includes(t.status);
     if (tab === 'completed') return t.status === 'completed';
+    return true;
+  }).filter(t => {
+    // Block non-opening tasks if opening duties incomplete
+    if (!canAccessOtherTasks && t.taskType !== 'opening_duty') return false;
     return true;
   });
 
@@ -136,6 +147,9 @@ export default function AdminHousekeeping() {
             <button onClick={() => setShowAddNote(true)} style={{ padding: '8px 14px', background: 'rgba(198,168,94,.1)', border: '1px solid rgba(198,168,94,.3)', borderRadius: '8px', color: '#C6A85E', cursor: 'pointer', fontSize: '13px', fontFamily: 'sans-serif' }}>
               + Note
             </button>
+            <button onClick={() => setShowAddSpace(true)} style={{ padding: '8px 14px', background: 'rgba(198,168,94,.1)', border: '1px solid rgba(198,168,94,.3)', borderRadius: '8px', color: '#C6A85E', cursor: 'pointer', fontSize: '13px', fontFamily: 'sans-serif' }}>
+              + Public Space
+            </button>
             <button onClick={() => setShowAddTask(true)} style={{ padding: '8px 16px', background: '#C6A85E', border: 'none', borderRadius: '8px', color: '#0C1C2C', cursor: 'pointer', fontWeight: 700, fontSize: '13px', fontFamily: 'sans-serif', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Plus size={14} /> Add Task
             </button>
@@ -147,13 +161,6 @@ export default function AdminHousekeeping() {
       </div>
 
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '20px' }}>
-        {/* Opening Duties Alert */}
-        {tab === 'today' && !openingDutiesComplete && (
-          <div style={{ marginBottom: '20px', background: 'rgba(220,100,100,.15)', border: '1px solid rgba(220,100,100,.4)', borderRadius: '10px', padding: '14px 16px', color: '#f08080', fontSize: '13px', fontFamily: 'sans-serif', fontWeight: 600 }}>
-            ⚠️ Opening duties must be completed before other tasks can be accessed today.
-          </div>
-        )}
-
         {/* Hotel-wide notes */}
         {hotelNotes.length > 0 && (
           <div style={{ marginBottom: '20px' }}>
@@ -180,6 +187,32 @@ export default function AdminHousekeeping() {
             </button>
           ))}
         </div>
+
+        {/* Opening duties warning */}
+        {openingDuties.length > 0 && !openingDutiesCompleted && (
+          <div style={{ background: 'rgba(255,180,0,.1)', border: '1px solid rgba(255,180,0,.4)', borderRadius: '12px', padding: '14px', marginBottom: '16px', color: '#FFB400', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+            <span style={{ fontSize: '20px', lineHeight: 1 }}>⚠️</span>
+            <div>
+              <p style={{ margin: '0 0 4px', fontWeight: 700, fontFamily: 'sans-serif' }}>Complete Opening Duties First</p>
+              <p style={{ margin: 0, fontSize: '13px', fontFamily: 'sans-serif', opacity: 0.8 }}>Other tasks are blocked until opening duties are complete.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Public Spaces list */}
+        {publicSpaces.length > 0 && (
+          <div style={{ marginBottom: '20px', padding: '12px', background: 'rgba(245,240,232,.04)', border: '1px solid rgba(198,168,94,.15)', borderRadius: '10px' }}>
+            <p style={{ color: '#C6A85E', fontSize: '11px', letterSpacing: '1px', margin: '0 0 8px', fontFamily: 'sans-serif', fontWeight: 700 }}>PUBLIC SPACES</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {publicSpaces.map(s => (
+                <span key={s.id} style={{ background: 'rgba(198,168,94,.15)', border: '1px solid rgba(198,168,94,.3)', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', color: '#C6A85E', fontFamily: 'sans-serif', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {s.name}
+                  <button onClick={() => deleteSpaceMutation.mutate(s.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8B6F47', fontSize: '12px' }}>×</button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Task cards */}
         {filteredTasks.length === 0 ? (
@@ -273,6 +306,31 @@ export default function AdminHousekeeping() {
                 <button onClick={() => setShowAddTask(false)} style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#9AA8B5', cursor: 'pointer', fontFamily: 'sans-serif' }}>Cancel</button>
                 <button onClick={() => createTaskMutation.mutate(newTask)} disabled={!newTask.roomId || createTaskMutation.isPending} style={{ flex: 2, padding: '10px', background: '#C6A85E', border: 'none', borderRadius: '8px', color: '#0C1C2C', cursor: 'pointer', fontWeight: 700, fontFamily: 'sans-serif', opacity: !newTask.roomId ? 0.5 : 1 }}>
                   {createTaskMutation.isPending ? 'Creating…' : 'Create Task'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Public Space Modal */}
+      {showAddSpace && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div style={{ background: '#132336', border: '1px solid rgba(198,168,94,.2)', borderRadius: '16px', padding: '28px', maxWidth: '400px', width: '100%' }}>
+            <h3 style={{ color: '#C6A85E', fontSize: '11px', letterSpacing: '3px', margin: '0 0 20px', fontFamily: 'sans-serif' }}>ADD PUBLIC SPACE</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>SPACE NAME *</label>
+                <input type="text" placeholder="Lobby, Dining Room, Hallway…" value={newSpace.name} onChange={e => setNewSpace(s => ({ ...s, name: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'sans-serif' }} />
+              </div>
+              <div>
+                <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>DESCRIPTION</label>
+                <textarea value={newSpace.description} onChange={e => setNewSpace(s => ({ ...s, description: e.target.value }))} placeholder="Optional notes…" rows={2} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'sans-serif' }} />
+              </div>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+                <button onClick={() => setShowAddSpace(false)} style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#9AA8B5', cursor: 'pointer', fontFamily: 'sans-serif' }}>Cancel</button>
+                <button onClick={() => createSpaceMutation.mutate(newSpace)} disabled={!newSpace.name || createSpaceMutation.isPending} style={{ flex: 2, padding: '10px', background: '#C6A85E', border: 'none', borderRadius: '8px', color: '#0C1C2C', cursor: 'pointer', fontWeight: 700, fontFamily: 'sans-serif', opacity: !newSpace.name ? 0.5 : 1 }}>
+                  {createSpaceMutation.isPending ? 'Adding…' : 'Add Space'}
                 </button>
               </div>
             </div>
