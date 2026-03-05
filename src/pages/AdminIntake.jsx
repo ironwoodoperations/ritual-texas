@@ -4,24 +4,13 @@ import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft, Plus, Search, ChevronDown, ChevronUp,
-  Save, CheckCircle2, Clock, Phone, Mail, MessageSquare, CreditCard, Loader2, Lock
+  Save, CheckCircle2, Clock, Phone, Mail, MessageSquare, CreditCard, Loader2, CalendarCheck
 } from "lucide-react";
+import TreatmentSlotPicker from "@/components/intake/TreatmentSlotPicker";
+import TherapistSection from "@/components/intake/TherapistSection";
 
-// ── Treatments hardcoded from Treatment entity ────────────────────────────────
-const DB_TREATMENTS = [
-  { id: "royal-facial", name: "The Royal Treatment Facial", duration: 60, price: 198 },
-  { id: "aura-glow", name: "Aura Glow", duration: 120, price: 250 },
-  { id: "shirodhara", name: "Shirodhara", duration: 60, price: 150 },
-  { id: "reiki-forgiveness-bowl", name: "Reiki Forgiveness Bowl", duration: 60, price: 75 },
-  { id: "reiki", name: "Reiki", duration: 60, price: 150 },
-  { id: "swedish-massage-90", name: "Swedish Massage (90 min)", duration: 90, price: 250 },
-  { id: "swedish-massage-60", name: "Swedish Massage (60 min)", duration: 60, price: 198 },
-  { id: "sound-bath-group", name: "Sound Bath Group", duration: 60, price: 20 },
-  { id: "sound-bath", name: "Sound Bath (Private)", duration: 60, price: 150 },
-  { id: "yoga", name: "Yoga (Private)", duration: 60, price: 60 },
-  { id: "parisian-scalp", name: "Parisian Scalp & Hair Treatment", duration: 45, price: 98 },
-  { id: "crystal-chakra", name: "Crystal Chakra Tuning", duration: 60, price: 125 },
-];
+// ─── Treatments that require call-to-book (loaded from DB) ───────────────────
+// booking_mode: call_to_book | call_and_info
 
 const STATUS_COLORS = {
   new_inquiry: "bg-blue-100 text-blue-700",
@@ -34,36 +23,41 @@ const STATUS_LABELS = {
   new_inquiry: "New Inquiry", pending: "Pending", confirmed: "Confirmed",
   declined: "Declined", archived: "Archived",
 };
+const THERAPIST_STATUS_LABELS = {
+  not_contacted: "Not Contacted",
+  contacted: "Contacted",
+  follow_up: "Follow Up",
+  approved: "✅ Approved",
+  declined: "❌ Declined",
+};
+const THERAPIST_STATUS_COLORS = {
+  not_contacted: "bg-gray-100 text-gray-500",
+  contacted: "bg-blue-100 text-blue-700",
+  follow_up: "bg-yellow-100 text-yellow-700",
+  approved: "bg-green-100 text-green-700",
+  declined: "bg-red-100 text-red-600",
+};
 
 const BLANK = {
   guestName: "", phone: "", email: "", preferredContactMethod: "phone",
   checkInDate: "", checkOutDate: "", numberOfGuests: 1, numberOfChildren: 0,
   cloudbedsRoomTypeId: "", flexibleOnRoom: false, hotelNotes: "",
-  selectedTreatments: [], preferredTreatmentDate: "", preferredTreatmentTime: "",
-  preferredTherapist: "", flexibleOnTime: false, treatmentsRequested: "",
+  selectedTreatments: [], callToBookTreatments: [],
+  treatmentsRequested: "",
+  therapistAssigned: "", therapistStatus: "not_contacted",
+  therapistFollowUpDate: "", therapistNotes: "",
   bookingStatus: "new_inquiry", followUpDate: "", internalNotes: "",
   ccName: "", ccLast4: "", ccExpiry: "", ccType: "", ccNotes: "",
 };
 
-// Shared styles
 const fieldCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transparent py-2 text-sm text-[rgb(45,45,45)] focus:outline-none focus:border-[rgb(107,85,64)] placeholder-[rgb(190,180,170)] transition-colors";
 const selectCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transparent py-2 text-sm text-[rgb(45,45,45)] focus:outline-none focus:border-[rgb(107,85,64)] transition-colors cursor-pointer";
 const labelCls = "block text-[10px] font-semibold tracking-widest text-[rgb(150,130,110)] uppercase mb-0.5";
 
-function NumSelect({ value, onChange, max = 20 }) {
+function NumSelect({ value, onChange, max = 20, start = 0 }) {
   return (
     <select value={value} onChange={e => onChange(parseInt(e.target.value))} className={selectCls}>
-      {Array.from({ length: max }, (_, i) => i).map(n => (
-        <option key={n} value={n}>{n}</option>
-      ))}
-    </select>
-  );
-}
-
-function NumSelect1({ value, onChange, max = 20 }) {
-  return (
-    <select value={value} onChange={e => onChange(parseInt(e.target.value))} className={selectCls}>
-      {Array.from({ length: max }, (_, i) => i + 1).map(n => (
+      {Array.from({ length: max }, (_, i) => i + start).map(n => (
         <option key={n} value={n}>{n}</option>
       ))}
     </select>
@@ -92,42 +86,53 @@ function Field({ label, children }) {
   );
 }
 
-// ── Long-scroll intake form ────────────────────────────────────────────────────
-function IntakeForm({ initial = BLANK, roomTypes = [], loading = false, onSave, onCancel }) {
-  // Normalize selectedTreatments: always work with objects internally
-  const normalizeInitial = (init) => {
-    const raw = init.selectedTreatments || [];
-    const normalized = raw.map(item => {
-      if (typeof item === "object") return item;
-      // It's a string name — find matching treatment
-      const match = DB_TREATMENTS.find(t => t.name === item || item.includes(t.name));
-      return match || { id: item, name: item, price: 0, duration: 0 };
-    });
-    return { ...BLANK, ...init, selectedTreatments: normalized };
-  };
+// Parse stored JSON treatment entries safely
+function parseTreatmentEntries(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr.map(item => {
+    if (typeof item === "object") return item;
+    try { return JSON.parse(item); } catch { return { name: item, price: 0 }; }
+  });
+}
 
-  const [form, setForm] = useState(() => normalizeInitial(initial));
+// ── Long-scroll intake form ────────────────────────────────────────────────────
+function IntakeForm({ initial = BLANK, roomTypes = [], callToBookTreatments = [], loadingRooms = false, onSave, onCancel }) {
+  const [form, setForm] = useState(() => ({
+    ...BLANK,
+    ...initial,
+    selectedTreatments: [],  // SB entries handled separately
+    callToBookTreatments: [],
+  }));
+  const [sbEntries, setSbEntries] = useState(() => parseTreatmentEntries(initial.selectedTreatments));
+  const [ctbEntries, setCtbEntries] = useState(() => parseTreatmentEntries(initial.callToBookTreatments));
   const [saving, setSaving] = useState(false);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  function toggleTreatment(t) {
-    const cur = form.selectedTreatments || [];
-    const exists = cur.find(s => s.id === t.id);
-    set("selectedTreatments", exists ? cur.filter(s => s.id !== t.id) : [...cur, t]);
-  }
-
   async function submit() {
     setSaving(true);
-    // Entity expects selectedTreatments as array of strings — store as "Name ($price)" for readability
-    // but pass the full objects via a parallel field for action buttons
     const payload = {
       ...form,
-      selectedTreatments: (form.selectedTreatments || []).map(t => typeof t === "object" ? t.name : t),
-      _selectedTreatmentsMeta: JSON.stringify(form.selectedTreatments || []),
+      // Store as JSON strings so entity (array of strings) is satisfied
+      selectedTreatments: sbEntries.filter(e => e.serviceName || e.name).map(e => JSON.stringify(e)),
+      callToBookTreatments: ctbEntries.filter(e => e.name).map(e => JSON.stringify(e)),
     };
     await onSave(payload);
     setSaving(false);
+  }
+
+  // Google Calendar deep link for follow-up date
+  function openGoogleCalendar() {
+    const date = form.followUpDate;
+    if (!date) return;
+    const [y, m, d] = date.split("-");
+    const start = `${y}${m}${d}`;
+    const title = encodeURIComponent(`Follow up: ${form.guestName} - Hotel RITUAL`);
+    const details = encodeURIComponent(`Guest: ${form.guestName}\nPhone: ${form.phone}\nEmail: ${form.email}`);
+    window.open(
+      `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${start}&details=${details}`,
+      "_blank"
+    );
   }
 
   return (
@@ -138,7 +143,7 @@ function IntakeForm({ initial = BLANK, roomTypes = [], loading = false, onSave, 
           <Field label="Guest Full Name *">
             <input placeholder="First Last" value={form.guestName} onChange={e => set("guestName", e.target.value)} className={fieldCls} />
           </Field>
-          <Field label="Email *">
+          <Field label="Email">
             <input placeholder="guest@email.com" value={form.email} onChange={e => set("email", e.target.value)} className={fieldCls} />
           </Field>
           <Field label="Phone">
@@ -164,13 +169,13 @@ function IntakeForm({ initial = BLANK, roomTypes = [], loading = false, onSave, 
             <input type="date" value={form.checkOutDate} onChange={e => set("checkOutDate", e.target.value)} className={fieldCls} />
           </Field>
           <Field label="Adults">
-            <NumSelect1 value={form.numberOfGuests} onChange={v => set("numberOfGuests", v)} />
+            <NumSelect value={form.numberOfGuests} onChange={v => set("numberOfGuests", v)} max={20} start={1} />
           </Field>
           <Field label="Children">
-            <NumSelect value={form.numberOfChildren || 0} onChange={v => set("numberOfChildren", v)} />
+            <NumSelect value={form.numberOfChildren || 0} onChange={v => set("numberOfChildren", v)} max={20} start={0} />
           </Field>
           <Field label="Room Type">
-            {loading ? (
+            {loadingRooms ? (
               <p className={fieldCls + " text-[rgb(170,155,140)]"}>Loading rooms…</p>
             ) : (
               <select value={form.cloudbedsRoomTypeId} onChange={e => set("cloudbedsRoomTypeId", e.target.value)} className={selectCls}>
@@ -193,57 +198,33 @@ function IntakeForm({ initial = BLANK, roomTypes = [], loading = false, onSave, 
         </div>
       </Section>
 
-      {/* Treatments — SimplyBook */}
-      <Section title="Spa & Wellness · SimplyBook">
-        <div className="mb-5">
-          <label className={labelCls}>Select Treatments</label>
-          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {DB_TREATMENTS.map(t => {
-              const selected = (form.selectedTreatments || []).some(s => s.id === t.id);
-              return (
-                <label key={t.id} className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${selected ? "border-[rgb(107,85,64)] bg-[rgb(252,248,244)]" : "border-[rgb(220,210,200)] hover:border-[rgb(180,160,140)]"}`}>
-                  <input type="checkbox" checked={selected} onChange={() => toggleTreatment(t)} className="accent-[rgb(107,85,64)] mt-0.5 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-sm text-[rgb(45,45,45)] leading-snug">{t.name}</p>
-                    <p className="text-xs text-[rgb(150,130,110)] mt-0.5">{t.duration} min · ${t.price}</p>
-                  </div>
-                </label>
-              );
-            })}
-          </div>
-          {(form.selectedTreatments || []).length > 0 && (
-            <p className="text-xs text-[rgb(107,85,64)] mt-2 font-semibold">
-              {form.selectedTreatments.length} treatment{form.selectedTreatments.length > 1 ? "s" : ""} selected ·
-              ${form.selectedTreatments.reduce((s, t) => s + (t.price || 0), 0)} total
-            </p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
-          <Field label="Preferred Treatment Date">
-            <input type="date" value={form.preferredTreatmentDate} onChange={e => set("preferredTreatmentDate", e.target.value)} className={fieldCls} />
+      {/* Treatments — SimplyBook + Call-to-book */}
+      <Section title="Spa & Wellness · Treatments">
+        <TreatmentSlotPicker
+          sbEntries={sbEntries}
+          ctbEntries={ctbEntries}
+          callToBookTreatments={callToBookTreatments}
+          onSbChange={setSbEntries}
+          onCtbChange={setCtbEntries}
+        />
+        <div className="mt-5">
+          <Field label="Additional Treatment Notes">
+            <textarea placeholder="Injuries, sensitivities, preferences…" value={form.treatmentsRequested} onChange={e => set("treatmentsRequested", e.target.value)} className={fieldCls + " resize-none h-16"} />
           </Field>
-          <Field label="Preferred Time">
-            <input type="time" value={form.preferredTreatmentTime} onChange={e => set("preferredTreatmentTime", e.target.value)} className={fieldCls} />
-          </Field>
-          <Field label="Preferred Therapist">
-            <input placeholder="Name or 'No preference'" value={form.preferredTherapist} onChange={e => set("preferredTherapist", e.target.value)} className={fieldCls} />
-          </Field>
-          <Field label="Flexible on Time?">
-            <label className="flex items-center gap-2 mt-2 cursor-pointer text-sm text-[rgb(45,45,45)]">
-              <input type="checkbox" checked={form.flexibleOnTime} onChange={e => set("flexibleOnTime", e.target.checked)} className="accent-[rgb(107,85,64)]" />
-              Yes, flexible
-            </label>
-          </Field>
-          <div className="sm:col-span-2">
-            <Field label="Treatment Notes">
-              <textarea placeholder="Injuries, sensitivities, preferences…" value={form.treatmentsRequested} onChange={e => set("treatmentsRequested", e.target.value)} className={fieldCls + " resize-none h-16"} />
-            </Field>
-          </div>
         </div>
       </Section>
 
-      {/* Internal */}
+      {/* Therapist Pipeline */}
+      <Section title="Therapist Outreach · Pipeline">
+        <TherapistSection
+          form={form}
+          onChange={set}
+          sbEntries={sbEntries}
+          ctbEntries={ctbEntries}
+        />
+      </Section>
+
+      {/* Internal Notes & Status */}
       <Section title="Internal Notes & Status">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
           <Field label="Booking Status">
@@ -255,9 +236,20 @@ function IntakeForm({ initial = BLANK, roomTypes = [], loading = false, onSave, 
               <option value="archived">Archived</option>
             </select>
           </Field>
-          <Field label="Follow-Up Date">
-            <input type="date" value={form.followUpDate} onChange={e => set("followUpDate", e.target.value)} className={fieldCls} />
-          </Field>
+          <div>
+            <Field label="Follow-Up Date">
+              <input type="date" value={form.followUpDate} onChange={e => set("followUpDate", e.target.value)} className={fieldCls} />
+            </Field>
+            {form.followUpDate && (
+              <button
+                type="button"
+                onClick={openGoogleCalendar}
+                className="flex items-center gap-1.5 text-xs text-[rgb(150,170,155)] hover:text-[rgb(107,85,64)] mt-1.5 transition-colors"
+              >
+                <CalendarCheck className="w-3.5 h-3.5" /> Add to Google Calendar
+              </button>
+            )}
+          </div>
           <div className="sm:col-span-2">
             <Field label="Internal Notes">
               <textarea placeholder="Internal notes for the team…" value={form.internalNotes} onChange={e => set("internalNotes", e.target.value)} className={fieldCls + " resize-none h-24"} />
@@ -334,8 +326,23 @@ function ActionBtn({ label, actionKey, completed, actioning, onClick, variant = 
   );
 }
 
+// Expand record treatments for display (parse JSON strings)
+function renderTreatments(arr, color = "bg-[rgb(240,235,228)] text-[rgb(107,85,64)]") {
+  if (!Array.isArray(arr) || arr.length === 0) return null;
+  return arr.map((item, i) => {
+    let label = item;
+    try {
+      const obj = typeof item === "string" ? JSON.parse(item) : item;
+      label = `${obj.serviceName || obj.name || "Treatment"}${obj.date ? ` · ${obj.date}` : ""}${obj.time ? ` @ ${obj.time}` : ""}${obj.price ? ` · $${obj.price}` : ""}`;
+    } catch {}
+    return (
+      <span key={i} className={`text-xs px-2 py-0.5 rounded-full ${color}`}>{label}</span>
+    );
+  });
+}
+
 // ── Intake record card ────────────────────────────────────────────────────────
-function IntakeCard({ record, onUpdate, roomTypes, loadingRooms }) {
+function IntakeCard({ record, onUpdate, roomTypes, loadingRooms, callToBookTreatments }) {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [actioning, setActioning] = useState(null);
@@ -360,11 +367,18 @@ function IntakeCard({ record, onUpdate, roomTypes, loadingRooms }) {
     setEditing(false);
   }
 
+  // Build intake data enriched with parsed treatment objects for backend
+  function buildIntakeForAction() {
+    const sbParsed = parseTreatmentEntries(record.selectedTreatments || []);
+    const ctbParsed = parseTreatmentEntries(record.callToBookTreatments || []);
+    return { ...record, _sbEntries: sbParsed, _ctbEntries: ctbParsed };
+  }
+
   async function runAction(type) {
     setActioning(type);
     setActionMsg(null);
     try {
-      const intakeData = { ...record };
+      const intakeData = buildIntakeForAction();
 
       if (type === "SendQuote") {
         if (!intakeData.email) { setActionMsg({ success: false, text: "Guest email required." }); setActioning(null); return; }
@@ -381,9 +395,11 @@ function IntakeCard({ record, onUpdate, roomTypes, loadingRooms }) {
         else { markCompleted("BookHotel"); setActionMsg({ success: true, text: res.data?.message || "Hotel booked!" }); setTimeout(() => { setActionMsg(null); onUpdate(); }, 5000); }
 
       } else if (type === "BookTreatments") {
-        if (!intakeData.selectedTreatments?.length) { setActionMsg({ success: false, text: "No treatments selected." }); setActioning(null); return; }
-        if (!intakeData.preferredTreatmentDate) { setActionMsg({ success: false, text: "Preferred treatment date required." }); setActioning(null); return; }
-        const res = await base44.functions.invoke("intakeBookTreatments", { intake: intakeData });
+        const sbParsed = parseTreatmentEntries(record.selectedTreatments || []);
+        if (!sbParsed.length) { setActionMsg({ success: false, text: "No SimplyBook treatments selected." }); setActioning(null); return; }
+        const res = await base44.functions.invoke("intakeBookTreatments", {
+          intake: { ...intakeData, selectedTreatments: sbParsed }
+        });
         if (res.data?.error) setActionMsg({ success: false, text: res.data.error, detail: JSON.stringify(res.data, null, 2) });
         else { markCompleted("BookTreatments"); setActionMsg({ success: true, text: res.data?.message || "Treatments booked!" }); setTimeout(() => setActionMsg(null), 5000); }
 
@@ -412,7 +428,8 @@ function IntakeCard({ record, onUpdate, roomTypes, loadingRooms }) {
     record.preferredContactMethod === "text" ? <MessageSquare className="w-3 h-3" /> : <Phone className="w-3 h-3" />;
 
   const hasHotel = record.checkInDate && record.checkOutDate;
-  const hasTreatments = Array.isArray(record.selectedTreatments) && record.selectedTreatments.length > 0;
+  const hasSbTreatments = Array.isArray(record.selectedTreatments) && record.selectedTreatments.length > 0;
+  const hasCtbTreatments = Array.isArray(record.callToBookTreatments) && record.callToBookTreatments.length > 0;
 
   return (
     <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl overflow-hidden">
@@ -423,13 +440,20 @@ function IntakeCard({ record, onUpdate, roomTypes, loadingRooms }) {
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[record.bookingStatus] || "bg-gray-100 text-gray-600"}`}>
               {STATUS_LABELS[record.bookingStatus] || record.bookingStatus}
             </span>
+            {record.therapistStatus && record.therapistStatus !== "not_contacted" && (
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${THERAPIST_STATUS_COLORS[record.therapistStatus]}`}>
+                🧘 {THERAPIST_STATUS_LABELS[record.therapistStatus]}
+              </span>
+            )}
             {hasHotel && <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">🏨 Hotel</span>}
-            {hasTreatments && <span className="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full">✨ {record.selectedTreatments.length} tx</span>}
+            {hasSbTreatments && <span className="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full">✨ {record.selectedTreatments.length} tx</span>}
+            {hasCtbTreatments && <span className="text-xs bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full">📞 {record.callToBookTreatments.length} ctb</span>}
           </div>
           <div className="flex items-center gap-3 mt-1 text-xs text-[rgb(120,120,120)] flex-wrap">
             {record.phone && <a href={`sms:${record.phone}`} onClick={e => e.stopPropagation()} className="flex items-center gap-1 text-[rgb(107,85,64)] hover:underline">{contactIcon} {record.phone}</a>}
             {record.checkInDate && <span>{record.checkInDate} → {record.checkOutDate}</span>}
             {record.followUpDate && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {record.followUpDate}</span>}
+            {record.therapistAssigned && <span className="text-[rgb(150,170,155)]">🧘 {record.therapistAssigned}</span>}
           </div>
         </div>
         {expanded ? <ChevronUp className="w-4 h-4 text-[rgb(150,150,150)] shrink-0 mt-1" /> : <ChevronDown className="w-4 h-4 text-[rgb(150,150,150)] shrink-0 mt-1" />}
@@ -438,7 +462,7 @@ function IntakeCard({ record, onUpdate, roomTypes, loadingRooms }) {
       {expanded && (
         <div className="border-t border-[rgb(235,225,213)] px-5 py-5 bg-[rgb(250,248,245)]">
           {editing ? (
-            <IntakeForm initial={record} roomTypes={roomTypes} loading={loadingRooms} onSave={save} onCancel={() => setEditing(false)} />
+            <IntakeForm initial={record} roomTypes={roomTypes} loadingRooms={loadingRooms} callToBookTreatments={callToBookTreatments} onSave={save} onCancel={() => setEditing(false)} />
           ) : (
             <div className="space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
@@ -446,19 +470,33 @@ function IntakeCard({ record, onUpdate, roomTypes, loadingRooms }) {
                 {record.phone && <div><p className="text-[10px] text-[rgb(150,130,110)] uppercase tracking-widest font-semibold">Phone</p><a href={`sms:${record.phone}`} className="text-[rgb(107,85,64)] hover:underline">{record.phone}</a></div>}
                 {record.numberOfGuests && <div><p className="text-[10px] text-[rgb(150,130,110)] uppercase tracking-widest font-semibold">Adults</p><p>{record.numberOfGuests}</p></div>}
                 {record.checkInDate && <div><p className="text-[10px] text-[rgb(150,130,110)] uppercase tracking-widest font-semibold">Dates</p><p>{record.checkInDate} → {record.checkOutDate}</p></div>}
-                {record.preferredTreatmentDate && <div><p className="text-[10px] text-[rgb(150,130,110)] uppercase tracking-widest font-semibold">Tx Date</p><p>{record.preferredTreatmentDate} {record.preferredTreatmentTime}</p></div>}
-                {record.preferredTherapist && <div><p className="text-[10px] text-[rgb(150,130,110)] uppercase tracking-widest font-semibold">Therapist</p><p>{record.preferredTherapist}</p></div>}
-                {hasTreatments && (
+                {record.therapistAssigned && (
+                  <div><p className="text-[10px] text-[rgb(150,130,110)] uppercase tracking-widest font-semibold">Therapist</p>
+                    <p>{record.therapistAssigned}</p>
+                    <p className={`text-xs font-medium mt-0.5 ${THERAPIST_STATUS_COLORS[record.therapistStatus]?.replace("bg-","").replace("100","") || ""}`}>
+                      {THERAPIST_STATUS_LABELS[record.therapistStatus || "not_contacted"]}
+                    </p>
+                  </div>
+                )}
+
+                {hasSbTreatments && (
                   <div className="col-span-2 sm:col-span-3">
-                    <p className="text-[10px] text-[rgb(150,130,110)] uppercase tracking-widest font-semibold mb-1">Treatments</p>
+                    <p className="text-[10px] text-[rgb(150,130,110)] uppercase tracking-widest font-semibold mb-1">SimplyBook Treatments</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {record.selectedTreatments.map(t => (
-                        <span key={t.id || t.name} className="text-xs bg-[rgb(240,235,228)] text-[rgb(107,85,64)] px-2 py-0.5 rounded-full">{t.name || t}</span>
-                      ))}
+                      {renderTreatments(record.selectedTreatments)}
+                    </div>
+                  </div>
+                )}
+                {hasCtbTreatments && (
+                  <div className="col-span-2 sm:col-span-3">
+                    <p className="text-[10px] text-[rgb(150,130,110)] uppercase tracking-widest font-semibold mb-1">Call-to-Book Treatments</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {renderTreatments(record.callToBookTreatments, "bg-purple-50 text-purple-700")}
                     </div>
                   </div>
                 )}
                 {record.internalNotes && <div className="col-span-2 sm:col-span-3 bg-white rounded-xl p-3 border border-[rgb(220,210,200)]"><p className="text-[10px] text-[rgb(150,130,110)] uppercase tracking-widest font-semibold mb-1">Notes</p><p className="whitespace-pre-wrap text-sm">{record.internalNotes}</p></div>}
+                {record.therapistNotes && <div className="col-span-2 sm:col-span-3 bg-[rgb(245,250,246)] rounded-xl p-3 border border-[rgb(210,230,215)]"><p className="text-[10px] text-[rgb(100,150,110)] uppercase tracking-widest font-semibold mb-1">Therapist Notes</p><p className="whitespace-pre-wrap text-sm">{record.therapistNotes}</p></div>}
                 {record.ccLast4 && <div className="col-span-2 sm:col-span-3 border border-[rgb(220,210,200)] rounded-xl p-3 flex items-center gap-3"><CreditCard className="w-4 h-4 text-[rgb(150,150,150)] shrink-0" /><span className="text-sm">{record.ccType && `${record.ccType} · `}•••• {record.ccLast4}{record.ccExpiry && ` · ${record.ccExpiry}`}{record.ccName && ` · ${record.ccName}`}</span></div>}
               </div>
 
@@ -474,7 +512,7 @@ function IntakeCard({ record, onUpdate, roomTypes, loadingRooms }) {
                 <div className="flex flex-wrap gap-2">
                   {hasHotel && <ActionBtn label="📧 Send Square Quote" actionKey="SendQuote" completed={completed} actioning={actioning} onClick={() => runAction("SendQuote")} variant="primary" />}
                   {hasHotel && <ActionBtn label="🏨 Book in Cloudbeds" actionKey="BookHotel" completed={completed} actioning={actioning} onClick={() => runAction("BookHotel")} />}
-                  {hasTreatments && <ActionBtn label="✨ Book in SimplyBook" actionKey="BookTreatments" completed={completed} actioning={actioning} onClick={() => runAction("BookTreatments")} />}
+                  {hasSbTreatments && <ActionBtn label="✨ Book in SimplyBook" actionKey="BookTreatments" completed={completed} actioning={actioning} onClick={() => runAction("BookTreatments")} />}
                   <ActionBtn label="👤 Add to CRM" actionKey="AddToCRM" completed={completed} actioning={actioning} onClick={() => runAction("AddToCRM")} />
                   <button onClick={() => setEditing(true)} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-xs text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]">Edit</button>
                 </div>
@@ -501,6 +539,7 @@ export default function AdminIntake() {
   const [showNew, setShowNew] = useState(false);
   const [roomTypes, setRoomTypes] = useState([]);
   const [loadingRooms, setLoadingRooms] = useState(true);
+  const [callToBookTreatments, setCallToBookTreatments] = useState([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -511,9 +550,18 @@ export default function AdminIntake() {
 
   useEffect(() => {
     load();
+    // Load room types from Cloudbeds
     base44.functions.invoke("getIntakeFormData", {}).then(res => {
       if (res.data?.cloudbeds?.roomTypes) setRoomTypes(res.data.cloudbeds.roomTypes);
     }).catch(() => {}).finally(() => setLoadingRooms(false));
+    // Load call-to-book treatments from Treatment entity
+    base44.entities.Treatment.list("sort_order", 100).then(all => {
+      const ctb = all.filter(t =>
+        t.is_available !== false &&
+        (t.booking_mode === "call_to_book" || t.booking_mode === "call_and_info")
+      );
+      setCallToBookTreatments(ctb);
+    }).catch(() => {});
   }, [load]);
 
   async function createNew(form) {
@@ -557,7 +605,7 @@ export default function AdminIntake() {
         {showNew && (
           <div className="bg-[rgb(252,250,247)] border border-[rgb(220,210,200)] rounded-2xl p-6 shadow-sm">
             <h2 className="text-base font-medium text-[rgb(107,85,64)] mb-6" style={{ fontFamily: "Georgia, serif" }}>New Guest Intake</h2>
-            <IntakeForm roomTypes={roomTypes} loading={loadingRooms} onSave={createNew} onCancel={() => setShowNew(false)} />
+            <IntakeForm roomTypes={roomTypes} loadingRooms={loadingRooms} callToBookTreatments={callToBookTreatments} onSave={createNew} onCancel={() => setShowNew(false)} />
           </div>
         )}
 
@@ -583,7 +631,7 @@ export default function AdminIntake() {
           <div className="text-center py-12 text-sm text-[rgb(150,150,150)]">{records.length === 0 ? "No intakes yet — tap New Intake." : "No matches."}</div>
         ) : (
           <div className="space-y-3">
-            {filtered.map(r => <IntakeCard key={r.id} record={r} onUpdate={load} roomTypes={roomTypes} loadingRooms={loadingRooms} />)}
+            {filtered.map(r => <IntakeCard key={r.id} record={r} onUpdate={load} roomTypes={roomTypes} loadingRooms={loadingRooms} callToBookTreatments={callToBookTreatments} />)}
           </div>
         )}
       </div>
