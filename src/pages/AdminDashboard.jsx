@@ -175,6 +175,30 @@ function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa
           </div>
         </Link>
       </div>
+      {/* Quick Links Row */}
+      <div className="mt-4 pt-4 border-t border-[rgb(235,225,213)] flex gap-2 flex-wrap">
+        <a href="https://simplybook.me/en/?ref=googleads_us_brand" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/9c8b32fe8_download3.png" alt="SimplyBook" className="w-5 h-5" />
+        </a>
+        <a href="https://www.optimum.net" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/31abe4610_download1.jpeg" alt="Optimum" className="w-5 h-5" />
+        </a>
+        <a href="https://loman.ai" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/3fe6aa7ba_download.jpeg" alt="Loman AI" className="w-5 h-5" />
+        </a>
+        <a href="https://www.cloudbeds.com" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/a3efecc1b_download1.png" alt="Cloudbeds" className="w-5 h-5" />
+        </a>
+        <a href="https://www.sonos.com/en-us/shop?utm_campaign=rta_sonos_search_us_brand_core&utm_medium=cpc&utm_source=google&utm_content=rta_sonos_search_us_brand_core&utm_term=sonos&gclsrc=aw.ds&gad_source=1&gad_campaignid=23593370564&gbraid=0AAAAADo4HCepZTd3hBezW1pERk96txMXt&gclid=Cj0KCQiA8KTNBhD_ARIsAOvp6DJXkmdLxUo2BXCSXR08H6syL8EMOGhmjNAqsrZ8Ozmgx-_JfbbwEDYaAjAsEALw_wcB" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/74431a740_download2.png" alt="Sonos" className="w-5 h-5" />
+        </a>
+        <a href="https://www.toasttab.com/restaurants/admin/home" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/40f320a3a_download.png" alt="Toast" className="w-5 h-5" />
+        </a>
+        <a href="https://squareup.com/us/en" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/1bcdee3bb_images.jpeg" alt="Square" className="w-5 h-5" />
+        </a>
+      </div>
     </div>
   );
 }
