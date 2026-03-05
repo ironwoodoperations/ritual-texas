@@ -117,7 +117,7 @@ export default function TherapistSection({ form, onChange, sbEntries, ctbEntries
         {/* Text message button */}
         <div className="flex flex-col justify-end">
           <label className={labelCls}>Quick Text</label>
-          {selectedTherapist ? (
+          {selectedTherapist?.phone ? (
             <button
               type="button"
               onClick={openSmsToTherapist}
@@ -126,6 +126,8 @@ export default function TherapistSection({ form, onChange, sbEntries, ctbEntries
               <MessageSquare className="w-4 h-4" />
               Text {selectedTherapist.name}
             </button>
+          ) : selectedTherapist ? (
+            <p className="text-xs text-[rgb(180,165,150)] py-2 italic">No phone number on file in SimplyBook</p>
           ) : (
             <p className="text-xs text-[rgb(180,165,150)] py-2 italic">Assign a therapist to enable quick text</p>
           )}
