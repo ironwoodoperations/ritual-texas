@@ -5,7 +5,7 @@ const fieldCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transpar
 const selectCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transparent py-2 text-sm text-[rgb(45,45,45)] focus:outline-none focus:border-[rgb(107,85,64)] transition-colors cursor-pointer";
 const labelCls = "block text-[10px] font-semibold tracking-widest text-[rgb(150,130,110)] uppercase mb-0.5";
 
-// Known therapists — update name/phone as needed
+// ⚠️ UPDATE these with your actual therapist names and phone numbers
 const THERAPISTS = [
   { name: "Sarah", phone: "9031234567", specialty: "Massage & Reiki" },
   { name: "Maya", phone: "9037654321", specialty: "Facials & Body" },
