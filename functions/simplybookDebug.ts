@@ -11,16 +11,7 @@ Deno.serve(async (req) => {
     const adminLogin = Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
     const adminPassword = Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
 
-    // 1. User token
-    const userTokenResp = await fetch("https://user-api.simplybook.me/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getToken", params: [company, apiKey] }),
-    });
-    const userTokenJson = await userTokenResp.json();
-    const userToken = userTokenJson?.result;
-
-    // 2. Admin token
+    // Admin token
     const adminTokenResp = await fetch("https://user-api.simplybook.me/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -29,31 +20,26 @@ Deno.serve(async (req) => {
     const adminTokenJson = await adminTokenResp.json();
     const adminToken = adminTokenJson?.result;
 
-    // 3. Get event list with user token
-    const eventsResp = await fetch("https://user-api.simplybook.me", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Company-Login": company, "X-Token": userToken },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getEventList", params: [] }),
-    });
-    const eventsJson = await eventsResp.json();
+    const adminHeaders = { "Content-Type": "application/json", "X-Company-Login": company, "X-User-Token": adminToken };
 
-    // 4. Try getClientList via admin
-    let clientListResult = null;
-    if (adminToken) {
-      const clResp = await fetch("https://user-api.simplybook.me/admin/", {
+    // Try different booking method names on the admin endpoint
+    const methodsToTry = ["book", "addBooking", "createBooking", "makeBooking", "bookAppointment"];
+    const results = {};
+
+    for (const method of methodsToTry) {
+      const r = await fetch("https://user-api.simplybook.me/admin/", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Company-Login": company, "X-User-Token": adminToken },
-        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getClientList", params: [] }),
+        headers: adminHeaders,
+        body: JSON.stringify({
+          jsonrpc: "2.0", id: 1, method,
+          params: ["2", "2", "2026-03-10 10:00:00", "1", null],
+        }),
       });
-      clientListResult = await clResp.json();
+      const j = await r.json();
+      results[method] = j?.error ? `Error ${j.error.code}: ${j.error.message}` : JSON.stringify(j?.result);
     }
 
-    return Response.json({
-      userToken: userToken ? "OK" : userTokenJson?.error,
-      adminToken: adminToken ? "OK" : adminTokenJson?.error,
-      services: eventsJson,
-      clientList: clientListResult,
-    });
+    return Response.json({ adminToken: !!adminToken, results });
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 });
   }
