@@ -149,6 +149,7 @@ Deno.serve(async (req) => {
       startDate,
       endDate,
       adults: String(adults),
+      children: "0",
       rooms: roomsPayload,
     });
     if (guestPhone) params.set("guestPhone", guestPhone);
