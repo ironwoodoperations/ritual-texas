@@ -162,12 +162,6 @@ export default function AdminBookings() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <a href="https://www.cloudbeds.com" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-2 py-2 hover:bg-[rgb(248,246,242)] transition-all">
-              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/a3efecc1b_download1.png" alt="Cloudbeds" className="w-5 h-5" />
-            </a>
-            <a href="https://squareup.com/us/en" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-2 py-2 hover:bg-[rgb(248,246,242)] transition-all">
-              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/1bcdee3bb_images.jpeg" alt="Square" className="w-5 h-5" />
-            </a>
             <Link
               to={createPageUrl('AdminCreateReservation')}
               className="flex items-center gap-2 px-3 py-2 text-sm bg-[rgb(150,170,155)] text-white rounded-lg hover:bg-[rgb(130,150,135)]"
