@@ -119,9 +119,12 @@ Deno.serve(async (req) => {
       const treatmentName = typeof treatment === "object" ? treatment.name : treatment;
       const explicitId = typeof treatment === "object" ? treatment.id : null;
       const needle = String(treatmentName || "").toLowerCase();
-      const svc = services.find((s) =>
-        String(s.name || "").toLowerCase().includes(needle) || needle.includes(String(s.name || "").toLowerCase())
-      );
+      // Match by explicit SimplyBook ID first, then by name
+      const svc = explicitId
+        ? services.find(s => String(s.id || s.service_id) === String(explicitId))
+        : services.find((s) =>
+            String(s.name || "").toLowerCase().includes(needle) || needle.includes(String(s.name || "").toLowerCase())
+          );
 
       if (!svc) {
         errors.push(`Service not found in SimplyBook: "${treatmentName}"`);
