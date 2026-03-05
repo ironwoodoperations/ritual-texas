@@ -39,67 +39,6 @@ function fmtMoney(n) {
   return `$${Number(n).toFixed(0)}`;
 }
 
-// ─── Whitney Focus Panel ─────────────────────────────────────────────────────
-function WhitneyFocusPanel({ todayStr }) {
-  const queryClient = useQueryClient();
-  const { data: tasks = [], refetch } = useQuery({
-    queryKey: ["ops-tasks", todayStr],
-    queryFn: async () => {
-      const rows = await base44.entities.OpsTask.filter({ dueDate: todayStr });
-      const open = rows.filter((t) => t.status !== "done");
-      const done = rows.filter((t) => t.status === "done");
-      const pr = (p) => (p === "high" ? 0 : p === "normal" ? 1 : 2);
-      open.sort((a, b) => pr(a.priority) - pr(b.priority));
-      return [...open, ...done];
-    },
-  });
-
-  async function buildToday() {
-    await base44.functions.invoke("ops_build_daily_tasks", {});
-    refetch();
-  }
-
-  async function markDone(taskId) {
-    await base44.functions.invoke("ops_mark_task_done", { taskId });
-    refetch();
-  }
-
-  const priorityColor = (p) => p === "high" ? "text-red-500" : p === "normal" ? "text-[rgb(150,170,155)]" : "text-[rgb(180,180,180)]";
-
-  return (
-    <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-4">
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <div>
-          <div className="text-sm font-medium text-[rgb(45,45,45)]">Whitney Focus · Today</div>
-          <div className="text-xs text-[rgb(150,150,150)]">Tap Done — no sticky notes</div>
-        </div>
-        <button onClick={buildToday} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-colors">
-          Build Today
-        </button>
-      </div>
-      <div className="grid gap-2">
-        {tasks.map((t) => (
-          <div key={t.id} className={`flex items-start justify-between gap-3 rounded-xl border px-3 py-2 ${t.status === "done" ? "opacity-50" : ""}`}>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-[rgb(45,45,45)] truncate">{t.status === "done" ? "✅ " : ""}{t.title}</div>
-              {t.notes && <div className="text-xs text-[rgb(120,120,120)] mt-0.5 leading-snug">{t.notes}</div>}
-              <div className={`text-[11px] mt-1 font-medium ${priorityColor(t.priority)}`}>{t.category} · {t.priority}</div>
-            </div>
-            {t.status !== "done" ? (
-              <button onClick={() => markDone(t.id)} className="shrink-0 px-3 py-1.5 rounded-xl border border-[rgb(235,225,213)] text-xs text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-colors">
-                Done
-              </button>
-            ) : <div className="text-xs text-[rgb(180,180,180)] shrink-0">Done</div>}
-          </div>
-        ))}
-        {tasks.length === 0 && (
-          <div className="text-sm text-[rgb(150,150,150)]">No tasks yet — tap <b>Build Today</b>.</div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ─── Intake Panel ─────────────────────────────────────────────────────────────
 function IntakePanel({ intakeForms, intakeNewInquiries }) {
   const allIntakes = [...intakeNewInquiries, ...intakeForms];
