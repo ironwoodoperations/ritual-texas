@@ -456,6 +456,19 @@ export default function AdminDashboard() {
 
 
 
+        {/* Quick Links Row */}
+        <div className="flex gap-3 mb-8">
+          <a href="https://simplybook.me/en/?ref=googleads_us_brand" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/9c8b32fe8_download3.png" alt="SimplyBook" className="w-6 h-6" />
+          </a>
+          <a href="https://www.optimum.net" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/31abe4610_download1.jpeg" alt="Optimum" className="w-6 h-6" />
+          </a>
+          <a href="https://loman.ai" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/3fe6aa7ba_download.jpeg" alt="Loman AI" className="w-6 h-6" />
+          </a>
+        </div>
+
         {/* Section nav tiles */}
         {sections.map((section, si) => (
           <div key={section.title} className="mb-8">
