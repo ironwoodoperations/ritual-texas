@@ -36,12 +36,133 @@ function fmtDate(s) {
   try { return format(new Date(s), 'MMM d, yyyy'); } catch { return s; }
 }
 
+// ─── Invoice Detail Modal ─────────────────────────────────────────────────────
+function InvoiceDetailModal({ inv, onClose, onRefresh }) {
+  const [loading, setLoading] = useState('');
+  const [msg, setMsg] = useState(null);
+
+  const doAction = async (action, extra = {}) => {
+    setLoading(action);
+    setMsg(null);
+    const res = await base44.functions.invoke('squareInvoiceActions', { action, invoiceId: inv.id, version: inv.version, ...extra });
+    setLoading('');
+    if (res.data?.success) {
+      setMsg({ ok: true, text: action === 'send' ? 'Email sent!' : action === 'cancel' ? 'Invoice cancelled.' : action === 'delete' ? 'Deleted.' : 'Done.' });
+      onRefresh();
+      if (action === 'delete') setTimeout(onClose, 1200);
+    } else {
+      setMsg({ ok: false, text: res.data?.error || 'Something went wrong.' });
+    }
+  };
+
+  const canSend = ['UNPAID', 'PARTIALLY_PAID', 'SCHEDULED', 'DRAFT'].includes(inv.status);
+  const canCancel = ['UNPAID', 'PARTIALLY_PAID', 'SCHEDULED'].includes(inv.status);
+  const canDelete = ['DRAFT', 'CANCELED', 'CANCELLED'].includes(inv.status);
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-[rgb(107,85,64)] font-light">Invoice #{inv.invoiceNumber}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          {/* Info */}
+          <div className="bg-[rgb(248,246,242)] rounded-xl p-4 space-y-1.5">
+            <div className="flex justify-between text-sm">
+              <span className="text-[rgb(150,150,150)]">Customer</span>
+              <span className="font-medium text-[rgb(45,45,45)]">{inv.recipientName || '—'}</span>
+            </div>
+            {inv.recipientEmail && (
+              <div className="flex justify-between text-sm">
+                <span className="text-[rgb(150,150,150)]">Email</span>
+                <span className="text-[rgb(45,45,45)]">{inv.recipientEmail}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-sm">
+              <span className="text-[rgb(150,150,150)]">Status</span>
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[inv.status] || 'bg-gray-100 text-gray-600'}`}>{inv.status?.replace('_', ' ')}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-[rgb(150,150,150)]">Amount</span>
+              <span className="font-semibold text-[rgb(107,85,64)]">{fmtMoney(inv.amountDue)}</span>
+            </div>
+            {inv.amountPaid > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-[rgb(150,150,150)]">Paid</span>
+                <span className="text-green-600 font-medium">{fmtMoney(inv.amountPaid)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-sm">
+              <span className="text-[rgb(150,150,150)]">Due</span>
+              <span className="text-[rgb(45,45,45)]">{fmtDate(inv.dueDate)}</span>
+            </div>
+          </div>
+
+          {/* Payment link */}
+          {inv.publicUrl && (
+            <div className="flex gap-2">
+              <input readOnly value={inv.publicUrl} className="flex-1 text-xs border border-[rgb(235,225,213)] rounded-lg px-3 py-2 bg-white font-mono truncate" />
+              <button onClick={() => navigator.clipboard.writeText(inv.publicUrl)} className="shrink-0 px-3 py-2 border border-[rgb(235,225,213)] rounded-lg text-xs hover:bg-[rgb(248,246,242)] flex items-center gap-1">
+                <Copy className="w-3 h-3" /> Copy
+              </button>
+              <a href={inv.publicUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 px-3 py-2 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] flex items-center">
+                <ExternalLink className="w-4 h-4 text-[rgb(107,85,64)]" />
+              </a>
+            </div>
+          )}
+
+          {msg && (
+            <div className={`text-sm px-4 py-2 rounded-xl ${msg.ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+              {msg.text}
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex flex-col gap-2">
+            {canSend && (
+              <button
+                onClick={() => doAction('send')}
+                disabled={!!loading}
+                className="flex items-center justify-center gap-2 w-full py-2.5 bg-[rgb(150,170,155)] text-white rounded-xl text-sm font-medium hover:bg-[rgb(130,150,135)] transition-all disabled:opacity-60"
+              >
+                {loading === 'send' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                Resend Invoice Email
+              </button>
+            )}
+            {canCancel && (
+              <button
+                onClick={() => { if (confirm('Cancel this invoice? This cannot be undone.')) doAction('cancel'); }}
+                disabled={!!loading}
+                className="flex items-center justify-center gap-2 w-full py-2.5 border border-orange-300 text-orange-700 rounded-xl text-sm font-medium hover:bg-orange-50 transition-all disabled:opacity-60"
+              >
+                {loading === 'cancel' ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
+                Cancel Invoice
+              </button>
+            )}
+            {canDelete && (
+              <button
+                onClick={() => { if (confirm('Permanently delete this invoice?')) doAction('delete'); }}
+                disabled={!!loading}
+                className="flex items-center justify-center gap-2 w-full py-2.5 border border-red-300 text-red-600 rounded-xl text-sm font-medium hover:bg-red-50 transition-all disabled:opacity-60"
+              >
+                {loading === 'delete' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                Delete Invoice
+              </button>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── Invoice List Tab ─────────────────────────────────────────────────────────
 function InvoiceList() {
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('outstanding');
   const [search, setSearch] = useState('');
+  const [selectedInv, setSelectedInv] = useState(null);
 
   const handleSearch = (val) => {
     setSearch(val);
