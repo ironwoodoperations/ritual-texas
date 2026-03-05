@@ -296,25 +296,44 @@ export default function AdminSpaSchedule() {
           )}
       </div>
 
-      {/* Book New Treatment Box */}
-      {showBookingWidget && (
-        <div style={{ marginTop: '24px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px' }}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Book New Treatment</h2>
-            <button
-              onClick={() => setShowBookingWidget(false)}
-              style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#999' }}
-            >
-              ×
-            </button>
-          </div>
-          <iframe 
-            src="https://ritualtexas.simplybook.me" 
-            style={{ width: '100%', height: '600px', border: 'none', borderRadius: '4px' }}
-            title="Book Treatment"
-          />
+      {/* Provider Tip Links */}
+      <div style={{ marginTop: '24px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px' }}>
+        <h2 style={{ fontSize: '18px', fontWeight: '600', margin: '0 0 16px 0' }}>Provider Tip Links</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <a href="https://square.link/u/RjHBTMQP" target="_blank" rel="noopener noreferrer" className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors">
+            <div style={{ fontWeight: '600', fontSize: '15px', marginBottom: '4px', color: '#2d2d2d' }}>Bishop</div>
+            <div style={{ fontSize: '12px', color: '#666' }}>square.link/u/RjHBTMQP</div>
+          </a>
+          <a href="https://square.link/u/6A73E4eT" target="_blank" rel="noopener noreferrer" className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors">
+            <div style={{ fontWeight: '600', fontSize: '15px', marginBottom: '4px', color: '#2d2d2d' }}>Whitney</div>
+            <div style={{ fontSize: '12px', color: '#666' }}>square.link/u/6A73E4eT</div>
+          </a>
+          <a href="https://square.link/u/PVPH7ZFj" target="_blank" rel="noopener noreferrer" className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors">
+            <div style={{ fontWeight: '600', fontSize: '15px', marginBottom: '4px', color: '#2d2d2d' }}>Tanita</div>
+            <div style={{ fontSize: '12px', color: '#666' }}>square.link/u/PVPH7ZFj</div>
+          </a>
         </div>
-      )}
+      </div>
+
+       {/* Book New Treatment Box */}
+       {showBookingWidget && (
+         <div style={{ marginTop: '24px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px' }}>
+           <div className="flex items-center justify-between mb-4">
+             <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Book New Treatment</h2>
+             <button
+               onClick={() => setShowBookingWidget(false)}
+               style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#999' }}
+             >
+               ×
+             </button>
+           </div>
+           <iframe 
+             src="https://ritualtexas.simplybook.me" 
+             style={{ width: '100%', height: '600px', border: 'none', borderRadius: '4px' }}
+             title="Book Treatment"
+           />
+         </div>
+       )}
 
           <style>{`
           @media print {
