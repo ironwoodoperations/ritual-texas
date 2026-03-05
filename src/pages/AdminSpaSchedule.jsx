@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Printer, Download, RefreshCw, Sparkles, ArrowLeft, Send } from 'lucide-react';
+import { Printer, Download, RefreshCw, Sparkles, ArrowLeft, Send, Calendar } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import SpaCalendar from '@/components/spa/SpaCalendar';
 import { Link } from 'react-router-dom';
@@ -35,6 +35,62 @@ export default function AdminSpaSchedule() {
   const [allStaff, setAllStaff] = useState([]);
   const [tipModal, setTipModal] = useState(null);
   const [tipLink, setTipLink] = useState('');
+  const [showBookingWidget, setShowBookingWidget] = useState(false);
+
+  useEffect(() => {
+    if (showBookingWidget) {
+      const script = document.createElement('script');
+      script.src = '//widget.simplybook.me/v2/widget/widget.js';
+      script.type = 'text/javascript';
+      script.async = true;
+      script.onload = () => {
+        window.SimplybookWidget = window.SimplybookWidget || function() {};
+        if (window.SimplybookWidget && typeof window.SimplybookWidget === 'function') {
+          try {
+            new window.SimplybookWidget({
+              widget_type: 'iframe',
+              url: 'https://ritualtexas.simplybook.me',
+              theme: 'emeri',
+              theme_settings: {
+                timeline_hide_unavailable: '1',
+                hide_past_days: '0',
+                timeline_show_end_time: '0',
+                timeline_modern_display: 'as_slots',
+                sb_base_color: '#836055',
+                display_item_mode: 'block',
+                booking_nav_bg_color: '#ffffff',
+                body_bg_color: '#f7f7f7',
+                sb_review_image: '',
+                dark_font_color: '#443936',
+                light_font_color: '#ffffff',
+                btn_color_1: '#a1776a',
+                sb_company_label_color: '#896d65',
+                hide_img_mode: '0',
+                sb_busy: '#c7b3b3',
+                sb_available: '#e2eaec'
+              },
+              timeline: 'modern',
+              datepicker: 'top_calendar',
+              is_rtl: false,
+              app_config: {
+                clear_session: 0,
+                allow_switch_to_ada: 0,
+                predefined: []
+              }
+            });
+          } catch (e) {
+            console.error('Failed to initialize SimplyBook widget:', e);
+          }
+        }
+      };
+      document.body.appendChild(script);
+      return () => {
+        if (document.body.contains(script)) {
+          document.body.removeChild(script);
+        }
+      };
+    }
+  }, [showBookingWidget]);
 
   const load = async () => {
     setLoading(true);
@@ -187,15 +243,19 @@ export default function AdminSpaSchedule() {
         </Button>
 
         <div className="ml-auto flex gap-2">
-          <Button onClick={() => window.print()} variant="outline" className="flex items-center gap-2">
-            <Printer className="w-4 h-4" />
-            Print Day Sheet
-          </Button>
-          <Button onClick={handleExportICS} className="flex items-center gap-2" style={{ backgroundColor: '#3B4831', color: 'white' }}>
-            <Download className="w-4 h-4" />
-            Export ICS
-          </Button>
-        </div>
+           <Button onClick={() => setShowBookingWidget(true)} className="flex items-center gap-2" style={{ backgroundColor: '#836055', color: 'white' }}>
+             <Calendar className="w-4 h-4" />
+             Book New Treatment
+           </Button>
+           <Button onClick={() => window.print()} variant="outline" className="flex items-center gap-2">
+             <Printer className="w-4 h-4" />
+             Print Day Sheet
+           </Button>
+           <Button onClick={handleExportICS} className="flex items-center gap-2" style={{ backgroundColor: '#3B4831', color: 'white' }}>
+             <Download className="w-4 h-4" />
+             Export ICS
+           </Button>
+         </div>
       </div>
 
       {/* Day header (shows on print) */}
@@ -297,6 +357,16 @@ export default function AdminSpaSchedule() {
           body { background: white !important; }
         }
       `}</style>
+
+      {/* Book New Treatment Modal */}
+      <Dialog open={showBookingWidget} onOpenChange={setShowBookingWidget}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="text-[rgb(107,85,64)]">Book New Treatment</DialogTitle>
+          </DialogHeader>
+          <div className="w-full" id="simplybook-widget-container" style={{ minHeight: '600px' }} />
+        </DialogContent>
+      </Dialog>
 
       {/* Tip Request Modal */}
       <Dialog open={!!tipModal} onOpenChange={() => { setTipModal(null); setTipLink(''); }}>
