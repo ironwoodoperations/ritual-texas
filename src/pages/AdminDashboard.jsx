@@ -149,6 +149,9 @@ function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa
         <a href="https://simplybook.me/en/?ref=googleads_us_brand" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
           <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/9c8b32fe8_download3.png" alt="SimplyBook" className="w-6 h-6" />
         </a>
+        <a href="https://www.optimum.net" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/31abe4610_download1.jpeg" alt="Optimum" className="w-6 h-6" />
+        </a>
       </div>
     </div>
   );
