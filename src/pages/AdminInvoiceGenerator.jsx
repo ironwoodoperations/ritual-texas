@@ -101,15 +101,24 @@ function InvoiceDetailModal({ inv, onClose, onRefresh }) {
           {/* Payment link */}
           {inv.publicUrl && (
             <div className="flex gap-2">
-              <input readOnly value={inv.publicUrl} className="flex-1 text-xs border border-[rgb(235,225,213)] rounded-lg px-3 py-2 bg-white font-mono truncate" />
-              <button onClick={() => navigator.clipboard.writeText(inv.publicUrl)} className="shrink-0 px-3 py-2 border border-[rgb(235,225,213)] rounded-lg text-xs hover:bg-[rgb(248,246,242)] flex items-center gap-1">
-                <Copy className="w-3 h-3" /> Copy
-              </button>
-              <a href={inv.publicUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 px-3 py-2 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] flex items-center">
-                <ExternalLink className="w-4 h-4 text-[rgb(107,85,64)]" />
+              <a href={inv.publicUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm text-[rgb(107,85,64)] hover:bg-[rgb(248,246,242)] transition-all font-medium">
+                <ExternalLink className="w-4 h-4" /> Open Payment Page
               </a>
+              <button onClick={() => { navigator.clipboard.writeText(inv.publicUrl); }} className="flex items-center justify-center gap-2 px-4 py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm text-[rgb(107,85,64)] hover:bg-[rgb(248,246,242)] transition-all font-medium">
+                <Copy className="w-4 h-4" /> Copy Link
+              </button>
             </div>
           )}
+
+          {/* Edit in Square */}
+          <a
+            href="https://squareup.com/dashboard/invoices"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm text-[rgb(150,150,150)] hover:bg-[rgb(248,246,242)] transition-all"
+          >
+            <Pencil className="w-4 h-4" /> Edit Invoice in Square Dashboard
+          </a>
 
           {msg && (
             <div className={`text-sm px-4 py-2 rounded-xl ${msg.ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
