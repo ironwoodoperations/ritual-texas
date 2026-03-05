@@ -329,16 +329,24 @@ function NewInvoice({ rooms, treatments, packages }) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [taxes, setTaxes] = useState({
-    stateTax: false,
-    cityTax: false,
-    hotelTax: false,
-  });
-  const [taxRates] = useState({
-    stateTax: 6.25,
-    cityTax: 2,
-    hotelTax: 15,
-  });
+  // Sales Tax (applies to retail items)
+  const SALES_TAXES = [
+    { key: 'sales_state',  label: 'State of Texas',                       rate: 6.25 },
+    { key: 'sales_city',   label: 'City of Jacksonville',                  rate: 1.00 },
+    { key: 'sales_jedc',   label: 'Jacksonville Economic Development (JEDC)', rate: 0.50 },
+    { key: 'sales_county', label: 'Cherokee County',                       rate: 0.50 },
+  ];
+  // Hotel Occupancy Tax (applies to hotel/room stays)
+  const HOTEL_TAXES = [
+    { key: 'hotel_state',  label: 'State of Texas',          rate: 6.00, note: 'Applies to stays $15+/day.' },
+    { key: 'hotel_city',   label: 'City of Jacksonville',    rate: 7.00, note: 'General municipal hotel tax.' },
+    { key: 'hotel_venue',  label: 'Jacksonville Venue Tax',  rate: 2.00, note: 'Voter-approved civic projects.' },
+  ];
+  const ALL_TAXES = [...SALES_TAXES, ...HOTEL_TAXES];
+
+  const [taxes, setTaxes] = useState(
+    Object.fromEntries(ALL_TAXES.map(t => [t.key, false]))
+  );
 
   const setItem = (idx, key, val) => {
     setLineItems(items => items.map((it, i) => i === idx ? { ...it, [key]: val } : it));
