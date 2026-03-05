@@ -18,35 +18,52 @@ Deno.serve(async (req) => {
     const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
     const adminLogin = Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
     const adminPassword = Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
+    const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
 
-    const tokenResp = await sbRPC("https://user-api.simplybook.me/login", "getUserToken", [company, adminLogin, adminPassword]);
-    const adminToken = tokenResp?.result;
-    if (!adminToken) return Response.json({ error: "No admin token", tokenResp });
+    const adminTokenResp = await sbRPC("https://user-api.simplybook.me/login", "getUserToken", [company, adminLogin, adminPassword]);
+    const adminToken = adminTokenResp?.result;
 
-    const adminHeaders = { "X-Company-Login": company, "X-User-Token": adminToken };
+    const userTokenResp = await sbRPC("https://user-api.simplybook.me/login", "getToken", [company, apiKey]);
+    const userToken = userTokenResp?.result;
+
     const adminUrl = "https://user-api.simplybook.me/admin/";
+    const userUrl = "https://user-api.simplybook.me";
+    
     const tests = {};
+    tests["adminToken"] = adminToken ? adminToken.substring(0, 15) + "..." : "FAILED";
+    tests["userToken"] = userToken ? userToken.substring(0, 15) + "..." : "FAILED";
 
-    // client ID 2 exists. Try book with different client ID formats
-    // book(event_id, unit_id, start_datetime, client_id)
-    // Try numeric vs string
-    const r1 = await sbRPC(adminUrl, "book", ["2", "2", "2026-03-15 10:00:00", 2], adminHeaders);
-    tests["book_clientInt"] = r1?.error ? r1.error : "OK: " + JSON.stringify(r1?.result || r1).substring(0, 300);
+    // Try getClient by ID to see if client ID 1 is valid via admin
+    const adminHeaders = { "X-Company-Login": company, "X-User-Token": adminToken };
+    const r1 = await sbRPC(adminUrl, "getClient", ["1"], adminHeaders);
+    tests["getClient_1_admin"] = r1?.error ? r1.error : "OK: " + JSON.stringify(r1?.result || r1).substring(0, 200);
 
-    const r2 = await sbRPC(adminUrl, "book", ["2", "2", "2026-03-15 10:00:00", "2"], adminHeaders);
-    tests["book_clientString"] = r2?.error ? r2.error : "OK: " + JSON.stringify(r2?.result || r2).substring(0, 300);
+    // Try getClientList (returns array with id, name, email) - get raw result
+    const clientListRaw = await sbRPC(adminUrl, "getClientList", [], adminHeaders);
+    const clients = Array.isArray(clientListRaw?.result) ? clientListRaw.result : 
+                    Array.isArray(clientListRaw) ? clientListRaw : 
+                    Object.values(clientListRaw?.result || clientListRaw || {});
+    tests["clients"] = clients.slice(0, 3).map(c => ({ id: c.id, name: c.name, email: c.email }));
 
-    // Try with client_id = 1 (real client SCOTT DEVORE)
-    const r3 = await sbRPC(adminUrl, "book", ["2", "2", "2026-03-15 10:00:00", "1"], adminHeaders);
-    tests["book_client1"] = r3?.error ? r3.error : "OK: " + JSON.stringify(r3?.result || r3).substring(0, 300);
+    // The "Client with given id not found" means the book method uses a DIFFERENT client
+    // system than what getClientList shows. Let's check if the admin book method needs 
+    // the client to be in a separate "clients" vs "visitors" store
+    // Try creating a NEW client (different email) and booking
+    const testEmail = `debugtest_${Date.now()}@example.com`;
+    const newClientResp = await sbRPC(adminUrl, "addClient", [{ name: "Debug Test", email: testEmail }], adminHeaders);
+    tests["newClient"] = newClientResp?.error ? newClientResp.error : "OK: " + JSON.stringify(newClientResp?.result || newClientResp).substring(0, 200);
+    
+    const newClientId = newClientResp?.result?.id || String(newClientResp?.result || "");
+    tests["newClientId"] = newClientId;
 
-    // Try addBook instead
-    const r4 = await sbRPC(adminUrl, "addBook", ["2", "2", "2026-03-15 10:00:00", "1"], adminHeaders);
-    tests["addBook"] = r4?.error ? r4.error : "OK: " + JSON.stringify(r4?.result || r4).substring(0, 300);
-
-    // book with extra params
-    const r5 = await sbRPC(adminUrl, "book", ["2", "2", "2026-03-15 10:00:00", 1, {}], adminHeaders);
-    tests["book_withEmptyExtra"] = r5?.error ? r5.error : "OK: " + JSON.stringify(r5?.result || r5).substring(0, 300);
+    if (newClientId && !newClientId.includes("error")) {
+      // Try booking with the fresh client ID
+      const bookResp = await sbRPC(adminUrl, "book", ["2", "2", "2026-03-15 10:00:00", newClientId], adminHeaders);
+      tests["book_newClient"] = bookResp?.error ? bookResp.error : "BOOKED: " + JSON.stringify(bookResp?.result || bookResp).substring(0, 200);
+      tests["book_newClientInt"] = null;
+      const bookResp2 = await sbRPC(adminUrl, "book", ["2", "2", "2026-03-15 10:00:00", parseInt(newClientId)], adminHeaders);
+      tests["book_newClientInt"] = bookResp2?.error ? bookResp2.error : "BOOKED: " + JSON.stringify(bookResp2?.result || bookResp2).substring(0, 200);
+    }
 
     return Response.json(tests);
   } catch (e) {
