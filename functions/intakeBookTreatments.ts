@@ -37,7 +37,6 @@ Deno.serve(async (req) => {
 
     if (!guestName || !guestEmail) return Response.json({ error: "Guest name and email required" }, { status: 400 });
     if (!Array.isArray(intake?.selectedTreatments) || !intake.selectedTreatments.length) return Response.json({ error: "No treatments selected" }, { status: 400 });
-    if (!clean(intake?.preferredTreatmentDate)) return Response.json({ error: "Preferred treatment date is required" }, { status: 400 });
 
     const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
     const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
