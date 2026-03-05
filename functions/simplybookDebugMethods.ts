@@ -15,46 +15,33 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (user?.role !== "admin") return Response.json({ error: "Admin only" }, { status: 403 });
 
-    const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
     const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
+    const adminLogin = Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
+    const adminPassword = Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
 
-    // Step 1: get token
-    const loginResp = await sbRPC("https://user-api.simplybook.me/login", "getToken", [company, apiKey]);
+    // Admin API token (different from user API)
+    const loginResp = await sbRPC("https://user-api.simplybook.me/admin/login", "getToken", [company, adminLogin, adminPassword]);
     const token = loginResp?.result;
-    if (!token) return Response.json({ error: "No token", loginResp });
+    if (!token) return Response.json({ error: "No admin token", loginResp });
 
     const sbHeaders = { "X-Company-Login": company, "X-Token": token };
+    const adminUrl = "https://user-api.simplybook.me/admin";
 
-    // Test various client-related method names
     const tests = {};
 
-    // Try getClientByEmail
-    const r1 = await sbRPC("https://user-api.simplybook.me", "getClientByEmail", ["test@example.com"], sbHeaders);
-    tests["getClientByEmail"] = r1;
+    // Test client methods on admin API
+    const r1 = await sbRPC(adminUrl, "getClientList", [null, null, 0, 1], sbHeaders);
+    tests["getClientList"] = r1?.result ? "OK: " + JSON.stringify(r1.result).substring(0, 200) : r1?.error;
 
-    // Try findClient
-    const r2 = await sbRPC("https://user-api.simplybook.me", "findClient", [{ email: "test@example.com" }], sbHeaders);
-    tests["findClient"] = r2;
+    // Test createClient
+    const r2 = await sbRPC(adminUrl, "createClient", [{ name: "Test Debug", email: "debugtest@example.com" }], sbHeaders);
+    tests["createClient"] = r2?.result ? "OK: " + JSON.stringify(r2.result).substring(0, 200) : r2?.error;
 
-    // Try getClientList with no args
-    const r3 = await sbRPC("https://user-api.simplybook.me", "getClientList", [], sbHeaders);
-    tests["getClientList_noargs"] = r3;
+    // Test book on admin
+    const r3 = await sbRPC(adminUrl, "book", ["1", "1", "2026-03-10 10:00:00", "1", {}], sbHeaders);
+    tests["book_admin"] = r3?.result ? "OK" : r3?.error;
 
-    // Try book method names
-    const r4 = await sbRPC("https://user-api.simplybook.me", "addBooking", ["1", "1", "2026-03-10 10:00:00", "1", {}], sbHeaders);
-    tests["addBooking"] = r4?.error || r4?.result;
-
-    const r5 = await sbRPC("https://user-api.simplybook.me", "book", ["1", "1", "2026-03-10 10:00:00", "1", {}], sbHeaders);
-    tests["book"] = r5?.error || r5?.result;
-
-    const r6 = await sbRPC("https://user-api.simplybook.me", "createBooking", ["1", "1", "2026-03-10 10:00:00", "1", {}], sbHeaders);
-    tests["createBooking"] = r6?.error || r6?.result;
-
-    // Try createClient 
-    const r7 = await sbRPC("https://user-api.simplybook.me", "createClient", [{ name: "Test", email: "test@example.com" }], sbHeaders);
-    tests["createClient"] = r7?.error || r7?.result;
-
-    return Response.json({ token: token.substring(0, 10) + "...", tests });
+    return Response.json({ adminToken: token.substring(0, 10) + "...", tests });
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 });
   }
