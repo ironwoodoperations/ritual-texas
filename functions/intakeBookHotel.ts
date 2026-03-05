@@ -119,6 +119,20 @@ Deno.serve(async (req) => {
     if (!accessToken) throw new Error("Cloudbeds not connected. Please complete OAuth setup.");
     if (!propertyId) throw new Error("Cloudbeds property ID not configured.");
 
+    // Fetch available rooms to get a valid roomID
+    let roomID = intake.cloudbedsRoomId || intake.roomID || "";
+    if (!roomID && !roomTypeID) {
+      // Try to find available rooms for the dates
+      const availResp = await fetch(
+        `https://hotels.cloudbeds.com/api/v1.1/getAvailableRoomTypes?propertyID=${propertyId}&startDate=${startDate}&endDate=${endDate}`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      const availJson = await availResp.json();
+      const firstType = availJson?.data?.[0];
+      if (firstType?.roomTypeID) roomTypeID = firstType.roomTypeID;
+      if (firstType?.rooms?.[0]?.roomID) roomID = firstType.rooms[0].roomID;
+    }
+
     const params = new URLSearchParams({
       propertyID: propertyId,
       guestFirstName,
@@ -131,6 +145,7 @@ Deno.serve(async (req) => {
     if (guestPhone) params.set("guestPhone", guestPhone);
     if (notes) params.set("notes", notes);
     if (roomTypeID) params.set("roomTypeID", roomTypeID);
+    if (roomID) params.set("roomID", roomID);
 
     let result = await doPostReservation(accessToken, propertyId, params);
 
