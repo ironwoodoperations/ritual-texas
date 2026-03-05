@@ -89,24 +89,45 @@ Deno.serve(async (req) => {
       lineItems[0].name = `${intake.roomRequested} - ${nights} night${nights === 1 ? "" : "s"} (${checkIn} to ${checkOut})`;
     }
 
-    // Treatment line items with price lookup
+    // SimplyBook treatment line items (stored as JSON strings)
     const selected = Array.isArray(intake?.selectedTreatments) ? intake.selectedTreatments : [];
-    for (const tName of selected) {
-      const name = clean(tName);
-      if (!name) continue;
-      let price = 0;
+    for (const item of selected) {
+      let name = "", price = 0, date = "", time = "";
       try {
-        const found = await base44.asServiceRole.entities.Treatment.filter({ name: name.split(" ")[0] });
-        if (found?.[0]?.price) price = Number(found[0].price);
-        else {
-          // Try by name prefix match
-          const all = await base44.asServiceRole.entities.Treatment.list();
-          const match = all.find(t => name.toLowerCase().includes(t.name.toLowerCase()) || t.name.toLowerCase().includes(name.split(" ")[0].toLowerCase()));
-          if (match?.price) price = Number(match.price);
-        }
-      } catch { /* ignore */ }
+        const obj = typeof item === "string" ? JSON.parse(item) : item;
+        name = clean(obj.serviceName || obj.name || "Treatment");
+        price = Number(obj.price || 0);
+        date = obj.date || "";
+        time = obj.time || "";
+      } catch {
+        name = clean(item);
+      }
+      if (!name) continue;
+      const label = name + (date ? ` — ${date}` : "") + (time ? ` at ${time}` : "");
       lineItems.push({
-        name,
+        name: label,
+        quantity: "1",
+        base_price_money: { amount: Math.round(price * 100), currency: "USD" },
+      });
+    }
+
+    // Call-to-book treatment line items (also JSON strings)
+    const ctbSelected = Array.isArray(intake?.callToBookTreatments) ? intake.callToBookTreatments : [];
+    for (const item of ctbSelected) {
+      let name = "", price = 0, date = "", time = "";
+      try {
+        const obj = typeof item === "string" ? JSON.parse(item) : item;
+        name = clean(obj.name || "Treatment");
+        price = Number(obj.price || 0);
+        date = obj.date || "";
+        time = obj.time || "";
+      } catch {
+        name = clean(item);
+      }
+      if (!name) continue;
+      const label = name + (date ? ` — ${date}` : "") + (time ? ` at ${time}` : "") + " (call-to-book)";
+      lineItems.push({
+        name: label,
         quantity: "1",
         base_price_money: { amount: Math.round(price * 100), currency: "USD" },
       });
