@@ -6,19 +6,10 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (user?.role !== "admin") return Response.json({ error: "Admin only" }, { status: 403 });
 
-    const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
     const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
     const adminLogin = Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
     const adminPassword = Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
 
-    // User token (public API)
-    const userToken = (await (await fetch("https://user-api.simplybook.me/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getToken", params: [company, apiKey] }),
-    })).json())?.result;
-
-    // Admin token
     const adminToken = (await (await fetch("https://user-api.simplybook.me/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -26,28 +17,22 @@ Deno.serve(async (req) => {
     })).json())?.result;
 
     const adminHeaders = { "Content-Type": "application/json", "X-Company-Login": company, "X-User-Token": adminToken };
-    const userHeaders = { "Content-Type": "application/json", "X-Company-Login": company, "X-Token": userToken };
 
-    // Try addClient with email on admin
-    const addWithEmailResp = await fetch("https://user-api.simplybook.me/admin/", {
+    // book using admin token with client_id="3" (the one we just created)
+    const book1 = await (await fetch("https://user-api.simplybook.me/admin/", {
       method: "POST",
       headers: adminHeaders,
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "addClient", params: [{ name: "Hotel RITUAL Guest", email: "guest@hotelritual.com", phone: "9035550000" }] }),
-    });
-    const addWithEmail = await addWithEmailResp.json();
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "book", params: ["2", "2", "2026-03-10 10:00:00", "3", null] }),
+    })).json();
 
-    // Try book using user token (public booking)
-    const userBookResp = await fetch("https://user-api.simplybook.me", {
+    // Also try with integer IDs
+    const book2 = await (await fetch("https://user-api.simplybook.me/admin/", {
       method: "POST",
-      headers: userHeaders,
-      body: JSON.stringify({
-        jsonrpc: "2.0", id: 1, method: "book",
-        params: ["2", "2", "2026-03-10 10:00:00", null, { name: "Test Admin Book", email: "test@hotelritual.com", phone: "9035550001" }],
-      }),
-    });
-    const userBook = await userBookResp.json();
+      headers: adminHeaders,
+      body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "book", params: [2, 2, "2026-03-10 10:00:00", 3, null] }),
+    })).json();
 
-    return Response.json({ addWithEmail, userBook });
+    return Response.json({ adminToken: !!adminToken, book_string_ids: book1, book_int_ids: book2 });
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 });
   }
