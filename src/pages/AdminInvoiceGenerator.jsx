@@ -6,7 +6,7 @@ import { base44 } from '@/api/base44Client';
 import {
   ArrowLeft, Plus, Trash2, Loader2, CheckCircle2, ExternalLink,
   Copy, RefreshCw, FileText, DollarSign, AlertCircle, Clock, Search,
-  Send, X, Mail
+  Send, X, Mail, Pencil
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
