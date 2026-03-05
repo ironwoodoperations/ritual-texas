@@ -297,6 +297,14 @@ function InvoiceList() {
           </div>
         )}
       </div>
+
+      {selectedInv && (
+        <InvoiceDetailModal
+          inv={selectedInv}
+          onClose={() => setSelectedInv(null)}
+          onRefresh={refresh}
+        />
+      )}
     </div>
   );
 }
