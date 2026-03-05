@@ -265,8 +265,8 @@ function InvoiceList() {
         {displayed.map(inv => (
           <div 
             key={inv.id} 
-            onClick={() => inv.publicUrl && window.open(inv.publicUrl, '_blank')}
-            className={`bg-white border border-[rgb(235,225,213)] rounded-xl px-4 py-3 ${inv.publicUrl ? 'cursor-pointer hover:border-[rgb(150,170,155)] hover:shadow-md transition-all' : ''}`}
+            onClick={() => setSelectedInv(inv)}
+            className="bg-white border border-[rgb(235,225,213)] rounded-xl px-4 py-3 cursor-pointer hover:border-[rgb(150,170,155)] hover:shadow-md transition-all"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
@@ -288,19 +288,7 @@ function InvoiceList() {
                 <div className="text-xs text-[rgb(150,150,150)] mt-0.5">Due {fmtDate(inv.dueDate)}</div>
               </div>
             </div>
-            {inv.publicUrl && (
-              <div className="mt-2 flex items-center gap-2">
-                <span className="text-xs text-[rgb(150,170,155)] flex items-center gap-1">
-                  <ExternalLink className="w-3 h-3" /> Click to open payment link
-                </span>
-                <button
-                  onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(inv.publicUrl); }}
-                  className="text-xs text-[rgb(150,150,150)] hover:text-[rgb(107,85,64)] flex items-center gap-1"
-                >
-                  <Copy className="w-3 h-3" /> Copy
-                </button>
-              </div>
-            )}
+            <div className="mt-1.5 text-xs text-[rgb(150,170,155)]">Tap to manage →</div>
           </div>
         ))}
         {displayed.length === 0 && (
