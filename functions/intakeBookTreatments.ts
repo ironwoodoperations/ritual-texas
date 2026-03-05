@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
 
       let sbBookingId = null;
       try {
-        const bookingResult = await sbRPC("https://user-api.simplybook.me", "book", [
+        const bookingResult = await sbRPC("https://user-api.simplybook.me", "addBooking", [
           String(svc.id),
           useStaffId ? String(useStaffId) : null,
           startDateTime,
