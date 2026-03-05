@@ -61,21 +61,27 @@ export default function TherapistSection({ form, onChange, sbEntries, ctbEntries
         {/* Therapist selector */}
         <div>
           <label className={labelCls}>Assign Therapist</label>
-          <select
-            value={form.therapistAssigned || ""}
-            onChange={e => onChange("therapistAssigned", e.target.value)}
-            className={selectCls}
-          >
-            <option value="">No therapist assigned</option>
-            {THERAPISTS.map(t => (
-              <option key={t.name} value={t.name}>
-                {t.name} — {t.specialty}
-              </option>
-            ))}
-          </select>
-          {selectedTherapist && (
+          {loadingStaff ? (
+            <div className="flex items-center gap-2 py-2 text-xs text-[rgb(150,150,150)]">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading therapists…
+            </div>
+          ) : (
+            <select
+              value={form.therapistAssigned || ""}
+              onChange={e => onChange("therapistAssigned", e.target.value)}
+              className={selectCls}
+            >
+              <option value="">No therapist assigned</option>
+              {therapists.map(t => (
+                <option key={t.id} value={t.name}>
+                  {t.name}{t.position ? ` — ${t.position}` : ""}
+                </option>
+              ))}
+            </select>
+          )}
+          {selectedTherapist?.phone && (
             <p className="text-xs text-[rgb(150,130,110)] mt-1">
-              📱 {selectedTherapist.phone.replace(/(\d{3})(\d{3})(\d{4})/, "($1) $2-$3")}
+              📱 {selectedTherapist.phone}
             </p>
           )}
         </div>
