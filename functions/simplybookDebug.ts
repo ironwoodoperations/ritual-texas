@@ -18,31 +18,26 @@ Deno.serve(async (req) => {
 
     const adminHeaders = { "Content-Type": "application/json", "X-Company-Login": company, "X-User-Token": adminToken };
 
-    // Get client login token for client id "1"
-    const clientToken = await (await fetch("https://user-api.simplybook.me/admin/", {
-      method: "POST",
-      headers: adminHeaders,
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getClientToken", params: ["1"] }),
-    })).json();
+    // Try ALL potential admin booking methods
+    const methodsToProbe = [
+      ["book", ["2", "2", "2026-03-10 10:00:00", "1"]],
+      ["book", [2, 2, "2026-03-10 10:00:00", 1]],
+      ["addBooking", ["2", "2", "2026-03-10 10:00:00", "1"]],
+      ["createAppointment", ["2", "2", "2026-03-10 10:00:00", "1"]],
+    ];
 
-    // Try getOrCreateClient
-    const getOrCreate = await (await fetch("https://user-api.simplybook.me/admin/", {
-      method: "POST",
-      headers: adminHeaders,
-      body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "getOrCreateClient", params: [{ name: "SCOTT DEVORE", email: "csdevore@outlook.com" }] }),
-    })).json();
-
-    // Try booking with client login token
-    let bookWithToken = null;
-    if (clientToken?.result) {
-      bookWithToken = await (await fetch("https://user-api.simplybook.me", {
+    const results = {};
+    for (const [method, params] of methodsToProbe) {
+      const key = `${method}(${JSON.stringify(params)})`;
+      const r = await (await fetch("https://user-api.simplybook.me/admin/", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Company-Login": company, "X-Token": clientToken.result },
-        body: JSON.stringify({ jsonrpc: "2.0", id: 3, method: "book", params: ["2", "2", "2026-03-10 10:00:00", null, { name: "SCOTT DEVORE", email: "csdevore@outlook.com" }] }),
+        headers: adminHeaders,
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
       })).json();
+      results[key] = r?.error ? `Error ${r.error.code}: ${r.error.message}` : JSON.stringify(r?.result).slice(0, 200);
     }
 
-    return Response.json({ clientToken, getOrCreate, bookWithToken });
+    return Response.json({ results });
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 });
   }
