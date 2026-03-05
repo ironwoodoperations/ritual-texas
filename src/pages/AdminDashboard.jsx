@@ -490,7 +490,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Day in 60 Seconds Panel */}
-        <div className="mb-6">
+        <div className="mb-6" style={{ maxWidth: "100%" }}>
           <DayIn60Panel
             arrivalsToday={arrivalsToday}
             departuresToday={departuresToday}
