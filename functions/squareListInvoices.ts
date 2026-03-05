@@ -38,6 +38,7 @@ Deno.serve(async (req) => {
 
     const invoices = (data.invoices || []).map(inv => ({
       id: inv.id,
+      version: inv.version,
       invoiceNumber: inv.invoice_number,
       title: inv.title,
       status: inv.status,
