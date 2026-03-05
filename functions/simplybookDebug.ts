@@ -18,23 +18,29 @@ Deno.serve(async (req) => {
     const adminToken = (await adminTokenResp.json())?.result;
     const adminHeaders = { "Content-Type": "application/json", "X-Company-Login": company, "X-User-Token": adminToken };
 
-    // Try to get client list to find a real client ID
-    const clResp = await fetch("https://user-api.simplybook.me/admin/", {
+    // Try "book" method with real client ID "1" (SCOTT DEVORE)
+    const bookResp = await fetch("https://user-api.simplybook.me/admin/", {
       method: "POST",
       headers: adminHeaders,
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getClientList", params: [null, null, null, 1, 5] }),
+      body: JSON.stringify({
+        jsonrpc: "2.0", id: 1, method: "book",
+        params: ["2", "2", "2026-03-10 10:00:00", "1", null],
+      }),
     });
-    const clJson = await clResp.json();
+    const bookJson = await bookResp.json();
 
-    // Try addClient with minimal data
-    const addResp = await fetch("https://user-api.simplybook.me/admin/", {
+    // Also try with the body format that some SimplyBook admins use
+    const book2Resp = await fetch("https://user-api.simplybook.me/admin/", {
       method: "POST",
       headers: adminHeaders,
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "addClient", params: [{ name: "Debug Test Client", phone: "9035551234" }] }),
+      body: JSON.stringify({
+        jsonrpc: "2.0", id: 2, method: "book",
+        params: [{ event_id: "2", unit_id: "2", start_date_time: "2026-03-10 10:00:00", client_id: "1" }],
+      }),
     });
-    const addJson = await addResp.json();
+    const book2Json = await book2Resp.json();
 
-    return Response.json({ adminToken: !!adminToken, clientList: clJson, addClient: addJson });
+    return Response.json({ adminToken: !!adminToken, book_positional: bookJson, book_object: book2Json });
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 });
   }
