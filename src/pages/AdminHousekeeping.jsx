@@ -60,6 +60,21 @@ export default function AdminHousekeeping() {
     queryFn: () => base44.entities.HkTemplate.filter({ active: true }),
   });
 
+  const { data: publicSpaces = [] } = useQuery({
+    queryKey: ['hk-public-spaces'],
+    queryFn: () => base44.entities.HkPublicSpace.list('sortOrder', 50),
+  });
+
+  // Check if opening duties are complete for today
+  const { data: todayTasks = [] } = useQuery({
+    queryKey: ['hk-tasks-today', todayStrLocal()],
+    queryFn: () => base44.entities.HkTask.filter({ taskDate: todayStrLocal() }),
+  });
+
+  const todayOpeningDuties = todayTasks.filter(t => t.taskType === 'opening_duty');
+  const openingDutiesComplete = todayOpeningDuties.length > 0 && todayOpeningDuties.every(t => t.status === 'completed');
+  const todayStrLocal = () => new Date().toISOString().split('T')[0];
+
   const createTaskMutation = useMutation({
     mutationFn: async (data) => {
       const room = rooms.find(r => r.id === data.roomId);
@@ -88,6 +103,11 @@ export default function AdminHousekeeping() {
   });
 
   const filteredTasks = tasks.filter(t => {
+    // Block non-opening tasks if opening duties not complete
+    const isNonOpening = t.taskType !== 'opening_duty';
+    const isToday = t.taskDate === today();
+    if (isNonOpening && isToday && !openingDutiesComplete) return false;
+
     if (tab === 'today') return t.taskDate === today() && t.status !== 'completed';
     if (tab === 'tomorrow') return t.taskDate === tomorrow();
     if (tab === 'open') return ['pending', 'in_progress', 'paused', 'needs_review'].includes(t.status);
@@ -127,6 +147,13 @@ export default function AdminHousekeeping() {
       </div>
 
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '20px' }}>
+        {/* Opening Duties Alert */}
+        {tab === 'today' && !openingDutiesComplete && (
+          <div style={{ marginBottom: '20px', background: 'rgba(220,100,100,.15)', border: '1px solid rgba(220,100,100,.4)', borderRadius: '10px', padding: '14px 16px', color: '#f08080', fontSize: '13px', fontFamily: 'sans-serif', fontWeight: 600 }}>
+            ⚠️ Opening duties must be completed before other tasks can be accessed today.
+          </div>
+        )}
+
         {/* Hotel-wide notes */}
         {hotelNotes.length > 0 && (
           <div style={{ marginBottom: '20px' }}>
@@ -220,9 +247,12 @@ export default function AdminHousekeeping() {
               <div>
                 <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>TASK TYPE</label>
                 <select value={newTask.taskType} onChange={e => setNewTask(t => ({ ...t, taskType: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', fontFamily: 'sans-serif' }}>
+                  <option value="opening_duty">Opening Duty</option>
+                  <option value="closing_duty">Closing Duty</option>
                   <option value="checkout">Checkout Clean</option>
                   <option value="stayover">Stayover Refresh</option>
                   <option value="deep_clean">Deep Clean</option>
+                  <option value="public_space">Public Space</option>
                   <option value="manual">Manual / Other</option>
                 </select>
               </div>
