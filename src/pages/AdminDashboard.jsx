@@ -160,7 +160,7 @@ function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa
           <a href="https://www.toasttab.com/restaurants/admin" target="_blank" rel="noopener noreferrer" title="Toast POS" className="w-9 h-9 rounded-xl overflow-hidden border border-[rgb(235,225,213)] hover:shadow-md shrink-0" style={{ background: '#f5e642' }}>
             <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/17a611d1a_download1.png" alt="Toast POS" className="w-full h-full object-cover" />
           </a>
-          <a href="https://simplybook.me/en/login" target="_blank" rel="noopener noreferrer" title="Lonam AI" className="w-9 h-9 rounded-xl overflow-hidden border border-[rgb(235,225,213)] hover:shadow-md shrink-0" style={{ background: '#000000' }}>
+          <a href="https://loman.ai" target="_blank" rel="noopener noreferrer" title="Lonam AI" className="w-9 h-9 rounded-xl overflow-hidden border border-[rgb(235,225,213)] hover:shadow-md shrink-0" style={{ background: '#000000' }}>
             <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/9202fdf0d_download.jpeg" alt="Lonam AI" className="w-full h-full object-cover" />
           </a>
           <a href="https://login.sonos.com" target="_blank" rel="noopener noreferrer" title="Sonos" className="w-9 h-9 rounded-xl overflow-hidden border border-[rgb(235,225,213)] hover:shadow-md shrink-0" style={{ background: '#000000' }}>
