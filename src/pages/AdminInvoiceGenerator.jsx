@@ -432,21 +432,35 @@ function NewInvoice({ rooms, treatments, packages }) {
     if (!validItems.length) { alert('Add at least one line item with a name and amount.'); return; }
     setLoading(sendNow ? 'send' : 'save');
     setResult(null);
+    
+    // Build final line items including taxes
+    const finalItems = validItems.map(it => ({
+      name: it.name,
+      amount: parseFloat(it.amount),
+      quantity: parseInt(it.quantity) || 1,
+    }));
+    
+    // Add individual tax line items
+    Object.entries(taxBreakdown).forEach(([key, amount]) => {
+      if (amount > 0) {
+        const taxObj = ALL_TAXES.find(t => t.key === key);
+        if (taxObj) {
+          finalItems.push({
+            name: taxObj.label,
+            amount: amount,
+            quantity: 1,
+          });
+        }
+      }
+    });
+    
     const res = await base44.functions.invoke('squareCreateInvoice', {
       customerName,
       customerEmail,
       note,
       dueDate: dueDate || undefined,
       sendNow,
-      lineItems: validItems.map(it => ({
-        name: it.name,
-        amount: parseFloat(it.amount),
-        quantity: parseInt(it.quantity) || 1,
-      })),
-      taxBreakdown: Object.keys(taxBreakdown).length > 0 ? Object.entries(taxBreakdown).map(([key, amount]) => {
-        const taxObj = ALL_TAXES.find(t => t.key === key);
-        return { name: taxObj?.label, amount };
-      }) : undefined,
+      lineItems: finalItems,
     });
     setLoading(false);
     if (res.data?.success) {
