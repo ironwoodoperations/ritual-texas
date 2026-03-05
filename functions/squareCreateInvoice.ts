@@ -133,20 +133,35 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Fetch current invoice to get latest version
+    const getResp = await fetch(`${baseUrl}/v2/invoices/${invoiceId}`, {
+      headers: sqHeaders,
+    });
+    const getInvData = await getResp.json();
+    const currentVersion = getInvData?.invoice?.version;
+
+    if (!currentVersion) {
+      return Response.json({ success: false, error: 'Could not fetch invoice for publishing', detail: getInvData });
+    }
+
     const pubResp = await fetch(`${baseUrl}/v2/invoices/${invoiceId}/publish`, {
       method: 'POST',
       headers: sqHeaders,
-      body: JSON.stringify({ version: invData.invoice.version, idempotency_key: `publish-${Date.now()}` }),
+      body: JSON.stringify({ version: currentVersion, idempotency_key: `publish-${invoiceId}-${Date.now()}` }),
     });
     const pubData = await pubResp.json();
 
-    const publicUrl = pubData?.invoice?.public_url || invData?.invoice?.public_url;
+    if (!pubData?.invoice?.id) {
+      return Response.json({ success: false, error: 'Could not publish invoice', detail: pubData });
+    }
+
+    const publicUrl = pubData?.invoice?.public_url;
 
     return Response.json({
       success: true,
       invoiceId,
       publicUrl,
-      invoice: pubData?.invoice || invData?.invoice,
+      invoice: pubData?.invoice,
     });
 
   } catch (e) {
