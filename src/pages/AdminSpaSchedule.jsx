@@ -348,25 +348,31 @@ export default function AdminSpaSchedule() {
               </div>
             ))}
           </div>
-        )}
-      </div>
+          )}
 
-      <style>{`
-        @media print {
-          .no-print { display: none !important; }
-          body { background: white !important; }
-        }
-      `}</style>
+          {/* Book New Treatment Box */}
+          {showBookingWidget && (
+          <div style={{ marginTop: '40px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Book New Treatment</h2>
+              <button
+                onClick={() => setShowBookingWidget(false)}
+                style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#999' }}
+              >
+                ×
+              </button>
+            </div>
+            <div className="w-full" id="simplybook-widget-container" style={{ minHeight: '600px' }} />
+          </div>
+          )}
+          </div>
 
-      {/* Book New Treatment Modal */}
-      <Dialog open={showBookingWidget} onOpenChange={setShowBookingWidget}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle className="text-[rgb(107,85,64)]">Book New Treatment</DialogTitle>
-          </DialogHeader>
-          <div className="w-full" id="simplybook-widget-container" style={{ minHeight: '600px' }} />
-        </DialogContent>
-      </Dialog>
+          <style>{`
+          @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; }
+          }
+          `}</style>
 
       {/* Tip Request Modal */}
       <Dialog open={!!tipModal} onOpenChange={() => { setTipModal(null); setTipLink(''); }}>
