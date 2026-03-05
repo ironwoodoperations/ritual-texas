@@ -18,26 +18,33 @@ Deno.serve(async (req) => {
 
     const adminHeaders = { "Content-Type": "application/json", "X-Company-Login": company, "X-User-Token": adminToken };
 
-    // Try ALL potential admin booking methods
-    const methodsToProbe = [
-      ["book", ["2", "2", "2026-03-10 10:00:00", "1"]],
-      ["book", [2, 2, "2026-03-10 10:00:00", 1]],
-      ["addBooking", ["2", "2", "2026-03-10 10:00:00", "1"]],
-      ["createAppointment", ["2", "2", "2026-03-10 10:00:00", "1"]],
-    ];
+    // Create a fresh client and capture the full response
+    const addClient = await (await fetch("https://user-api.simplybook.me/admin/", {
+      method: "POST",
+      headers: adminHeaders,
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "addClient", params: [{ name: "Debug Book Test", email: "debugbook@hotelritual.com", phone: "9035550099" }] }),
+    })).json();
 
-    const results = {};
-    for (const [method, params] of methodsToProbe) {
-      const key = `${method}(${JSON.stringify(params)})`;
-      const r = await (await fetch("https://user-api.simplybook.me/admin/", {
+    const newClientId = addClient?.result;
+    
+    // Immediately try to book with that ID
+    let bookResult = null;
+    if (newClientId) {
+      bookResult = await (await fetch("https://user-api.simplybook.me/admin/", {
         method: "POST",
         headers: adminHeaders,
-        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+        body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "book", params: [2, 2, "2026-03-10 10:00:00", parseInt(newClientId)] }),
       })).json();
-      results[key] = r?.error ? `Error ${r.error.code}: ${r.error.message}` : JSON.stringify(r?.result).slice(0, 200);
     }
 
-    return Response.json({ results });
+    // Also try getBookingList to see what methods exist 
+    const bookingList = await (await fetch("https://user-api.simplybook.me/admin/", {
+      method: "POST",
+      headers: adminHeaders,
+      body: JSON.stringify({ jsonrpc: "2.0", id: 3, method: "getBookingList", params: [null, null, null, 1, 3] }),
+    })).json();
+
+    return Response.json({ addClient, newClientId, bookResult, bookingList: bookingList?.result || bookingList?.error });
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 });
   }
