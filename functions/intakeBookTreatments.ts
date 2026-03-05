@@ -142,6 +142,7 @@ Deno.serve(async (req) => {
           const arr = clientList && typeof clientList === "object" ? Object.values(clientList) : [];
           const found = arr.find((c) => String(c.email || "").toLowerCase() === guestEmail);
           if (found) clientId = String(found.id || found.client_id);
+          console.log("Client list count:", arr.length, "found:", clientId);
         } catch (e) {
           console.log("Client list scan failed:", e.message);
         }
@@ -149,22 +150,27 @@ Deno.serve(async (req) => {
 
       // Create client if not found
       if (!clientId) {
+        // Build client data — only include email if it looks valid
+        const clientData = { name: guestName };
+        if (guestEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) clientData.email = guestEmail;
+        if (phone) clientData.phone = phone;
+
         try {
-          const newClient = await sbAdminRPC("addClient", [{
-            name: guestName,
-            email: guestEmail || undefined,
-            phone: phone || undefined,
-          }], adminToken, company);
+          const newClient = await sbAdminRPC("addClient", [clientData], adminToken, company);
           clientId = String(newClient?.id || newClient?.client_id || newClient || "");
+          console.log("addClient result:", JSON.stringify(newClient));
         } catch (e) {
           // If "already exists" error, extract the ID from error data
           const errMsg = e.message || "";
-          const match = errMsg.match(/"id"\s*:\s*"?(\d+)"?/);
-          if (match) clientId = match[1];
+          const idMatch = errMsg.match(/"id"\s*:\s*"?(\d+)"?/);
+          if (idMatch) clientId = idMatch[1];
           else console.log("addClient failed:", errMsg);
         }
       }
     }
+
+    console.log("Final clientId:", clientId, "adminToken:", !!adminToken);
+    console.log("Services available:", services.map(s => `${s.id}:${s.name}`).join(", "));
 
     // 6) Book each treatment
     const created = [];
