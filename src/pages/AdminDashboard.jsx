@@ -101,7 +101,11 @@ function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa
           <div className="text-sm font-medium text-[rgb(45,45,45)]">Day in 60 Seconds</div>
           <div className="text-xs text-[rgb(150,150,150)]">Live snapshot</div>
         </div>
-        <Activity className="w-4 h-4 text-[rgb(150,150,150)]" />
+        <div className="flex gap-2">
+          <a href="https://www.cloudbeds.com" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-2 py-1 hover:bg-[rgb(248,246,242)] transition-all">
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/a3efecc1b_download1.png" alt="Cloudbeds" className="w-4 h-4" />
+          </a>
+        </div>
       </div>
       <div className="grid gap-2">
         <Link to={createPageUrl("AdminConciergeInbox")} className={`flex items-center justify-between rounded-xl border px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all ${conciergeRequests.length > 0 ? "border-[rgb(150,170,155)]" : "border-[rgb(235,225,213)]"}`}>
