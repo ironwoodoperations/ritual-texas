@@ -146,8 +146,8 @@ Deno.serve(async (req) => {
       guestEmail,
       startDate,
       endDate,
-      adults: JSON.stringify([Number(adults)]),
-      children: JSON.stringify([0]),
+      adults: JSON.stringify([{ roomTypeID, adults: Number(adults) }]),
+      children: JSON.stringify([{ roomTypeID, children: 0 }]),
       rooms: JSON.stringify([roomEntry]),
     });
     params.set("paymentMethod", "credit_card");
