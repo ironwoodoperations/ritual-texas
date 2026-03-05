@@ -356,8 +356,6 @@ export default function AdminDashboard() {
       tiles: [
         { icon: BedDouble, label: "Rooms", page: "AdminRooms" },
         { icon: FileText, label: "Packages", page: "AdminPackages" },
-        { icon: Printer, label: "Today's Itineraries", page: "AdminTodayItineraries" },
-        { icon: FileText, label: "Square Invoices", page: "AdminInvoiceGenerator" },
       ],
     },
     {
