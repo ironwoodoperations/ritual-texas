@@ -419,6 +419,24 @@ export default function AdminDashboard() {
 
       <div className="max-w-6xl mx-auto p-6">
 
+        {/* Quick Action Tiles */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <Link to={createPageUrl("AdminTodayItineraries")} className="bg-[rgb(107,85,64)] text-white rounded-2xl p-5 hover:bg-[rgb(85,65,45)] transition-all flex items-center gap-4">
+            <Printer className="w-7 h-7 shrink-0 opacity-80" />
+            <div>
+              <div className="font-semibold text-base leading-tight">Today's Itineraries</div>
+              <div className="text-xs opacity-70 mt-0.5">{arrivalsToday.length} arriving today</div>
+            </div>
+          </Link>
+          <Link to={createPageUrl("AdminInvoiceGenerator")} className="bg-[rgb(150,170,155)] text-white rounded-2xl p-5 hover:bg-[rgb(130,150,135)] transition-all flex items-center gap-4">
+            <FileText className="w-7 h-7 shrink-0 opacity-80" />
+            <div>
+              <div className="font-semibold text-base leading-tight">Square Invoices</div>
+              <div className="text-xs opacity-70 mt-0.5">Create & manage invoices</div>
+            </div>
+          </Link>
+        </div>
+
         {/* Day in 60 Seconds Panel */}
         <div className="mb-10">
           <DayIn60Panel
