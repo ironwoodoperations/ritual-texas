@@ -133,13 +133,10 @@ Deno.serve(async (req) => {
       if (firstType?.rooms?.[0]?.roomID) roomID = firstType.rooms[0].roomID;
     }
 
-    // Build rooms array as required by Cloudbeds postReservation
-    const roomsPayload = JSON.stringify([{
-      roomTypeID: roomTypeID || undefined,
-      roomID: roomID || undefined,
-      adults: Number(adults),
-      children: 0,
-    }]);
+    // Cloudbeds expects adults/children as JSON arrays (one entry per room)
+    const roomEntry = {};
+    if (roomTypeID) roomEntry.roomTypeID = roomTypeID;
+    if (roomID) roomEntry.roomID = roomID;
 
     const params = new URLSearchParams({
       propertyID: propertyId,
@@ -148,9 +145,9 @@ Deno.serve(async (req) => {
       guestEmail,
       startDate,
       endDate,
-      adults: String(adults),
-      children: "0",
-      rooms: roomsPayload,
+      adults: JSON.stringify([Number(adults)]),
+      children: JSON.stringify([0]),
+      rooms: JSON.stringify([roomEntry]),
     });
     params.set("paymentMethod", "credit_card");
     params.set("guestCountry", "US");
