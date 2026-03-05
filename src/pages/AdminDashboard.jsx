@@ -419,9 +419,8 @@ export default function AdminDashboard() {
 
       <div className="max-w-6xl mx-auto p-6">
 
-        {/* Whitney Focus + Day in 60 Seconds Panels */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-10">
-          <WhitneyFocusPanel todayStr={todayStr} />
+        {/* Day in 60 Seconds Panel */}
+        <div className="mb-10">
           <DayIn60Panel
             arrivalsToday={arrivalsToday}
             departuresToday={departuresToday}
