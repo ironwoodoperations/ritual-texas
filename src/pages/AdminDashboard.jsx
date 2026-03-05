@@ -104,6 +104,20 @@ function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa
         <Activity className="w-4 h-4 text-[rgb(150,150,150)]" />
       </div>
       <div className="grid gap-2">
+        <Link to={createPageUrl("AdminConciergeInbox")} className={`flex items-center justify-between rounded-xl border px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all ${conciergeRequests.length > 0 ? "border-[rgb(150,170,155)]" : "border-[rgb(235,225,213)]"}`}>
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-[rgb(150,170,155)]" />
+            <span className="text-sm font-medium text-[rgb(45,45,45)]">Concierge</span>
+          </div>
+          <span className="text-xs text-[rgb(120,120,120)]">{conciergeRequests.length > 0 ? `${conciergeRequests.length} unread` : "Inbox"}</span>
+        </Link>
+        <Link to={createPageUrl("AdminIntake")} className={`flex items-center justify-between rounded-xl border px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all ${intakeFollowUpCount > 0 ? "border-[rgb(107,85,64)]" : "border-[rgb(235,225,213)]"}`}>
+          <div className="flex items-center gap-2">
+            <ClipboardList className="w-4 h-4 text-[rgb(107,85,64)]" />
+            <span className="text-sm font-medium text-[rgb(45,45,45)]">Intake</span>
+          </div>
+          <span className="text-xs text-[rgb(120,120,120)]">{intakeFollowUpCount > 0 ? `${intakeFollowUpCount} need attention` : "Hotel + Treatment"}</span>
+        </Link>
         <Link to={createPageUrl("AdminBookings")} className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
           <div className="flex items-center gap-2">
             <BedSingle className="w-4 h-4 text-[rgb(107,85,64)]" />
@@ -131,20 +145,6 @@ function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa
             <span className="text-sm font-medium text-[rgb(45,45,45)]">Restaurant</span>
           </div>
           <span className="text-xs text-[rgb(120,120,120)]">Sales {fmtMoney(toastToday?.netSales)} · Labor {fmtMoney(toastToday?.laborTotalCost)} · {restaurantLeadsCount} leads</span>
-        </Link>
-        <Link to={createPageUrl("AdminIntake")} className={`flex items-center justify-between rounded-xl border px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all ${intakeFollowUpCount > 0 ? "border-[rgb(107,85,64)]" : "border-[rgb(235,225,213)]"}`}>
-          <div className="flex items-center gap-2">
-            <ClipboardList className="w-4 h-4 text-[rgb(107,85,64)]" />
-            <span className="text-sm font-medium text-[rgb(45,45,45)]">Intake</span>
-          </div>
-          <span className="text-xs text-[rgb(120,120,120)]">{intakeFollowUpCount > 0 ? `${intakeFollowUpCount} need attention` : "Hotel + Treatment"}</span>
-        </Link>
-        <Link to={createPageUrl("AdminConciergeInbox")} className={`flex items-center justify-between rounded-xl border px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all ${conciergeRequests.length > 0 ? "border-[rgb(150,170,155)]" : "border-[rgb(235,225,213)]"}`}>
-          <div className="flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-[rgb(150,170,155)]" />
-            <span className="text-sm font-medium text-[rgb(45,45,45)]">Concierge</span>
-          </div>
-          <span className="text-xs text-[rgb(120,120,120)]">{conciergeRequests.length > 0 ? `${conciergeRequests.length} unread` : "Inbox"}</span>
         </Link>
       </div>
     </div>
