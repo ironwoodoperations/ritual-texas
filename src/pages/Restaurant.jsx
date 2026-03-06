@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, MapPin, Phone, Mail, Sparkles } from 'lucide-react';
+import { Calendar, MapPin, Phone, Mail, Sparkles, Soup } from 'lucide-react';
+
+const CAT_ORDER = ['Lunch', 'Dinner', 'Bar', 'Dessert', 'Other'];
 
 function DailySpecialsSection() {
   const { data: specials = [] } = useQuery({
@@ -14,21 +16,66 @@ function DailySpecialsSection() {
     },
   });
 
+  const soups = specials.filter(s => s.isSoup);
+  // Lunch first, then remaining category order
+  const regularSpecials = CAT_ORDER.flatMap(cat => specials.filter(s => !s.isSoup && s.category === cat));
+  // add any that don't match known categories
+  const uncategorized = specials.filter(s => !s.isSoup && !CAT_ORDER.includes(s.category));
+  const ordered = [...regularSpecials, ...uncategorized];
+
+  if (specials.length === 0) {
+    return (
+      <section style={{ marginBottom: '60px', background: '#FCF9F4', padding: '40px', borderRadius: '18px', border: '1px solid rgba(59,72,49,.1)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+          <Sparkles className="w-8 h-8" style={{ color: '#C57C5D' }} />
+          <h2 style={{ margin: 0, fontFamily: 'serif', fontSize: '32px', color: '#3B4831' }}>Daily Specials</h2>
+        </div>
+        <p style={{ margin: 0, color: '#1B1B1B', lineHeight: '1.7', fontSize: '16px' }}>
+          Daily specials updated each morning — check back soon or call us at (903) 284-6880.
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section style={{ marginBottom: '60px', background: '#FCF9F4', padding: '40px', borderRadius: '18px', border: '1px solid rgba(59,72,49,.1)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '28px' }}>
         <Sparkles className="w-8 h-8" style={{ color: '#C57C5D' }} />
         <h2 style={{ margin: 0, fontFamily: 'serif', fontSize: '32px', color: '#3B4831' }}>Daily Specials</h2>
       </div>
-      
-      {specials.length > 0 ? (
+
+      {/* Soup of the day */}
+      {soups.length > 0 && (
+        <div style={{ marginBottom: '28px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <Soup size={18} style={{ color: '#8BA08C' }} />
+            <span style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8BA08C' }}>Soup of the Day</span>
+          </div>
+          <div style={{ display: 'grid', gap: '12px' }}>
+            {soups.map(s => (
+              <div key={s.id} style={{ padding: '18px 20px', background: 'white', borderRadius: '12px', border: '1px solid rgba(59,72,49,.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                <div>
+                  <h3 style={{ margin: '0 0 6px', fontSize: '18px', color: '#3B4831', fontWeight: 700 }}>{s.title}</h3>
+                  <p style={{ margin: 0, color: '#1B1B1B', lineHeight: '1.7', fontSize: '14px' }}>{s.description}</p>
+                </div>
+                {s.price != null && (
+                  <span style={{ fontSize: '18px', color: '#C57C5D', fontWeight: 700, whiteSpace: 'nowrap' }}>${Number(s.price).toFixed(2)}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Regular specials */}
+      {ordered.length > 0 && (
         <div style={{ display: 'grid', gap: '16px' }}>
-          {specials.map(special => (
+          {ordered.map(special => (
             <div key={special.id} style={{ padding: '20px', background: 'white', borderRadius: '12px', border: '1px solid rgba(59,72,49,.1)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '12px' }}>
                 <h3 style={{ margin: 0, fontSize: '20px', color: '#3B4831', fontWeight: 700 }}>{special.title}</h3>
-                {special.price && (
-                  <span style={{ fontSize: '20px', color: '#C57C5D', fontWeight: 700 }}>${special.price}</span>
+                {special.price != null && (
+                  <span style={{ fontSize: '20px', color: '#C57C5D', fontWeight: 700, whiteSpace: 'nowrap' }}>${Number(special.price).toFixed(2)}</span>
                 )}
               </div>
               <p style={{ margin: '8px 0 0 0', color: '#1B1B1B', lineHeight: '1.7' }}>{special.description}</p>
@@ -40,10 +87,6 @@ function DailySpecialsSection() {
             </div>
           ))}
         </div>
-      ) : (
-        <p style={{ margin: 0, color: '#1B1B1B', lineHeight: '1.7', fontSize: '16px' }}>
-          Daily specials updated each morning — check back soon or call us at (903) 284-6880.
-        </p>
       )}
     </section>
   );
