@@ -257,10 +257,20 @@ Deno.serve(async (req) => {
         }
       }
 
-      // 4) Build client data and book via public API (no client_id needed)
-      const clientData = { name: entryGuestName };
-      if (entryGuestEmail) clientData.email = entryGuestEmail;
-      if (entryGuestPhone) clientData.phone = entryGuestPhone;
+      // 4) Create/find the client in SimplyBook admin, get their client_id
+      let clientId = null;
+      try {
+        const clientResult = await sbRPC(
+          adminApiUrl,
+          "addClient",
+          [{ name: entryGuestName, email: entryGuestEmail || null, phone: entryGuestPhone || null }],
+          sbAdminHeaders
+        );
+        clientId = clientResult?.id || clientResult;
+      } catch (e) {
+        // If addClient fails, try booking without client_id using public API
+        console.error("addClient failed:", e.message);
+      }
 
       const additional =
         entry?.additionalFields && typeof entry.additionalFields === "object"
@@ -270,20 +280,33 @@ Deno.serve(async (req) => {
       let bookingResult = null;
 
       try {
-        // Use public API endpoint with public token — this accepts client data directly
-        bookingResult = await sbRPC(
-          apiUrl,
-          "book",
-          [
-            Number(svc.id),
-            unitId ? Number(unitId) : null,
-            requestedDate,
-            requestedTime,
-            clientData,
-            additional,
-          ],
-          sbHeaders
-        );
+        if (clientId) {
+          // Admin booking with resolved client_id
+          bookingResult = await sbRPC(
+            adminApiUrl,
+            "book",
+            [
+              Number(svc.id),
+              unitId ? Number(unitId) : null,
+              requestedDate,
+              requestedTime,
+              Number(clientId),
+              additional,
+            ],
+            sbAdminHeaders
+          );
+        } else {
+          // Fallback: public API with client data object
+          const clientData = { name: entryGuestName };
+          if (entryGuestEmail) clientData.email = entryGuestEmail;
+          if (entryGuestPhone) clientData.phone = entryGuestPhone;
+          bookingResult = await sbRPC(
+            apiUrl,
+            "book",
+            [Number(svc.id), unitId ? Number(unitId) : null, requestedDate, requestedTime, clientData, additional],
+            sbHeaders
+          );
+        }
       } catch (e) {
         errors.push(`Booking failed for "${svc.name}": ${e.message}`);
         continue;
