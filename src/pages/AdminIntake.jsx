@@ -443,9 +443,17 @@ function IntakeCard({ record, onUpdate, roomTypes, loadingRooms, callToBookTreat
       if (type === "SendQuote") {
         if (!intakeData.email) { setActionMsg({ success: false, text: "Guest email required." }); setActioning(null); return; }
         if (!intakeData.checkInDate || !intakeData.checkOutDate) { setActionMsg({ success: false, text: "Check-in and check-out dates required." }); setActioning(null); return; }
-        const res = await base44.functions.invoke("intakeCreateSquareQuote", { intake: intakeData });
+        const res = await base44.functions.invoke("intakeCreateInvoiceDraft", { intake: intakeData });
         if (res.data?.error) setActionMsg({ success: false, text: res.data.error, detail: JSON.stringify(res.data, null, 2) });
-        else { markCompleted("SendQuote"); setActionMsg({ success: true, text: res.data?.message + (res.data?.publicUrl ? ` — ${res.data.publicUrl}` : "") }); setTimeout(() => setActionMsg(null), 10000); }
+        else { 
+          setActionMsg({ 
+            success: true, 
+            text: res.data?.message, 
+            invoiceId: res.data?.invoiceId,
+            draftUrl: res.data?.draftUrl,
+            isPending: true
+          });
+        }
 
       } else if (type === "BookHotel") {
         if (!intakeData.checkInDate || !intakeData.checkOutDate) { setActionMsg({ success: false, text: "Check-in and check-out dates required." }); setActioning(null); return; }
