@@ -109,20 +109,30 @@ Deno.serve(async (req) => {
     const adminPassword = Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
 
     const loginUrl = "https://user-api.simplybook.me/login";
+    const adminLoginUrl = "https://user-api.simplybook.me/admin/login";
     const apiUrl = "https://user-api.simplybook.me";
+    const adminApiUrl = "https://user-api.simplybook.me/admin";
 
-    // 1) Get admin token (required for booking)
-    const token = await sbRPC(loginUrl, "getTokenByCredentials", [company, adminLogin, adminPassword]);
-    if (!token || typeof token !== "string") {
+    // 1) Get admin token via admin login endpoint
+    const adminToken = await sbRPC(adminLoginUrl, "getToken", [company, adminLogin, adminPassword]);
+    if (!adminToken || typeof adminToken !== "string") {
       return Response.json(
         { error: "Failed to get SimplyBook admin token" },
         { status: 500 }
       );
     }
 
+    // Also get public token for reading services/slots
+    const publicToken = await sbRPC(loginUrl, "getToken", [company, apiKey]);
+
     const sbHeaders = {
       "X-Company-Login": company,
-      "X-Token": token,
+      "X-Token": publicToken || adminToken,
+    };
+
+    const sbAdminHeaders = {
+      "X-Company-Login": company,
+      "X-Token": adminToken,
     };
 
     // 2) Pull fresh services + performers
