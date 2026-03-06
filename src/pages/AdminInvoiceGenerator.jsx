@@ -466,6 +466,7 @@ function NewInvoice({ rooms, treatments, packages }) {
     setLoading(false);
     if (res.data?.success) {
       setResult({ success: true, saved: res.data.saved, publicUrl: res.data.publicUrl, invoiceId: res.data.invoiceId });
+      setShowSendConfirm(false);
       queryClient.invalidateQueries({ queryKey: ['square-invoices'] });
     } else {
       setResult({ success: false, error: res.data?.error || 'Invoice creation failed' });
