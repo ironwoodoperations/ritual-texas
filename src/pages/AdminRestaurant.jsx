@@ -63,13 +63,93 @@ export default function AdminRestaurant() {
   );
 }
 
-const CAT_TABS = ['Lunch', 'Dinner', 'Bar', 'Dessert', 'Other'];
+const SPECIAL_CATS = ['Lunch', 'Dinner', 'Bar'];
+
+function CategorySpecialsList({ category, specials, onSelect, onEdit, onDelete, isSelecting }) {
+  const catSpecials = specials.filter(s => s.category === category && !s.isSoup);
+  const activeId = catSpecials.find(s => s.isActiveToday)?.id || null;
+
+  if (catSpecials.length === 0) {
+    return (
+      <p style={{ color: '#888', fontSize: '14px', fontStyle: 'italic', padding: '12px 0' }}>
+        No {category} specials yet. Click "Add Special" to create one.
+      </p>
+    );
+  }
+
+  return (
+    <div style={{ display: 'grid', gap: '10px' }}>
+      {catSpecials.map(special => {
+        const isActive = special.isActiveToday;
+        return (
+          <label
+            key={special.id}
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '14px',
+              padding: '14px 16px',
+              background: isActive ? '#FFF5F0' : '#FCF9F4',
+              border: isActive ? '2px solid #C57C5D' : '1px solid rgba(59,72,49,.15)',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+          >
+            <input
+              type="radio"
+              name={`special-${category}`}
+              checked={isActive}
+              onChange={() => onSelect(special.id, catSpecials)}
+              style={{ marginTop: '3px', accentColor: '#C57C5D', width: '18px', height: '18px', flexShrink: 0 }}
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                <div>
+                  <span style={{ fontWeight: 700, color: '#3B4831', fontSize: '15px' }}>{special.title}</span>
+                  {isActive && (
+                    <span style={{ marginLeft: '8px', padding: '2px 8px', background: '#C57C5D', color: '#FCF9F4', fontSize: '11px', borderRadius: '4px', fontWeight: 700 }}>
+                      ON MENU TODAY
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                  <Button variant="outline" size="sm" onClick={(e) => { e.preventDefault(); onEdit(special); }}>
+                    <Edit className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={(e) => { e.preventDefault(); onDelete(special.id); }}>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+              {special.description && (
+                <p style={{ margin: '4px 0 0', color: '#555', fontSize: '13px', lineHeight: '1.5' }}>{special.description}</p>
+              )}
+              {special.price != null && (
+                <p style={{ margin: '4px 0 0', color: '#C57C5D', fontWeight: 700, fontSize: '14px' }}>${Number(special.price).toFixed(2)}</p>
+              )}
+            </div>
+          </label>
+        );
+      })}
+      {/* Deselect option */}
+      {activeId && (
+        <button
+          onClick={() => onSelect(null, catSpecials)}
+          style={{ fontSize: '12px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '4px 0', textDecoration: 'underline' }}
+        >
+          Clear today's {category} special
+        </button>
+      )}
+    </div>
+  );
+}
 
 function SpecialsManager() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('Lunch');
   const [showDialog, setShowDialog] = useState(false);
   const [editingSpecial, setEditingSpecial] = useState(null);
+  const [activeTab, setActiveTab] = useState('Lunch');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -99,13 +179,8 @@ function SpecialsManager() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['restaurant-specials'] }),
   });
 
-  const toggleActiveMutation = useMutation({
-    mutationFn: ({ id, isActiveToday }) => base44.entities.RestaurantDailySpecials.update(id, { isActiveToday }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['restaurant-specials'] }),
-  });
-
   const resetForm = () => {
-    setFormData({ title: '', description: '', price: '', category: activeTab, isActiveToday: false, isSoup: false });
+    setFormData({ title: '', description: '', price: '', category: activeTab || 'Lunch', isActiveToday: false, isSoup: false });
     setEditingSpecial(null);
     setShowDialog(false);
   };
@@ -114,8 +189,8 @@ function SpecialsManager() {
     setEditingSpecial(special);
     setFormData({
       title: special.title,
-      description: special.description,
-      price: special.price || '',
+      description: special.description || '',
+      price: special.price != null ? String(special.price) : '',
       category: special.category || 'Lunch',
       isActiveToday: special.isActiveToday || false,
       isSoup: special.isSoup || false,
@@ -133,268 +208,176 @@ function SpecialsManager() {
     }
   };
 
-  const openAddForTab = () => {
-    setEditingSpecial(null);
-    setFormData({ title: '', description: '', price: '', category: activeTab, isActiveToday: false, isSoup: activeTab === 'Soup' });
-    setShowDialog(true);
+  // Radio-select: activate chosen special, deactivate all others in that category
+  const handleSelect = async (selectedId, catSpecials) => {
+    for (const s of catSpecials) {
+      const shouldBeActive = s.id === selectedId;
+      if (s.isActiveToday !== shouldBeActive) {
+        await base44.entities.RestaurantDailySpecials.update(s.id, { isActiveToday: shouldBeActive });
+      }
+    }
+    queryClient.invalidateQueries({ queryKey: ['restaurant-specials'] });
   };
 
-  const tabSpecials = specials.filter(s => !s.isSoup && s.category === activeTab);
+  // Soups
   const soups = specials.filter(s => s.isSoup);
-  const activeCount = specials.filter(s => s.isActiveToday).length;
+  const activeSoups = soups.filter(s => s.isActiveToday);
 
   return (
     <div>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h2 style={{ margin: 0, fontSize: '24px', color: '#3B4831' }}>Daily Specials</h2>
-          {activeCount > 0 && (
-            <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#C57C5D', fontWeight: 600 }}>
-              {activeCount} item{activeCount !== 1 ? 's' : ''} showing on website today
-            </p>
-          )}
-        </div>
-        <Button onClick={openAddForTab} style={{ background: '#C57C5D', color: '#FCF9F4' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h2 style={{ margin: 0, fontSize: '24px', color: '#3B4831' }}>Daily Specials</h2>
+        <Button onClick={() => { setFormData(f => ({ ...f, category: activeTab })); setShowDialog(true); }} style={{ background: '#C57C5D', color: '#FCF9F4' }}>
           <Plus className="w-4 h-4 mr-2" />
-          Add {activeTab} Special
+          Add Special
         </Button>
       </div>
 
-      {/* Category Tabs */}
+      {/* Today's active summary */}
+      {specials.some(s => s.isActiveToday) && (
+        <div style={{ background: '#F0EBE3', border: '1px solid rgba(197,124,93,.3)', borderRadius: '10px', padding: '14px 18px', marginBottom: '24px' }}>
+          <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', color: '#C57C5D', textTransform: 'uppercase' }}>On the menu today</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {specials.filter(s => s.isActiveToday).map(s => (
+              <span key={s.id} style={{ padding: '4px 12px', background: '#FCF9F4', border: '1px solid rgba(197,124,93,.4)', borderRadius: '20px', fontSize: '13px', color: '#3B4831', fontWeight: 600 }}>
+                {s.isSoup ? '🍵 ' : ''}{s.title} {s.category && !s.isSoup ? `(${s.category})` : ''}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Category tabs: Lunch, Dinner, Bar */}
       <div style={{ display: 'flex', gap: '4px', marginBottom: '24px', borderBottom: '2px solid rgba(59,72,49,.1)', paddingBottom: '0' }}>
-        {CAT_TABS.map(cat => {
-          const count = specials.filter(s => !s.isSoup && s.category === cat).length;
-          const activeInCat = specials.filter(s => !s.isSoup && s.category === cat && s.isActiveToday).length;
+        {SPECIAL_CATS.map(cat => {
+          const catActive = specials.filter(s => s.category === cat && s.isActiveToday && !s.isSoup).length;
           return (
             <button
               key={cat}
               onClick={() => setActiveTab(cat)}
               style={{
-                padding: '10px 16px',
+                padding: '10px 20px',
                 background: 'none',
                 border: 'none',
                 borderBottom: activeTab === cat ? '3px solid #C57C5D' : '3px solid transparent',
                 color: activeTab === cat ? '#C57C5D' : '#3B4831',
-                fontWeight: activeTab === cat ? 700 : 500,
+                fontWeight: 700,
+                fontSize: '15px',
                 cursor: 'pointer',
-                fontSize: '14px',
-                position: 'relative',
                 marginBottom: '-2px',
-                whiteSpace: 'nowrap',
+                transition: 'all 0.15s',
+                position: 'relative',
               }}
             >
               {cat}
-              {activeInCat > 0 && (
-                <span style={{ marginLeft: '6px', background: '#C57C5D', color: 'white', borderRadius: '10px', padding: '1px 7px', fontSize: '11px', fontWeight: 700 }}>
-                  {activeInCat}
-                </span>
-              )}
-              {count > 0 && activeInCat === 0 && (
-                <span style={{ marginLeft: '6px', background: 'rgba(59,72,49,.15)', color: '#3B4831', borderRadius: '10px', padding: '1px 7px', fontSize: '11px' }}>
-                  {count}
-                </span>
+              {catActive > 0 && (
+                <span style={{ marginLeft: '6px', width: '8px', height: '8px', background: '#C57C5D', borderRadius: '50%', display: 'inline-block', verticalAlign: 'middle' }} />
               )}
             </button>
           );
         })}
-        {/* Soup tab */}
         <button
           onClick={() => setActiveTab('Soup')}
           style={{
-            padding: '10px 16px',
+            padding: '10px 20px',
             background: 'none',
             border: 'none',
-            borderBottom: activeTab === 'Soup' ? '3px solid #C57C5D' : '3px solid transparent',
-            color: activeTab === 'Soup' ? '#C57C5D' : '#3B4831',
-            fontWeight: activeTab === 'Soup' ? 700 : 500,
+            borderBottom: activeTab === 'Soup' ? '3px solid #8BA08C' : '3px solid transparent',
+            color: activeTab === 'Soup' ? '#8BA08C' : '#3B4831',
+            fontWeight: 700,
+            fontSize: '15px',
             cursor: 'pointer',
-            fontSize: '14px',
             marginBottom: '-2px',
-            whiteSpace: 'nowrap',
           }}
         >
-          🥣 Soup
-          {soups.filter(s => s.isActiveToday).length > 0 && (
-            <span style={{ marginLeft: '6px', background: '#C57C5D', color: 'white', borderRadius: '10px', padding: '1px 7px', fontSize: '11px', fontWeight: 700 }}>
-              {soups.filter(s => s.isActiveToday).length}
-            </span>
+          🍵 Soup
+          {activeSoups.length > 0 && (
+            <span style={{ marginLeft: '6px', width: '8px', height: '8px', background: '#8BA08C', borderRadius: '50%', display: 'inline-block', verticalAlign: 'middle' }} />
           )}
         </button>
       </div>
 
-      {/* Checklist for current tab */}
-      {activeTab !== 'Soup' ? (
-        <div>
-          <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#1B1B1B' }}>
-            Check the box next to any item to show it on the website today. Uncheck to hide it.
-          </p>
-          {tabSpecials.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#1B1B1B', background: '#FCF9F4', borderRadius: '12px', border: '1px dashed rgba(59,72,49,.2)' }}>
-              No {activeTab} specials yet.{' '}
-              <button onClick={openAddForTab} style={{ color: '#C57C5D', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-                Add one
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gap: '10px' }}>
-              {tabSpecials.map(special => (
-                <div
-                  key={special.id}
-                  style={{
-                    background: '#FCF9F4',
-                    borderRadius: '12px',
-                    border: special.isActiveToday ? '2px solid #C57C5D' : '1px solid rgba(59,72,49,.1)',
-                    padding: '16px',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '14px',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
+      {/* Tab content */}
+      <div style={{ minHeight: '120px' }}>
+        {activeTab !== 'Soup' ? (
+          <CategorySpecialsList
+            category={activeTab}
+            specials={specials}
+            onSelect={handleSelect}
+            onEdit={handleEdit}
+            onDelete={(id) => deleteMutation.mutate(id)}
+          />
+        ) : (
+          /* Soup section */
+          <div style={{ display: 'grid', gap: '10px' }}>
+            {soups.length === 0 && (
+              <p style={{ color: '#888', fontSize: '14px', fontStyle: 'italic', padding: '12px 0' }}>No soups yet. Click "Add Special" and toggle "This is a Daily Soup".</p>
+            )}
+            {soups.map(s => (
+              <div key={s.id} style={{
+                display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '14px 16px',
+                background: s.isActiveToday ? '#F0F7F2' : '#FCF9F4',
+                border: s.isActiveToday ? '2px solid #8BA08C' : '1px solid rgba(59,72,49,.15)',
+                borderRadius: '10px',
+              }}>
+                <Switch
+                  checked={s.isActiveToday}
+                  onCheckedChange={async (v) => {
+                    await base44.entities.RestaurantDailySpecials.update(s.id, { isActiveToday: v });
+                    queryClient.invalidateQueries({ queryKey: ['restaurant-specials'] });
                   }}
-                  onClick={() => toggleActiveMutation.mutate({ id: special.id, isActiveToday: !special.isActiveToday })}
-                >
-                  {/* Big checkbox */}
-                  <div style={{
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '6px',
-                    border: special.isActiveToday ? '2px solid #C57C5D' : '2px solid rgba(59,72,49,.3)',
-                    background: special.isActiveToday ? '#C57C5D' : 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    marginTop: '2px',
-                  }}>
-                    {special.isActiveToday && <span style={{ color: 'white', fontSize: '14px', fontWeight: 700 }}>✓</span>}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                      <h3 style={{ margin: '0 0 4px', fontSize: '16px', color: '#3B4831', fontWeight: 700 }}>{special.title}</h3>
-                      {special.price != null && (
-                        <span style={{ color: '#C57C5D', fontWeight: 700, fontSize: '16px', whiteSpace: 'nowrap' }}>${Number(special.price).toFixed(2)}</span>
-                      )}
+                />
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <span style={{ fontWeight: 700, color: '#3B4831', fontSize: '15px' }}>{s.title}</span>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(s)}><Edit className="w-3.5 h-3.5" /></Button>
+                      <Button variant="outline" size="sm" onClick={() => deleteMutation.mutate(s.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
                     </div>
-                    <p style={{ margin: 0, color: '#1B1B1B', fontSize: '13px', lineHeight: '1.5' }}>{special.description}</p>
-                    {special.isActiveToday && (
-                      <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#C57C5D', fontWeight: 600 }}>✓ Showing on website today</p>
-                    )}
                   </div>
-                  {/* Edit/Delete — stop propagation */}
-                  <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-                    <Button variant="outline" size="sm" onClick={() => handleEdit(special)}>
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => deleteMutation.mutate(special.id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+                  {s.description && <p style={{ margin: '4px 0 0', color: '#555', fontSize: '13px' }}>{s.description}</p>}
+                  {s.price != null && <p style={{ margin: '4px 0 0', color: '#8BA08C', fontWeight: 700 }}>${Number(s.price).toFixed(2)}</p>}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ) : (
-        /* Soup tab */
-        <div>
-          <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#1B1B1B' }}>
-            Check the soup to show it on the website today.
-          </p>
-          {soups.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#1B1B1B', background: '#FCF9F4', borderRadius: '12px', border: '1px dashed rgba(59,72,49,.2)' }}>
-              No soups yet.{' '}
-              <button onClick={() => { setEditingSpecial(null); setFormData({ title: '', description: '', price: '', category: 'Lunch', isActiveToday: false, isSoup: true }); setShowDialog(true); }}
-                style={{ color: '#C57C5D', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-                Add one
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gap: '10px' }}>
-              {soups.map(special => (
-                <div
-                  key={special.id}
-                  style={{
-                    background: '#FCF9F4',
-                    borderRadius: '12px',
-                    border: special.isActiveToday ? '2px solid #C57C5D' : '1px solid rgba(59,72,49,.1)',
-                    padding: '16px',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '14px',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => toggleActiveMutation.mutate({ id: special.id, isActiveToday: !special.isActiveToday })}
-                >
-                  <div style={{
-                    width: '24px', height: '24px', borderRadius: '6px',
-                    border: special.isActiveToday ? '2px solid #C57C5D' : '2px solid rgba(59,72,49,.3)',
-                    background: special.isActiveToday ? '#C57C5D' : 'white',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px',
-                  }}>
-                    {special.isActiveToday && <span style={{ color: 'white', fontSize: '14px', fontWeight: 700 }}>✓</span>}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                      <h3 style={{ margin: '0 0 4px', fontSize: '16px', color: '#3B4831', fontWeight: 700 }}>{special.title}</h3>
-                      {special.price != null && <span style={{ color: '#C57C5D', fontWeight: 700, fontSize: '16px', whiteSpace: 'nowrap' }}>${Number(special.price).toFixed(2)}</span>}
-                    </div>
-                    <p style={{ margin: 0, color: '#1B1B1B', fontSize: '13px', lineHeight: '1.5' }}>{special.description}</p>
-                    {special.isActiveToday && <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#C57C5D', fontWeight: 600 }}>✓ Showing on website today</p>}
-                  </div>
-                  <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-                    <Button variant="outline" size="sm" onClick={() => handleEdit(special)}><Edit className="w-4 h-4" /></Button>
-                    <Button variant="outline" size="sm" onClick={() => deleteMutation.mutate(special.id)}><Trash2 className="w-4 h-4" /></Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <Dialog open={showDialog} onOpenChange={(open) => { if (!open) resetForm(); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingSpecial ? 'Edit Special' : `Add ${formData.isSoup ? 'Soup' : formData.category} Special`}</DialogTitle>
+            <DialogTitle>{editingSpecial ? 'Edit Special' : 'Add Special'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', background: '#F0EBE3', borderRadius: '8px' }}>
+              <Switch checked={formData.isSoup} onCheckedChange={(v) => setFormData({...formData, isSoup: v})} />
+              <label style={{ fontWeight: 600 }}>This is a Daily Soup</label>
+            </div>
+            {!formData.isSoup && (
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600 }}>Category</label>
+                <Select value={formData.category} onValueChange={(v) => setFormData({...formData, category: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Lunch">Lunch</SelectItem>
+                    <SelectItem value="Dinner">Dinner</SelectItem>
+                    <SelectItem value="Bar">Bar</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600 }}>Title *</label>
               <Input value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required />
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600 }}>Description *</label>
-              <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} required />
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600 }}>Description</label>
+              <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600 }}>Price</label>
-                <Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} />
-              </div>
-              {!formData.isSoup && (
-                <div>
-                  <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600 }}>Category</label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Lunch">Lunch</SelectItem>
-                      <SelectItem value="Dinner">Dinner</SelectItem>
-                      <SelectItem value="Bar">Bar</SelectItem>
-                      <SelectItem value="Dessert">Dessert</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Switch checked={formData.isSoup || false} onCheckedChange={(checked) => setFormData({...formData, isSoup: checked})} />
-              <label style={{ fontWeight: 600 }}>This is a Daily Soup</label>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Switch checked={formData.isActiveToday} onCheckedChange={(checked) => setFormData({...formData, isActiveToday: checked})} />
-              <label style={{ fontWeight: 600 }}>Active Today</label>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600 }}>Price (optional)</label>
+              <Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} />
             </div>
             <Button type="submit" style={{ background: '#3B4831', color: '#FCF9F4' }}>
               {editingSpecial ? 'Update' : 'Create'} Special
