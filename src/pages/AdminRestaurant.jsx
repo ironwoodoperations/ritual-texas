@@ -247,6 +247,10 @@ function SpecialsManager() {
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Switch checked={formData.isSoup || false} onCheckedChange={(checked) => setFormData({...formData, isSoup: checked})} />
+              <label style={{ fontWeight: 600 }}>This is a Daily Soup</label>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <Switch checked={formData.isActiveToday} onCheckedChange={(checked) => setFormData({...formData, isActiveToday: checked})} />
               <label style={{ fontWeight: 600 }}>Active Today</label>
             </div>
