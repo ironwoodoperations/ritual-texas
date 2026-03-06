@@ -76,6 +76,15 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Debug mode: return what secrets are loaded (values masked)
+    if (body?._debugSecrets) {
+      return Response.json({
+        companyLogin: companyLogin ? `"${companyLogin}" (${companyLogin.length} chars)` : "MISSING",
+        userLogin: userLogin ? `"${userLogin}" (${userLogin.length} chars)` : "MISSING",
+        userPassword: userPassword ? `set (${userPassword.length} chars)` : "MISSING",
+      });
+    }
+
     if (!Array.isArray(intake?.selectedTreatments) || intake.selectedTreatments.length === 0) {
       return Response.json({ error: "No treatments selected" }, { status: 400 });
     }
