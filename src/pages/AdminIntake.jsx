@@ -471,6 +471,20 @@ function IntakeCard({ record, onUpdate, roomTypes, loadingRooms, callToBookTreat
         if (res.data?.error) setActionMsg({ success: false, text: res.data.error, detail: JSON.stringify(res.data, null, 2) });
         else { markCompleted("BookTreatments"); setActionMsg({ success: true, text: res.data?.message || "Treatments booked!" }); setTimeout(() => setActionMsg(null), 5000); }
 
+      } else if (type === "PublishQuote") {
+        if (!actionMsg?.invoiceId) { setActionMsg({ success: false, text: "No invoice to publish." }); setActioning(null); return; }
+        const res = await base44.functions.invoke("intakePublishInvoice", { invoiceId: actionMsg.invoiceId });
+        if (res.data?.error) setActionMsg({ success: false, text: res.data.error, detail: JSON.stringify(res.data, null, 2) });
+        else { 
+          markCompleted("SendQuote"); 
+          setActionMsg({ 
+            success: true, 
+            text: res.data?.message, 
+            isPending: false 
+          }); 
+          setTimeout(() => setActionMsg(null), 5000); 
+        }
+
       } else if (type === "AddToCRM") {
         const nameParts = intakeData.guestName?.trim().split(" ") || [];
         const res = await base44.functions.invoke("crmUpsertContact", {
