@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, FileText, ShoppingCart, ChefHat, Search, Edit, Copy, Archive, Mail, CheckCircle, DollarSign } from 'lucide-react';
+import { Plus, FileText, ShoppingCart, ChefHat, Search, Edit, Copy, Archive, Mail, CheckCircle, DollarSign, ArrowLeft } from 'lucide-react';
 
 const STATUS_COLORS = {
   draft: { bg: '#F5F0E8', text: '#8B7355' },
