@@ -27,28 +27,28 @@ Deno.serve(async (req) => {
     const restaurantGuid = Deno.env.get('TOAST_RESTAURANT_GUID');
     const apiBase = Deno.env.get('TOAST_API_BASE');
 
-    // Fetch all menus
-    const menusRes = await fetch(`${apiBase}/menus/v2/menus`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Toast-Restaurant-External-ID': restaurantGuid,
-      },
-    });
-    if (!menusRes.ok) throw new Error(`Failed to fetch menus: ${menusRes.status} ${await menusRes.text()}`);
-    const menus = await menusRes.json();
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Toast-Restaurant-External-ID': restaurantGuid,
+    };
+
+    // Try config menus endpoint
+    const menusRes = await fetch(`${apiBase}/config/v2/menus`, { headers });
+    if (!menusRes.ok) {
+      const errText = await menusRes.text();
+      throw new Error(`Failed to fetch menus: ${menusRes.status} ${errText}`);
+    }
+    const menusData = await menusRes.json();
+    const menus = Array.isArray(menusData) ? menusData : (menusData.menus || [menusData]);
 
     // Find menu groups named "Daily Special" (case-insensitive)
     const items = [];
-    for (const menu of (menus || [])) {
+    for (const menu of menus) {
       for (const group of (menu.menuGroups || [])) {
         if ((group.name || '').toLowerCase().includes('daily special')) {
           for (const item of (group.menuItems || [])) {
             const price = item.price ?? (item.pricingRules?.[0]?.price) ?? null;
-            items.push({
-              name: item.name,
-              price: price,
-              toastGuid: item.guid,
-            });
+            items.push({ name: item.name, price, toastGuid: item.guid });
           }
         }
       }
