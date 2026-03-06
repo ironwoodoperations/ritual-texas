@@ -267,7 +267,14 @@ Deno.serve(async (req) => {
         if (entryGuestPhone) clientPayload.phone = entryGuestPhone;
 
         const clientResult = await sbRPC(adminApiUrl, "addClient", [clientPayload], sbAdminHeaders);
-        clientId = clientResult?.id ?? clientResult;
+        console.log("addClient result:", JSON.stringify(clientResult));
+        // addClient returns the full client object or just the id
+        if (typeof clientResult === "number" || typeof clientResult === "string") {
+          clientId = Number(clientResult);
+        } else if (clientResult?.id) {
+          clientId = Number(clientResult.id);
+        }
+        console.log("resolved clientId:", clientId);
       } catch (e) {
         console.error("addClient failed:", e.message);
       }
