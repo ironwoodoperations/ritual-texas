@@ -266,7 +266,7 @@ Deno.serve(async (req) => {
 
       try {
         bookingResult = await sbRPC(
-          apiUrl,
+          adminApiUrl,
           "book",
           [
             Number(svc.id),
@@ -276,7 +276,7 @@ Deno.serve(async (req) => {
             clientData,
             additional,
           ],
-          sbHeaders
+          sbAdminHeaders
         );
       } catch (e) {
         errors.push(`Booking failed for "${svc.name}": ${e.message}`);
