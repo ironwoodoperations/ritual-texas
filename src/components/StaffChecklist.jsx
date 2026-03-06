@@ -128,7 +128,7 @@ const DEPT_META = {
   Kitchen_Open:      { label: 'BOH – Opening',             time: '60–90 min', color: 'bg-orange-100 text-orange-800', header: 'bg-orange-50' },
   FOH_Open:          { label: 'FOH – Opening',           time: '60–75 min', color: 'bg-blue-100 text-blue-800',    header: 'bg-blue-50' },
   FOH_Close:         { label: 'FOH – Closing',            time: '60 min',    color: 'bg-blue-100 text-blue-800',    header: 'bg-blue-50' },
-  KitchenClose:      { label: 'Kitchen – Closing',        time: '75–90 min', color: 'bg-orange-100 text-orange-800', header: 'bg-orange-50' },
+  KitchenClose:      { label: 'BOH – Closing',             time: '90–120 min', color: 'bg-orange-100 text-orange-800', header: 'bg-orange-50' },
   KitchenFoodSafety: { label: 'Kitchen – Food Safety',    time: 'daily',     color: 'bg-red-100 text-red-800',      header: 'bg-red-50' },
   Bar_Open:          { label: 'Bar – Opening',            time: '45–60 min', color: 'bg-purple-100 text-purple-800', header: 'bg-purple-50' },
   Bar_Close:         { label: 'Bar – Closing',            time: '45 min',    color: 'bg-purple-100 text-purple-800', header: 'bg-purple-50' },
