@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Calendar, MapPin, Phone, Mail, Sparkles, Soup } from 'lucide-react';
 
 const CAT_ORDER = ['Lunch', 'Dinner', 'Bar', 'Dessert', 'Other'];
+const CAT_LABELS = { Lunch: 'Lunch Specials', Dinner: 'Dinner Specials', Bar: 'Bar Specials', Dessert: 'Dessert Specials', Other: "Today's Specials" };
 
 function DailySpecialsSection() {
   const { data: specials = [] } = useQuery({
