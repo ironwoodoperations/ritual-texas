@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
     }
 
     const loginUrl = "https://user-api.simplybook.me/login";
-    const adminUrl = "https://user-api.simplybook.me/admin";
+    const adminUrl = "https://user-api.simplybook.me/admin/";
 
     // Step 1: Admin auth
     const userToken = await sbRPC(loginUrl, "getUserToken", [companyLogin, userLogin, userPassword]);
