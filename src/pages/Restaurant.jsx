@@ -68,23 +68,38 @@ function DailySpecialsSection() {
         </div>
       )}
 
-      {/* Regular specials */}
+      {/* Regular specials grouped by category */}
       {ordered.length > 0 && (
-        <div style={{ display: 'grid', gap: '16px' }}>
-          {ordered.map(special => (
+        <div style={{ display: 'grid', gap: '24px' }}>
+          {CAT_ORDER.filter(cat => regularSpecials.some(s => s.category === cat)).map(cat => (
+            <div key={cat}>
+              <h3 style={{ margin: '0 0 12px', fontSize: '16px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8BA08C' }}>
+                {CAT_LABELS[cat] || cat}
+              </h3>
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {regularSpecials.filter(s => s.category === cat).map(special => (
+                  <div key={special.id} style={{ padding: '20px', background: 'white', borderRadius: '12px', border: '1px solid rgba(59,72,49,.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                    <div>
+                      <h4 style={{ margin: '0 0 6px', fontSize: '18px', color: '#3B4831', fontWeight: 700 }}>{special.title}</h4>
+                      <p style={{ margin: 0, color: '#1B1B1B', lineHeight: '1.7', fontSize: '14px' }}>{special.description}</p>
+                    </div>
+                    {special.price != null && (
+                      <span style={{ fontSize: '18px', color: '#C57C5D', fontWeight: 700, whiteSpace: 'nowrap' }}>${Number(special.price).toFixed(2)}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          {uncategorized.map(special => (
             <div key={special.id} style={{ padding: '20px', background: 'white', borderRadius: '12px', border: '1px solid rgba(59,72,49,.1)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '12px' }}>
-                <h3 style={{ margin: 0, fontSize: '20px', color: '#3B4831', fontWeight: 700 }}>{special.title}</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                <h4 style={{ margin: '0 0 6px', fontSize: '18px', color: '#3B4831', fontWeight: 700 }}>{special.title}</h4>
                 {special.price != null && (
-                  <span style={{ fontSize: '20px', color: '#C57C5D', fontWeight: 700, whiteSpace: 'nowrap' }}>${Number(special.price).toFixed(2)}</span>
+                  <span style={{ fontSize: '18px', color: '#C57C5D', fontWeight: 700, whiteSpace: 'nowrap' }}>${Number(special.price).toFixed(2)}</span>
                 )}
               </div>
-              <p style={{ margin: '8px 0 0 0', color: '#1B1B1B', lineHeight: '1.7' }}>{special.description}</p>
-              {special.category && (
-                <span style={{ display: 'inline-block', marginTop: '8px', padding: '4px 10px', background: 'rgba(197,124,93,.15)', color: '#C57C5D', fontSize: '12px', borderRadius: '4px', fontWeight: 600 }}>
-                  {special.category}
-                </span>
-              )}
+              <p style={{ margin: 0, color: '#1B1B1B', lineHeight: '1.7', fontSize: '14px' }}>{special.description}</p>
             </div>
           ))}
         </div>
