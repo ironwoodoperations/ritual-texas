@@ -322,6 +322,20 @@ export default function StaffDashboard() {
             <p className="text-xs uppercase tracking-widest text-[rgb(107,85,64)] mb-3">Menu</p>
             {visibleModules.map(m => {
               const Icon = iconMap[m.key] || LayoutDashboard;
+              if (m.externalUrl) {
+                return (
+                  <a
+                    key={m.key}
+                    href={m.externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-left transition-colors text-[rgb(45,45,45)] hover:bg-[rgb(235,225,213)]"
+                  >
+                    <Icon className="w-4 h-4" />
+                    {m.label}
+                  </a>
+                );
+              }
               return (
                 <button
                   key={m.key}
