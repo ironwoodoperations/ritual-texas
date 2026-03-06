@@ -581,6 +581,20 @@ function IntakeCard({ record, onUpdate, roomTypes, loadingRooms, callToBookTreat
                 <div className={`text-xs rounded-xl border ${actionMsg.success ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"}`}>
                   <div className="px-3 py-2 font-medium">{actionMsg.text}</div>
                   {actionMsg.detail && <div className="border-t px-3 py-2"><pre className="whitespace-pre-wrap break-all font-mono text-[11px] max-h-40 overflow-y-auto">{actionMsg.detail}</pre></div>}
+                  {actionMsg.isPending && actionMsg.draftUrl && (
+                    <div className="border-t px-3 py-2 flex items-center gap-2 flex-wrap">
+                      <a href={actionMsg.draftUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs">
+                        📄 Preview Invoice
+                      </a>
+                      <button 
+                        onClick={() => runAction("PublishQuote")}
+                        disabled={!!actioning}
+                        className="px-2 py-1 rounded text-xs bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                      >
+                        Send to Guest
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
