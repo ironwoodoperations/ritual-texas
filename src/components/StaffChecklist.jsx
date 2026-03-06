@@ -8,6 +8,20 @@ import { Badge } from '@/components/ui/badge';
 // ─── Templates from official Ritual Texas SOPs ───────────────────────────────
 
 const CHECKLIST_TEMPLATES = {
+  Kitchen_Open: [
+    "Turn on hood vents & equipment",
+    "Check & log refrigerator temps (≤41°F)",
+    "Check & log freezer temps (0°F)",
+    "Pull & date-check all prep items (FIFO)",
+    "Set up cutting boards & sanitizer buckets",
+    "Portion & prep daily mise en place",
+    "Confirm daily specials with FOH",
+    "Sharpen knives / inspect tools",
+    "Stock line stations to par",
+    "Check dry goods / notify manager of low stock",
+    "Taste test soups / sauces",
+    "Chef sign-off – ready to open",
+  ],
   FOH_Open: [
     "Unlock & lights/music on",
     "Sweep dining room",
