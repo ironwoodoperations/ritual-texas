@@ -274,9 +274,10 @@ function SpecialsManager() {
         </div>
       )}
 
-      {/* Category tabs: Lunch, Dinner, Bar */}
+      {/* Category tabs: Lunch, Soup, Dinner, Bar */}
       <div style={{ display: 'flex', gap: '4px', marginBottom: '24px', borderBottom: '2px solid rgba(59,72,49,.1)', paddingBottom: '0' }}>
-        {SPECIAL_CATS.map(cat => {
+        {/* Lunch tab */}
+        {['Lunch'].map(cat => {
           const catActive = specials.filter(s => s.category === cat && s.isActiveToday && !s.isSoup).length;
           return (
             <button
@@ -303,6 +304,7 @@ function SpecialsManager() {
             </button>
           );
         })}
+        {/* Soup tab — after Lunch */}
         <button
           onClick={() => setActiveTab('Soup')}
           style={{
@@ -322,6 +324,34 @@ function SpecialsManager() {
             <span style={{ marginLeft: '6px', width: '8px', height: '8px', background: '#8BA08C', borderRadius: '50%', display: 'inline-block', verticalAlign: 'middle' }} />
           )}
         </button>
+        {/* Dinner, Bar tabs */}
+        {['Dinner', 'Bar'].map(cat => {
+          const catActive = specials.filter(s => s.category === cat && s.isActiveToday && !s.isSoup).length;
+          return (
+            <button
+              key={cat}
+              onClick={() => setActiveTab(cat)}
+              style={{
+                padding: '10px 20px',
+                background: 'none',
+                border: 'none',
+                borderBottom: activeTab === cat ? '3px solid #C57C5D' : '3px solid transparent',
+                color: activeTab === cat ? '#C57C5D' : '#3B4831',
+                fontWeight: 700,
+                fontSize: '15px',
+                cursor: 'pointer',
+                marginBottom: '-2px',
+                transition: 'all 0.15s',
+                position: 'relative',
+              }}
+            >
+              {cat}
+              {catActive > 0 && (
+                <span style={{ marginLeft: '6px', width: '8px', height: '8px', background: '#C57C5D', borderRadius: '50%', display: 'inline-block', verticalAlign: 'middle' }} />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Tab content */}
