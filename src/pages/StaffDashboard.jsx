@@ -299,6 +299,9 @@ export default function StaffDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Link to={createPageUrl('Home')} className="text-xs text-[rgb(107,85,64)] hover:underline hidden sm:block">
+              ← Back to Site
+            </Link>
             <button
               onClick={() => setNavOpen(!navOpen)}
               className="md:hidden p-2 rounded hover:bg-[rgb(235,225,213)]"
