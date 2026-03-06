@@ -112,7 +112,7 @@ function SpecialsManager() {
   });
 
   const resetForm = () => {
-    setFormData({ title: '', description: '', price: '', category: 'Lunch', isActiveToday: false });
+    setFormData({ title: '', description: '', price: '', category: 'Lunch', isActiveToday: false, isSoup: false });
     setEditingSpecial(null);
     setShowDialog(false);
   };
@@ -124,7 +124,8 @@ function SpecialsManager() {
       description: special.description,
       price: special.price || '',
       category: special.category || 'Lunch',
-      isActiveToday: special.isActiveToday || false
+      isActiveToday: special.isActiveToday || false,
+      isSoup: special.isSoup || false,
     });
     setShowDialog(true);
   };
