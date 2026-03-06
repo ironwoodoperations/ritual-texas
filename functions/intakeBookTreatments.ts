@@ -239,7 +239,16 @@ Deno.serve(async (req) => {
       const durationMinutes = Number(entry?.duration || svc?.duration || 60);
       const startTime = normalizeTime(requestedTime);
       const endTime   = addMinutesToTime(startTime, durationMinutes);
-      const additional = (entry?.additionalFields && typeof entry.additionalFields === "object") ? entry.additionalFields : {};
+      const additional = {
+        predefined: {
+          client: {
+            name: entryGuestName,
+            email: entryGuestEmail,
+            phone: entryGuestPhone,
+          },
+          fields: {},
+        },
+      };
 
       let bookingResult = null;
       const bookingPayload = [Number(svc.id), unitId ? Number(unitId) : null, Number(clientId), requestedDate, startTime, requestedDate, endTime, 0, additional];
