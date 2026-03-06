@@ -6,7 +6,7 @@ import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import {
   Users, Home, Sparkles, Clock, ChevronLeft, ChevronRight,
-  Leaf, LogOut, Package, LayoutDashboard, Menu, X, ClipboardList
+  Leaf, LogOut, Package, LayoutDashboard, Menu, X, ClipboardList, UtensilsCrossed
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
