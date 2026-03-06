@@ -110,6 +110,7 @@ Deno.serve(async (req) => {
 
     const loginUrl = "https://user-api.simplybook.me/login";
     const apiUrl = "https://user-api.simplybook.me";
+    const adminApiUrl = "https://user-api.simplybook.me/admin";
 
     // 1) Get public token for reading services/slots
     const token = await sbRPC(loginUrl, "getToken", [company, apiKey]);
@@ -120,20 +121,24 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 2) Get admin token for creating bookings (requires authorization)
-    const adminToken = await sbRPC(loginUrl, "getToken", [company, apiKey, adminLogin, adminPassword]);
+    // 2) Get admin (user) token for creating bookings
+    const adminToken = await sbRPC(loginUrl, "getUserToken", [company, adminLogin, adminPassword]);
+    if (!adminToken || typeof adminToken !== "string") {
+      return Response.json(
+        { error: "Failed to get SimplyBook admin token - check SIMPLYBOOK_ADMIN_LOGIN / SIMPLYBOOK_ADMIN_PASSWORD" },
+        { status: 500 }
+      );
+    }
 
     const sbHeaders = {
       "X-Company-Login": company,
       "X-Token": token,
     };
 
-    // Use admin token if available, otherwise fall back to public token
     const sbAdminHeaders = {
       "X-Company-Login": company,
-      "X-Token": adminToken || token,
+      "X-User-Token": adminToken,
     };
-    const adminApiUrl = apiUrl;
 
     // 2) Pull fresh services + performers
     const [servicesRaw, performersRaw] = await Promise.all([
