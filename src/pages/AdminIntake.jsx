@@ -71,7 +71,7 @@ function Section({ title, children }) {
     <div className="mb-8">
       <div className="flex items-center gap-3 mb-5">
         <div className="h-px flex-1 bg-[rgb(220,210,200)]" />
-        <span className="text-[10px] font-bold tracking-widest text-[rgb(150,130,110)] uppercase whitespace-nowrap">{title}</span>
+        <span className="text-xs font-extrabold tracking-widest text-[rgb(107,85,64)] uppercase whitespace-nowrap">{title}</span>
         <div className="h-px flex-1 bg-[rgb(220,210,200)]" />
       </div>
       {children}
