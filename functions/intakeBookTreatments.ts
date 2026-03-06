@@ -64,10 +64,10 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const intake = body?.intake || body || {};
 
-    const companyLogin = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
-    const userLogin    = Deno.env.get("SIMPLYBOOK_USER_LOGIN") || "";
-    const userPassword = Deno.env.get("SIMPLYBOOK_USER_PASSWORD") || "";
-    const apiSecret    = Deno.env.get("SIMPLYBOOK_SECRET_KEY") || "";
+    const companyLogin = (Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "").trim();
+    const userLogin    = (Deno.env.get("SIMPLYBOOK_USER_LOGIN") || "").trim();
+    const userPassword = (Deno.env.get("SIMPLYBOOK_USER_PASSWORD") || "").trim();
+    const apiSecret    = (Deno.env.get("SIMPLYBOOK_SECRET_KEY") || "").trim();
 
     if (!companyLogin || !userLogin || !userPassword) {
       return Response.json(
