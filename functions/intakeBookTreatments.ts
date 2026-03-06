@@ -18,6 +18,7 @@ function sameTime(a, b) {
   return aa === bb || aa.slice(0, 5) === bb.slice(0, 5);
 }
 
+// SimplyBook JSON-RPC helper
 async function sbRPC(url, method, params, headers = {}) {
   const resp = await fetch(url, {
     method: "POST",
