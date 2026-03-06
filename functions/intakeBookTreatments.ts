@@ -1,44 +1,63 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.20";
 
-function clean(s) {
-  return String(s ?? "").trim();
+function clean(v) {
+  return String(v ?? "").trim();
 }
 
-// Admin JSON-RPC call (uses getUserToken + X-User-Token + /admin/ endpoint)
-async function sbAdminRPC(method, params, token, company) {
-  const headers = { "Content-Type": "application/json" };
-  if (token) {
-    headers["X-Company-Login"] = company;
-    headers["X-User-Token"] = token;
-  }
-  const url = token
-    ? "https://user-api.simplybook.me/admin/"
-    : "https://user-api.simplybook.me/login";
+function normalizeTime(raw) {
+  const t = clean(raw);
+  if (!t) return "";
+  if (/^\d{2}:\d{2}:\d{2}$/.test(t)) return t;
+  if (/^\d{2}:\d{2}$/.test(t)) return `${t}:00`;
+  return t;
+}
 
+function sameTime(a, b) {
+  const aa = normalizeTime(a);
+  const bb = normalizeTime(b);
+  return aa === bb || aa.slice(0, 5) === bb.slice(0, 5);
+}
+
+async function sbRPC(url, method, params, headers = {}) {
   const resp = await fetch(url, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-  });
-  const json = await resp.json();
-  if (json?.error) throw new Error(`SB RPC ${method}: ${JSON.stringify(json.error)}`);
-  return json?.result ?? json;
-}
-
-// User (read-only) JSON-RPC — used for getEventList / getUnitList
-async function sbUserRPC(method, params, token, company) {
-  const resp = await fetch("https://user-api.simplybook.me", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Company-Login": company,
-      "X-Token": token,
+      ...headers,
     },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method,
+      params,
+    }),
   });
-  const json = await resp.json();
-  if (json?.error) throw new Error(`SB User RPC ${method}: ${JSON.stringify(json.error)}`);
-  return json?.result ?? json;
+
+  const text = await resp.text();
+  let json = {};
+  try {
+    json = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(`SimplyBook returned non-JSON: ${text}`);
+  }
+
+  if (!resp.ok) {
+    throw new Error(`SimplyBook HTTP ${resp.status}: ${text}`);
+  }
+
+  if (json?.error) {
+    throw new Error(`SimplyBook ${method} error: ${JSON.stringify(json.error)}`);
+  }
+
+  return json?.result ?? null;
+}
+
+function asArrayMap(obj) {
+  if (!obj || typeof obj !== "object" || Array.isArray(obj)) return [];
+  return Object.entries(obj).map(([id, value]) => ({
+    id: String(id),
+    ...value,
+  }));
 }
 
 Deno.serve(async (req) => {
@@ -46,210 +65,302 @@ Deno.serve(async (req) => {
 
   try {
     const user = await base44.auth.me();
-    if (user?.role !== "admin") return Response.json({ error: "Admin only" }, { status: 403 });
+    if (user?.role !== "admin") {
+      return Response.json({ error: "Admin only" }, { status: 403 });
+    }
 
     const { intake } = await req.json();
 
-    const guestName = clean(intake?.guestName);
-    const guestEmail = clean(intake?.email || intake?.guestEmail || "").toLowerCase();
-    const phone = clean(intake?.phone);
+    const guestName =
+      clean(intake?.guestName) ||
+      clean(intake?.name) ||
+      clean(intake?.clientName);
+    const guestEmail = clean(
+      intake?.email || intake?.guestEmail || intake?.clientEmail
+    ).toLowerCase();
+    const guestPhone = clean(
+      intake?.phone || intake?.guestPhone || intake?.clientPhone
+    );
 
-    if (!guestName) return Response.json({ error: "Guest name required" }, { status: 400 });
-    if (!Array.isArray(intake?.selectedTreatments) || !intake.selectedTreatments.length) {
+    if (!guestName) {
+      return Response.json({ error: "Guest name required" }, { status: 400 });
+    }
+
+    if (
+      !Array.isArray(intake?.selectedTreatments) ||
+      intake.selectedTreatments.length === 0
+    ) {
       return Response.json({ error: "No treatments selected" }, { status: 400 });
     }
 
-    const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
     const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
-    const adminLogin = Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
-    const adminPassword = Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
+    const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
+    const apiSecret = Deno.env.get("SIMPLYBOOK_SECRET_KEY") || "";
 
-    if (!apiKey || !company) {
-      return Response.json({ error: "SimplyBook not configured" }, { status: 500 });
+    if (!company || !apiKey) {
+      return Response.json(
+        { error: "Missing SimplyBook secrets: SIMPLYBOOK_COMPANY_LOGIN / SIMPLYBOOK_API_KEY" },
+        { status: 500 }
+      );
     }
 
-    // 1) Get user token (read-only, for service/staff lists)
-    const userToken = await sbUserRPC("getToken", [company, apiKey], null, null).catch(() => null)
-      || await (async () => {
-        const r = await fetch("https://user-api.simplybook.me/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getToken", params: [company, apiKey] }),
-        });
-        const j = await r.json();
-        return j?.result;
-      })();
+    const loginUrl = "https://user-api.simplybook.me/login";
+    const apiUrl = "https://user-api.simplybook.me";
 
-    if (!userToken || typeof userToken !== "string") {
-      return Response.json({ error: "Failed to get SimplyBook user token" }, { status: 500 });
+    // 1) Public API token
+    const token = await sbRPC(loginUrl, "getToken", [company, apiKey]);
+    if (!token || typeof token !== "string") {
+      return Response.json(
+        { error: "Failed to get SimplyBook token" },
+        { status: 500 }
+      );
     }
 
-    // 2) Get admin token (for client management + booking)
-    let adminToken = null;
-    if (adminLogin && adminPassword) {
-      try {
-        adminToken = await (async () => {
-          const r = await fetch("https://user-api.simplybook.me/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getUserToken", params: [company, adminLogin, adminPassword] }),
-          });
-          const j = await r.json();
-          if (j?.error) throw new Error(JSON.stringify(j.error));
-          return j?.result;
-        })();
-      } catch (e) {
-        console.log("Admin token failed:", e.message);
-      }
-    }
+    const sbHeaders = {
+      "X-Company-Login": company,
+      "X-Token": token,
+    };
 
-    // 3) Get service list (user token)
-    const servicesRaw = await (async () => {
-      const r = await fetch("https://user-api.simplybook.me", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Company-Login": company, "X-Token": userToken },
-        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getEventList", params: [] }),
-      });
-      const j = await r.json();
-      return j?.result ?? {};
-    })();
-    const services = typeof servicesRaw === "object" && !Array.isArray(servicesRaw)
-      ? Object.entries(servicesRaw).map(([id, s]) => ({ id, ...s }))
-      : [];
+    // 2) Pull fresh services + performers
+    const [servicesRaw, performersRaw] = await Promise.all([
+      sbRPC(apiUrl, "getEventList", [], sbHeaders),
+      sbRPC(apiUrl, "getUnitList", [], sbHeaders),
+    ]);
 
-    // 4) Get performer list (user token)
-    const performersRaw = await (async () => {
-      const r = await fetch("https://user-api.simplybook.me", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Company-Login": company, "X-Token": userToken },
-        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getUnitList", params: [] }),
-      });
-      const j = await r.json();
-      return j?.result ?? {};
-    })();
-    const performers = typeof performersRaw === "object" && !Array.isArray(performersRaw)
-      ? Object.entries(performersRaw).map(([id, p]) => ({ id, ...p }))
-      : [];
+    const services = asArrayMap(servicesRaw);
+    const performers = asArrayMap(performersRaw);
 
-    // 5) Find or create client using admin token
-    let clientId = null;
-
-    if (adminToken) {
-      // Try to find existing client by scanning list
-      if (guestEmail) {
-        try {
-          const clientList = await sbAdminRPC("getClientList", [], adminToken, company);
-          const arr = clientList && typeof clientList === "object" ? Object.values(clientList) : [];
-          const found = arr.find((c) => String(c.email || "").toLowerCase() === guestEmail);
-          if (found) clientId = String(found.id || found.client_id);
-        } catch (e) {
-          console.log("Client list scan failed:", e.message);
-        }
-      }
-
-      // Create client if not found
-      if (!clientId) {
-        try {
-          const newClient = await sbAdminRPC("addClient", [{
-            name: guestName,
-            email: guestEmail || undefined,
-            phone: phone || undefined,
-          }], adminToken, company);
-          clientId = String(newClient?.id || newClient?.client_id || newClient || "");
-        } catch (e) {
-          // If "already exists" error, extract the ID from error data
-          const errMsg = e.message || "";
-          const match = errMsg.match(/"id"\s*:\s*"?(\d+)"?/);
-          if (match) clientId = match[1];
-          else console.log("addClient failed:", errMsg);
-        }
-      }
-    }
-
-    // 6) Book each treatment
     const created = [];
     const errors = [];
 
-    for (const item of intake.selectedTreatments) {
-      let entry = item;
-      if (typeof item === "string") {
-        try { entry = JSON.parse(item); } catch { entry = { serviceName: item }; }
+    for (const rawItem of intake.selectedTreatments) {
+      let entry = rawItem;
+
+      if (typeof rawItem === "string") {
+        try {
+          entry = JSON.parse(rawItem);
+        } catch {
+          entry = { serviceName: rawItem };
+        }
       }
 
-      const treatmentName = entry.serviceName || entry.name || "";
-      const explicitServiceId = entry.serviceId || entry.id || null;
-      const bookingDate = entry.date || "";
-      const rawTime = (entry.time || "10:00").replace(/[^0-9:]/g, "");
-      const time = rawTime.includes(":") ? rawTime : rawTime;
+      const entryGuestName = clean(entry?.guestName) || guestName;
+      const entryGuestEmail = clean(entry?.email) || guestEmail;
+      const entryGuestPhone = clean(entry?.phone) || guestPhone;
 
-      if (!bookingDate) {
-        errors.push(`No date for "${treatmentName}" — skipping`);
+      const requestedDate = clean(entry?.date || intake?.preferredTreatmentDate);
+      let requestedTime = normalizeTime(
+        entry?.time || intake?.preferredTreatmentTime
+      );
+
+      const serviceId = clean(entry?.serviceId || entry?.id);
+      const serviceName = clean(entry?.serviceName || entry?.name);
+      const requestedStaffId = clean(entry?.staffId);
+      const requestedStaffName =
+        clean(entry?.staffName) || clean(intake?.preferredTherapist);
+      const isFlexible = Boolean(intake?.flexibleOnTime);
+
+      if (!requestedDate) {
+        errors.push(`Missing date for "${serviceName || serviceId || "treatment"}"`);
         continue;
       }
 
       // Match service
-      const svc = explicitServiceId
-        ? services.find(s => String(s.id) === String(explicitServiceId))
-        : services.find(s => String(s.name || "").toLowerCase().includes(treatmentName.toLowerCase()) || treatmentName.toLowerCase().includes(String(s.name || "").toLowerCase()));
+      let svc =
+        services.find((s) => String(s.id) === String(serviceId)) ||
+        services.find(
+          (s) => String(s.name || "").toLowerCase() === serviceName.toLowerCase()
+        ) ||
+        services.find(
+          (s) =>
+            String(s.name || "").toLowerCase().includes(serviceName.toLowerCase()) ||
+            serviceName.toLowerCase().includes(String(s.name || "").toLowerCase())
+        );
 
       if (!svc) {
-        errors.push(`Service not found: "${treatmentName}"`);
+        errors.push(`Service not found in SimplyBook: "${serviceName || serviceId}"`);
         continue;
       }
 
-      const useStaffId = entry.staffId
-        ? String(entry.staffId)
-        : (performers[0]?.id || null);
+      // Decide provider/unit
+      let unitId = null;
 
-      const startDateTime = `${bookingDate} ${time}:00`;
+      if (requestedStaffId) {
+        unitId = String(requestedStaffId);
+      } else if (requestedStaffName) {
+        const perf = performers.find(
+          (p) => String(p.name || "").toLowerCase() === requestedStaffName.toLowerCase()
+        );
+        if (perf) unitId = String(perf.id);
+      } else if (Array.isArray(svc.unit_map) && svc.unit_map.length > 0) {
+        unitId = String(svc.unit_map[0]);
+      }
+
+      // 3) Validate availability
+      let matrix = {};
+      try {
+        matrix = await sbRPC(
+          apiUrl,
+          "getStartTimeMatrix",
+          [requestedDate, requestedDate, Number(svc.id), unitId ? Number(unitId) : null, 1],
+          sbHeaders
+        );
+      } catch (e) {
+        errors.push(`Could not load slots for "${svc.name}" on ${requestedDate}: ${e.message}`);
+        continue;
+      }
+
+      let slots = [];
+      if (matrix && typeof matrix === "object" && matrix[requestedDate]) {
+        slots = Array.isArray(matrix[requestedDate])
+          ? matrix[requestedDate].map((t) => normalizeTime(t))
+          : Object.values(matrix[requestedDate]).map((t) => normalizeTime(t));
+      }
+
+      if (!slots.length) {
+        errors.push(`No available slots for "${svc.name}" on ${requestedDate}`);
+        continue;
+      }
+
+      if (!requestedTime) {
+        requestedTime = slots[0];
+      } else {
+        const matched = slots.find((t) => sameTime(t, requestedTime));
+        if (matched) {
+          requestedTime = matched;
+        } else if (isFlexible) {
+          requestedTime = slots[0];
+        } else {
+          errors.push(
+            `Requested time ${requestedTime} is not available for "${svc.name}" on ${requestedDate}`
+          );
+          continue;
+        }
+      }
+
+      // 4) Build client data
+      const clientData = { name: entryGuestName };
+      if (entryGuestEmail) clientData.email = entryGuestEmail;
+      if (entryGuestPhone) clientData.phone = entryGuestPhone;
+
+      const additional =
+        entry?.additionalFields && typeof entry.additionalFields === "object"
+          ? entry.additionalFields
+          : {};
+
+      let bookingResult = null;
 
       try {
-        let bookingResult;
-
-        if (adminToken && clientId) {
-          // Book via admin API
-          bookingResult = await sbAdminRPC("addBooking", [
-            String(svc.id),
-            useStaffId,
-            startDateTime,
-            clientId,
-            null, // additional fields
-          ], adminToken, company);
-        } else {
-          // Fallback: record locally only
-          bookingResult = { id: `local-${Date.now()}` };
-          errors.push(`No admin token — "${treatmentName}" recorded locally only`);
-        }
-
-        const sbBookingId = String(bookingResult?.id || bookingResult || "");
-
-        const local = await base44.entities.SpaBooking.create({
-          simplybookBookingId: sbBookingId,
-          clientName: guestName,
-          email: guestEmail,
-          phone,
-          serviceName: svc.name || treatmentName,
-          service: String(svc.id),
-          startAt: `${bookingDate}T${time}:00`,
-          durationMinutes: Number(entry.duration || svc?.duration || 60),
-          price: Number(entry.price || svc?.price || 0),
-          source: "simplybook",
-          status: "create",
-        });
-
-        created.push({ simplybookId: sbBookingId, local });
-      } catch (bookErr) {
-        errors.push(`Booking failed for "${treatmentName}": ${bookErr.message}`);
+        bookingResult = await sbRPC(
+          apiUrl,
+          "book",
+          [
+            Number(svc.id),
+            unitId ? Number(unitId) : null,
+            requestedDate,
+            requestedTime,
+            clientData,
+            additional,
+          ],
+          sbHeaders
+        );
+      } catch (e) {
+        errors.push(`Booking failed for "${svc.name}": ${e.message}`);
+        continue;
       }
+
+      // Normalize booking response
+      const bookingObj = Array.isArray(bookingResult?.bookings)
+        ? bookingResult.bookings[0]
+        : bookingResult?.bookings
+        ? bookingResult.bookings
+        : bookingResult;
+
+      const bookingId = String(
+        bookingObj?.id || bookingObj?.booking_id || bookingResult?.id || ""
+      );
+      const bookingHash = String(
+        bookingObj?.hash || bookingObj?.booking_hash || bookingResult?.hash || ""
+      );
+
+      if (!bookingId) {
+        errors.push(`SimplyBook returned no booking id for "${svc.name}"`);
+        continue;
+      }
+
+      let finalStatus = "created";
+
+      // 5) Confirm if required
+      if (bookingResult?.require_confirm === true && apiSecret && bookingHash) {
+        try {
+          // Simple MD5-like sign using Web Crypto (SHA-256 fallback since no md5 dep)
+          const signStr = `${bookingId}${bookingHash}${apiSecret}`;
+          const encoder = new TextEncoder();
+          const data = encoder.encode(signStr);
+          const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          const sign = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+          await sbRPC(apiUrl, "confirmBooking", [Number(bookingId), sign], sbHeaders);
+          finalStatus = "confirmed";
+        } catch (e) {
+          finalStatus = "pending_confirmation";
+          errors.push(`Booking created but confirmation failed for "${svc.name}": ${e.message}`);
+        }
+      } else if (bookingResult?.require_confirm === true) {
+        finalStatus = "pending_confirmation";
+      }
+
+      const spaPayload = {
+        source: "simplybook",
+        simplybookBookingId: bookingId,
+        simplybookBookingHash: bookingHash || "",
+        clientName: entryGuestName,
+        email: entryGuestEmail,
+        phone: entryGuestPhone,
+        serviceName: svc.name || serviceName,
+        service: String(svc.id),
+        staffName:
+          requestedStaffName ||
+          performers.find((p) => String(p.id) === String(unitId))?.name ||
+          "",
+        staff: unitId ? String(unitId) : "",
+        startAt: `${requestedDate}T${requestedTime}`,
+        durationMinutes: Number(entry?.duration || svc?.duration || 60),
+        price: Number(entry?.price || svc?.price || 0),
+        paid: false,
+        status: finalStatus,
+      };
+
+      // Upsert into SpaBooking
+      const existing = await base44.asServiceRole.entities.SpaBooking.filter({
+        simplybookBookingId: bookingId,
+      });
+
+      if (existing?.length) {
+        await base44.asServiceRole.entities.SpaBooking.update(existing[0].id, spaPayload);
+      } else {
+        await base44.asServiceRole.entities.SpaBooking.create(spaPayload);
+      }
+
+      created.push({
+        simplybookBookingId: bookingId,
+        serviceName: spaPayload.serviceName,
+        startAt: spaPayload.startAt,
+        status: finalStatus,
+      });
     }
 
     return Response.json({
       success: created.length > 0,
       bookings: created,
       errors,
-      message: `${created.length} booking${created.length === 1 ? "" : "s"} created${errors.length ? ` (Warnings: ${errors.join("; ")})` : ""}`,
+      message: `${created.length} treatment booking${created.length === 1 ? "" : "s"} created`,
     });
   } catch (e) {
-    return Response.json({ error: e.message }, { status: 500 });
+    console.error("intakeBookTreatments error:", e);
+    return Response.json(
+      { error: e?.message || "Unknown intakeBookTreatments error" },
+      { status: 500 }
+    );
   }
 });
