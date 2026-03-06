@@ -105,14 +105,17 @@ Deno.serve(async (req) => {
       );
     }
 
+    const adminLogin = Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
+    const adminPassword = Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
+
     const loginUrl = "https://user-api.simplybook.me/login";
     const apiUrl = "https://user-api.simplybook.me";
 
-    // 1) Public API token
-    const token = await sbRPC(loginUrl, "getToken", [company, apiKey]);
+    // 1) Get admin token (required for booking)
+    const token = await sbRPC(loginUrl, "getTokenByCredentials", [company, adminLogin, adminPassword]);
     if (!token || typeof token !== "string") {
       return Response.json(
-        { error: "Failed to get SimplyBook token" },
+        { error: "Failed to get SimplyBook admin token" },
         { status: 500 }
       );
     }
