@@ -9,18 +9,33 @@ import { Badge } from '@/components/ui/badge';
 
 const CHECKLIST_TEMPLATES = {
   Kitchen_Open: [
-    "Turn on hood vents & equipment",
-    "Check & log refrigerator temps (≤41°F)",
-    "Check & log freezer temps (0°F)",
-    "Pull & date-check all prep items (FIFO)",
-    "Set up cutting boards & sanitizer buckets",
-    "Portion & prep daily mise en place",
-    "Confirm daily specials with FOH",
-    "Sharpen knives / inspect tools",
-    "Stock line stations to par",
-    "Check dry goods / notify manager of low stock",
-    "Taste test soups / sauces",
-    "Chef sign-off – ready to open",
+    // Equipment & Safety
+    "Turn on hood vents & exhaust fans",
+    "Turn on ovens, grill, flat top & fryers (preheat)",
+    "Check & log all refrigerator temps (≤41°F) – log sheet",
+    "Check & log all freezer temps (0°F) – log sheet",
+    "Verify walk-in cooler door seals & temp (≤41°F)",
+    // Sanitation & Setup
+    "Set up sanitizer buckets at all stations (200 ppm)",
+    "Set up cutting boards – color-coded & clean",
+    "Set out clean towels / side towels at each station",
+    "Stock hand-washing stations (soap, paper towels)",
+    "Inspect all equipment for cleanliness before use",
+    // Prep & Inventory
+    "Pull prep list – review with chef",
+    "Pull & date-check all items from walk-in (FIFO rotation)",
+    "Thaw proteins per schedule – label with date & time",
+    "Portion & complete daily mise en place",
+    "Prep soups, sauces, stocks as needed",
+    "Taste test soups / sauces – adjust seasoning",
+    "Stock all line stations to par levels",
+    "Check dry goods & dry storage – note low stock to manager",
+    "Sharpen & sanitize knives – inspect for damage",
+    // Communication & Sign-off
+    "Review reservation count & any special dietary needs with manager",
+    "Confirm daily specials with FOH team",
+    "Confirm allergy / 86'd items board is updated",
+    "Chef / lead sign-off – kitchen ready to open",
   ],
   FOH_Open: [
     "Unlock & lights/music on",
