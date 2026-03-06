@@ -100,9 +100,9 @@ const DEPT_META = {
 
 // Departments visible by role
 const ROLE_DEPTS = {
-  manager: ['FOH_Open', 'FOH_Close', 'KitchenClose', 'KitchenFoodSafety', 'Bar_Open', 'Bar_Close'],
-  chef:    ['KitchenClose', 'KitchenFoodSafety', 'FOH_Open', 'FOH_Close', 'Bar_Open', 'Bar_Close'],
-  staff:   ['FOH_Open', 'FOH_Close', 'Bar_Open', 'Bar_Close'],
+  manager: ['FOH_Open', 'FOH_Close', 'Kitchen_Open', 'KitchenClose', 'KitchenFoodSafety', 'Bar_Open', 'Bar_Close'],
+  chef:    ['Kitchen_Open', 'KitchenClose', 'KitchenFoodSafety', 'FOH_Open', 'FOH_Close', 'Bar_Open', 'Bar_Close'],
+  staff:   ['FOH_Open', 'FOH_Close', 'Kitchen_Open', 'KitchenClose', 'Bar_Open', 'Bar_Close'],
 };
 
 // ─── Single department checklist card ────────────────────────────────────────
