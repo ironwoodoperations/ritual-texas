@@ -23,48 +23,6 @@ import StaffDailySpecials from '@/components/staff/StaffDailySpecials';
 // Lazy import for spa schedule (it's heavy)
 import AdminSpaSchedule from '@/pages/AdminSpaSchedule';
 
-// ─── Staff Inventory ──────────────────────────────────────────────────────────
-function StaffInventory({ session }) {
-  const role = session?.role || 'server';
-  const isChef = role === 'chef' || role === 'kitchen_staff' || role === 'manager';
-  const [search, setSearch] = useState('');
-
-  const { data: inventory = [], isLoading } = useQuery({
-    queryKey: ['hk-rooms-staff'],
-    queryFn: () => base44.entities.HkRoom.list(),
-  });
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-4">
-        <Input placeholder="Search rooms…" value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
-        <Badge variant="outline">Role: {role}</Badge>
-      </div>
-      {!isChef && (
-        <p className="text-sm text-amber-700 bg-amber-50 p-3 rounded-lg">View only — stock editing is for chef/kitchen roles.</p>
-      )}
-      {isLoading ? (
-        <div className="text-[rgb(45,45,45)]">Loading…</div>
-      ) : (
-        <div className="space-y-2">
-          {inventory
-            .filter(r => !search || (r.roomNumber || '').toLowerCase().includes(search.toLowerCase()))
-            .map(room => (
-              <div key={room.id} className="flex items-center justify-between p-4 bg-white border border-[rgb(235,225,213)] rounded-lg">
-                <div>
-                  <div className="font-medium text-[rgb(107,85,64)]">Room {room.roomNumber}</div>
-                  {room.roomType && <div className="text-xs text-[rgb(45,45,45)]">{room.roomType}</div>}
-                </div>
-                <Badge variant={room.active ? 'default' : 'secondary'}>{room.active ? 'Active' : 'Inactive'}</Badge>
-              </div>
-            ))}
-          {inventory.length === 0 && <p className="text-[rgb(45,45,45)]">No rooms found.</p>}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── Staff Overview (arrivals/departures/HK) ─────────────────────────────────
 function StaffHome({ session }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
