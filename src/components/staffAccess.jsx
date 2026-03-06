@@ -87,12 +87,6 @@ export const DEFAULT_MODULES = [
     defaultRoles: 'server,chef,kitchen_staff,housekeeping,hotel_host,hotel_service_provider,manager',
   },
   {
-    key: 'kitchen_inventory',
-    label: 'Kitchen: Inventory',
-    defaultVisible: true,
-    defaultRoles: 'chef,kitchen_staff,manager',
-  },
-  {
     key: 'ritual_kitchen_inventory',
     label: 'Ritual Kitchen Inventory',
     defaultVisible: true,
