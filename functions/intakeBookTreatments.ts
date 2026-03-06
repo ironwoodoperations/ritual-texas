@@ -242,11 +242,11 @@ Deno.serve(async (req) => {
       const additional = (entry?.additionalFields && typeof entry.additionalFields === "object") ? entry.additionalFields : {};
 
       let bookingResult = null;
+      const bookingPayload = [Number(svc.id), unitId ? Number(unitId) : null, Number(clientId), requestedDate, startTime, requestedDate, endTime, 0, additional];
+      console.log("SimplyBook booking payload:", JSON.stringify({ eventId: bookingPayload[0], unitId: bookingPayload[1], clientId: bookingPayload[2], startDate: requestedDate, startTime, endDate: requestedDate, endTime }));
+
       try {
-        bookingResult = await sbRPC(adminUrl, "book",
-          [Number(svc.id), unitId ? Number(unitId) : null, Number(clientId), requestedDate, startTime, requestedDate, endTime, 0, additional],
-          adminHeaders
-        );
+        bookingResult = await sbRPC(adminUrl, "book", bookingPayload, adminHeaders);
       } catch (e) {
         errors.push(`Booking failed for "${svc.name}": ${e.message}`);
         debug.push({ stage: "book_failed", serviceId: svc.id, unitId, clientId, requestedDate, startTime, endTime, error: e.message });
