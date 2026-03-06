@@ -209,6 +209,8 @@ function IntakeForm({ initial = BLANK, roomTypes = [], callToBookTreatments = []
           onSbChange={setSbEntries}
           onCtbChange={setCtbEntries}
           primaryGuestName={form.guestName}
+          guestName={form.guestName}
+          guestEmail={form.email}
         />
         <div className="mt-5">
           <Field label="Additional Treatment Notes">
