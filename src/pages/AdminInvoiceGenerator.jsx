@@ -719,10 +719,32 @@ function NewInvoice({ rooms, treatments, packages }) {
            </div>
 
           <div className="flex flex-col gap-3">
+            {showSendConfirm && (
+              <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 space-y-3">
+                <p className="text-sm font-semibold text-amber-800">⚠️ Confirm: Create & Send Invoice?</p>
+                <p className="text-xs text-amber-700">This will immediately email the invoice to <strong>{customerEmail}</strong> for <strong>{fmtMoney(total)}</strong>. Are you sure?</p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={(e) => { setShowSendConfirm(false); handleSubmit(e, true); }}
+                    className="flex-1 py-2 bg-[rgb(107,85,64)] text-white text-sm font-medium rounded-lg hover:bg-[rgb(85,65,45)]"
+                  >
+                    Yes, Send It
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowSendConfirm(false)}
+                    className="flex-1 py-2 border border-amber-300 text-amber-800 text-sm font-medium rounded-lg hover:bg-amber-100"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
             <Button
-              type="submit"
+              type="button"
               disabled={!!loading}
-              onClick={(e) => handleSubmit(e, true)}
+              onClick={() => setShowSendConfirm(true)}
               className="w-full bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white py-3 text-base"
             >
               {loading === 'send' ? (
