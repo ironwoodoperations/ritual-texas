@@ -1,32 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { Link, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import {
   Users, Home, Sparkles, Clock, ChevronLeft, ChevronRight,
-  Leaf, LogOut, Package, LayoutDashboard, Menu, X, ClipboardList, UtensilsCrossed
+  Leaf, LogOut, Package, LayoutDashboard, Menu, X, ClipboardList,
+  UtensilsCrossed, Hotel, Soup, ExternalLink
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   getStaffSession, clearStaffSession, getModuleSettings,
   DEFAULT_MODULES, isRoleAllowed
 } from '@/components/staffAccess';
 import StaffChecklist from '@/components/StaffChecklist';
+import StaffHotelReservations from '@/components/staff/StaffHotelReservations';
+import StaffDailySpecials from '@/components/staff/StaffDailySpecials';
 
-// ─── Staff Inventory (stock-only editing) ────────────────────────────────────
+// Lazy import for spa schedule (it's heavy)
+import AdminSpaSchedule from '@/pages/AdminSpaSchedule';
+
+// ─── Staff Inventory ──────────────────────────────────────────────────────────
 function StaffInventory({ session }) {
-  const role = session?.role || 'staff';
-  const isChef = role === 'chef' || role === 'manager';
+  const role = session?.role || 'server';
+  const isChef = role === 'chef' || role === 'kitchen_staff' || role === 'manager';
   const [search, setSearch] = useState('');
 
-  const { data: inventory = [], isLoading, refetch } = useQuery({
+  const { data: inventory = [], isLoading } = useQuery({
     queryKey: ['hk-rooms-staff'],
     queryFn: () => base44.entities.HkRoom.list(),
   });
@@ -34,18 +37,11 @@ function StaffInventory({ session }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-4">
-        <Input
-          placeholder="Search rooms…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-xs"
-        />
+        <Input placeholder="Search rooms…" value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
         <Badge variant="outline">Role: {role}</Badge>
       </div>
       {!isChef && (
-        <p className="text-sm text-amber-700 bg-amber-50 p-3 rounded-lg">
-          View only — stock editing is for chef/manager roles.
-        </p>
+        <p className="text-sm text-amber-700 bg-amber-50 p-3 rounded-lg">View only — stock editing is for chef/kitchen roles.</p>
       )}
       {isLoading ? (
         <div className="text-[rgb(45,45,45)]">Loading…</div>
@@ -59,9 +55,7 @@ function StaffInventory({ session }) {
                   <div className="font-medium text-[rgb(107,85,64)]">Room {room.roomNumber}</div>
                   {room.roomType && <div className="text-xs text-[rgb(45,45,45)]">{room.roomType}</div>}
                 </div>
-                <Badge variant={room.active ? 'default' : 'secondary'}>
-                  {room.active ? 'Active' : 'Inactive'}
-                </Badge>
+                <Badge variant={room.active ? 'default' : 'secondary'}>{room.active ? 'Active' : 'Inactive'}</Badge>
               </div>
             ))}
           {inventory.length === 0 && <p className="text-[rgb(45,45,45)]">No rooms found.</p>}
@@ -71,7 +65,7 @@ function StaffInventory({ session }) {
   );
 }
 
-// ─── Staff Home (arrivals/departures) ────────────────────────────────────────
+// ─── Staff Overview (arrivals/departures/HK) ─────────────────────────────────
 function StaffHome({ session }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
@@ -88,38 +82,26 @@ function StaffHome({ session }) {
 
   const arrivals = bookings.filter(b => b.check_in_date === dateStr && b.booking_status !== 'cancelled');
   const departures = bookings.filter(b => b.check_out_date === dateStr && b.booking_status !== 'cancelled');
-  const treatments = bookings.flatMap(b =>
-    (b.treatments || []).map(t => ({ ...t, guest_name: b.guest_name, room_name: b.room_name }))
-  );
 
   const handlePrevDay = () => setSelectedDate(d => { const n = new Date(d); n.setDate(n.getDate() - 1); return n; });
   const handleNextDay = () => setSelectedDate(d => { const n = new Date(d); n.setDate(n.getDate() + 1); return n; });
 
   return (
     <div className="space-y-6">
-      {/* Welcome */}
       <div className="bg-white border border-[rgb(235,225,213)] rounded-lg p-4">
-        <p className="text-[rgb(107,85,64)] font-light text-lg">
-          Welcome, <strong>{session?.name || 'Staff'}</strong>
-        </p>
-        <p className="text-sm text-[rgb(45,45,45)]">Role: {session?.role || 'staff'}</p>
+        <p className="text-[rgb(107,85,64)] font-light text-lg">Welcome, <strong>{session?.name || 'Staff'}</strong></p>
+        <p className="text-sm text-[rgb(45,45,45)] capitalize">Role: {session?.role || 'server'}</p>
       </div>
 
-      {/* Date Selector */}
       <div className="flex items-center justify-between bg-white p-4 border border-[rgb(235,225,213)] rounded-lg">
-        <button onClick={handlePrevDay} className="p-2 hover:bg-[rgb(235,225,213)] rounded">
-          <ChevronLeft className="w-5 h-5" />
-        </button>
+        <button onClick={handlePrevDay} className="p-2 hover:bg-[rgb(235,225,213)] rounded"><ChevronLeft className="w-5 h-5" /></button>
         <div className="text-center">
           <p className="text-2xl font-light text-[rgb(107,85,64)]">{format(selectedDate, 'EEEE')}</p>
           <p className="text-sm text-[rgb(45,45,45)]">{format(selectedDate, 'MMMM d, yyyy')}</p>
         </div>
-        <button onClick={handleNextDay} className="p-2 hover:bg-[rgb(235,225,213)] rounded">
-          <ChevronRight className="w-5 h-5" />
-        </button>
+        <button onClick={handleNextDay} className="p-2 hover:bg-[rgb(235,225,213)] rounded"><ChevronRight className="w-5 h-5" /></button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white p-4 border border-[rgb(235,225,213)] rounded-lg text-center">
           <Users className="w-6 h-6 mx-auto mb-2 text-[rgb(150,170,155)]" />
@@ -138,7 +120,6 @@ function StaffHome({ session }) {
         </div>
       </div>
 
-      {/* Tabs */}
       <Tabs defaultValue="arrivals" className="space-y-4">
         <TabsList className="grid grid-cols-3 w-full bg-[rgb(235,225,213)]">
           <TabsTrigger value="arrivals" className="data-[state=active]:bg-white">Arrivals ({arrivals.length})</TabsTrigger>
@@ -203,9 +184,7 @@ function StaffHome({ session }) {
                   <p className="font-medium text-[rgb(107,85,64)]">Room {t.roomNumber}</p>
                   <p className="text-sm text-[rgb(45,45,45)] capitalize">{t.taskType?.replace('_', ' ')} · {t.priority}</p>
                 </div>
-                <Badge variant={t.status === 'completed' ? 'default' : 'secondary'}>
-                  {t.status}
-                </Badge>
+                <Badge variant={t.status === 'completed' ? 'default' : 'secondary'}>{t.status}</Badge>
               </div>
             ))}
           </div>
@@ -215,35 +194,39 @@ function StaffHome({ session }) {
   );
 }
 
-// ─── Main StaffDashboard (shell + PIN gate) ───────────────────────────────────
+// ─── Icon map ─────────────────────────────────────────────────────────────────
+const ICON_MAP = {
+  staff_home:              LayoutDashboard,
+  kitchen_inventory:       Package,
+  ritual_kitchen_inventory: UtensilsCrossed,
+  housekeeping_tasks:      Home,
+  spa_schedule:            Sparkles,
+  hotel:                   Hotel,
+  restaurant_daily:        Soup,
+  daily_checklists:        ClipboardList,
+};
+
+// ─── Main StaffDashboard ──────────────────────────────────────────────────────
 export default function StaffDashboard() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [session, setSession] = useState(null);
   const [settingsMap, setSettingsMap] = useState(null);
   const [navOpen, setNavOpen] = useState(false);
-  const [view, setView] = useState('home');
+  const [view, setView] = useState('staff_home');
 
   useEffect(() => {
     const s = getStaffSession();
-    if (!s) {
-      navigate(createPageUrl('StaffLogin'));
-      return;
-    }
+    if (!s) { navigate(createPageUrl('StaffLogin')); return; }
     setSession(s);
     (async () => {
-      try {
-        const map = await getModuleSettings();
-        setSettingsMap(map);
-      } catch {
-        setSettingsMap(new Map());
-      }
+      try { setSettingsMap(await getModuleSettings()); }
+      catch { setSettingsMap(new Map()); }
     })();
   }, [navigate]);
 
   const visibleModules = React.useMemo(() => {
     if (!session) return [];
-    const role = session.role || 'staff';
+    const role = session.role || 'server';
     const map = settingsMap || new Map();
     return DEFAULT_MODULES.map(m => {
       const row = map.get(m.key);
@@ -253,10 +236,7 @@ export default function StaffDashboard() {
     }).filter(m => m.staffVisible && m.okRole);
   }, [session, settingsMap]);
 
-  const onLogout = () => {
-    clearStaffSession();
-    navigate(createPageUrl('StaffLogin'));
-  };
+  const onLogout = () => { clearStaffSession(); navigate(createPageUrl('StaffLogin')); };
 
   if (!session) {
     return (
@@ -266,24 +246,16 @@ export default function StaffDashboard() {
     );
   }
 
-  const iconMap = {
-    staff_home: LayoutDashboard,
-    kitchen_inventory: Package,
-    ritual_kitchen_inventory: UtensilsCrossed,
-    housekeeping_tasks: Home,
-    spa_schedule: Sparkles,
-    arrivals_today: Users,
-    daily_checklists: ClipboardList,
-  };
-
   const renderView = () => {
     switch (view) {
-      case 'kitchen_inventory': return <StaffInventory session={session} />;
-      case 'daily_checklists': return <StaffChecklist session={session} />;
+      case 'kitchen_inventory':   return <StaffInventory session={session} />;
+      case 'daily_checklists':    return <StaffChecklist session={session} />;
+      case 'spa_schedule':        return <AdminSpaSchedule />;
+      case 'hotel':               return <StaffHotelReservations />;
+      case 'restaurant_daily':    return <StaffDailySpecials />;
       case 'housekeeping_tasks':
-      case 'arrivals_today':
       case 'staff_home':
-      default: return <StaffHome session={session} />;
+      default:                    return <StaffHome session={session} />;
     }
   };
 
@@ -296,13 +268,11 @@ export default function StaffDashboard() {
             <Leaf className="w-6 h-6 text-[rgb(150,170,155)]" />
             <div>
               <h1 className="text-lg font-light text-[rgb(107,85,64)]">Staff Dashboard</h1>
-              <p className="text-xs text-[rgb(45,45,45)]">Hotel RITUAL</p>
+              <p className="text-xs text-[rgb(45,45,45)]">Hotel RITUAL · {session.name}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Link to={createPageUrl('Home')} className="text-xs text-[rgb(107,85,64)] hover:underline hidden sm:block">
-              ← Back to Site
-            </Link>
+            <Link to={createPageUrl('Home')} className="text-xs text-[rgb(107,85,64)] hover:underline hidden sm:block">← Back to Site</Link>
             <button
               onClick={() => setNavOpen(!navOpen)}
               className="md:hidden p-2 rounded hover:bg-[rgb(235,225,213)]"
@@ -322,7 +292,7 @@ export default function StaffDashboard() {
           <div className="bg-white border border-[rgb(235,225,213)] rounded-lg p-4 space-y-1">
             <p className="text-xs uppercase tracking-widest text-[rgb(107,85,64)] mb-3">Menu</p>
             {visibleModules.map(m => {
-              const Icon = iconMap[m.key] || LayoutDashboard;
+              const Icon = ICON_MAP[m.key] || LayoutDashboard;
               if (m.externalUrl) {
                 return (
                   <a
@@ -334,6 +304,7 @@ export default function StaffDashboard() {
                   >
                     <Icon className="w-4 h-4" />
                     {m.label}
+                    <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
                   </a>
                 );
               }
@@ -342,9 +313,7 @@ export default function StaffDashboard() {
                   key={m.key}
                   onClick={() => { setView(m.key); setNavOpen(false); }}
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-left transition-colors
-                    ${view === m.key
-                      ? 'bg-[rgb(150,170,155)] text-white'
-                      : 'text-[rgb(45,45,45)] hover:bg-[rgb(235,225,213)]'}`}
+                    ${view === m.key ? 'bg-[rgb(150,170,155)] text-white' : 'text-[rgb(45,45,45)] hover:bg-[rgb(235,225,213)]'}`}
                 >
                   <Icon className="w-4 h-4" />
                   {m.label}

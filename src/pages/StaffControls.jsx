@@ -4,26 +4,17 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Plus, Users, Pencil, Check, X } from 'lucide-react';
-import { DEFAULT_MODULES } from '@/components/staffAccess';
+import { DEFAULT_MODULES, ALL_ROLES, ROLE_COLORS, ROLE_DESCRIPTIONS } from '@/components/staffAccess';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
-const ROLES = ['staff', 'chef', 'manager'];
-
-const ROLE_COLORS = {
-  staff:   'bg-blue-100 text-blue-800',
-  chef:    'bg-amber-100 text-amber-800',
-  manager: 'bg-purple-100 text-purple-800',
-};
-
-// ── Editable row ─────────────────────────────────────────────────────────────
+// ── Editable PIN row ──────────────────────────────────────────────────────────
 function PinRow({ p, onSave, onDelete }) {
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ name: p.name || '', pin: p.pin || '', role: p.role || 'staff', is_active: p.is_active ?? true });
+  const [form, setForm] = useState({ name: p.name || '', pin: p.pin || '', role: p.role || 'server', is_active: p.is_active ?? true });
   const [err, setErr] = useState('');
 
   const save = () => {
@@ -35,7 +26,7 @@ function PinRow({ p, onSave, onDelete }) {
   };
 
   const cancel = () => {
-    setForm({ name: p.name || '', pin: p.pin || '', role: p.role || 'staff', is_active: p.is_active ?? true });
+    setForm({ name: p.name || '', pin: p.pin || '', role: p.role || 'server', is_active: p.is_active ?? true });
     setErr('');
     setEditing(false);
   };
@@ -44,46 +35,23 @@ function PinRow({ p, onSave, onDelete }) {
     return (
       <tr className="bg-[rgb(248,246,242)]">
         <td className="px-4 py-3">
-          <Input
-            value={form.name}
-            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-            placeholder="Staff name"
-            className="h-8 text-sm"
-          />
+          <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Staff name" className="h-8 text-sm" />
         </td>
         <td className="px-4 py-3">
-          <Input
-            value={form.pin}
-            onChange={e => setForm(f => ({ ...f, pin: e.target.value.replace(/[^\d]/g, '').slice(0, 4) }))}
-            placeholder="4 digits"
-            inputMode="numeric"
-            maxLength={4}
-            className="h-8 text-sm w-24"
-          />
+          <Input value={form.pin} onChange={e => setForm(f => ({ ...f, pin: e.target.value.replace(/[^\d]/g, '').slice(0, 4) }))} placeholder="4 digits" inputMode="numeric" maxLength={4} className="h-8 text-sm w-24" />
         </td>
         <td className="px-4 py-3">
-          <select
-            value={form.role}
-            onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
-            className="border border-input rounded-md px-2 py-1 text-sm bg-white h-8"
-          >
-            {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+          <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} className="border border-input rounded-md px-2 py-1 text-sm bg-white h-8">
+            {ALL_ROLES.map(r => <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>)}
           </select>
         </td>
         <td className="px-4 py-3">
-          <Switch
-            checked={form.is_active}
-            onCheckedChange={v => setForm(f => ({ ...f, is_active: v }))}
-          />
+          <Switch checked={form.is_active} onCheckedChange={v => setForm(f => ({ ...f, is_active: v }))} />
         </td>
         <td className="px-4 py-3">
           <div className="flex items-center gap-2">
-            <Button size="sm" onClick={save} className="bg-[rgb(150,170,155)] hover:bg-[rgb(130,150,135)] text-white h-8 px-3">
-              <Check className="w-4 h-4" />
-            </Button>
-            <Button size="sm" variant="outline" onClick={cancel} className="h-8 px-3">
-              <X className="w-4 h-4" />
-            </Button>
+            <Button size="sm" onClick={save} className="bg-[rgb(150,170,155)] hover:bg-[rgb(130,150,135)] text-white h-8 px-3"><Check className="w-4 h-4" /></Button>
+            <Button size="sm" variant="outline" onClick={cancel} className="h-8 px-3"><X className="w-4 h-4" /></Button>
           </div>
           {err && <p className="text-red-600 text-xs mt-1">{err}</p>}
         </td>
@@ -97,26 +65,16 @@ function PinRow({ p, onSave, onDelete }) {
       <td className="px-4 py-3 font-mono text-sm text-[rgb(45,45,45)]">••••</td>
       <td className="px-4 py-3">
         <span className={`text-xs px-2 py-1 rounded-full font-medium ${ROLE_COLORS[p.role] || 'bg-gray-100 text-gray-700'}`}>
-          {p.role || 'staff'}
+          {(p.role || 'server').replace(/_/g, ' ')}
         </span>
       </td>
       <td className="px-4 py-3">
-        <Switch
-          checked={p.is_active ?? true}
-          onCheckedChange={v => onSave(p.id, { ...p, is_active: v })}
-        />
+        <Switch checked={p.is_active ?? true} onCheckedChange={v => onSave(p.id, { ...p, is_active: v })} />
       </td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={() => setEditing(true)} className="h-8 px-3">
-            <Pencil className="w-3 h-3 mr-1" /> Edit
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => { if (confirm(`Delete PIN for ${p.name}?`)) onDelete(p.id); }}
-            className="h-8 px-3 border-red-200 hover:bg-red-50 text-red-600"
-          >
+          <Button size="sm" variant="outline" onClick={() => setEditing(true)} className="h-8 px-3"><Pencil className="w-3 h-3 mr-1" /> Edit</Button>
+          <Button size="sm" variant="outline" onClick={() => { if (confirm(`Delete PIN for ${p.name}?`)) onDelete(p.id); }} className="h-8 px-3 border-red-200 hover:bg-red-50 text-red-600">
             <Trash2 className="w-3 h-3" />
           </Button>
         </div>
@@ -125,9 +83,8 @@ function PinRow({ p, onSave, onDelete }) {
   );
 }
 
-// ── Add row ───────────────────────────────────────────────────────────────────
 function AddPinRow({ onAdd }) {
-  const [form, setForm] = useState({ name: '', pin: '', role: 'staff' });
+  const [form, setForm] = useState({ name: '', pin: '', role: 'server' });
   const [err, setErr] = useState('');
 
   const submit = () => {
@@ -135,36 +92,20 @@ function AddPinRow({ onAdd }) {
     if (!/^\d{4}$/.test(form.pin)) { setErr('PIN must be exactly 4 digits.'); return; }
     setErr('');
     onAdd({ ...form, is_active: true });
-    setForm({ name: '', pin: '', role: 'staff' });
+    setForm({ name: '', pin: '', role: 'server' });
   };
 
   return (
     <tr className="border-t-2 border-[rgb(150,170,155)] bg-[rgb(248,252,250)]">
       <td className="px-4 py-3">
-        <Input
-          value={form.name}
-          onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-          placeholder="Staff name *"
-          className="h-8 text-sm"
-        />
+        <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Staff name *" className="h-8 text-sm" />
       </td>
       <td className="px-4 py-3">
-        <Input
-          value={form.pin}
-          onChange={e => { setForm(f => ({ ...f, pin: e.target.value.replace(/[^\d]/g, '').slice(0, 4) })); setErr(''); }}
-          placeholder="4 digits *"
-          inputMode="numeric"
-          maxLength={4}
-          className="h-8 text-sm w-24"
-        />
+        <Input value={form.pin} onChange={e => { setForm(f => ({ ...f, pin: e.target.value.replace(/[^\d]/g, '').slice(0, 4) })); setErr(''); }} placeholder="4 digits *" inputMode="numeric" maxLength={4} className="h-8 text-sm w-24" />
       </td>
       <td className="px-4 py-3">
-        <select
-          value={form.role}
-          onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
-          className="border border-input rounded-md px-2 py-1 text-sm bg-white h-8"
-        >
-          {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+        <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} className="border border-input rounded-md px-2 py-1 text-sm bg-white h-8">
+          {ALL_ROLES.map(r => <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>)}
         </select>
       </td>
       <td className="px-4 py-3 text-xs text-[rgb(45,45,45)]">Active by default</td>
@@ -177,6 +118,61 @@ function AddPinRow({ onAdd }) {
         </div>
       </td>
     </tr>
+  );
+}
+
+// ── Module permission row with checkboxes per role ────────────────────────────
+function ModulePermRow({ d, row, onUpsert }) {
+  const staff_visible = row?.staff_visible ?? d.defaultVisible;
+  const allowed_roles_str = row?.allowed_roles ?? d.defaultRoles;
+
+  const currentRoles = allowed_roles_str
+    .split(',')
+    .map(r => r.trim())
+    .filter(Boolean);
+
+  const toggleRole = (role) => {
+    let next;
+    if (currentRoles.includes(role)) {
+      next = currentRoles.filter(r => r !== role);
+    } else {
+      next = [...currentRoles, role];
+    }
+    onUpsert({ key: d.key, label: d.label, staff_visible, allowed_roles: next.join(',') });
+  };
+
+  const toggleVisible = (v) => {
+    onUpsert({ key: d.key, label: d.label, staff_visible: v, allowed_roles: allowed_roles_str });
+  };
+
+  return (
+    <div className="p-4 rounded-lg border border-[rgb(235,225,213)] bg-white">
+      <div className="flex items-center justify-between mb-3">
+        <span className="font-medium text-[rgb(107,85,64)]">{d.label}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-[rgb(45,45,45)]">Visible</span>
+          <Switch checked={!!staff_visible} onCheckedChange={toggleVisible} />
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {ALL_ROLES.map(role => {
+          const checked = currentRoles.includes(role);
+          return (
+            <button
+              key={role}
+              onClick={() => toggleRole(role)}
+              className={`text-xs px-2.5 py-1 rounded-full font-medium border transition-all ${
+                checked
+                  ? `${ROLE_COLORS[role] || 'bg-gray-100 text-gray-700'} border-transparent`
+                  : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400'
+              }`}
+            >
+              {role.replace(/_/g, ' ')}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -249,21 +245,14 @@ export default function StaffControls() {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <Link to={createPageUrl('AdminDashboard')} className="text-sm text-[rgb(150,170,155)] hover:underline mb-1 block">
-              ← Admin Dashboard
-            </Link>
+            <Link to={createPageUrl('AdminDashboard')} className="text-sm text-[rgb(150,170,155)] hover:underline mb-1 block">← Admin Dashboard</Link>
             <h1 className="text-3xl font-light text-[rgb(107,85,64)] flex items-center gap-3">
               <Users className="w-7 h-7 text-[rgb(150,170,155)]" />
               Staff Controls
             </h1>
-            <p className="text-sm text-[rgb(45,45,45)] mt-1">
-              Manage staff PINs and control which modules each role can access.
-            </p>
+            <p className="text-sm text-[rgb(45,45,45)] mt-1">Manage staff PINs, roles, and module permissions.</p>
           </div>
-          <Link
-            to={createPageUrl('StaffDashboard')}
-            className="text-sm px-4 py-2 bg-[rgb(150,170,155)] text-white rounded hover:bg-[rgb(130,150,135)] transition-colors"
-          >
+          <Link to={createPageUrl('StaffDashboard')} className="text-sm px-4 py-2 bg-[rgb(150,170,155)] text-white rounded hover:bg-[rgb(130,150,135)] transition-colors">
             Preview Staff View →
           </Link>
         </div>
@@ -272,9 +261,7 @@ export default function StaffControls() {
         <Card className="border-[rgb(235,225,213)]">
           <CardHeader>
             <CardTitle className="text-[rgb(107,85,64)]">Staff Members & PINs</CardTitle>
-            <p className="text-sm text-[rgb(45,45,45)]">
-              Each staff member gets a name, a 4-digit PIN, and a role. Roles control which modules they can see.
-            </p>
+            <p className="text-sm text-[rgb(45,45,45)]">Each staff member gets a name, a 4-digit PIN, and a role. Roles control which modules they can see.</p>
           </CardHeader>
           <CardContent className="p-0 overflow-x-auto">
             <table className="w-full text-sm">
@@ -289,19 +276,10 @@ export default function StaffControls() {
               </thead>
               <tbody>
                 {pins.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-[rgb(45,45,45)]">
-                      No staff yet — add one below.
-                    </td>
-                  </tr>
+                  <tr><td colSpan={5} className="px-4 py-8 text-center text-[rgb(45,45,45)]">No staff yet — add one below.</td></tr>
                 )}
                 {pins.map(p => (
-                  <PinRow
-                    key={p.id}
-                    p={p}
-                    onSave={(id, data) => updatePin.mutate({ id, data })}
-                    onDelete={(id) => deletePin.mutate(id)}
-                  />
+                  <PinRow key={p.id} p={p} onSave={(id, data) => updatePin.mutate({ id, data })} onDelete={(id) => deletePin.mutate(id)} />
                 ))}
                 <AddPinRow onAdd={(row) => createPin.mutate(row)} />
               </tbody>
@@ -314,15 +292,13 @@ export default function StaffControls() {
           <CardHeader>
             <CardTitle className="text-[rgb(107,85,64)]">Role Reference</CardTitle>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-3 gap-4">
-            {[
-              { role: 'staff', desc: 'General access — arrivals, checkouts, basic housekeeping tasks.' },
-              { role: 'chef', desc: 'All staff access + kitchen inventory editing and menu modules.' },
-              { role: 'manager', desc: 'Full access to all modules including reports and sensitive data.' },
-            ].map(({ role, desc }) => (
+          <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {ALL_ROLES.map(role => (
               <div key={role} className="p-4 rounded-lg border border-[rgb(235,225,213)] bg-white">
-                <span className={`text-xs px-2 py-1 rounded-full font-medium ${ROLE_COLORS[role]}`}>{role}</span>
-                <p className="text-sm text-[rgb(45,45,45)] mt-2">{desc}</p>
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${ROLE_COLORS[role] || 'bg-gray-100 text-gray-700'}`}>
+                  {role.replace(/_/g, ' ')}
+                </span>
+                <p className="text-sm text-[rgb(45,45,45)] mt-2">{ROLE_DESCRIPTIONS[role]}</p>
               </div>
             ))}
           </CardContent>
@@ -332,42 +308,17 @@ export default function StaffControls() {
         <Card className="border-[rgb(235,225,213)]">
           <CardHeader>
             <CardTitle className="text-[rgb(107,85,64)]">Module Permissions</CardTitle>
-            <p className="text-sm text-[rgb(45,45,45)]">Toggle visibility and set which roles can see each module.</p>
+            <p className="text-sm text-[rgb(45,45,45)]">Toggle visibility and click role badges to grant/revoke access per module.</p>
           </CardHeader>
           <CardContent className="space-y-3">
-            {DEFAULT_MODULES.map(d => {
-              const row = moduleMap.get(d.key);
-              const staff_visible = row?.staff_visible ?? d.defaultVisible;
-              const allowed_roles = row?.allowed_roles ?? d.defaultRoles;
-              return (
-                <div key={d.key} className="flex flex-col md:flex-row md:items-center gap-3 p-4 rounded-lg border border-[rgb(235,225,213)] bg-white">
-                  <div className="flex-1">
-                    <div className="font-medium text-[rgb(107,85,64)]">{d.label}</div>
-                    <div className="text-xs text-[rgb(45,45,45)] mt-0.5">
-                      Allowed roles:&nbsp;
-                      {allowed_roles.split(',').map(r => r.trim()).filter(Boolean).map(r => (
-                        <span key={r} className={`inline-block text-xs px-1.5 py-0.5 rounded mr-1 ${ROLE_COLORS[r] || 'bg-gray-100 text-gray-700'}`}>{r}</span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Input
-                      value={allowed_roles}
-                      onChange={e => upsertModule.mutate({ key: d.key, label: d.label, staff_visible, allowed_roles: e.target.value })}
-                      placeholder="staff,chef,manager"
-                      className="h-8 text-sm w-48"
-                    />
-                    <div className="flex items-center gap-2 whitespace-nowrap">
-                      <span className="text-sm text-[rgb(45,45,45)]">Visible</span>
-                      <Switch
-                        checked={!!staff_visible}
-                        onCheckedChange={v => upsertModule.mutate({ key: d.key, label: d.label, staff_visible: v, allowed_roles })}
-                      />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {DEFAULT_MODULES.map(d => (
+              <ModulePermRow
+                key={d.key}
+                d={d}
+                row={moduleMap.get(d.key)}
+                onUpsert={(row) => upsertModule.mutate(row)}
+              />
+            ))}
           </CardContent>
         </Card>
 
