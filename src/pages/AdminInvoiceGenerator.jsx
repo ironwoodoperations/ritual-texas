@@ -714,7 +714,7 @@ function NewInvoice({ rooms, treatments, packages }) {
              </div>
              <div>
                <Label className="text-xs text-[rgb(107,85,64)]">Note to Customer</Label>
-               <Textarea value={note} onChange={e => setNote(e.target.value)} className="mt-1" rows={2} placeholder="Thank you for choosing Hotel RITUAL…" />
+               <Textarea value={note} onChange={e => setNote(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') e.stopPropagation(); }} className="mt-1" rows={2} placeholder="Thank you for choosing Hotel RITUAL…" />
              </div>
            </div>
 
