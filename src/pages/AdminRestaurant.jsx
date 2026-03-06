@@ -150,6 +150,22 @@ function SpecialsManager() {
   const [showDialog, setShowDialog] = useState(false);
   const [editingSpecial, setEditingSpecial] = useState(null);
   const [activeTab, setActiveTab] = useState('Lunch');
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState(null);
+
+  const handleImportFromToast = async () => {
+    setImporting(true);
+    setImportMsg(null);
+    const response = await base44.functions.invoke('toastImportDailySpecials', {});
+    const data = response.data;
+    if (data?.ok) {
+      setImportMsg(`✓ Imported ${data.created} new specials (${data.skipped} already existed).`);
+      queryClient.invalidateQueries({ queryKey: ['restaurant-specials'] });
+    } else {
+      setImportMsg(`✗ ${data?.error || 'Import failed'}`);
+    }
+    setImporting(false);
+  };
   const [formData, setFormData] = useState({
     title: '',
     description: '',
