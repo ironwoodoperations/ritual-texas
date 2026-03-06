@@ -257,7 +257,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      // 4) Build client data
+      // 4) Build client data and book via public API (no client_id needed)
       const clientData = { name: entryGuestName };
       if (entryGuestEmail) clientData.email = entryGuestEmail;
       if (entryGuestPhone) clientData.phone = entryGuestPhone;
@@ -270,8 +270,9 @@ Deno.serve(async (req) => {
       let bookingResult = null;
 
       try {
+        // Use public API endpoint with public token — this accepts client data directly
         bookingResult = await sbRPC(
-          adminApiUrl,
+          apiUrl,
           "book",
           [
             Number(svc.id),
@@ -281,7 +282,7 @@ Deno.serve(async (req) => {
             clientData,
             additional,
           ],
-          sbAdminHeaders
+          sbHeaders
         );
       } catch (e) {
         errors.push(`Booking failed for "${svc.name}": ${e.message}`);
