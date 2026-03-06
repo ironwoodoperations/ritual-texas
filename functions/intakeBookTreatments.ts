@@ -257,19 +257,24 @@ Deno.serve(async (req) => {
         }
       }
 
-      // 4) Create/find the client in SimplyBook admin, get their client_id
+      // 4) Create/find client in SimplyBook admin, then book via admin API
+      // Admin book() requires a numeric client_id, not a client object
       let clientId = null;
       try {
-        const clientResult = await sbRPC(
-          adminApiUrl,
-          "addClient",
-          [{ name: entryGuestName, email: entryGuestEmail || null, phone: entryGuestPhone || null }],
-          sbAdminHeaders
-        );
-        clientId = clientResult?.id || clientResult;
+        const clientPayload = { name: entryGuestName };
+        // Only include email if it looks valid
+        if (entryGuestEmail && entryGuestEmail.includes("@")) clientPayload.email = entryGuestEmail;
+        if (entryGuestPhone) clientPayload.phone = entryGuestPhone;
+
+        const clientResult = await sbRPC(adminApiUrl, "addClient", [clientPayload], sbAdminHeaders);
+        clientId = clientResult?.id ?? clientResult;
       } catch (e) {
-        // If addClient fails, try booking without client_id using public API
         console.error("addClient failed:", e.message);
+      }
+
+      if (!clientId) {
+        errors.push(`Could not create/find client in SimplyBook for "${svc.name}"`);
+        continue;
       }
 
       const additional =
@@ -280,33 +285,19 @@ Deno.serve(async (req) => {
       let bookingResult = null;
 
       try {
-        if (clientId) {
-          // Admin booking with resolved client_id
-          bookingResult = await sbRPC(
-            adminApiUrl,
-            "book",
-            [
-              Number(svc.id),
-              unitId ? Number(unitId) : null,
-              requestedDate,
-              requestedTime,
-              Number(clientId),
-              additional,
-            ],
-            sbAdminHeaders
-          );
-        } else {
-          // Fallback: public API with client data object
-          const clientData = { name: entryGuestName };
-          if (entryGuestEmail) clientData.email = entryGuestEmail;
-          if (entryGuestPhone) clientData.phone = entryGuestPhone;
-          bookingResult = await sbRPC(
-            apiUrl,
-            "book",
-            [Number(svc.id), unitId ? Number(unitId) : null, requestedDate, requestedTime, clientData, additional],
-            sbHeaders
-          );
-        }
+        bookingResult = await sbRPC(
+          adminApiUrl,
+          "book",
+          [
+            Number(svc.id),
+            unitId ? Number(unitId) : null,
+            requestedDate,
+            requestedTime,
+            Number(clientId),
+            additional,
+          ],
+          sbAdminHeaders
+        );
       } catch (e) {
         errors.push(`Booking failed for "${svc.name}": ${e.message}`);
         continue;
