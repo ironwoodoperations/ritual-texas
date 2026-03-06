@@ -83,27 +83,8 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.Treatment.list("sort_order", 100).catch(() => []),
     ]);
 
-    // If Cloudbeds returned no rooms, fall back to Suite entity
-    let finalRoomTypes = cbResult.roomTypes || [];
-    if (!finalRoomTypes.length) {
-      try {
-        const suites = await base44.asServiceRole.entities.Suite.list("sort_order", 20);
-        finalRoomTypes = suites
-          .filter(s => s.is_available !== false)
-          .map(s => ({ id: s.id, name: s.name, maxOccupancy: s.max_occupancy || 2 }));
-      } catch {
-        // also try Room entity
-        try {
-          const rooms = await base44.asServiceRole.entities.Room.list("name", 20);
-          finalRoomTypes = rooms
-            .filter(r => r.is_available !== false)
-            .map(r => ({ id: r.id, name: r.name, maxOccupancy: r.max_occupancy || 2 }));
-        } catch {}
-      }
-    }
-
     return Response.json({
-      cloudbeds: { ...cbResult, roomTypes: finalRoomTypes },
+      cloudbeds: cbResult,
       simplybook: sbResult,
       dbTreatments: dbTreatments.filter(t => t.is_available !== false).map(t => ({
         id: t.id,
