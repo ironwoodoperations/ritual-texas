@@ -269,6 +269,7 @@ export default function StaffDashboard() {
   const iconMap = {
     staff_home: LayoutDashboard,
     kitchen_inventory: Package,
+    ritual_kitchen_inventory: UtensilsCrossed,
     housekeeping_tasks: Home,
     spa_schedule: Sparkles,
     arrivals_today: Users,
