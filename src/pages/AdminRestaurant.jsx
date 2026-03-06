@@ -72,7 +72,8 @@ function SpecialsManager() {
     description: '',
     price: '',
     category: 'Lunch',
-    isActiveToday: false
+    isActiveToday: false,
+    isSoup: false,
   });
 
   const { data: specials = [] } = useQuery({
