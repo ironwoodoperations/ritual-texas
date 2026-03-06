@@ -346,6 +346,7 @@ function NewInvoice({ rooms, treatments, packages }) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [showSendConfirm, setShowSendConfirm] = useState(false);
   const [taxes, setTaxes] = useState(
     Object.fromEntries(ALL_TAXES.map(t => [t.key, false]))
   );
