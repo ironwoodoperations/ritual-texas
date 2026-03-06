@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Loader2, Plus, X, ChevronDown } from "lucide-react";
+import { Loader2, Plus, X, ChevronDown, ExternalLink } from "lucide-react";
 
 const fieldCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transparent py-2 text-sm text-[rgb(45,45,45)] focus:outline-none focus:border-[rgb(107,85,64)] placeholder-[rgb(190,180,170)] transition-colors";
 const selectCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transparent py-2 text-sm text-[rgb(45,45,45)] focus:outline-none focus:border-[rgb(107,85,64)] transition-colors cursor-pointer";
@@ -239,7 +239,9 @@ function CtbRow({ index, entry, treatments, onUpdate, onRemove, guestName }) {
   );
 }
 
-export default function TreatmentSlotPicker({ sbEntries, ctbEntries, callToBookTreatments, onSbChange, onCtbChange, primaryGuestName }) {
+export default function TreatmentSlotPicker({ sbEntries, ctbEntries, callToBookTreatments, onSbChange, onCtbChange, primaryGuestName, guestEmail = "", guestName = "" }) {
+  const [sbUrlOpened, setSbUrlOpened] = useState(false);
+
   function addSb() {
     if (sbEntries.length >= 10) return;
     onSbChange([...sbEntries, { date: "", serviceId: "", serviceName: "", time: "", staffId: "", staffName: "", price: 0, duration: 0, slots: [], guestName: primaryGuestName }]);
@@ -270,18 +272,36 @@ export default function TreatmentSlotPicker({ sbEntries, ctbEntries, callToBookT
     onCtbChange(next);
   }
 
+  // Opens SimplyBook widget with prefilled guest info
+  function openSimplyBookScheduler() {
+    // Dispatch custom event or set a global flag that the parent page can listen for
+    window.dispatchEvent(new CustomEvent("openSimplyBookWidget", {
+      detail: { guestName, guestEmail }
+    }));
+    setSbUrlOpened(true);
+  }
+
   const totalSb = sbEntries.reduce((s, e) => s + (e.price || 0), 0);
   const totalCtb = ctbEntries.reduce((s, e) => s + (e.price || 0), 0);
   const grandTotal = totalSb + totalCtb;
+  const hasSbEntries = sbEntries.length > 0;
 
   return (
     <div className="space-y-6">
+      {/* Quote/Planning Section */}
+      <div className="bg-[rgb(252,250,247)] border border-[rgb(220,210,200)] rounded-xl p-4">
+        <p className="text-xs font-semibold text-[rgb(107,85,64)] uppercase tracking-widest mb-3">Planning & Quote Layer</p>
+        <p className="text-xs text-[rgb(120,120,120)] mb-3">
+          Use this section to plan treatments, view prices, and build a quote. When ready, open SimplyBook to finalize the booking with your availability.
+        </p>
+      </div>
+
       {/* SimplyBook treatments */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <div>
-            <label className={labelCls}>SimplyBook Treatments (Live Availability)</label>
-            <p className="text-xs text-[rgb(150,150,150)]">Pick a date → see what's available → choose time. Add for each guest.</p>
+            <label className={labelCls}>SimplyBook Treatments (Planning)</label>
+            <p className="text-xs text-[rgb(150,150,150)]">Pick dates and treatments to include in your quote. Final booking in SimplyBook.</p>
           </div>
           <button
             type="button"
@@ -307,7 +327,7 @@ export default function TreatmentSlotPicker({ sbEntries, ctbEntries, callToBookT
         <div className="flex items-center justify-between mb-3">
           <div>
             <label className={labelCls}>Call-to-Book Treatments</label>
-            <p className="text-xs text-[rgb(150,150,150)]">Treatments requiring manual scheduling. Add for each guest.</p>
+            <p className="text-xs text-[rgb(150,150,150)]">Treatments requiring manual scheduling. Add for planning purposes.</p>
           </div>
           <button
             type="button"
@@ -328,19 +348,30 @@ export default function TreatmentSlotPicker({ sbEntries, ctbEntries, callToBookT
         </div>
       </div>
 
-      {/* Total */}
-      {grandTotal > 0 && (
-        <div className="flex justify-end">
-          <div className="text-sm font-semibold text-[rgb(107,85,64)] bg-[rgb(248,244,240)] rounded-xl px-4 py-2">
-            Treatments Total: ${grandTotal.toFixed(2)}
+      {/* Total & Action */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[rgb(220,210,200)] pt-4">
+        {grandTotal > 0 && (
+          <div className="text-sm font-semibold text-[rgb(107,85,64)]">
+            Quote Total: ${grandTotal.toFixed(2)}
             {totalSb > 0 && totalCtb > 0 && (
               <span className="text-xs font-normal text-[rgb(150,130,110)] ml-2">
                 (SimplyBook ${totalSb} + Call-to-Book ${totalCtb})
               </span>
             )}
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Open SimplyBook Scheduler Button */}
+        {hasSbEntries && (
+          <button
+            type="button"
+            onClick={openSimplyBookScheduler}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[rgb(107,85,64)] text-white text-sm hover:opacity-90 transition-opacity"
+          >
+            <ExternalLink className="w-4 h-4" /> Open SimplyBook Scheduler
+          </button>
+        )}
+      </div>
     </div>
   );
 }
