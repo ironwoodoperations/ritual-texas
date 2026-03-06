@@ -726,7 +726,7 @@ function NewInvoice({ rooms, treatments, packages }) {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={(e) => { setShowSendConfirm(false); handleSubmit(e, true); }}
+                    onClick={(e) => { setShowSendConfirm(false); handleSubmit(e, true); setShowSendConfirm(false); }}
                     className="flex-1 py-2 bg-[rgb(107,85,64)] text-white text-sm font-medium rounded-lg hover:bg-[rgb(85,65,45)]"
                   >
                     Yes, Send It
