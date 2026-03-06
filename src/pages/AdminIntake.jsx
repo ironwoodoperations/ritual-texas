@@ -581,10 +581,14 @@ function IntakeCard({ record, onUpdate, roomTypes, loadingRooms, callToBookTreat
                 <div className="flex flex-wrap gap-2">
                   {hasHotel && <ActionBtn label="📧 Send Square Quote" actionKey="SendQuote" completed={completed} actioning={actioning} onClick={() => runAction("SendQuote")} variant="primary" />}
                   {hasHotel && <ActionBtn label="🏨 Book in Cloudbeds" actionKey="BookHotel" completed={completed} actioning={actioning} onClick={() => runAction("BookHotel")} />}
-                  {hasSbTreatments && <ActionBtn label="✨ Book in SimplyBook" actionKey="BookTreatments" completed={completed} actioning={actioning} onClick={() => runAction("BookTreatments")} />}
                   <ActionBtn label="👤 Add to CRM" actionKey="AddToCRM" completed={completed} actioning={actioning} onClick={() => runAction("AddToCRM")} />
                   <button onClick={() => setEditing(true)} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-xs text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]">Edit</button>
                 </div>
+                {hasSbTreatments && (
+                  <p className="text-xs text-[rgb(150,130,110)] mt-2 italic">
+                    ℹ️ Guest will use SimplyBook Scheduler directly to finalize spa bookings. This intake form is for planning & quoting.
+                  </p>
+                )}
                 <div className="pt-2 border-t border-[rgb(235,225,213)]">
                   <button onClick={handleArchive} disabled={!!actioning} className="px-4 py-2 rounded-xl text-xs font-medium bg-[rgb(235,225,213)] text-[rgb(107,85,64)] hover:bg-[rgb(220,210,198)] transition-colors disabled:opacity-50">
                     Archive
