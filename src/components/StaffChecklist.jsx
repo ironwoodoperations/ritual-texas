@@ -89,6 +89,7 @@ const CHECKLIST_TEMPLATES = {
 };
 
 const DEPT_META = {
+  Kitchen_Open:      { label: 'Kitchen – Opening',        time: '60–90 min', color: 'bg-orange-100 text-orange-800', header: 'bg-orange-50' },
   FOH_Open:          { label: 'FOH – Opening',           time: '60–75 min', color: 'bg-blue-100 text-blue-800',    header: 'bg-blue-50' },
   FOH_Close:         { label: 'FOH – Closing',            time: '60 min',    color: 'bg-blue-100 text-blue-800',    header: 'bg-blue-50' },
   KitchenClose:      { label: 'Kitchen – Closing',        time: '75–90 min', color: 'bg-orange-100 text-orange-800', header: 'bg-orange-50' },
