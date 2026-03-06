@@ -241,13 +241,24 @@ function SpecialsManager() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: importMsg ? '8px' : '24px', flexWrap: 'wrap', gap: '10px' }}>
         <h2 style={{ margin: 0, fontSize: '24px', color: '#3B4831' }}>Daily Specials</h2>
-        <Button onClick={() => { setFormData(f => ({ ...f, category: activeTab })); setShowDialog(true); }} style={{ background: '#C57C5D', color: '#FCF9F4' }}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Special
-        </Button>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <Button onClick={handleImportFromToast} disabled={importing} variant="outline" style={{ borderColor: '#C57C5D', color: '#C57C5D' }}>
+            <Download className="w-4 h-4 mr-2" />
+            {importing ? 'Importing…' : 'Import from Toast'}
+          </Button>
+          <Button onClick={() => { setFormData(f => ({ ...f, category: activeTab })); setShowDialog(true); }} style={{ background: '#C57C5D', color: '#FCF9F4' }}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Special
+          </Button>
+        </div>
       </div>
+      {importMsg && (
+        <div style={{ marginBottom: '20px', padding: '10px 16px', background: importMsg.startsWith('✓') ? '#F0F7F2' : '#FFF5F5', border: `1px solid ${importMsg.startsWith('✓') ? '#8BA08C' : '#C57C5D'}`, borderRadius: '8px', fontSize: '14px', color: importMsg.startsWith('✓') ? '#3B4831' : '#C57C5D' }}>
+          {importMsg}
+        </div>
+      )}
 
       {/* Today's active summary */}
       {specials.some(s => s.isActiveToday) && (
