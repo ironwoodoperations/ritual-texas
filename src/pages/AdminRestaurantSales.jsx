@@ -25,6 +25,10 @@ export default function AdminRestaurantSales() {
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState("");
   const [syncError, setSyncError] = useState(null);
+  const [showManual, setShowManual] = useState(false);
+  const [manualForm, setManualForm] = useState({ businessDate: todayStr, netSales: "", laborTotalCost: "", laborHours: "" });
+  const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
 
   const weekStart = useMemo(() => {
     const d = new Date();
