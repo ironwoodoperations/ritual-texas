@@ -617,6 +617,9 @@ function IntakeCard({ record, onUpdate, roomTypes, loadingRooms, callToBookTreat
                 <div className="flex flex-wrap gap-2">
                   {hasHotel && <ActionBtn label="📧 Send Square Quote" actionKey="SendQuote" completed={completed} actioning={actioning} onClick={() => runAction("SendQuote")} variant="primary" />}
                   {hasHotel && <ActionBtn label="🏨 Book in Cloudbeds" actionKey="BookHotel" completed={completed} actioning={actioning} onClick={() => runAction("BookHotel")} />}
+                  <a href="https://ritualtexas.simplybook.me/v2/#login" target="_blank" rel="noopener noreferrer" className="px-3 py-2 rounded-xl border border-[rgb(150,170,155)] text-xs text-[rgb(80,120,90)] hover:bg-[rgb(245,250,246)] transition-colors">
+                    🧘 Book in SimplyBook
+                  </a>
                   <ActionBtn label="👤 Add to CRM" actionKey="AddToCRM" completed={completed} actioning={actioning} onClick={() => runAction("AddToCRM")} />
                   <button onClick={() => setEditing(true)} className="px-3 py-2 rounded-xl border border-[rgb(235,225,213)] text-xs text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]">Edit</button>
                 </div>
