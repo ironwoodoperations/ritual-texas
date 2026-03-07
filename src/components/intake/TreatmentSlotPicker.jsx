@@ -272,16 +272,9 @@ export default function TreatmentSlotPicker({ sbEntries, ctbEntries, callToBookT
     onCtbChange(next);
   }
 
-  // Opens SimplyBook booking page with prefilled guest info
+  // Opens SimplyBook admin login page
   function openSimplyBookScheduler() {
-    const sbUrl = new URL("https://ritualtexas.simplybook.me/v2/");
-    if (guestName) {
-      sbUrl.searchParams.set("name", guestName);
-    }
-    if (guestEmail) {
-      sbUrl.searchParams.set("email", guestEmail);
-    }
-    window.open(sbUrl.toString(), "_blank", "noopener,noreferrer");
+    window.open("https://ritualtexas.simplybook.me/v2/#login", "_blank", "noopener,noreferrer");
     setSbUrlOpened(true);
   }
 
