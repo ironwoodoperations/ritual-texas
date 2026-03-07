@@ -271,7 +271,7 @@ function InvoiceList() {
         <div className="flex gap-1 bg-[rgb(235,225,213)] rounded-lg p-1">
           {[
             { key: 'outstanding', label: `Outstanding (${outstanding.length})` },
-            { key: 'all', label: `All (${invoices.length})` },
+            { key: 'all', label: `Active (${activeInvoices.length})` },
           ].map(f => (
             <button
               key={f.key}
