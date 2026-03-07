@@ -216,7 +216,8 @@ function InvoiceList() {
   const invoices = data?.invoices || [];
   const outstanding = invoices.filter(i => ['UNPAID', 'PARTIALLY_PAID'].includes(i.status));
   const totalOutstanding = outstanding.reduce((s, i) => s + (i.amountDue - i.amountPaid), 0);
-  const base = filter === 'outstanding' ? outstanding : invoices;
+  const activeInvoices = invoices.filter(i => !['PAID', 'CANCELED', 'CANCELLED', 'ARCHIVED'].includes(i.status));
+  const base = filter === 'outstanding' ? outstanding : activeInvoices;
   const q = search.toLowerCase().trim();
   const displayed = q
     ? base.filter(i =>
