@@ -53,6 +53,28 @@ export default function AdminRestaurantSales() {
   const weekLabor = weekRows.reduce((s, r) => s + (r.laborTotalCost || 0), 0);
   const weekHours = weekRows.reduce((s, r) => s + (r.laborHours || 0), 0);
 
+  async function saveManual() {
+    setSaving(true);
+    const payload = {
+      businessDate: manualForm.businessDate,
+      netSales: Number(manualForm.netSales) || 0,
+      laborTotalCost: Number(manualForm.laborTotalCost) || 0,
+      laborHours: Number(manualForm.laborHours) || 0,
+      salesPerLaborHour: Number(manualForm.laborHours) > 0 ? Number((Number(manualForm.netSales) / Number(manualForm.laborHours)).toFixed(2)) : 0,
+      updatedAt: new Date().toISOString(),
+    };
+    const existing = await base44.entities.ToastDailySummary.filter({ businessDate: manualForm.businessDate });
+    if (existing?.[0]?.id) {
+      await base44.entities.ToastDailySummary.update(existing[0].id, payload);
+    } else {
+      await base44.entities.ToastDailySummary.create(payload);
+    }
+    await queryClient.invalidateQueries({ queryKey: ["toast-all-summary"] });
+    setSaving(false);
+    setShowManual(false);
+    setManualForm({ businessDate: todayStr, netSales: "", laborTotalCost: "", laborHours: "" });
+  }
+
   async function syncToday() {
     setSyncing(true);
     setSyncMsg("");
