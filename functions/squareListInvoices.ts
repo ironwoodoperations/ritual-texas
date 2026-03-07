@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     }
 
     const accessToken = Deno.env.get('SQUARE_ACCESS_TOKEN');
-    const env = Deno.env.get('SQUARE_ENV') || 'sandbox';
+    const env = Deno.env.get('SQUARE_ENV') || 'production';
     const baseUrl = env === 'production'
       ? 'https://connect.squareup.com'
       : 'https://connect.squareupsandbox.com';
