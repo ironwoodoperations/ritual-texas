@@ -137,6 +137,42 @@ export default function AdminRestaurantSales() {
 
       <div className="max-w-3xl mx-auto p-6 space-y-8">
 
+        {/* Manual Entry Modal */}
+        {showManual && (
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-lg font-light text-[rgb(107,85,64)]">Enter Sales Data</h2>
+                <button onClick={() => setShowManual(false)}><X className="w-5 h-5 text-[rgb(150,150,150)]" /></button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs text-[rgb(150,150,150)] block mb-1">Date</label>
+                  <input type="date" value={manualForm.businessDate} onChange={e => setManualForm(f => ({ ...f, businessDate: e.target.value }))} className="w-full border border-[rgb(235,225,213)] rounded-xl px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="text-xs text-[rgb(150,150,150)] block mb-1">Net Sales ($)</label>
+                  <input type="number" placeholder="0.00" value={manualForm.netSales} onChange={e => setManualForm(f => ({ ...f, netSales: e.target.value }))} className="w-full border border-[rgb(235,225,213)] rounded-xl px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="text-xs text-[rgb(150,150,150)] block mb-1">Labor Cost ($)</label>
+                  <input type="number" placeholder="0.00" value={manualForm.laborTotalCost} onChange={e => setManualForm(f => ({ ...f, laborTotalCost: e.target.value }))} className="w-full border border-[rgb(235,225,213)] rounded-xl px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="text-xs text-[rgb(150,150,150)] block mb-1">Labor Hours</label>
+                  <input type="number" placeholder="0.0" value={manualForm.laborHours} onChange={e => setManualForm(f => ({ ...f, laborHours: e.target.value }))} className="w-full border border-[rgb(235,225,213)] rounded-xl px-3 py-2 text-sm" />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button onClick={() => setShowManual(false)} className="flex-1 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)]">Cancel</button>
+                <button onClick={saveManual} disabled={saving} className="flex-1 py-2 rounded-xl bg-[rgb(107,85,64)] text-white text-sm disabled:opacity-50">
+                  {saving ? "Saving…" : "Save"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {syncMsg && (
           <div className="text-sm text-[rgb(120,120,120)] bg-white border border-[rgb(235,225,213)] rounded-xl px-4 py-3">
             {syncMsg}
