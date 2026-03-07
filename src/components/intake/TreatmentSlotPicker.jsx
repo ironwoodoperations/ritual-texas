@@ -274,7 +274,7 @@ export default function TreatmentSlotPicker({ sbEntries, ctbEntries, callToBookT
 
   // Opens SimplyBook admin login page
   function openSimplyBookScheduler() {
-    window.open("https://ritualtexas.simplybook.me/v2/#login", "_blank", "noopener,noreferrer");
+    window.open("https://secure.simplybook.me/login", "_blank", "noopener,noreferrer");
     setSbUrlOpened(true);
   }
 
