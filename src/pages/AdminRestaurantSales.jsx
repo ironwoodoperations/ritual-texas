@@ -114,14 +114,24 @@ export default function AdminRestaurantSales() {
             </Link>
             <h1 className="text-xl font-light text-[rgb(107,85,64)]">Sales & Labor</h1>
           </div>
-          <button
-            onClick={syncToday}
-            disabled={syncing}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
-            Sync Today
-          </button>
+          <div className="flex items-center gap-2">
+            <a
+              href="https://www.toasttab.com/restaurants/admin/home"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[rgb(255,82,33)] text-white text-sm hover:opacity-90 transition-opacity"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Open Toast
+            </a>
+            <button
+              onClick={() => setShowManual(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[rgb(235,225,213)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-colors"
+            >
+              <PlusCircle className="w-4 h-4" />
+              Enter Data
+            </button>
+          </div>
         </div>
       </header>
 
