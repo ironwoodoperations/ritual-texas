@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, RefreshCw, AlertTriangle, ChevronRight, Clock, CheckCircle2, Pause, Play, Wrench } from 'lucide-react';
+import { Plus, RefreshCw, AlertTriangle, ChevronRight, Clock, CheckCircle2, Pause, Play, Wrench, ArrowLeft } from 'lucide-react';
 
 const PRIORITY_COLORS = {
   low: { bg: '#f0f9f0', text: '#2d7a2d', border: '#b8e0b8' },
