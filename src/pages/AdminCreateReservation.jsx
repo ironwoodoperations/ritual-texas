@@ -147,24 +147,64 @@ export default function AdminCreateReservation() {
           <div>
             <h2 className="text-sm uppercase tracking-widest text-[rgb(150,150,150)] mb-4">Stay Details</h2>
             <div className="space-y-4">
-              <div>
-                <Label className="text-[rgb(107,85,64)] text-xs">Room Type ID * <span className="text-[rgb(150,150,150)] font-normal">(from Cloudbeds)</span></Label>
-                <Input value={form.roomTypeID} onChange={e => set('roomTypeID', e.target.value)} required className="mt-1" placeholder="e.g. 12345" />
-                {suites.length > 0 && (
-                  <div className="mt-2 text-xs text-[rgb(150,150,150)]">
-                    Known suites: {suites.map(s => s.name).join(', ')}
-                  </div>
-                )}
-              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-[rgb(107,85,64)] text-xs">Check-In Date *</Label>
-                  <Input type="date" value={form.startDate} onChange={e => set('startDate', e.target.value)} required className="mt-1" />
+                  <Input type="date" value={form.startDate} onChange={e => { set('startDate', e.target.value); setRoomsSearched(false); set('roomTypeID', ''); }} required className="mt-1" />
                 </div>
                 <div>
                   <Label className="text-[rgb(107,85,64)] text-xs">Check-Out Date *</Label>
-                  <Input type="date" value={form.endDate} onChange={e => set('endDate', e.target.value)} required className="mt-1" />
+                  <Input type="date" value={form.endDate} onChange={e => { set('endDate', e.target.value); setRoomsSearched(false); set('roomTypeID', ''); }} required className="mt-1" />
                 </div>
+              </div>
+
+              {/* Live Room Availability */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-[rgb(107,85,64)] text-xs">Available Room *</Label>
+                  <button
+                    type="button"
+                    onClick={handleSearchRooms}
+                    disabled={!canSearchRooms || roomsLoading}
+                    className="flex items-center gap-1 text-xs px-3 py-1 rounded-lg bg-[rgb(150,170,155)] text-white disabled:opacity-40"
+                  >
+                    {roomsLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Search className="w-3 h-3" />}
+                    Check Availability
+                  </button>
+                </div>
+
+                {!roomsSearched && (
+                  <p className="text-xs text-[rgb(150,150,150)] py-2">Select dates above then click Check Availability.</p>
+                )}
+
+                {roomsSearched && availabilityData && !availabilityData.success && (
+                  <p className="text-xs text-red-500 py-2">{availabilityData.error}</p>
+                )}
+
+                {roomsSearched && availableRooms.length === 0 && !roomsLoading && availabilityData?.success && (
+                  <p className="text-xs text-[rgb(150,150,150)] py-2">No rooms available for these dates.</p>
+                )}
+
+                {availableRooms.length > 0 && (
+                  <div className="grid gap-2">
+                    {availableRooms.map(room => (
+                      <button
+                        key={room.roomTypeID}
+                        type="button"
+                        onClick={() => set('roomTypeID', room.roomTypeID)}
+                        className={`text-left px-4 py-3 rounded-xl border transition-all ${form.roomTypeID === room.roomTypeID ? 'border-[rgb(107,85,64)] bg-[rgb(248,246,242)]' : 'border-[rgb(235,225,213)] bg-white hover:border-[rgb(198,182,165)]'}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-[rgb(45,45,45)]">{room.name}</span>
+                          {room.price && <span className="text-sm text-[rgb(107,85,64)]">${Number(room.price).toFixed(0)}/stay</span>}
+                        </div>
+                        {room.maxOccupancy && <span className="text-xs text-[rgb(150,150,150)]">Max {room.maxOccupancy} guests</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {/* Hidden required input to enforce selection */}
+                <input type="text" value={form.roomTypeID} required onChange={() => {}} className="sr-only" />
               </div>
               <div>
                 <Label className="text-[rgb(107,85,64)] text-xs">Adults</Label>
