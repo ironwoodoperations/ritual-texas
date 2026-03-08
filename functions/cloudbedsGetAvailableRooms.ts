@@ -74,7 +74,34 @@ Deno.serve(async (req) => {
       result = await doFetch(accessToken);
     }
 
-    return Response.json({ debug: true, ok: result.ok, status: result.status, json: result.json });
+    if (!result.json?.success) {
+      return Response.json({ success: false, error: result.json?.message || 'Cloudbeds API error' });
+    }
+
+    // data is an array of property objects, each containing propertyRooms
+    const dataArr = result.json?.data || [];
+    const propertyRooms = dataArr.flatMap(p => p.propertyRooms || []);
+
+    const rooms = propertyRooms.map(rt => {
+      // Find the lowest available rate
+      const ratePlans = rt.ratePlans || [];
+      let price = null;
+      for (const rp of ratePlans) {
+        const roomRates = rp.roomRates || [];
+        for (const rr of roomRates) {
+          const total = parseFloat(rr.totalRate?.amount || rr.totalRate || 0);
+          if (total > 0 && (price === null || total < price)) price = total;
+        }
+      }
+      return {
+        roomTypeID: String(rt.roomTypeID),
+        name: rt.roomTypeName,
+        maxOccupancy: parseInt(rt.maxGuests) || null,
+        price,
+      };
+    }).filter(r => r.roomTypeID && r.name);
+
+    return Response.json({ success: true, rooms });
 
     if (!result.json?.success) {
       return Response.json({ success: false, error: result.json?.message || 'Cloudbeds API error', raw: result.json });
