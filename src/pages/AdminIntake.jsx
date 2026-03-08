@@ -179,11 +179,18 @@ function IntakeForm({ initial = BLANK, roomTypes = [], callToBookTreatments = []
           <Field label="Room Type">
             {loadingRooms ? (
               <p className={fieldCls + " text-[rgb(170,155,140)]"}>Loading rooms…</p>
-            ) : (
+            ) : roomTypes.length > 0 ? (
               <select value={form.cloudbedsRoomTypeId} onChange={e => set("cloudbedsRoomTypeId", e.target.value)} className={selectCls}>
                 <option value="">Select a room type</option>
                 {roomTypes.map(rt => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
               </select>
+            ) : (
+              <input
+                placeholder="Type room name manually (e.g. Suite 3, Carriage House)…"
+                value={form.cloudbedsRoomTypeId}
+                onChange={e => set("cloudbedsRoomTypeId", e.target.value)}
+                className={fieldCls}
+              />
             )}
           </Field>
           <Field label="Flexible on Room?">
