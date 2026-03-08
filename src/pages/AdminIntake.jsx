@@ -662,10 +662,27 @@ export default function AdminIntake() {
 
   useEffect(() => {
     load();
-    // Load room types from Cloudbeds
-    base44.functions.invoke("getIntakeFormData", {}).then(res => {
-      if (res.data?.cloudbeds?.roomTypes) setRoomTypes(res.data.cloudbeds.roomTypes);
-    }).catch(() => {}).finally(() => setLoadingRooms(false));
+    // Load room types - try Cloudbeds first, fall back to Suite entity
+    const loadRooms = async () => {
+      try {
+        const res = await base44.functions.invoke("getIntakeFormData", {});
+        if (res.data?.cloudbeds?.roomTypes?.length > 0) {
+          setRoomTypes(res.data.cloudbeds.roomTypes);
+          return;
+        }
+      } catch {}
+      // Fallback: load from Suite entity
+      try {
+        const suites = await base44.entities.Suite.list("sort_order", 50);
+        setRoomTypes(suites.filter(s => s.is_available !== false).map(s => ({
+          id: s.id,
+          name: s.name,
+          maxOccupancy: s.max_occupancy || 2,
+        })));
+      } catch {}
+      setLoadingRooms(false);
+    };
+    loadRooms().finally(() => setLoadingRooms(false));
     // Load call-to-book treatments from Treatment entity
     base44.entities.Treatment.list("sort_order", 100).then(all => {
       const ctb = all.filter(t =>
