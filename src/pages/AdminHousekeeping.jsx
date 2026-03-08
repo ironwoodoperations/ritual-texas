@@ -131,9 +131,14 @@ export default function AdminHousekeeping() {
       {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #0C1C2C 0%, #132336 100%)', borderBottom: '1px solid rgba(198,168,94,.2)', padding: '20px 20px' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <p style={{ color: '#C6A85E', fontSize: '11px', letterSpacing: '3px', margin: '0 0 4px', fontFamily: 'sans-serif' }}>HOTEL RITUAL</p>
-            <h1 style={{ color: '#F5F0E8', fontSize: '26px', fontWeight: 300, margin: 0 }}>Housekeeping</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Link to={createPageUrl('AdminDashboard')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: 'rgba(198,168,94,.1)', border: '1px solid rgba(198,168,94,.3)', borderRadius: '8px', color: '#C6A85E', textDecoration: 'none', flexShrink: 0 }}>
+              <ArrowLeft size={16} />
+            </Link>
+            <div>
+              <p style={{ color: '#C6A85E', fontSize: '11px', letterSpacing: '3px', margin: '0 0 4px', fontFamily: 'sans-serif' }}>HOTEL RITUAL</p>
+              <h1 style={{ color: '#F5F0E8', fontSize: '26px', fontWeight: 300, margin: 0 }}>Housekeeping</h1>
+            </div>
           </div>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             {openIssues.length > 0 && (
