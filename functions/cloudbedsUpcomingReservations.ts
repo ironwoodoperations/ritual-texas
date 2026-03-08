@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 async function getSettingValue(base44, key) {
   const rows = await base44.asServiceRole.entities.SiteSettings.filter({ key });
