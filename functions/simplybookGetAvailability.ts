@@ -54,48 +54,50 @@ Deno.serve(async (req) => {
       performerById[String(id)] = p;
     }
 
-    const results = [];
-
-    for (const [svcId, svc] of Object.entries(servicesMap)) {
-      if (!svc.is_active || !svc.is_public) continue;
-
-      // Determine which performer to use (first from unit_map or first overall)
-      let unitId = null;
-      if (svc.unit_map && svc.unit_map.length > 0) {
-        unitId = String(svc.unit_map[0]);
-      } else {
-        const firstPerf = Object.keys(performersMap)[0];
-        if (firstPerf) unitId = String(firstPerf);
-      }
-
-      // Step 3: get available time slots for this service/performer/date
-      let slots = [];
-      try {
-        const matrix = await sbRPC(apiUrl, "getStartTimeMatrix", [date, date, svcId, unitId, 1], sbHeaders);
-        // matrix is { "YYYY-MM-DD": ["HH:MM", ...] }
-        if (matrix && typeof matrix === "object" && matrix[date]) {
-          slots = Array.isArray(matrix[date]) ? matrix[date] : Object.values(matrix[date]);
+    // Build list of active/public services with their unit IDs
+    const activeServices = Object.entries(servicesMap)
+      .filter(([, svc]) => svc.is_active && svc.is_public)
+      .map(([svcId, svc]) => {
+        let unitId = null;
+        if (svc.unit_map && svc.unit_map.length > 0) {
+          unitId = String(svc.unit_map[0]);
+        } else {
+          const firstPerf = Object.keys(performersMap)[0];
+          if (firstPerf) unitId = String(firstPerf);
         }
-      } catch (e) {
-        // No slots available for this service on this date — skip
-        slots = [];
-      }
+        return { svcId, svc, unitId };
+      });
 
-      // Only include services that have slots on this date
-      if (slots.length === 0) continue;
+    // Fetch all slot matrices in parallel
+    const slotResults = await Promise.all(
+      activeServices.map(async ({ svcId, unitId }) => {
+        try {
+          const matrix = await sbRPC(apiUrl, "getStartTimeMatrix", [date, date, svcId, unitId, 1], sbHeaders);
+          if (matrix && typeof matrix === "object" && matrix[date]) {
+            const slots = Array.isArray(matrix[date]) ? matrix[date] : Object.values(matrix[date]);
+            return { svcId, slots };
+          }
+        } catch {
+          // ignore
+        }
+        return { svcId, slots: [] };
+      })
+    );
 
-      const performer = unitId ? performerById[unitId] : null;
+    const slotMap = {};
+    for (const { svcId, slots } of slotResults) slotMap[svcId] = slots;
 
-      results.push({
+    const results = activeServices
+      .filter(({ svcId }) => slotMap[svcId]?.length > 0)
+      .map(({ svcId, svc, unitId }) => ({
         id: String(svcId),
         name: svc.name || "",
         duration: Number(svc.duration || 60),
         price: Number(svc.price || 0),
         staffId: unitId,
-        staffName: performer?.name || "",
-        slots,
-      });
-    }
+        staffName: unitId ? (performerById[unitId]?.name || "") : "",
+        slots: slotMap[svcId],
+      }));
 
     return Response.json({ services: results, date });
   } catch (e) {
