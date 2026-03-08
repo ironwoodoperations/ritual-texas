@@ -78,18 +78,20 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: result.json?.message || 'Cloudbeds API error', raw: result.json });
     }
 
-    // Log the first item to inspect real field names
-    const rawData = result.json?.data || [];
-    console.log('RAW FIRST ROOM:', JSON.stringify(rawData[0], null, 2));
+    // The Cloudbeds getAvailableRoomTypes returns data as a single object with propertyRooms array
+    const rawData = result.json?.data;
+    const propertyRooms = Array.isArray(rawData)
+      ? rawData
+      : (rawData?.propertyRooms || []);
 
-    const rooms = rawData.map(rt => ({
-      roomTypeID: String(rt.roomTypeID || rt.id || rt.room_type_id || Object.keys(rt)[0]),
-      name: rt.roomTypeName || rt.name || rt.title || rt.roomName,
-      maxOccupancy: rt.maxOccupancy || rt.max_occupancy,
-      price: rt.totalRate || rt.total_rate || rt.price || rt.rate,
-    }));
+    const rooms = propertyRooms.map(rt => ({
+      roomTypeID: String(rt.roomTypeID),
+      name: rt.roomTypeName,
+      maxOccupancy: rt.maxOccupancy,
+      price: rt.totalRate,
+    })).filter(r => r.roomTypeID && r.name);
 
-    return Response.json({ success: true, rooms, _raw_keys: rawData[0] ? Object.keys(rawData[0]) : [] });
+    return Response.json({ success: true, rooms });
   } catch (e) {
     return Response.json({ success: false, error: String(e?.message || e) }, { status: 500 });
   }
