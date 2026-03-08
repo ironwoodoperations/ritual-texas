@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
       result = await doFetch(accessToken);
     }
 
-    console.log('FULL RESPONSE:', JSON.stringify(result.json, null, 2));
+    return Response.json({ debug: true, ok: result.ok, status: result.status, json: result.json });
 
     if (!result.json?.success) {
       return Response.json({ success: false, error: result.json?.message || 'Cloudbeds API error', raw: result.json });
