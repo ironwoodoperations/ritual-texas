@@ -162,21 +162,12 @@ export default function AdminBookings() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <a href="https://www.cloudbeds.com" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
-              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/a3efecc1b_download1.png" alt="Cloudbeds" className="w-5 h-5" />
-            </a>
             <Link
               to={createPageUrl('AdminCreateReservation')}
               className="flex items-center gap-2 px-3 py-2 text-sm bg-[rgb(150,170,155)] text-white rounded-lg hover:bg-[rgb(130,150,135)]"
             >
-              <Plus className="w-4 h-4" /> New Reservation
-            </Link>
-            <Link 
-              to={createPageUrl('AdminDashboard')}
-              className="flex items-center gap-2 text-[rgb(150,170,155)] ml-2"
-            >
-              <Leaf className="w-5 h-5" />
-              <span className="text-sm">Dashboard</span>
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">New Reservation</span>
             </Link>
           </div>
         </div>
