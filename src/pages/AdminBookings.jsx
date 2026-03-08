@@ -241,8 +241,15 @@ export default function AdminBookings() {
               <div className="flex items-center justify-center py-16">
                 <div className="animate-spin w-6 h-6 border-2 border-[rgb(150,170,155)] border-t-transparent rounded-full" />
               </div>
-            ) : !cloudbedsData?.success ? (
-              <div className="p-8 text-center text-[rgb(107,85,64)]">{cloudbedsData?.error || 'Could not load Cloudbeds reservations.'}</div>
+            ) : cloudbedsError || !cloudbedsData?.success ? (
+              <div className="p-6 space-y-3">
+                <p className="text-sm font-semibold text-red-700">⚠️ Could not load Cloudbeds reservations</p>
+                <pre className="bg-red-50 border border-red-200 rounded-xl p-4 text-xs text-red-800 whitespace-pre-wrap break-all overflow-auto max-h-64">
+                  {cloudbedsError
+                    ? cloudbedsError.message
+                    : JSON.stringify(cloudbedsData, null, 2)}
+                </pre>
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
