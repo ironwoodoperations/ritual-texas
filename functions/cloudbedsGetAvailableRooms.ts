@@ -107,21 +107,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: result.json?.message || 'Cloudbeds API error', raw: result.json });
     }
 
-    // The Cloudbeds getAvailableRoomTypes returns data as a single object with propertyRooms array
-    const rawData = result.json?.data;
-    console.log('FULL RAW DATA:', JSON.stringify(rawData, null, 2));
-    const propertyRooms = Array.isArray(rawData)
-      ? rawData
-      : (rawData?.propertyRooms || []);
 
-    const rooms = propertyRooms.map(rt => ({
-      roomTypeID: String(rt.roomTypeID),
-      name: rt.roomTypeName,
-      maxOccupancy: rt.maxOccupancy,
-      price: rt.totalRate,
-    })).filter(r => r.roomTypeID && r.name);
-
-    return Response.json({ success: true, rooms });
   } catch (e) {
     return Response.json({ success: false, error: String(e?.message || e) }, { status: 500 });
   }
