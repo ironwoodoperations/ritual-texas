@@ -20,6 +20,16 @@ Deno.serve(async (req) => {
     const { date } = await req.json();
     if (!date) return Response.json({ error: "date required (YYYY-MM-DD)" }, { status: 400 });
 
+    // Check cache first (2 min TTL for availability)
+    const cacheKey = `simplybook:availability:${date}`;
+    try {
+      const cacheRows = await base44.asServiceRole.entities.ApiCache.filter({ cache_key: cacheKey });
+      const cacheRow = cacheRows?.[0];
+      if (cacheRow && new Date(cacheRow.expires_at) > new Date()) {
+        return Response.json(JSON.parse(cacheRow.payload));
+      }
+    } catch { /* non-fatal, proceed to API */ }
+
     const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
     const userLogin = Deno.env.get("SIMPLYBOOK_USER_LOGIN") || Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
     const userPassword = Deno.env.get("SIMPLYBOOK_USER_PASSWORD") || Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
