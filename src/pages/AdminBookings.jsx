@@ -99,13 +99,14 @@ export default function AdminBookings() {
     queryFn: () => base44.entities.Booking.list('-created_date', 200),
   });
 
-  const { data: cloudbedsData, isLoading: cloudbedsLoading, refetch: refetchCloudbeds } = useQuery({
+  const { data: cloudbedsData, isLoading: cloudbedsLoading, refetch: refetchCloudbeds, error: cloudbedsError } = useQuery({
     queryKey: ['cloudbeds-upcoming'],
     queryFn: async () => {
       const res = await base44.functions.invoke('cloudbedsUpcomingReservations', {});
       return res.data;
     },
     enabled: !!user,
+    retry: false,
   });
 
   const updateBookingMutation = useMutation({
