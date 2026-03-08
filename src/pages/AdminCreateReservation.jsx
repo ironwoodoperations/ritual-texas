@@ -16,25 +16,37 @@ const blank = {
 };
 
 export default function AdminCreateReservation() {
-  const [user, setUser] = React.useState(null);
+  const [user, setUser] = useState(null);
   const [form, setForm] = useState(blank);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null); // { success, reservationID, error }
+  const [result, setResult] = useState(null);
+  const [roomsSearched, setRoomsSearched] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     base44.auth.me().then(u => {
       setUser(u);
       if (u.role !== 'admin') window.location.href = createPageUrl('Home');
     }).catch(() => base44.auth.redirectToLogin(createPageUrl('AdminCreateReservation')));
   }, []);
 
-  // Fetch room types from Cloudbeds via the existing upcoming reservations as a proxy,
-  // or use Suites for room type reference
-  const { data: suites = [] } = useQuery({
-    queryKey: ['suites-for-reservation'],
-    queryFn: () => base44.entities.Suite.list('sort_order'),
-    enabled: !!user,
+  const canSearchRooms = form.startDate && form.endDate && form.startDate < form.endDate;
+
+  const { data: availabilityData, isLoading: roomsLoading, refetch: searchRooms } = useQuery({
+    queryKey: ['available-rooms', form.startDate, form.endDate],
+    queryFn: async () => {
+      const res = await base44.functions.invoke('cloudbedsGetAvailableRooms', { startDate: form.startDate, endDate: form.endDate });
+      return res.data;
+    },
+    enabled: false,
   });
+
+  const availableRooms = availabilityData?.rooms || [];
+
+  const handleSearchRooms = () => {
+    setRoomsSearched(true);
+    searchRooms();
+    set('roomTypeID', '');
+  };
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
