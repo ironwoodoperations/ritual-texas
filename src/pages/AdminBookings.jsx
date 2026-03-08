@@ -1,103 +1,124 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
-import { 
-  Calendar, Search, Eye, 
-  Mail, Phone, MoreHorizontal, Leaf, ArrowLeft, RefreshCw,
-  LogIn, LogOut, CreditCard, Loader2, Plus, Link2
+import {
+  Search, ArrowLeft, RefreshCw, LogIn, LogOut, CreditCard,
+  Loader2, Link2, CheckCircle2
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
+const blankForm = {
+  guestFirstName: '', guestLastName: '', guestEmail: '', guestPhone: '',
+  roomTypeID: '', startDate: '', endDate: '', adults: '1', notes: '',
+};
 
 export default function AdminBookings() {
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedBooking, setSelectedBooking] = useState(null);
   const [activeTab, setActiveTab] = useState('cloudbeds');
-  const [actionLoading, setActionLoading] = useState({}); // reservationID -> action
-  const [actionResult, setActionResult] = useState({}); // reservationID -> message
-  const [paymentModal, setPaymentModal] = useState(null); // { reservationID, guestName, balance }
+  const [actionLoading, setActionLoading] = useState({});
+  const [actionResult, setActionResult] = useState({});
+  const [paymentModal, setPaymentModal] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' or 'card'
+  const [paymentMethod, setPaymentMethod] = useState('cash');
   const [cardError, setCardError] = useState('');
-  const queryClient = useQueryClient();
+
+  // New Reservation form state
+  const [form, setForm] = useState(blankForm);
+  const [formLoading, setFormLoading] = useState(false);
+  const [formResult, setFormResult] = useState(null);
+  const [roomsSearched, setRoomsSearched] = useState(false);
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const canSearchRooms = form.startDate && form.endDate && form.startDate < form.endDate;
+
+  const { data: availabilityData, isLoading: roomsLoading, refetch: searchRooms } = useQuery({
+    queryKey: ['available-rooms', form.startDate, form.endDate],
+    queryFn: async () => {
+      const res = await base44.functions.invoke('cloudbedsGetAvailableRooms', { startDate: form.startDate, endDate: form.endDate });
+      return res.data;
+    },
+    enabled: false,
+  });
+  const availableRooms = availabilityData?.rooms || [];
+
+  const handleSearchRooms = () => {
+    setRoomsSearched(true);
+    searchRooms();
+    set('roomTypeID', '');
+  };
+
+  const handleCreateReservation = async (e) => {
+    e.preventDefault();
+    setFormLoading(true);
+    setFormResult(null);
+    const res = await base44.functions.invoke('cloudbedsCreateReservation', {
+      guestFirstName: form.guestFirstName,
+      guestLastName: form.guestLastName,
+      guestEmail: form.guestEmail,
+      guestPhone: form.guestPhone,
+      roomTypeID: form.roomTypeID,
+      startDate: form.startDate,
+      endDate: form.endDate,
+      adults: parseInt(form.adults) || 1,
+      notes: form.notes,
+    });
+    if (res.data?.success) {
+      setFormResult({ success: true, reservationID: res.data.reservationID });
+      setForm(blankForm);
+      setRoomsSearched(false);
+    } else {
+      setFormResult({ success: false, error: res.data?.error || 'Something went wrong' });
+    }
+    setFormLoading(false);
+  };
 
   const runAction = async (reservationID, action, extra = {}) => {
     setActionLoading(prev => ({ ...prev, [reservationID]: action }));
     setActionResult(prev => ({ ...prev, [reservationID]: null }));
-    try {
-      const res = await base44.functions.invoke('cloudbedsGuestActions', { action, reservationID, ...extra });
-      const msg = res.data?.success ? '✓ Done' : (res.data?.error || 'Error');
-      setActionResult(prev => ({ ...prev, [reservationID]: msg }));
-      if (res.data?.success) refetchCloudbeds();
-    } catch (e) {
-      setActionResult(prev => ({ ...prev, [reservationID]: 'Error' }));
-    } finally {
-      setActionLoading(prev => ({ ...prev, [reservationID]: null }));
-    }
+    const res = await base44.functions.invoke('cloudbedsGuestActions', { action, reservationID, ...extra });
+    const msg = res.data?.success ? '✓ Done' : (res.data?.error || 'Error');
+    setActionResult(prev => ({ ...prev, [reservationID]: msg }));
+    if (res.data?.success) refetchCloudbeds();
+    setActionLoading(prev => ({ ...prev, [reservationID]: null }));
   };
 
   const handlePayment = async () => {
     if (!paymentModal || !paymentAmount) return;
-    
     setCardError('');
     setActionLoading(prev => ({ ...prev, [paymentModal.reservationID]: 'payment' }));
-    
-    try {
-      const res = await base44.functions.invoke('cloudbedsProcessPayment', {
-        reservationID: paymentModal.reservationID,
-        amount: parseFloat(paymentAmount),
-        paymentMethod: paymentMethod === 'card' ? 'card' : 'cash',
-      });
-
-      if (res.data?.success) {
-        setPaymentModal(null);
-        setPaymentAmount('');
-        setPaymentMethod('cash');
-        refetchCloudbeds();
-        setActionResult(prev => ({ ...prev, [paymentModal.reservationID]: '✓ Payment recorded' }));
-      } else {
-        setCardError(res.data?.error || 'Payment failed');
-      }
-    } catch (e) {
-      setCardError(e.message || 'Payment error');
-    } finally {
-      setActionLoading(prev => ({ ...prev, [paymentModal.reservationID]: null }));
+    const res = await base44.functions.invoke('cloudbedsProcessPayment', {
+      reservationID: paymentModal.reservationID,
+      amount: parseFloat(paymentAmount),
+      paymentMethod: paymentMethod === 'card' ? 'card' : 'cash',
+    });
+    if (res.data?.success) {
+      setPaymentModal(null);
+      setPaymentAmount('');
+      setPaymentMethod('cash');
+      refetchCloudbeds();
+      setActionResult(prev => ({ ...prev, [paymentModal.reservationID]: '✓ Payment recorded' }));
+    } else {
+      setCardError(res.data?.error || 'Payment failed');
     }
+    setActionLoading(prev => ({ ...prev, [paymentModal.reservationID]: null }));
   };
 
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await base44.auth.me();
-        setUser(userData);
-        if (userData.role !== 'admin') {
-          window.location.href = createPageUrl('Home');
-        }
-      } catch (e) {
-        base44.auth.redirectToLogin(createPageUrl('AdminBookings'));
-      }
-    };
-    loadUser();
+    base44.auth.me().then(u => {
+      setUser(u);
+      if (u.role !== 'admin') window.location.href = createPageUrl('Home');
+    }).catch(() => base44.auth.redirectToLogin(createPageUrl('AdminBookings')));
   }, []);
-
-  const { data: bookings, isLoading: bookingsLoading } = useQuery({
-    queryKey: ['admin-bookings'],
-    queryFn: () => base44.entities.Booking.list('-created_date', 200),
-  });
 
   const { data: cloudbedsData, isLoading: cloudbedsLoading, refetch: refetchCloudbeds, error: cloudbedsError } = useQuery({
     queryKey: ['cloudbeds-upcoming'],
@@ -109,36 +130,12 @@ export default function AdminBookings() {
     retry: false,
   });
 
-  const updateBookingMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Booking.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries(['admin-bookings']),
-  });
-
-  const isLoading = activeTab === 'cloudbeds' ? cloudbedsLoading : bookingsLoading;
-
   const cloudbedsReservations = (cloudbedsData?.reservations || [])
     .filter(r => {
       const q = search.toLowerCase();
       return !q || r.guestName?.toLowerCase().includes(q) || r.guestEmail?.toLowerCase().includes(q) || r.reservationID?.includes(q);
     })
     .sort((a, b) => new Date(a.checkIn) - new Date(b.checkIn));
-
-  const filteredBookings = bookings?.filter(b => {
-    const matchesSearch = 
-      b.guest_name?.toLowerCase().includes(search.toLowerCase()) ||
-      b.confirmation_code?.toLowerCase().includes(search.toLowerCase()) ||
-      b.guest_email?.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || b.booking_status === statusFilter;
-    return matchesSearch && matchesStatus;
-  }) || [];
-
-  const statusColors = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    confirmed: 'bg-green-100 text-green-800',
-    checked_in: 'bg-blue-100 text-blue-800',
-    checked_out: 'bg-gray-100 text-gray-800',
-    cancelled: 'bg-red-100 text-red-800',
-  };
 
   if (!user) {
     return (
@@ -150,7 +147,6 @@ export default function AdminBookings() {
 
   return (
     <div className="min-h-screen bg-[rgb(248,246,242)]">
-      {/* Header */}
       <header className="bg-white border-b border-[rgb(235,225,213)] px-6 py-4 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -162,35 +158,6 @@ export default function AdminBookings() {
               <p className="text-sm text-[rgb(45,45,45)]">Manage all reservations</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Link
-              to={createPageUrl('AdminCreateReservation')}
-              className="flex items-center gap-2 px-3 py-2 text-sm bg-[rgb(150,170,155)] text-white rounded-lg hover:bg-[rgb(130,150,135)]"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">New Reservation</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto p-6">
-        {/* Tabs */}
-        <div className="flex items-center gap-3 mb-6 flex-wrap">
-          <div className="flex gap-1 bg-[rgb(235,225,213)] p-1 rounded-lg">
-            <button
-              onClick={() => setActiveTab('cloudbeds')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'cloudbeds' ? 'bg-white text-[rgb(107,85,64)] shadow-sm' : 'text-[rgb(107,85,64)] hover:bg-white/50'}`}
-            >
-              Cloudbeds (Upcoming)
-            </button>
-            <button
-              onClick={() => setActiveTab('local')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'local' ? 'bg-white text-[rgb(107,85,64)] shadow-sm' : 'text-[rgb(107,85,64)] hover:bg-white/50'}`}
-            >
-              Local Bookings
-            </button>
-          </div>
           <a
             href="/functions/cloudbedsOAuthStart"
             target="_blank"
@@ -200,224 +167,227 @@ export default function AdminBookings() {
             <Link2 className="w-4 h-4" /> Connect Cloudbeds
           </a>
         </div>
+      </header>
 
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(45,45,45)]" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, email, or confirmation ID..."
-              className="pl-10 border-[rgb(235,225,213)]"
-            />
-          </div>
-          {activeTab === 'local' && (
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48 border-[rgb(235,225,213)]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="checked_in">Checked In</SelectItem>
-                <SelectItem value="checked_out">Checked Out</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-          {activeTab === 'cloudbeds' && (
-            <button onClick={() => refetchCloudbeds()} className="flex items-center gap-2 px-3 py-2 text-sm text-[rgb(107,85,64)] border border-[rgb(235,225,213)] rounded-md hover:bg-[rgb(235,225,213)]">
-              <RefreshCw className="w-4 h-4" /> Refresh
-            </button>
-          )}
+      <main className="max-w-6xl mx-auto p-6">
+        {/* Tabs */}
+        <div className="flex gap-1 bg-[rgb(235,225,213)] p-1 rounded-lg w-fit mb-6">
+          <button
+            onClick={() => setActiveTab('cloudbeds')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'cloudbeds' ? 'bg-white text-[rgb(107,85,64)] shadow-sm' : 'text-[rgb(107,85,64)] hover:bg-white/50'}`}
+          >
+            Cloudbeds (Upcoming)
+          </button>
+          <button
+            onClick={() => setActiveTab('new')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'new' ? 'bg-white text-[rgb(107,85,64)] shadow-sm' : 'text-[rgb(107,85,64)] hover:bg-white/50'}`}
+          >
+            + New Reservation
+          </button>
         </div>
 
-        {/* Cloudbeds Table */}
+        {/* Cloudbeds Tab */}
         {activeTab === 'cloudbeds' && (
-          <div className="bg-white border border-[rgb(235,225,213)] overflow-hidden rounded-lg">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-16">
-                <div className="animate-spin w-6 h-6 border-2 border-[rgb(150,170,155)] border-t-transparent rounded-full" />
+          <>
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(45,45,45)]" />
+                <Input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Search by name, email, or confirmation ID..."
+                  className="pl-10 border-[rgb(235,225,213)]"
+                />
               </div>
-            ) : cloudbedsError || !cloudbedsData?.success ? (
-              <div className="p-6 space-y-3">
-                <p className="text-sm font-semibold text-red-700">⚠️ Could not load Cloudbeds reservations</p>
-                <pre className="bg-red-50 border border-red-200 rounded-xl p-4 text-xs text-red-800 whitespace-pre-wrap break-all overflow-auto max-h-64">
-                  {cloudbedsError
-                    ? cloudbedsError.message
-                    : JSON.stringify(cloudbedsData, null, 2)}
-                </pre>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-[rgb(235,225,213)]">
-                    <tr>
-                      <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Guest</th>
-                      <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Room</th>
-                      <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Check-In</th>
-                      <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Check-Out</th>
-                      <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Balance</th>
-                      <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Status</th>
-                      <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Actions</th>
+              <button onClick={() => refetchCloudbeds()} className="flex items-center gap-2 px-3 py-2 text-sm text-[rgb(107,85,64)] border border-[rgb(235,225,213)] rounded-md hover:bg-[rgb(235,225,213)]">
+                <RefreshCw className="w-4 h-4" /> Refresh
+              </button>
+            </div>
+
+            <div className="bg-white border border-[rgb(235,225,213)] overflow-hidden rounded-lg">
+              {cloudbedsLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="animate-spin w-6 h-6 border-2 border-[rgb(150,170,155)] border-t-transparent rounded-full" />
+                </div>
+              ) : cloudbedsError || !cloudbedsData?.success ? (
+                <div className="p-6 space-y-3">
+                  <p className="text-sm font-semibold text-red-700">⚠️ Could not load Cloudbeds reservations</p>
+                  <pre className="bg-red-50 border border-red-200 rounded-xl p-4 text-xs text-red-800 whitespace-pre-wrap break-all overflow-auto max-h-64">
+                    {cloudbedsError ? cloudbedsError.message : JSON.stringify(cloudbedsData, null, 2)}
+                  </pre>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-[rgb(235,225,213)]">
+                      <tr>
+                        <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Guest</th>
+                        <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Room</th>
+                        <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Check-In</th>
+                        <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Check-Out</th>
+                        <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Balance</th>
+                        <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Status</th>
+                        <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Actions</th>
                       </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[rgb(235,225,213)]">
+                    </thead>
+                    <tbody className="divide-y divide-[rgb(235,225,213)]">
                       {cloudbedsReservations.length === 0 && (
-                      <tr><td colSpan={7} className="text-center p-8 text-[rgb(45,45,45)]">No upcoming reservations found.</td></tr>
+                        <tr><td colSpan={7} className="text-center p-8 text-[rgb(45,45,45)]">No upcoming reservations found.</td></tr>
                       )}
                       {cloudbedsReservations.map(r => {
-                      const loading = actionLoading[r.reservationID];
-                      const result = actionResult[r.reservationID];
-                      return (
-                      <tr key={r.reservationID} className="hover:bg-[rgb(248,246,242)]">
-                        <td className="p-4">
-                          <p className="font-medium text-[rgb(107,85,64)]">{r.guestName}</p>
-                          <p className="text-xs text-[rgb(45,45,45)]">{r.guestEmail}</p>
-                          <p className="text-xs font-mono text-[rgb(150,150,150)]">{r.reservationID}</p>
-                        </td>
-                        <td className="p-4 text-sm text-[rgb(45,45,45)]">
-                          <p>{r.roomName || r.roomTypeName || '—'}</p>
-                          {r.roomNumber && <p className="text-xs text-[rgb(150,150,150)]">Room {r.roomNumber}</p>}
-                        </td>
-                        <td className="p-4 text-sm text-[rgb(45,45,45)]">{r.checkIn ? format(new Date(r.checkIn + 'T12:00:00'), 'MMM d, yyyy') : '—'}</td>
-                        <td className="p-4 text-sm text-[rgb(45,45,45)]">{r.checkOut ? format(new Date(r.checkOut + 'T12:00:00'), 'MMM d, yyyy') : '—'}</td>
-                        <td className="p-4 text-sm text-[rgb(107,85,64)]">{r.balance != null ? `$${Number(r.balance).toFixed(2)}` : '—'}</td>
-                        <td className="p-4">
-                          <Badge className="bg-green-100 text-green-800 capitalize">{r.status}</Badge>
-                        </td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <button
-                              disabled={!!loading}
-                              onClick={() => runAction(r.reservationID, 'checkin')}
-                              title="Check In"
-                              className="flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-[rgb(150,170,155)] text-white hover:bg-[rgb(130,150,135)] disabled:opacity-50"
-                            >
-                              {loading === 'checkin' ? <Loader2 className="w-3 h-3 animate-spin" /> : <LogIn className="w-3 h-3" />}
-                              Check In
-                            </button>
-                            <button
-                              disabled={!!loading}
-                              onClick={() => runAction(r.reservationID, 'checkout')}
-                              title="Check Out"
-                              className="flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-[rgb(107,85,64)] text-white hover:bg-[rgb(85,65,45)] disabled:opacity-50"
-                            >
-                              {loading === 'checkout' ? <Loader2 className="w-3 h-3 animate-spin" /> : <LogOut className="w-3 h-3" />}
-                              Check Out
-                            </button>
-                            <button
-                              disabled={!!loading}
-                              onClick={() => { setPaymentModal({ reservationID: r.reservationID, guestName: r.guestName, balance: r.balance }); setPaymentAmount(r.balance != null ? String(Number(r.balance).toFixed(2)) : ''); }}
-                              title="Take Payment"
-                              className="flex items-center gap-1 px-2 py-1 text-xs rounded-md border border-[rgb(107,85,64)] text-[rgb(107,85,64)] hover:bg-[rgb(235,225,213)] disabled:opacity-50"
-                            >
-                              <CreditCard className="w-3 h-3" />
-                              Payment
-                            </button>
-                          </div>
-                          {result && <p className={`text-xs mt-1 ${result.startsWith('✓') ? 'text-green-600' : 'text-red-500'}`}>{result}</p>}
-                        </td>
-                      </tr>
-                      );
+                        const loading = actionLoading[r.reservationID];
+                        const result = actionResult[r.reservationID];
+                        return (
+                          <tr key={r.reservationID} className="hover:bg-[rgb(248,246,242)]">
+                            <td className="p-4">
+                              <p className="font-medium text-[rgb(107,85,64)]">{r.guestName}</p>
+                              <p className="text-xs text-[rgb(45,45,45)]">{r.guestEmail}</p>
+                              <p className="text-xs font-mono text-[rgb(150,150,150)]">{r.reservationID}</p>
+                            </td>
+                            <td className="p-4 text-sm text-[rgb(45,45,45)]">
+                              <p>{r.roomName || r.roomTypeName || '—'}</p>
+                              {r.roomNumber && <p className="text-xs text-[rgb(150,150,150)]">Room {r.roomNumber}</p>}
+                            </td>
+                            <td className="p-4 text-sm text-[rgb(45,45,45)]">{r.checkIn ? format(new Date(r.checkIn + 'T12:00:00'), 'MMM d, yyyy') : '—'}</td>
+                            <td className="p-4 text-sm text-[rgb(45,45,45)]">{r.checkOut ? format(new Date(r.checkOut + 'T12:00:00'), 'MMM d, yyyy') : '—'}</td>
+                            <td className="p-4 text-sm text-[rgb(107,85,64)]">{r.balance != null ? `$${Number(r.balance).toFixed(2)}` : '—'}</td>
+                            <td className="p-4">
+                              <Badge className="bg-green-100 text-green-800 capitalize">{r.status}</Badge>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <button disabled={!!loading} onClick={() => runAction(r.reservationID, 'checkin')}
+                                  className="flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-[rgb(150,170,155)] text-white hover:bg-[rgb(130,150,135)] disabled:opacity-50">
+                                  {loading === 'checkin' ? <Loader2 className="w-3 h-3 animate-spin" /> : <LogIn className="w-3 h-3" />} Check In
+                                </button>
+                                <button disabled={!!loading} onClick={() => runAction(r.reservationID, 'checkout')}
+                                  className="flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-[rgb(107,85,64)] text-white hover:bg-[rgb(85,65,45)] disabled:opacity-50">
+                                  {loading === 'checkout' ? <Loader2 className="w-3 h-3 animate-spin" /> : <LogOut className="w-3 h-3" />} Check Out
+                                </button>
+                                <button disabled={!!loading}
+                                  onClick={() => { setPaymentModal({ reservationID: r.reservationID, guestName: r.guestName, balance: r.balance }); setPaymentAmount(r.balance != null ? String(Number(r.balance).toFixed(2)) : ''); }}
+                                  className="flex items-center gap-1 px-2 py-1 text-xs rounded-md border border-[rgb(107,85,64)] text-[rgb(107,85,64)] hover:bg-[rgb(235,225,213)] disabled:opacity-50">
+                                  <CreditCard className="w-3 h-3" /> Payment
+                                </button>
+                              </div>
+                              {result && <p className={`text-xs mt-1 ${result.startsWith('✓') ? 'text-green-600' : 'text-red-500'}`}>{result}</p>}
+                            </td>
+                          </tr>
+                        );
                       })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </>
         )}
 
-        {/* Local Bookings Table */}
-        {activeTab === 'local' && <div className="bg-white border border-[rgb(235,225,213)] overflow-hidden rounded-lg">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-[rgb(235,225,213)]">
-                <tr>
-                  <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Guest</th>
-                  <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Room</th>
-                  <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Dates</th>
-                  <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Total</th>
-                  <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]">Status</th>
-                  <th className="text-left p-4 text-sm font-medium text-[rgb(107,85,64)]"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[rgb(235,225,213)]">
-                {filteredBookings.map(booking => (
-                  <tr key={booking.id} className="hover:bg-[rgb(248,246,242)]">
-                    <td className="p-4">
-                      <div>
-                        <p className="font-medium text-[rgb(107,85,64)]">{booking.guest_name}</p>
-                        <p className="text-xs text-[rgb(45,45,45)]">{booking.confirmation_code}</p>
+        {/* New Reservation Tab */}
+        {activeTab === 'new' && (
+          <div className="max-w-2xl">
+            {formResult?.success && (
+              <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+                <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
+                <div>
+                  <p className="font-medium text-green-800">Reservation created in Cloudbeds!</p>
+                  {formResult.reservationID && <p className="text-sm text-green-700 font-mono">ID: {formResult.reservationID}</p>}
+                </div>
+              </div>
+            )}
+            {formResult?.error && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-red-700 text-sm">{formResult.error}</div>
+            )}
+
+            <form onSubmit={handleCreateReservation} className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-6 space-y-5">
+              <div>
+                <h2 className="text-sm uppercase tracking-widest text-[rgb(150,150,150)] mb-4">Guest Information</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-[rgb(107,85,64)] text-xs">First Name *</Label>
+                    <Input value={form.guestFirstName} onChange={e => set('guestFirstName', e.target.value)} required className="mt-1" />
+                  </div>
+                  <div>
+                    <Label className="text-[rgb(107,85,64)] text-xs">Last Name *</Label>
+                    <Input value={form.guestLastName} onChange={e => set('guestLastName', e.target.value)} required className="mt-1" />
+                  </div>
+                  <div>
+                    <Label className="text-[rgb(107,85,64)] text-xs">Email *</Label>
+                    <Input type="email" value={form.guestEmail} onChange={e => set('guestEmail', e.target.value)} required className="mt-1" />
+                  </div>
+                  <div>
+                    <Label className="text-[rgb(107,85,64)] text-xs">Phone</Label>
+                    <Input type="tel" value={form.guestPhone} onChange={e => set('guestPhone', e.target.value)} className="mt-1" placeholder="903-555-1234" />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h2 className="text-sm uppercase tracking-widest text-[rgb(150,150,150)] mb-4">Stay Details</h2>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-[rgb(107,85,64)] text-xs">Check-In Date *</Label>
+                      <Input type="date" value={form.startDate} onChange={e => { set('startDate', e.target.value); setRoomsSearched(false); set('roomTypeID', ''); }} required className="mt-1" />
+                    </div>
+                    <div>
+                      <Label className="text-[rgb(107,85,64)] text-xs">Check-Out Date *</Label>
+                      <Input type="date" value={form.endDate} onChange={e => { set('endDate', e.target.value); setRoomsSearched(false); set('roomTypeID', ''); }} required className="mt-1" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-[rgb(107,85,64)] text-xs">Available Room *</Label>
+                      <button type="button" onClick={handleSearchRooms} disabled={!canSearchRooms || roomsLoading}
+                        className="flex items-center gap-1 text-xs px-3 py-1 rounded-lg bg-[rgb(150,170,155)] text-white disabled:opacity-40">
+                        {roomsLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Search className="w-3 h-3" />}
+                        Check Availability
+                      </button>
+                    </div>
+                    {!roomsSearched && <p className="text-xs text-[rgb(150,150,150)] py-2">Select dates above then click Check Availability.</p>}
+                    {roomsSearched && availabilityData && !availabilityData.success && <p className="text-xs text-red-500 py-2">{availabilityData.error}</p>}
+                    {roomsSearched && availableRooms.length === 0 && !roomsLoading && availabilityData?.success && <p className="text-xs text-[rgb(150,150,150)] py-2">No rooms available for these dates.</p>}
+                    {availableRooms.length > 0 && (
+                      <div className="grid gap-2">
+                        {availableRooms.map(room => (
+                          <button key={room.roomTypeID} type="button" onClick={() => set('roomTypeID', room.roomTypeID)}
+                            className={`text-left px-4 py-3 rounded-xl border transition-all ${form.roomTypeID === room.roomTypeID ? 'border-[rgb(107,85,64)] bg-[rgb(248,246,242)]' : 'border-[rgb(235,225,213)] bg-white hover:border-[rgb(198,182,165)]'}`}>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-[rgb(45,45,45)]">{room.name}</span>
+                              {room.price && <span className="text-sm text-[rgb(107,85,64)]">${Number(room.price).toFixed(0)}/stay</span>}
+                            </div>
+                            {room.maxOccupancy && <span className="text-xs text-[rgb(150,150,150)]">Max {room.maxOccupancy} guests</span>}
+                          </button>
+                        ))}
                       </div>
-                    </td>
-                    <td className="p-4 text-sm text-[rgb(45,45,45)]">{booking.room_name}</td>
-                    <td className="p-4 text-sm text-[rgb(45,45,45)]">
-                      {format(new Date(booking.check_in_date), 'MMM d')} - {format(new Date(booking.check_out_date), 'MMM d')}
-                    </td>
-                    <td className="p-4 text-sm text-[rgb(107,85,64)]">${booking.grand_total}</td>
-                    <td className="p-4">
-                      <Badge className={statusColors[booking.booking_status]}>
-                        {booking.booking_status?.replace('_', ' ')}
-                      </Badge>
-                    </td>
-                    <td className="p-4">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger className="p-2 hover:bg-[rgb(235,225,213)] rounded">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => setSelectedBooking(booking)}>
-                            <Eye className="w-4 h-4 mr-2" /> View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => updateBookingMutation.mutate({
-                              id: booking.id,
-                              data: { booking_status: 'confirmed' }
-                            })}
-                          >
-                            Confirm Booking
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => updateBookingMutation.mutate({
-                              id: booking.id,
-                              data: { booking_status: 'checked_in' }
-                            })}
-                          >
-                            Mark Checked In
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => updateBookingMutation.mutate({
-                              id: booking.id,
-                              data: { booking_status: 'checked_out' }
-                            })}
-                          >
-                            Mark Checked Out
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="text-red-600"
-                            onClick={() => updateBookingMutation.mutate({
-                              id: booking.id,
-                              data: { booking_status: 'cancelled' }
-                            })}
-                          >
-                            Cancel Booking
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    )}
+                    <input type="text" value={form.roomTypeID} required onChange={() => {}} className="sr-only" />
+                  </div>
+
+                  <div>
+                    <Label className="text-[rgb(107,85,64)] text-xs">Adults</Label>
+                    <Select value={form.adults} onValueChange={v => set('adults', v)}>
+                      <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {[1,2,3,4].map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label className="text-[rgb(107,85,64)] text-xs">Notes / Special Requests</Label>
+                    <Textarea value={form.notes} onChange={e => set('notes', e.target.value)} className="mt-1" rows={3} placeholder="Anniversary, dietary needs, arrival time…" />
+                  </div>
+                </div>
+              </div>
+
+              <Button type="submit" disabled={formLoading} className="w-full bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white py-3">
+                {formLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating Reservation…</> : 'Create Reservation in Cloudbeds'}
+              </Button>
+            </form>
           </div>
-          {filteredBookings.length === 0 && (
-            <p className="p-8 text-center text-[rgb(45,45,45)]">No bookings found</p>
-          )}
-        </div>
-        }
+        )}
       </main>
 
       {/* Payment Modal */}
@@ -432,156 +402,36 @@ export default function AdminBookings() {
               {paymentModal.balance != null && (
                 <p className="text-sm text-[rgb(45,45,45)]">Balance due: <strong className="text-[rgb(107,85,64)]">${Number(paymentModal.balance).toFixed(2)}</strong></p>
               )}
-              
-              {/* Payment Method Selection */}
               <div className="flex gap-2">
-                <button
-                  onClick={() => { setPaymentMethod('cash'); setCardError(''); }}
-                  className={`flex-1 py-2 text-sm rounded-lg font-medium transition-all ${paymentMethod === 'cash' ? 'bg-[rgb(107,85,64)] text-white' : 'bg-white border border-[rgb(235,225,213)] text-[rgb(107,85,64)]'}`}
-                >
+                <button onClick={() => { setPaymentMethod('cash'); setCardError(''); }}
+                  className={`flex-1 py-2 text-sm rounded-lg font-medium transition-all ${paymentMethod === 'cash' ? 'bg-[rgb(107,85,64)] text-white' : 'bg-white border border-[rgb(235,225,213)] text-[rgb(107,85,64)]'}`}>
                   💵 Cash
                 </button>
-                <button
-                  onClick={() => setPaymentMethod('card')}
-                  className={`flex-1 py-2 text-sm rounded-lg font-medium transition-all ${paymentMethod === 'card' ? 'bg-[rgb(107,85,64)] text-white' : 'bg-white border border-[rgb(235,225,213)] text-[rgb(107,85,64)]'}`}
-                >
+                <button onClick={() => setPaymentMethod('card')}
+                  className={`flex-1 py-2 text-sm rounded-lg font-medium transition-all ${paymentMethod === 'card' ? 'bg-[rgb(107,85,64)] text-white' : 'bg-white border border-[rgb(235,225,213)] text-[rgb(107,85,64)]'}`}>
                   💳 Card
                 </button>
               </div>
-
               <div>
                 <label className="text-xs uppercase tracking-wide text-[rgb(150,150,150)] mb-1 block">Amount ($)</label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={paymentAmount}
-                  onChange={e => setPaymentAmount(e.target.value)}
-                  className="border-[rgb(235,225,213)]"
-                />
+                <Input type="number" step="0.01" value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} className="border-[rgb(235,225,213)]" />
               </div>
-
-              {paymentMethod === 'cash' && (
-                <div className="text-xs text-[rgb(150,150,150)]">Cash payment — recorded in Cloudbeds</div>
-              )}
-
+              {paymentMethod === 'cash' && <div className="text-xs text-[rgb(150,150,150)]">Cash payment — recorded in Cloudbeds</div>}
               {paymentMethod === 'card' && (
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-xs text-blue-800"><strong>Card Payment:</strong> Will be processed through Cloudbeds payment gateway and recorded in reservation.</p>
+                  <p className="text-xs text-blue-800"><strong>Card Payment:</strong> Will be processed through Cloudbeds payment gateway.</p>
                 </div>
               )}
-
-              {cardError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-xs text-red-800">{cardError}</p>
-                </div>
-              )}
-
+              {cardError && <div className="p-3 bg-red-50 border border-red-200 rounded-lg"><p className="text-xs text-red-800">{cardError}</p></div>}
               <div className="flex gap-2 justify-end">
                 <button onClick={() => { setPaymentModal(null); setPaymentMethod('cash'); setCardError(''); }} className="px-4 py-2 text-sm border border-[rgb(235,225,213)] rounded-lg text-[rgb(107,85,64)]">Cancel</button>
-                <button
-                  onClick={handlePayment}
-                  disabled={!paymentAmount || !!actionLoading[paymentModal?.reservationID]}
-                  className="px-4 py-2 text-sm bg-[rgb(107,85,64)] text-white rounded-lg hover:bg-[rgb(85,65,45)] disabled:opacity-50 flex items-center gap-2"
-                >
+                <button onClick={handlePayment} disabled={!paymentAmount || !!actionLoading[paymentModal?.reservationID]}
+                  className="px-4 py-2 text-sm bg-[rgb(107,85,64)] text-white rounded-lg hover:bg-[rgb(85,65,45)] disabled:opacity-50 flex items-center gap-2">
                   {actionLoading[paymentModal?.reservationID] === 'payment' ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
                   Post Payment
                 </button>
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Booking Detail Modal */}
-      <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[rgb(248,246,242)]">
-          {selectedBooking && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center justify-between">
-                  <span className="text-xl font-light text-[rgb(107,85,64)]">
-                    Booking Details
-                  </span>
-                  <span className="text-sm text-[rgb(150,170,155)]">
-                    {selectedBooking.confirmation_code}
-                  </span>
-                </DialogTitle>
-              </DialogHeader>
-
-              <div className="space-y-6 mt-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-[rgb(150,170,155)]">Guest</p>
-                    <p className="text-[rgb(107,85,64)]">{selectedBooking.guest_name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-[rgb(150,170,155)]">Contact</p>
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-[rgb(45,45,45)]" />
-                      <span className="text-sm">{selectedBooking.guest_email}</span>
-                    </div>
-                    {selectedBooking.guest_phone && (
-                      <div className="flex items-center gap-2 mt-1">
-                        <Phone className="w-4 h-4 text-[rgb(45,45,45)]" />
-                        <span className="text-sm">{selectedBooking.guest_phone}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm text-[rgb(150,170,155)]">Room</p>
-                    <p className="text-[rgb(107,85,64)]">{selectedBooking.room_name}</p>
-                    <p className="text-sm text-[rgb(45,45,45)]">{selectedBooking.num_guests} guests</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-[rgb(150,170,155)]">Dates</p>
-                    <p className="text-[rgb(107,85,64)]">
-                      {format(new Date(selectedBooking.check_in_date), 'MMM d')} - {format(new Date(selectedBooking.check_out_date), 'MMM d, yyyy')}
-                    </p>
-                  </div>
-                </div>
-
-                {selectedBooking.wellness_intention && (
-                  <div className="p-4 bg-[rgb(235,225,213)]">
-                    <p className="text-sm text-[rgb(150,170,155)]">Wellness Intention</p>
-                    <p className="text-[rgb(45,45,45)] italic">"{selectedBooking.wellness_intention}"</p>
-                  </div>
-                )}
-
-                {selectedBooking.special_requests && (
-                  <div className="p-4 border border-[rgb(196,155,145)]">
-                    <p className="text-sm text-[rgb(196,155,145)]">Special Requests</p>
-                    <p className="text-[rgb(45,45,45)]">{selectedBooking.special_requests}</p>
-                  </div>
-                )}
-
-                {(selectedBooking.package_name || selectedBooking.treatments?.length > 0) && (
-                  <div>
-                    <p className="text-sm text-[rgb(150,170,155)] mb-2">Spa & Wellness</p>
-                    {selectedBooking.package_name && (
-                      <p className="text-[rgb(107,85,64)]">{selectedBooking.package_name}</p>
-                    )}
-                    {selectedBooking.treatments?.map((t, i) => (
-                      <p key={i} className="text-sm text-[rgb(45,45,45)]">• {t.treatment_name}</p>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between pt-4 border-t border-[rgb(235,225,213)]">
-                  <div>
-                    <p className="text-sm text-[rgb(45,45,45)]">Room: ${selectedBooking.room_total}</p>
-                    {selectedBooking.treatments_total > 0 && (
-                      <p className="text-sm text-[rgb(45,45,45)]">Spa: ${selectedBooking.treatments_total}</p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-light text-[rgb(107,85,64)]">${selectedBooking.grand_total}</p>
-                    <Badge className={statusColors[selectedBooking.booking_status]}>
-                      {selectedBooking.booking_status?.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            </>
           )}
         </DialogContent>
       </Dialog>
