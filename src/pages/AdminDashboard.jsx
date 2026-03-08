@@ -10,7 +10,6 @@ import {
   CalendarDays, BookOpen, Brush, AlertTriangle, BedSingle,
   MessageSquare, Activity, BadgeDollarSign, Timer, Archive, Printer, Upload,
 } from "lucide-react";
-import HotelTodayPanel from "@/components/dashboard/HotelTodayPanel";
 import { motion } from "framer-motion";
 
 
@@ -94,7 +93,7 @@ function IntakePanel({ intakeForms, intakeNewInquiries }) {
 }
 
 // ─── Day in 60 Seconds Panel ─────────────────────────────────────────────────
-function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa, spaGapCount, hkNeedsCount, hkIssues, toastToday, restaurantLeadsCount, intakeFollowUpCount, conciergeRequests, hotelBookings }) {
+function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa, spaGapCount, hkNeedsCount, hkIssues, toastToday, restaurantLeadsCount, intakeFollowUpCount, conciergeRequests }) {
   return (
     <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-4">
       <div className="flex items-center justify-between gap-3 mb-3">
@@ -118,13 +117,7 @@ function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa
           </div>
           <span className="text-xs text-[rgb(120,120,120)]">{intakeFollowUpCount > 0 ? `${intakeFollowUpCount} need attention` : "Hotel + Treatment"}</span>
         </Link>
-        <Link to={createPageUrl("AdminBookings")} className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
-          <div className="flex items-center gap-2">
-            <BedSingle className="w-4 h-4 text-[rgb(107,85,64)]" />
-            <span className="text-sm font-medium text-[rgb(45,45,45)]">Hotel</span>
-          </div>
-          <span className="text-xs text-[rgb(120,120,120)]">{arrivalsToday.length} arriving · {departuresToday.length} departing · {inHouseTonight.length} in-house</span>
-        </Link>
+        <HotelTodayPanel arrivalsToday={arrivalsToday} departuresToday={departuresToday} inHouseTonight={inHouseTonight} />
         <Link to={createPageUrl("AdminSpaSchedule")} className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[rgb(150,170,155)]" />
