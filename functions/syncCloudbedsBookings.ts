@@ -137,15 +137,15 @@ Deno.serve(async (req) => {
         const bookingData = {
           confirmation_code: confirmationCode,
           guest_name: r.guestName || '',
-          guest_email: r.guestEmail || '',
-          guest_phone: r.guestPhone || r.phone || '',
+          guest_email: guestEmail,
+          guest_phone: guestPhone,
           room_id: roomId,
           room_name: roomName,
           check_in_date: r.startDate || '',
           check_out_date: r.endDate || '',
           num_guests: (parseInt(r.adults) || 0) + (parseInt(r.children) || 0),
           booking_status: mapStatus(r.status),
-          special_requests: r.notes || '',
+          special_requests: detailData.notes || r.notes || '',
         };
 
         // Upsert by confirmation_code
