@@ -10,6 +10,7 @@ import {
   CalendarDays, BookOpen, Brush, AlertTriangle, BedSingle,
   MessageSquare, Activity, BadgeDollarSign, Timer, Archive, Printer, Upload,
 } from "lucide-react";
+import HotelTodayPanel from "@/components/dashboard/HotelTodayPanel";
 import { motion } from "framer-motion";
 
 
