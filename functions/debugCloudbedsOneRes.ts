@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
   const accessToken = await getSettingValue(base44, 'CLOUDBEDS_ACCESS_TOKEN');
   const propertyId = Deno.env.get('CLOUDBEDS_PROPERTY_ID');
 
-  const url = `https://hotels.cloudbeds.com/api/v1.1/getReservations?propertyID=${propertyId}&checkInFrom=2026-03-01&checkInTo=2026-03-15&pageSize=2&pageNumber=1&detailLevel=2`;
+  const url = `https://hotels.cloudbeds.com/api/v1.1/getReservation?propertyID=${propertyId}&reservationID=6056538619465`;
   const resp = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
   const json = await resp.json();
   // Return first reservation raw so we can see the shape
