@@ -80,28 +80,32 @@ Deno.serve(async (req) => {
 
     // data is an array of property objects, each containing propertyRooms
     const dataArr = result.json?.data || [];
-    const propertyRooms = dataArr.flatMap(p => p.propertyRooms || []);
+    const allRooms = dataArr.flatMap(p => p.propertyRooms || []);
 
-    const rooms = propertyRooms.map(rt => {
-      // Find the lowest available rate
+    // Deduplicate by roomTypeID, pick best price
+    const roomMap = {};
+    for (const rt of allRooms) {
+      const id = String(rt.roomTypeID);
+      // Try to find a price from ratePlans
       const ratePlans = rt.ratePlans || [];
       let price = null;
       for (const rp of ratePlans) {
-        const roomRates = rp.roomRates || [];
-        for (const rr of roomRates) {
-          const total = parseFloat(rr.totalRate?.amount || rr.totalRate || 0);
-          if (total > 0 && (price === null || total < price)) price = total;
-        }
+        // totalRate may be at rp level or inside roomRates
+        const t = rp.totalRate ?? rp.roomRates?.[0]?.totalRate;
+        const val = parseFloat(t?.amount ?? t ?? 0);
+        if (val > 0 && (price === null || val < price)) price = val;
       }
-      return {
-        roomTypeID: String(rt.roomTypeID),
-        name: rt.roomTypeName,
-        maxOccupancy: parseInt(rt.maxGuests) || null,
-        price,
-      };
-    }).filter(r => r.roomTypeID && r.name);
+      if (!roomMap[id] || (price !== null && roomMap[id].price === null)) {
+        roomMap[id] = {
+          roomTypeID: id,
+          name: rt.roomTypeName,
+          maxOccupancy: parseInt(rt.maxGuests) || null,
+          price,
+        };
+      }
+    }
 
-    return Response.json({ success: true, rooms });
+    return Response.json({ success: true, rooms: Object.values(roomMap) });
 
     if (!result.json?.success) {
       return Response.json({ success: false, error: result.json?.message || 'Cloudbeds API error', raw: result.json });
