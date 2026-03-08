@@ -120,7 +120,19 @@ Deno.serve(async (req) => {
         slots: slotMap[svcId],
       }));
 
-    return Response.json({ services: results, date });
+    const finalResult = { services: results, date };
+    // Write to cache (2 min TTL)
+    try {
+      const expiresAt = new Date(Date.now() + 2 * 60 * 1000).toISOString();
+      const cacheRows = await base44.asServiceRole.entities.ApiCache.filter({ cache_key: cacheKey });
+      const cacheData = { source_system: "simplybook", endpoint: "availability", cache_key: cacheKey, payload: JSON.stringify(finalResult), expires_at: expiresAt, last_synced: new Date().toISOString() };
+      if (cacheRows?.[0]) {
+        await base44.asServiceRole.entities.ApiCache.update(cacheRows[0].id, cacheData);
+      } else {
+        await base44.asServiceRole.entities.ApiCache.create(cacheData);
+      }
+    } catch { /* non-fatal */ }
+    return Response.json(finalResult);
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 });
   }
