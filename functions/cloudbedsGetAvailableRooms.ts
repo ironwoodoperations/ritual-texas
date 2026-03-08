@@ -80,6 +80,7 @@ Deno.serve(async (req) => {
 
     // The Cloudbeds getAvailableRoomTypes returns data as a single object with propertyRooms array
     const rawData = result.json?.data;
+    console.log('FULL RAW DATA:', JSON.stringify(rawData, null, 2));
     const propertyRooms = Array.isArray(rawData)
       ? rawData
       : (rawData?.propertyRooms || []);
