@@ -10,6 +10,7 @@ import {
   CalendarDays, BookOpen, Brush, AlertTriangle, BedSingle,
   MessageSquare, Activity, BadgeDollarSign, Timer, Archive, Printer, Upload,
 } from "lucide-react";
+import HotelTodayPanel from "@/components/dashboard/HotelTodayPanel";
 import { motion } from "framer-motion";
 
 
@@ -93,7 +94,7 @@ function IntakePanel({ intakeForms, intakeNewInquiries }) {
 }
 
 // ─── Day in 60 Seconds Panel ─────────────────────────────────────────────────
-function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa, spaGapCount, hkNeedsCount, hkIssues, toastToday, restaurantLeadsCount, intakeFollowUpCount, conciergeRequests }) {
+function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa, spaGapCount, hkNeedsCount, hkIssues, toastToday, restaurantLeadsCount, intakeFollowUpCount, conciergeRequests, hotelBookings }) {
   return (
     <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-4">
       <div className="flex items-center justify-between gap-3 mb-3">
