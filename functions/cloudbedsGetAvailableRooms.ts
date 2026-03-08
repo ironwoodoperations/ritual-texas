@@ -38,6 +38,29 @@ async function refreshToken(base44) {
   return newAccess;
 }
 
+async function getCache(base44, cacheKey) {
+  try {
+    const rows = await base44.asServiceRole.entities.ApiCache.filter({ cache_key: cacheKey });
+    const row = rows?.[0];
+    if (!row) return null;
+    if (new Date(row.expires_at) < new Date()) return null;
+    return JSON.parse(row.payload);
+  } catch { return null; }
+}
+
+async function setCache(base44, cacheKey, sourceSystem, endpoint, payload, ttlMinutes) {
+  try {
+    const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000).toISOString();
+    const rows = await base44.asServiceRole.entities.ApiCache.filter({ cache_key: cacheKey });
+    const data = { source_system: sourceSystem, endpoint, cache_key: cacheKey, payload: JSON.stringify(payload), expires_at: expiresAt, last_synced: new Date().toISOString() };
+    if (rows?.[0]) {
+      await base44.asServiceRole.entities.ApiCache.update(rows[0].id, data);
+    } else {
+      await base44.asServiceRole.entities.ApiCache.create(data);
+    }
+  } catch { /* non-fatal */ }
+}
+
 Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
   try {
@@ -52,6 +75,11 @@ Deno.serve(async (req) => {
     if (!startDate || !endDate) {
       return Response.json({ success: false, error: 'startDate and endDate required' }, { status: 400 });
     }
+
+    // Check cache first (5 min TTL for availability)
+    const cacheKey = `cloudbeds:availability:${startDate}:${endDate}`;
+    const cached = await getCache(base44, cacheKey);
+    if (cached) return Response.json(cached);
 
     let accessToken = await getSettingValue(base44, 'CLOUDBEDS_ACCESS_TOKEN');
     const propertyId = Deno.env.get('CLOUDBEDS_PROPERTY_ID') || await getSettingValue(base44, 'CLOUDBEDS_PROPERTY_ID');
