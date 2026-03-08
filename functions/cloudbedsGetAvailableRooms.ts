@@ -133,7 +133,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    return Response.json({ success: true, rooms: Object.values(roomMap) });
+    const finalResult = { success: true, rooms: Object.values(roomMap) };
+    await setCache(base44, cacheKey, "cloudbeds", "availability", finalResult, 5); // 5 min TTL
+    return Response.json(finalResult);
 
     if (!result.json?.success) {
       return Response.json({ success: false, error: result.json?.message || 'Cloudbeds API error', raw: result.json });
