@@ -70,8 +70,7 @@ Deno.serve(async (req) => {
     const future = new Date();
     future.setDate(future.getDate() + 60);
 
-    const doFetch = async (token, page = 1) => {
-      // Fetch by check-in range
+    const doFetchList = async (token, page = 1) => {
       const url = `https://hotels.cloudbeds.com/api/v1.1/getReservations` +
         `?propertyID=${encodeURIComponent(propertyId)}` +
         `&checkInFrom=${fmt(past)}&checkInTo=${fmt(future)}` +
@@ -80,10 +79,16 @@ Deno.serve(async (req) => {
       return { ok: resp.ok, status: resp.status, json: await resp.json() };
     };
 
-    let result = await doFetch(accessToken);
+    const doFetchDetail = async (token, reservationID) => {
+      const url = `https://hotels.cloudbeds.com/api/v1.1/getReservation?propertyID=${encodeURIComponent(propertyId)}&reservationID=${reservationID}`;
+      const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      return resp.ok ? await resp.json() : null;
+    };
+
+    let result = await doFetchList(accessToken);
     if (!result.ok && (result.status === 401 || result.status === 403)) {
       accessToken = await refreshToken(base44);
-      result = await doFetch(accessToken);
+      result = await doFetchList(accessToken);
     }
 
     if (!result.ok || !result.json?.success) {
@@ -97,7 +102,7 @@ Deno.serve(async (req) => {
     if (total > 100) {
       const pages = Math.ceil(total / 100);
       for (let p = 2; p <= pages; p++) {
-        const r2 = await doFetch(accessToken, p);
+        const r2 = await doFetchList(accessToken, p);
         if (r2.ok && r2.json?.success) {
           allReservations.push(...(r2.json.data || []));
         }
@@ -109,10 +114,25 @@ Deno.serve(async (req) => {
 
     for (const r of allReservations) {
       try {
-        const assignment = Array.isArray(r.assignment) ? r.assignment[0] : r.assignment;
-        const roomName = assignment?.roomName || assignment?.roomTypeName || r.roomTypeName || r.roomName || '';
-        const roomId = assignment?.roomID || assignment?.roomNumber || String(r.roomTypeID || '');
-        const confirmationCode = String(r.reservationID || r.confirmationNumber || '');
+        // Fetch detail to get room name (list endpoint doesn't include room data)
+        const detail = await doFetchDetail(accessToken, r.reservationID);
+        const detailData = detail?.data || {};
+
+        // Extract room from guestList (first main guest's room)
+        let roomName = '';
+        let roomId = '';
+        let guestEmail = r.guestEmail || '';
+        let guestPhone = '';
+        const guestList = detailData.guestList || {};
+        const mainGuest = Object.values(guestList).find(g => g.isMainGuest) || Object.values(guestList)[0];
+        if (mainGuest) {
+          roomName = mainGuest.roomName || mainGuest.roomTypeName || '';
+          roomId = mainGuest.roomID || '';
+          guestEmail = mainGuest.guestEmail || guestEmail;
+          guestPhone = mainGuest.guestPhone || mainGuest.guestCellPhone || '';
+        }
+
+        const confirmationCode = String(r.reservationID || '');
 
         const bookingData = {
           confirmation_code: confirmationCode,
