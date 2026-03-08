@@ -20,24 +20,35 @@ Deno.serve(async (req) => {
     const { date } = await req.json();
     if (!date) return Response.json({ error: "date required (YYYY-MM-DD)" }, { status: 400 });
 
-    const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
     const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
+    const userLogin = Deno.env.get("SIMPLYBOOK_USER_LOGIN") || Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
+    const userPassword = Deno.env.get("SIMPLYBOOK_USER_PASSWORD") || Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
+    const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
 
-    if (!apiKey || !company) {
-      return Response.json({ error: "SIMPLYBOOK_API_KEY / SIMPLYBOOK_COMPANY_LOGIN not set" }, { status: 500 });
+    if (!company) {
+      return Response.json({ error: "SIMPLYBOOK_COMPANY_LOGIN not set" }, { status: 500 });
     }
 
-    // Step 1: get token via JSON-RPC login
+    // Step 1: get token — try user token first (admin), fall back to API key token
     const loginUrl = "https://user-api.simplybook.me/login";
-    const tokenResult = await sbRPC(loginUrl, "getToken", [company, apiKey]);
-    const token = typeof tokenResult === "string" ? tokenResult : tokenResult?.token || tokenResult;
+    let token = null;
 
-    if (!token || typeof token !== "string") {
-      return Response.json({ error: "Failed to get SimplyBook token", detail: tokenResult }, { status: 500 });
+    if (userLogin && userPassword) {
+      const result = await sbRPC(loginUrl, "getUserToken", [company, userLogin, userPassword]);
+      if (result && typeof result === "string") token = result;
+    }
+
+    if (!token && apiKey) {
+      const result = await sbRPC(loginUrl, "getToken", [company, apiKey]);
+      token = typeof result === "string" ? result : result?.token || null;
+    }
+
+    if (!token) {
+      return Response.json({ error: "Failed to get SimplyBook token — check credentials" }, { status: 500 });
     }
 
     const apiUrl = "https://user-api.simplybook.me";
-    const sbHeaders = { "X-Company-Login": company, "X-Token": token };
+    const sbHeaders = { "X-Company-Login": company, "X-User-Token": token, "X-Token": token };
 
     // Step 2: get services and performers in parallel
     const [services, performers] = await Promise.all([
