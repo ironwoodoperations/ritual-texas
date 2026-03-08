@@ -48,10 +48,15 @@ Deno.serve(async (req) => {
     for (const booking of bookings) {
       if (['cancelled'].includes(booking.booking_status)) continue;
 
-      // Match booking room to HkRoom
+      // Match booking room to HkRoom — fuzzy match on trailing number or exact name
+      const extractNum = (s) => { const m = String(s || '').match(/(\d+)$/); return m ? m[1] : null; };
+      const bookingNum = extractNum(booking.room_name);
       const room = rooms.find(r =>
         r.roomNumber === booking.room_name ||
-        r.id === booking.room_id
+        r.id === booking.room_id ||
+        (bookingNum && extractNum(r.roomNumber) === bookingNum) ||
+        String(booking.room_name || '').toLowerCase().includes(String(r.roomNumber || '').toLowerCase()) ||
+        String(r.roomNumber || '').toLowerCase().includes(String(booking.room_name || '').toLowerCase())
       );
 
       if (!room) {
