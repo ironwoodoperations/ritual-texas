@@ -75,17 +75,21 @@ Deno.serve(async (req) => {
     }
 
     if (!result.json?.success) {
-      return Response.json({ success: false, error: result.json?.message || 'Cloudbeds API error' });
+      return Response.json({ success: false, error: result.json?.message || 'Cloudbeds API error', raw: result.json });
     }
 
-    const rooms = (result.json?.data || []).map(rt => ({
-      roomTypeID: String(rt.roomTypeID),
-      name: rt.roomTypeName || rt.name,
-      maxOccupancy: rt.maxOccupancy,
-      price: rt.totalRate,
+    // Log the first item to inspect real field names
+    const rawData = result.json?.data || [];
+    console.log('RAW FIRST ROOM:', JSON.stringify(rawData[0], null, 2));
+
+    const rooms = rawData.map(rt => ({
+      roomTypeID: String(rt.roomTypeID || rt.id || rt.room_type_id || Object.keys(rt)[0]),
+      name: rt.roomTypeName || rt.name || rt.title || rt.roomName,
+      maxOccupancy: rt.maxOccupancy || rt.max_occupancy,
+      price: rt.totalRate || rt.total_rate || rt.price || rt.rate,
     }));
 
-    return Response.json({ success: true, rooms });
+    return Response.json({ success: true, rooms, _raw_keys: rawData[0] ? Object.keys(rawData[0]) : [] });
   } catch (e) {
     return Response.json({ success: false, error: String(e?.message || e) }, { status: 500 });
   }
