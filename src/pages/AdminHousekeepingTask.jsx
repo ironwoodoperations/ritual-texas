@@ -141,7 +141,19 @@ export default function AdminHousekeepingTask() {
 
   const handleStart = () => updateTaskMutation.mutate({ status: 'in_progress', startedAt: new Date().toISOString() });
   const handlePause = () => updateTaskMutation.mutate({ status: 'paused' });
-  const handleComplete = () => updateTaskMutation.mutate({ status: 'completed', completedAt: new Date().toISOString(), completedByUserId: 'housekeeper' });
+  const handleComplete = async () => {
+    const now = new Date().toISOString();
+    for (const item of items) {
+      if (!item.isDone) await base44.entities.HkTaskItem.update(item.id, { isDone: true, doneAt: now });
+    }
+    await base44.entities.HkTask.update(taskId, {
+      status: 'completed', completedAt: now, completedByUserId: 'admin',
+      completionPercent: 100, completedItems: items.length, totalItems: items.length,
+    });
+    qc.invalidateQueries({ queryKey: ['hk-task', taskId] });
+    qc.invalidateQueries({ queryKey: ['hk-task-items', taskId] });
+    setShowTextModal(true);
+  };
   const handleReopen = () => updateTaskMutation.mutate({ status: 'in_progress' });
 
   const saveNotes = () => {
