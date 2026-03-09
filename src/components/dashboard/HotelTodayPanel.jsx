@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
-import { BedSingle, ChevronDown, ChevronUp, Phone, Mail, Users, LogIn, LogOut, CheckCircle, Home } from "lucide-react";
+import { BedSingle, ChevronDown, ChevronUp, Phone, Mail, Users, LogIn, LogOut, CheckCircle, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 function ReservationCard({ booking, actionLabel, actionStatus, onAction }) {
   const [loading, setLoading] = useState(false);
