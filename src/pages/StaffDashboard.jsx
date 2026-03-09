@@ -209,7 +209,7 @@ export default function StaffDashboard() {
       case 'spa_schedule':        return <AdminSpaSchedule />;
       case 'hotel':               return <StaffHotelReservations />;
       case 'restaurant_daily':    return <StaffDailySpecials />;
-      case 'housekeeping_tasks':
+      case 'housekeeping_tasks':  return <StaffHousekeepingView />;
       case 'staff_home':
       default:                    return <StaffHome session={session} />;
     }
