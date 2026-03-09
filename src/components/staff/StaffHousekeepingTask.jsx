@@ -267,6 +267,15 @@ export default function StaffHousekeepingTask({ taskId, onBack }) {
         {/* Text Whitney Button */}
         <a
           href={`sms:${WHITNEY_PHONE}?body=${encodeURIComponent(`${task.roomNumber} is finished and ready ✅ (${task.taskType?.replace(/_/g, " ")} · ${task.taskDate})`)}`}
+          onClick={async () => {
+            if (task.status !== "completed") {
+              const done = items.filter(i => i.isDone).length;
+              const pct = items.length > 0 ? Math.round((done / items.length) * 100) : 100;
+              await base44.entities.HkTask.update(task.id, { status: "completed", completedAt: new Date().toISOString(), completionPercent: pct, completedItems: done, totalItems: items.length });
+              qc.invalidateQueries({ queryKey: ["hk-task", taskId] });
+              qc.invalidateQueries({ queryKey: ["hk-tasks-staff-view"] });
+            }
+          }}
           style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", width: "100%", padding: "14px", background: "rgba(76,175,80,.12)", border: "1px solid rgba(76,175,80,.4)", borderRadius: "10px", color: "#4CAF50", fontWeight: 700, fontFamily: "sans-serif", fontSize: "15px", textDecoration: "none", marginBottom: "12px" }}
         >
           <MessageSquare size={18} /> Text Whitney — Room Ready
