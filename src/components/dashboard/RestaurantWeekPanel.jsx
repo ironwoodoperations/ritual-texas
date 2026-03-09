@@ -151,12 +151,12 @@ export default function RestaurantWeekPanel() {
   const handleArchiveWeek = async () => {
     if (!window.confirm("Archive this week and start fresh?")) return;
     setArchiving(true);
-    const weekLabel = `${weekDays[0].dateStr} – ${weekDays[4].dateStr}`;
+    const weekLabel = `${weekDays[0].dateStr} – ${weekDays[weekDays.length - 1].dateStr}`;
     await base44.entities.SalesWeekArchive.create({
       weekKey,
       weekLabel,
       startDate: weekDays[0].dateStr,
-      endDate: weekDays[4].dateStr,
+      endDate: weekDays[weekDays.length - 1].dateStr,
       totalSales: totals.sales,
       totalLabor: totals.labor,
       totalLaborHours: totals.laborHours,
