@@ -265,6 +265,43 @@ export default function RestaurantWeekPanel() {
             </div>
           </div>
 
+          {/* Catering box */}
+          <div className="mt-3 rounded-xl border border-[rgb(235,225,213)] bg-white p-3">
+            <div className="text-xs font-semibold text-[rgb(107,85,64)] mb-2">🍽️ Catering</div>
+            <div className="grid grid-cols-[44px_1fr_1fr_1fr_34px] gap-1.5 px-1 mb-1">
+              {["", "Sales ($)", "Labor ($)", "Hrs", ""].map((h, i) => (
+                <span key={i} className="text-[10px] text-[rgb(150,150,150)] font-semibold">{h}</span>
+              ))}
+            </div>
+            <div className="grid grid-cols-[44px_1fr_1fr_1fr_34px] gap-1.5 items-center">
+              <span className="text-xs font-medium text-[rgb(45,45,45)]">Wk</span>
+              {["sales", "labor", "laborHours"].map((field) => (
+                <input
+                  key={field}
+                  type="number"
+                  placeholder="0"
+                  value={catering[field]}
+                  onChange={(e) => setCatering(prev => ({ ...prev, [field]: e.target.value }))}
+                  className="w-full text-xs border border-[rgb(235,225,213)] rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:border-[rgb(198,182,165)]"
+                />
+              ))}
+              <button
+                onClick={async () => {
+                  const data = { date: `catering-${weekKey}`, weekKey, sales: parseFloat(catering.sales) || 0, labor: parseFloat(catering.labor) || 0, laborHours: parseFloat(catering.laborHours) || 0 };
+                  if (cateringRecord) { await base44.entities.ManualSalesDay.update(cateringRecord.id, data); }
+                  else { await base44.entities.ManualSalesDay.create(data); }
+                  queryClient.invalidateQueries({ queryKey: ["catering-sales-week", weekKey] });
+                  setCateringSaved(true);
+                  setTimeout(() => setCateringSaved(false), 2000);
+                }}
+                className={`flex items-center justify-center w-8 h-8 rounded-lg text-white transition-colors ${cateringSaved ? "bg-green-500" : "bg-[rgb(150,170,155)] hover:bg-[rgb(130,150,135)]"}`}
+                title="Save"
+              >
+                <Save className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
           {/* Past weeks toggle */}
           <button
             onClick={() => setShowArchive(!showArchive)}
