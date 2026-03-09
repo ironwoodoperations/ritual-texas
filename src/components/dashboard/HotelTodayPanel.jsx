@@ -116,11 +116,9 @@ export default function HotelTodayPanel({ arrivalsToday, departuresToday, inHous
           <BedSingle className="w-4 h-4 text-[rgb(107,85,64)]" />
           <span className="text-sm font-medium text-[rgb(45,45,45)]">Hotel</span>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-[rgb(120,120,120)]">
-            {arrivalsToday.length} arriving · {departuresToday.length} departing · {inHouseTonight.length} in-house
-          </span>
-          <Link to={createPageUrl("AdminBookings")} className="flex items-center gap-1 text-xs text-[rgb(150,170,155)] hover:underline shrink-0">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-[rgb(120,120,120)]">{arrivalsToday.length} arrive · {departuresToday.length} depart</span>
+          <Link to={createPageUrl("AdminBookings")} className="flex items-center gap-1 text-xs text-[rgb(107,85,64)] font-medium hover:underline">
             All <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
