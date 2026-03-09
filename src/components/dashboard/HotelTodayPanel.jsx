@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
-import { BedSingle, ChevronDown, ChevronUp, Phone, Mail, Users, LogIn, LogOut, CheckCircle, ArrowRight } from "lucide-react";
+import { BedSingle, ChevronDown, ChevronUp, Phone, Mail, Users, LogIn, LogOut, CheckCircle, Home, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
