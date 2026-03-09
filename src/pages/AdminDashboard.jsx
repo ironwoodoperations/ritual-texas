@@ -11,6 +11,7 @@ import {
   MessageSquare, Activity, BadgeDollarSign, Timer, Archive, Printer, Upload,
 } from "lucide-react";
 import HotelTodayPanel from "@/components/dashboard/HotelTodayPanel";
+import RestaurantWeekPanel from "@/components/dashboard/RestaurantWeekPanel";
 import { motion } from "framer-motion";
 
 
