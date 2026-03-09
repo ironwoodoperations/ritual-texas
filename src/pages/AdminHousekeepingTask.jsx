@@ -3,7 +3,37 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, CheckCircle2, Circle, Minus, Plus, AlertTriangle, Save } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Minus, Plus, AlertTriangle, Save, MessageSquare } from 'lucide-react';
+
+const WHITNEY_PHONE = "9038106695";
+
+function TextWhitneyModal({ task, onClose }) {
+  const msg = `${task.roomNumber} is finished and ready ✅ (${task.taskType?.replace(/_/g, ' ')} · ${task.taskDate})`;
+  const smsUrl = `sms:${WHITNEY_PHONE}?body=${encodeURIComponent(msg)}`;
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <div style={{ background: '#132336', border: '1px solid rgba(198,168,94,.3)', borderRadius: '16px', padding: '28px 24px', maxWidth: '360px', width: '100%', textAlign: 'center' }}>
+        <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(76,175,80,.15)', border: '2px solid #4CAF50', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+          <CheckCircle2 size={28} color="#4CAF50" />
+        </div>
+        <p style={{ color: '#F5F0E8', fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>Room Completed!</p>
+        <p style={{ color: '#9AA8B5', fontSize: '14px', fontFamily: 'sans-serif', marginBottom: '20px', lineHeight: '1.5' }}>
+          Text Whitney that <strong style={{ color: '#C6A85E' }}>{task.roomNumber}</strong> is finished and ready?
+        </p>
+        <div style={{ background: 'rgba(245,240,232,.05)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', padding: '10px 14px', marginBottom: '20px', textAlign: 'left' }}>
+          <p style={{ color: '#9AA8B5', fontSize: '11px', fontFamily: 'sans-serif', margin: '0 0 4px', letterSpacing: '1px' }}>MESSAGE PREVIEW</p>
+          <p style={{ color: '#F5F0E8', fontSize: '13px', fontFamily: 'sans-serif', margin: 0 }}>{msg}</p>
+        </div>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={onClose} style={{ flex: 1, padding: '12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '10px', color: '#9AA8B5', cursor: 'pointer', fontFamily: 'sans-serif', fontSize: '14px' }}>Skip</button>
+          <a href={smsUrl} onClick={onClose} style={{ flex: 2, padding: '12px', background: '#4CAF50', border: 'none', borderRadius: '10px', color: '#fff', cursor: 'pointer', fontWeight: 700, fontFamily: 'sans-serif', fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <MessageSquare size={16} /> Text Whitney
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const CATEGORY_LABELS = {
   strip: '🛏️ Strip & Reset',

@@ -148,7 +148,24 @@ export default function StaffHousekeepingTask({ taskId, onBack }) {
   const handlePause = () => updateTaskMutation.mutate({ status: "paused" });
 
   const handleComplete = async () => {
-    await updateTaskMutation.mutateAsync({ status: "completed", completedAt: new Date().toISOString(), completedByUserId: "staff" });
+    // Force all items done and mark 100%
+    const now = new Date().toISOString();
+    for (const item of items) {
+      if (!item.isDone) {
+        await base44.entities.HkTaskItem.update(item.id, { isDone: true, doneAt: now });
+      }
+    }
+    await base44.entities.HkTask.update(taskId, {
+      status: "completed",
+      completedAt: now,
+      completedByUserId: "staff",
+      completionPercent: 100,
+      completedItems: items.length,
+      totalItems: items.length,
+    });
+    qc.invalidateQueries({ queryKey: ["hk-task", taskId] });
+    qc.invalidateQueries({ queryKey: ["hk-task-items", taskId] });
+    qc.invalidateQueries({ queryKey: ["hk-tasks-staff-view"] });
     setShowTextModal(true);
   };
 
