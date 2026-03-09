@@ -55,6 +55,7 @@ export default function AdminHousekeepingTask() {
   const [issue, setIssue] = useState({ type: 'maintenance', severity: 'medium', description: '' });
   const [housekeeperNotes, setHousekeeperNotes] = useState('');
   const [notesSaved, setNotesSaved] = useState(false);
+  const [showTextModal, setShowTextModal] = useState(false);
 
   const { data: task } = useQuery({
     queryKey: ['hk-task', taskId],
