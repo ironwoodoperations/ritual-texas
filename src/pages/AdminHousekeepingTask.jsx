@@ -252,6 +252,14 @@ export default function AdminHousekeepingTask() {
           </button>
         </div>
 
+        {/* Text Whitney Button */}
+        <a
+          href={`sms:${WHITNEY_PHONE}?body=${encodeURIComponent(`${task.roomNumber} is finished and ready ✅ (${task.taskType?.replace(/_/g, ' ')} · ${task.taskDate})`)}`}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', width: '100%', padding: '14px', background: 'rgba(76,175,80,.12)', border: '1px solid rgba(76,175,80,.4)', borderRadius: '10px', color: '#4CAF50', fontWeight: 700, fontFamily: 'sans-serif', fontSize: '15px', textDecoration: 'none', marginBottom: '12px' }}
+        >
+          <MessageSquare size={18} /> Text Whitney — Room Ready
+        </a>
+
         {/* Report Issue */}
         {!showIssueForm ? (
           <button onClick={() => setShowIssueForm(true)} style={{ width: '100%', padding: '12px', background: 'transparent', border: '1px dashed rgba(220,60,60,.3)', borderRadius: '10px', color: '#f08080', cursor: 'pointer', fontSize: '14px', fontFamily: 'sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '12px' }}>
