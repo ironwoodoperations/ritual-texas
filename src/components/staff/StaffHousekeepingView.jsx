@@ -34,8 +34,9 @@ export default function StaffHousekeepingView() {
     queryFn: () => base44.entities.HkTask.filter({ taskDate: dateStr }),
   });
 
-  const activeTasks = tasks.filter((t) => t.status !== "completed");
-  const doneTasks = tasks.filter((t) => t.status === "completed");
+  const isEffectivelyDone = (t) => t.status === "completed" || (t.completionPercent >= 100 && t.totalItems > 0);
+  const activeTasks = tasks.filter((t) => !isEffectivelyDone(t));
+  const doneTasks = tasks.filter((t) => isEffectivelyDone(t));
 
   const handlePrev = () => setSelectedDate((d) => { const n = new Date(d); n.setDate(n.getDate() - 1); return n; });
   const handleNext = () => setSelectedDate((d) => { const n = new Date(d); n.setDate(n.getDate() + 1); return n; });
