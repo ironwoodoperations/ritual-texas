@@ -134,13 +134,7 @@ function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa
           </div>
           <span className="text-xs text-[rgb(120,120,120)]">{hkNeedsCount} open{hkIssues.length ? ` · ${hkIssues.length} issue${hkIssues.length === 1 ? "" : "s"}` : ""}</span>
         </Link>
-        <Link to={createPageUrl("AdminRestaurantSales")} className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
-          <div className="flex items-center gap-2">
-            <UtensilsCrossed className="w-4 h-4 text-[rgb(196,155,145)]" />
-            <span className="text-sm font-medium text-[rgb(45,45,45)]">Restaurant</span>
-          </div>
-          <span className="text-xs text-[rgb(120,120,120)]">Sales {fmtMoney(toastToday?.netSales)} · Labor {fmtMoney(toastToday?.laborTotalCost)} · {restaurantLeadsCount} leads</span>
-        </Link>
+        <RestaurantWeekPanel />
       </div>
       {/* Quick Links Row */}
       <div className="mt-4 pt-4 border-t border-[rgb(235,225,213)] flex gap-2 flex-wrap">
