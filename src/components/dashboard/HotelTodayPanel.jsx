@@ -185,6 +185,18 @@ export default function HotelTodayPanel({ arrivalsToday, departuresToday, inHous
           )}
         </div>
       )}
+
+      {activeTab === "inhouse" && (
+        <div className="p-3 bg-[rgb(248,246,242)] flex flex-col gap-2">
+          {inHouseTonight.length === 0 ? (
+            <p className="text-xs text-[rgb(150,150,150)] text-center py-2">No guests in-house tonight.</p>
+          ) : (
+            applyLocal(inHouseTonight).map(b => (
+              <ReservationCard key={b.id} booking={b} actionLabel="Check Out" onAction={handleStatusUpdate} />
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
