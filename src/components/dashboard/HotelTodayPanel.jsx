@@ -146,6 +146,19 @@ export default function HotelTodayPanel({ arrivalsToday, departuresToday, inHous
           Departures ({departures.length})
           {activeTab === "departures" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </button>
+        <div className="w-px bg-[rgb(235,225,213)]" />
+        <button
+          onClick={() => toggleTab("inhouse")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-colors ${
+            activeTab === "inhouse"
+              ? "bg-[rgb(107,85,64)] text-white"
+              : "bg-[rgb(248,246,242)] text-[rgb(107,85,64)] hover:bg-[rgb(235,225,213)]"
+          }`}
+        >
+          <Home className="w-3.5 h-3.5" />
+          In-House ({inHouseTonight.length})
+          {activeTab === "inhouse" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+        </button>
       </div>
 
       {/* Expanded content */}
