@@ -18,6 +18,7 @@ import {
 import StaffChecklist from '@/components/StaffChecklist';
 import StaffHotelReservations from '@/components/staff/StaffHotelReservations';
 import StaffDailySpecials from '@/components/staff/StaffDailySpecials';
+import StaffHousekeepingView from '@/components/staff/StaffHousekeepingView';
 
 // Lazy import for spa schedule (it's heavy)
 import AdminSpaSchedule from '@/pages/AdminSpaSchedule';
