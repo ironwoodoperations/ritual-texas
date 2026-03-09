@@ -183,6 +183,7 @@ export default function AdminHousekeepingTask() {
 
   return (
     <div style={S.page}>
+      {showTextModal && <TextWhitneyModal task={task} onClose={() => setShowTextModal(false)} />}
       {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #0C1C2C 0%, #132336 100%)', borderBottom: '1px solid rgba(198,168,94,.2)', padding: '16px 20px', position: 'sticky', top: 0, zIndex: 40 }}>
         <div style={{ maxWidth: '700px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '14px' }}>
