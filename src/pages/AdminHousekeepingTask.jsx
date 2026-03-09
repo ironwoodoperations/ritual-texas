@@ -142,13 +142,11 @@ export default function AdminHousekeepingTask() {
   const handleStart = () => updateTaskMutation.mutate({ status: 'in_progress', startedAt: new Date().toISOString() });
   const handlePause = () => updateTaskMutation.mutate({ status: 'paused' });
   const handleComplete = async () => {
-    const now = new Date().toISOString();
-    for (const item of items) {
-      if (!item.isDone) await base44.entities.HkTaskItem.update(item.id, { isDone: true, doneAt: now });
-    }
+    const done = items.filter(i => i.isDone).length;
+    const pct = items.length > 0 ? Math.round((done / items.length) * 100) : 100;
     await base44.entities.HkTask.update(taskId, {
-      status: 'completed', completedAt: now, completedByUserId: 'admin',
-      completionPercent: 100, completedItems: items.length, totalItems: items.length,
+      status: 'completed', completedAt: new Date().toISOString(), completedByUserId: 'admin',
+      completionPercent: pct, completedItems: done, totalItems: items.length,
     });
     qc.invalidateQueries({ queryKey: ['hk-task', taskId] });
     qc.invalidateQueries({ queryKey: ['hk-task-items', taskId] });
