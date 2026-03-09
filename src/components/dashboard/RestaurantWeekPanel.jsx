@@ -16,7 +16,8 @@ function getCurrentWeekDays() {
   tuesday.setDate(today.getDate() + offset);
   tuesday.setHours(0, 0, 0, 0);
 
-  return [0, 1, 2, 3, 4].map((i) => {
+  // Only Tue, Thu, Sat (offsets 0, 2, 4)
+  return [0, 2, 4].map((i) => {
     const d = new Date(tuesday);
     d.setDate(tuesday.getDate() + i);
     const yyyy = d.getFullYear();
@@ -24,7 +25,7 @@ function getCurrentWeekDays() {
     const dd = String(d.getDate()).padStart(2, "0");
     return {
       dateStr: `${yyyy}-${mm}-${dd}`,
-      label: ["Tue", "Wed", "Thu", "Fri", "Sat"][i],
+      label: ["Tue", "Thu", "Sat"][i / 2],
     };
   });
 }
