@@ -38,10 +38,8 @@ export default function TherapistSection({ form, onChange, sbEntries, ctbEntries
   }
 
   function openSmsToTherapist() {
-    if (!selectedTherapist?.phone) return;
     const body = encodeURIComponent(buildTextBody());
-    const phone = selectedTherapist.phone.replace(/\D/g, "");
-    window.open(`sms:${phone}&body=${body}`, "_blank");
+    window.open(`sms:?body=${body}`, "_blank");
   }
 
   const statusInfo = THERAPIST_STATUSES.find(s => s.value === (form.therapistStatus || "not_contacted"));
