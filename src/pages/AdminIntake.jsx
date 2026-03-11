@@ -895,7 +895,7 @@ export default function AdminIntake() {
           <div className="text-center py-12 text-sm text-[rgb(150,150,150)]">{records.length === 0 ? "No intakes yet — tap New Intake." : "No matches."}</div>
         ) : (
           <div className="space-y-3">
-            {filtered.map(r => <IntakeCard key={r.id} record={r} onUpdate={load} roomTypes={roomTypes} loadingRooms={loadingRooms} callToBookTreatments={callToBookTreatments} />)}
+            {filtered.map(r => <IntakeCard key={r.id} record={r} onUpdate={load} callToBookTreatments={callToBookTreatments} />)}
           </div>
         )}
       </div>
