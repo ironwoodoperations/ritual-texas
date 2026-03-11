@@ -189,11 +189,17 @@ export default function AdminSpaSchedule() {
           {loading ? 'Loading…' : 'Refresh'}
         </Button>
 
-        <div className="ml-auto flex gap-2">
-           <Button onClick={() => setShowBookingWidget(true)} className="flex items-center gap-2" style={{ backgroundColor: '#836055', color: 'white' }}>
-             <Calendar className="w-4 h-4" />
-             Book New Treatment
-           </Button>
+        <div className="ml-auto flex gap-2 items-center">
+           <a
+             href="https://simplybook.me/login"
+             target="_blank"
+             rel="noopener noreferrer"
+             className="flex items-center gap-2 px-3 py-2 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors"
+             title="Open SimplyBook.me"
+           >
+             <img src="https://simplybook.me/img/logo/simplybook-logo.svg" alt="SimplyBook.me" className="h-5" onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='inline'; }} />
+             <span style={{display:'none'}} className="text-xs text-[rgb(107,85,64)] font-medium">SimplyBook.me</span>
+           </a>
            <Button onClick={() => window.print()} variant="outline" className="flex items-center gap-2">
              <Printer className="w-4 h-4" />
              Print Day Sheet
