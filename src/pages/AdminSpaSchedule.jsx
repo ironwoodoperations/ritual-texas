@@ -38,7 +38,6 @@ export default function AdminSpaSchedule() {
   const [tipPhone, setTipPhone] = useState('');
   const [providerTipModal, setProviderTipModal] = useState(null);
   const [providerTipPhone, setProviderTipPhone] = useState('');
-  const [showBookingWidget, setShowBookingWidget] = useState(false);
 
   const load = async () => {
     setLoading(true);
