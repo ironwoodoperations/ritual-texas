@@ -44,18 +44,21 @@ Deno.serve(async (req) => {
     const loginUrl = "https://user-api.simplybook.me/login";
     let token = null;
 
+    let tokenDebug = {};
     if (userLogin && userPassword && secretKey) {
       const result = await sbRPC(loginUrl, "getUserToken", [company, userLogin, userPassword, secretKey]);
+      tokenDebug.getUserToken = result;
       if (result && typeof result === "string") token = result;
     }
 
     if (!token && apiKey) {
       const result = await sbRPC(loginUrl, "getToken", [company, apiKey]);
+      tokenDebug.getToken = result;
       token = typeof result === "string" ? result : result?.token || null;
     }
 
     if (!token) {
-      return Response.json({ error: "Failed to get SimplyBook token — check credentials" }, { status: 500 });
+      return Response.json({ error: "Failed to get SimplyBook token — check credentials", debug: tokenDebug, company: company ? "set" : "missing", userLogin: userLogin ? "set" : "missing", userPassword: userPassword ? "set" : "missing", secretKey: secretKey ? "set" : "missing", apiKey: apiKey ? "set" : "missing" }, { status: 500 });
     }
 
     const apiUrl = "https://user-api.simplybook.me";
