@@ -542,6 +542,14 @@ function IntakeCard({ record, onUpdate, roomTypes, loadingRooms, callToBookTreat
     setEditing(false);
   }
 
+  async function saveAndSend(form) {
+    await base44.entities.HotelTreatmentIntake.update(record.id, form);
+    onUpdate();
+    setEditing(false);
+    // Trigger send quote action with updated record data
+    await runAction("SendQuote", form);
+  }
+
   // Build intake data enriched with parsed treatment objects for backend
   function buildIntakeForAction() {
     const sbParsed = parseTreatmentEntries(record.selectedTreatments || []);
