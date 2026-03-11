@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Printer, Download, RefreshCw, Sparkles, ArrowLeft, Send, Calendar } from 'lucide-react';
+import { Printer, Download, RefreshCw, Sparkles, ArrowLeft, Send } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import SpaCalendar from '@/components/spa/SpaCalendar';
 import { Link } from 'react-router-dom';
