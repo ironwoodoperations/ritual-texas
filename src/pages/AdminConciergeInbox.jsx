@@ -234,7 +234,7 @@ export default function AdminConciergeInbox() {
                           {lead.status === 'new' && (
                             <span className="text-[10px] bg-[rgb(107,85,64)] text-white px-2 py-0.5 rounded-full">NEW</span>
                           )}
-                          <span className="text-xs text-[rgb(150,150,150)]">{lead.created_date ? format(new Date(lead.created_date), 'MMM d, h:mm a') : ''}</span>
+                          <span className="text-xs text-[rgb(150,150,150)]">{fmtDate(lead.created_date)}</span>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap mb-2">
                           {lead.email && <a href={`mailto:${lead.email}`} className="text-xs text-[rgb(107,85,64)] hover:underline">{lead.email}</a>}
