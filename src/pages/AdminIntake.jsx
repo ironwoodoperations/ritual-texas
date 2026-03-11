@@ -516,7 +516,7 @@ function renderTreatments(arr, color = "bg-[rgb(240,235,228)] text-[rgb(107,85,6
 }
 
 // ── Intake record card ────────────────────────────────────────────────────────
-function IntakeCard({ record, onUpdate, callToBookTreatments }) {
+function IntakeCard({ record, onUpdate, bookOnlineTreatments, callToBookTreatments }) {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [actioning, setActioning] = useState(null);
@@ -898,7 +898,7 @@ export default function AdminIntake() {
           <div className="text-center py-12 text-sm text-[rgb(150,150,150)]">{records.length === 0 ? "No intakes yet — tap New Intake." : "No matches."}</div>
         ) : (
           <div className="space-y-3">
-            {filtered.map(r => <IntakeCard key={r.id} record={r} onUpdate={load} callToBookTreatments={callToBookTreatments} />)}
+            {filtered.map(r => <IntakeCard key={r.id} record={r} onUpdate={load} bookOnlineTreatments={bookOnlineTreatments} callToBookTreatments={callToBookTreatments} />)}
           </div>
         )}
       </div>
