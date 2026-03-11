@@ -822,6 +822,18 @@ export default function AdminIntake() {
     load();
   }
 
+  async function createNewAndSend(form) {
+    const record = await base44.entities.HotelTreatmentIntake.create(form);
+    setShowNew(false);
+    load();
+    // Trigger quote send after saving
+    if (form.email && form.checkInDate && form.checkOutDate) {
+      try {
+        await base44.functions.invoke("intakeCreateInvoiceDraft", { intake: { ...form, id: record?.id } });
+      } catch {}
+    }
+  }
+
   const filtered = records.filter(r => {
     const matchSearch = !search ||
       r.guestName?.toLowerCase().includes(search.toLowerCase()) ||
