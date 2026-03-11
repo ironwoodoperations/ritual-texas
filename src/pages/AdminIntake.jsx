@@ -517,7 +517,7 @@ function renderTreatments(arr, color = "bg-[rgb(240,235,228)] text-[rgb(107,85,6
 }
 
 // ── Intake record card ────────────────────────────────────────────────────────
-function IntakeCard({ record, onUpdate, roomTypes, loadingRooms, callToBookTreatments }) {
+function IntakeCard({ record, onUpdate, callToBookTreatments }) {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [actioning, setActioning] = useState(null);
