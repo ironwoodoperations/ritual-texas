@@ -126,7 +126,7 @@ export default function AdminSpaSchedule() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
         </div>
-        <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '4px' }}>Spa Schedule</h1>
+        <h1 className="text-xl md:text-2xl font-bold mb-1">Spa Schedule</h1>
         <p style={{ color: '#666' }}>View and export daily spa appointments from Square</p>
       </div>
 
