@@ -207,7 +207,7 @@ export default function RestaurantWeekPanel() {
           {/* Week header */}
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-[rgb(107,85,64)] tracking-wide">
-              {weekDays[0].dateStr} – {weekDays[4].dateStr}
+              {weekDays[0].dateStr} – {weekDays[weekDays.length - 1].dateStr}
             </span>
             <button
               onClick={handleArchiveWeek}
