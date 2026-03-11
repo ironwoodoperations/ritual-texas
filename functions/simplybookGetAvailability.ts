@@ -33,18 +33,19 @@ Deno.serve(async (req) => {
     const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
     const userLogin = Deno.env.get("SIMPLYBOOK_USER_LOGIN") || Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
     const userPassword = Deno.env.get("SIMPLYBOOK_USER_PASSWORD") || Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
+    const secretKey = Deno.env.get("SIMPLYBOOK_SECRET_KEY") || "";
     const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
 
     if (!company) {
       return Response.json({ error: "SIMPLYBOOK_COMPANY_LOGIN not set" }, { status: 500 });
     }
 
-    // Step 1: get token — try user token first (admin), fall back to API key token
+    // Step 1: get token — try user token first (requires secret_key), fall back to API key token
     const loginUrl = "https://user-api.simplybook.me/login";
     let token = null;
 
-    if (userLogin && userPassword) {
-      const result = await sbRPC(loginUrl, "getUserToken", [company, userLogin, userPassword]);
+    if (userLogin && userPassword && secretKey) {
+      const result = await sbRPC(loginUrl, "getUserToken", [company, userLogin, userPassword, secretKey]);
       if (result && typeof result === "string") token = result;
     }
 
