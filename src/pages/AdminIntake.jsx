@@ -230,20 +230,37 @@ function IntakeForm({ initial = BLANK, callToBookTreatments = [], onSave, onSave
             <NumSelect value={form.numberOfChildren || 0} onChange={v => set("numberOfChildren", v)} max={20} start={0} />
           </Field>
           <Field label="Room Type">
-            {loadingRooms ? (
-              <p className={fieldCls + " text-[rgb(170,155,140)]"}>Loading rooms…</p>
-            ) : roomTypes.length > 0 ? (
+            {!form.checkInDate || !form.checkOutDate ? (
+              <p className={fieldCls + " text-[rgb(190,170,150)] italic"}>Enter dates above to see available rooms</p>
+            ) : loadingLiveRooms ? (
+              <p className={fieldCls + " text-[rgb(170,155,140)] flex items-center gap-2"}>
+                <Loader2 className="w-3.5 h-3.5 animate-spin inline" /> Checking Cloudbeds availability…
+              </p>
+            ) : liveRooms.length > 0 ? (
               <select value={form.cloudbedsRoomTypeId} onChange={e => set("cloudbedsRoomTypeId", e.target.value)} className={selectCls}>
-                <option value="">Select a room type</option>
-                {roomTypes.map(rt => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
+                <option value="">Select available room</option>
+                {liveRooms.map(rt => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
               </select>
             ) : (
-              <input
-                placeholder="Type room name manually (e.g. Suite 3, Carriage House)…"
-                value={form.cloudbedsRoomTypeId}
-                onChange={e => set("cloudbedsRoomTypeId", e.target.value)}
-                className={fieldCls}
-              />
+              <div className="space-y-2">
+                {roomsError && (
+                  <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                    Cloudbeds unavailable for these dates.
+                    {!showManualRooms && (
+                      <button type="button" onClick={() => setShowManualRooms(true)} className="ml-auto underline font-semibold whitespace-nowrap">
+                        Enter Manually
+                      </button>
+                    )}
+                  </div>
+                )}
+                {showManualRooms && (
+                  <select value={form.cloudbedsRoomTypeId} onChange={e => set("cloudbedsRoomTypeId", e.target.value)} className={selectCls}>
+                    <option value="">Select room manually</option>
+                    {MANUAL_ROOMS.map(rt => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
+                  </select>
+                )}
+              </div>
             )}
           </Field>
           <Field label="Flexible on Room?">
