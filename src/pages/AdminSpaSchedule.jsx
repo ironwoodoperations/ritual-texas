@@ -118,7 +118,7 @@ export default function AdminSpaSchedule() {
   };
 
   return (
-    <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
+    <div className="px-4 py-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-3">
