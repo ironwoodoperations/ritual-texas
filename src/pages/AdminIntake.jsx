@@ -872,7 +872,7 @@ export default function AdminIntake() {
         {showNew && (
           <div className="bg-[rgb(252,250,247)] border border-[rgb(220,210,200)] rounded-2xl p-6 shadow-sm">
             <h2 className="text-base font-medium text-[rgb(107,85,64)] mb-6" style={{ fontFamily: "Georgia, serif" }}>New Guest Intake</h2>
-            <IntakeForm bookOnlineTreatments={bookOnlineTreatments} callToBookTreatments={callToBookTreatments} onSave={createNew} onSaveAndSend={createNewAndSend} onCancel={() => setShowNew(false)} />
+            <IntakeForm bookOnlineTreatments={bookOnlineTreatments} callToBookTreatments={callToBookTreatments} onSave={createNew} onCancel={() => setShowNew(false)} />
           </div>
         )}
 
