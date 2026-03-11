@@ -332,25 +332,6 @@ export default function AdminSpaSchedule() {
         </div>
       </div>
 
-       {/* Book New Treatment Box */}
-       {showBookingWidget && (
-         <div style={{ marginTop: '24px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px' }}>
-           <div className="flex items-center justify-between mb-4">
-             <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Book New Treatment</h2>
-             <button
-               onClick={() => setShowBookingWidget(false)}
-               style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#999' }}
-             >
-               ×
-             </button>
-           </div>
-           <iframe 
-             src="https://ritualtexas.simplybook.me" 
-             style={{ width: '100%', height: '600px', border: 'none', borderRadius: '4px' }}
-             title="Book Treatment"
-           />
-         </div>
-       )}
 
           <style>{`
           @media print {
