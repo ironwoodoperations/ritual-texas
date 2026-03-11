@@ -5,6 +5,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, MessageSquare, Package, CheckCircle, Clock, Mail, Plus, X, Save, CalendarCheck, UserX } from 'lucide-react';
 import { format } from 'date-fns';
+
+function fmtDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' +
+    d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+}
 import { motion } from 'framer-motion';
 
 function buildReplyEmail(inq) {
