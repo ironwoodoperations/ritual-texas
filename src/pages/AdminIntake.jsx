@@ -425,20 +425,58 @@ function IntakeForm({ initial = BLANK, callToBookTreatments = [], onSave, onSave
         </div>
       </Section>
 
-      {/* Save */}
-      <div className="flex gap-3 pt-4 border-t border-[rgb(220,210,200)]">
-        <button
-          onClick={submit}
-          disabled={saving || !form.guestName}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[rgb(107,85,64)] text-white text-sm disabled:opacity-50 hover:opacity-90 transition-opacity"
-        >
-          <Save className="w-4 h-4" /> {saving ? "Saving…" : "Save Record"}
-        </button>
-        {onCancel && (
-          <button onClick={onCancel} className="px-5 py-2.5 rounded-xl border border-[rgb(220,210,200)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]">
-            Cancel
-          </button>
+      {/* Save / Send */}
+      <div className="pt-4 border-t border-[rgb(220,210,200)] space-y-3">
+        {sendConfirm && (
+          <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 space-y-3">
+            <p className="text-sm font-semibold text-amber-800">⚠️ Send Quote Now?</p>
+            <p className="text-xs text-amber-700">
+              This will create a Square invoice draft and send it to <strong>{form.email || "the guest"}</strong>. Make sure the form is complete before sending.
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={submitAndSend}
+                disabled={saving}
+                className="flex-1 py-2 bg-[rgb(107,85,64)] text-white text-sm font-medium rounded-lg hover:bg-[rgb(85,65,45)] disabled:opacity-50"
+              >
+                {saving ? "Sending…" : "Yes, Send Quote"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSendConfirm(false)}
+                className="flex-1 py-2 border border-amber-300 text-amber-800 text-sm font-medium rounded-lg hover:bg-amber-100"
+              >
+                Return to Editing
+              </button>
+            </div>
+          </div>
         )}
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={submit}
+            disabled={saving || !form.guestName}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[rgb(107,85,64)] text-white text-sm disabled:opacity-50 hover:opacity-90 transition-opacity"
+          >
+            <Save className="w-4 h-4" /> {saving ? "Saving…" : "Save Form"}
+          </button>
+          {onSaveAndSend && (
+            <button
+              type="button"
+              onClick={() => setSendConfirm(true)}
+              disabled={saving || !form.guestName || !form.email}
+              title={!form.email ? "Guest email required to send quote" : ""}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[rgb(150,170,155)] text-white text-sm disabled:opacity-50 hover:opacity-90 transition-opacity"
+            >
+              <Send className="w-4 h-4" /> Send Quote Now
+            </button>
+          )}
+          {onCancel && (
+            <button onClick={onCancel} className="px-5 py-2.5 rounded-xl border border-[rgb(220,210,200)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]">
+              Cancel
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
