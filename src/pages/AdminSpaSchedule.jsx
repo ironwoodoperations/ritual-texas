@@ -131,7 +131,7 @@ export default function AdminSpaSchedule() {
       </div>
 
       {/* Calendar + Day view layout */}
-      <div className="grid gap-6 mb-6 no-print" style={{ gridTemplateColumns: '280px 1fr' }}>
+      <div className="grid gap-4 mb-6 no-print grid-cols-1 md:grid-cols-[260px_1fr]">
         <SpaCalendar selectedDate={date} onSelectDate={(d) => setDate(d)} />
 
         {/* Quick summary for selected day */}
