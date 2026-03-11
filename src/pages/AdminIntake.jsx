@@ -806,13 +806,13 @@ export default function AdminIntake() {
       setLoadingRooms(false);
     };
     loadRooms().finally(() => setLoadingRooms(false));
-    // Load call-to-book treatments from Treatment entity
+    // Load treatments from Treatment entity split by booking mode
     base44.entities.Treatment.list("sort_order", 100).then(all => {
-      const ctb = all.filter(t =>
-        t.is_available !== false &&
-        (t.booking_mode === "call_to_book" || t.booking_mode === "call_and_info")
-      );
+      const active = all.filter(t => t.is_available !== false);
+      const ctb = active.filter(t => t.booking_mode === "call_to_book" || t.booking_mode === "call_and_info");
+      const online = active.filter(t => t.booking_mode === "book_online" || !t.booking_mode);
       setCallToBookTreatments(ctb);
+      setBookOnlineTreatments(online);
     }).catch(() => {});
   }, [load]);
 
