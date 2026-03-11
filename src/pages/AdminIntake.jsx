@@ -741,7 +741,23 @@ function IntakeCard({ record, onUpdate, bookOnlineTreatments, callToBookTreatmen
               <div className="space-y-2">
                 <p className="text-[10px] text-[rgb(150,130,110)] font-semibold uppercase tracking-widest">Actions</p>
                 <div className="flex flex-wrap gap-2">
-                  {hasHotel && <ActionBtn label="📧 Send Square Quote" actionKey="SendQuote" completed={completed} actioning={actioning} onClick={() => runAction("SendQuote")} variant="primary" />}
+                  {hasHotel && !confirmSendQuote && (
+                    <ActionBtn label="📧 Send Square Quote" actionKey="SendQuote" completed={completed} actioning={actioning} onClick={() => setConfirmSendQuote(true)} variant="primary" />
+                  )}
+                  {hasHotel && confirmSendQuote && (
+                    <div className="flex items-center gap-2 bg-amber-50 border border-amber-300 rounded-xl px-3 py-2">
+                      <span className="text-xs text-amber-800 font-medium">Send invoice to {record.email}?</span>
+                      <button
+                        onClick={() => { setConfirmSendQuote(false); runAction("SendQuote"); }}
+                        disabled={!!actioning}
+                        className="px-2 py-1 rounded text-xs bg-[rgb(107,85,64)] text-white hover:bg-[rgb(85,65,45)] disabled:opacity-50"
+                      >Yes, Send</button>
+                      <button
+                        onClick={() => setConfirmSendQuote(false)}
+                        className="px-2 py-1 rounded text-xs border border-amber-300 text-amber-800 hover:bg-amber-100"
+                      >Cancel</button>
+                    </div>
+                  )}
                   {hasHotel && <ActionBtn label="🏨 Book in Cloudbeds" actionKey="BookHotel" completed={completed} actioning={actioning} onClick={() => runAction("BookHotel")} />}
                   <a href="https://ritualtexas.simplybook.me/v2/#login" target="_blank" rel="noopener noreferrer" className="px-3 py-2 rounded-xl border border-[rgb(150,170,155)] text-xs text-[rgb(80,120,90)] hover:bg-[rgb(245,250,246)] transition-colors">
                     🧘 Book in SimplyBook
