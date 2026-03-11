@@ -108,7 +108,7 @@ const MANUAL_ROOMS = [
 ];
 
 // ── Long-scroll intake form ────────────────────────────────────────────────────
-function IntakeForm({ initial = BLANK, callToBookTreatments = [], onSave, onSaveAndSend, onCancel }) {
+function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTreatments = [], onSave, onSaveAndSend, onCancel }) {
   const [form, setForm] = useState(() => ({
     ...BLANK,
     ...initial,
@@ -282,12 +282,11 @@ function IntakeForm({ initial = BLANK, callToBookTreatments = [], onSave, onSave
         <TreatmentSlotPicker
           sbEntries={sbEntries}
           ctbEntries={ctbEntries}
+          bookOnlineTreatments={bookOnlineTreatments}
           callToBookTreatments={callToBookTreatments}
           onSbChange={setSbEntries}
           onCtbChange={setCtbEntries}
           primaryGuestName={form.guestName}
-          guestName={form.guestName}
-          guestEmail={form.email}
         />
         <div className="mt-5">
           <Field label="Additional Treatment Notes">
