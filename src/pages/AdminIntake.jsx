@@ -669,7 +669,7 @@ function IntakeCard({ record, onUpdate, bookOnlineTreatments, callToBookTreatmen
       {expanded && (
         <div className="border-t border-[rgb(235,225,213)] px-5 py-5 bg-[rgb(250,248,245)]">
           {editing ? (
-            <IntakeForm initial={record} bookOnlineTreatments={bookOnlineTreatments} callToBookTreatments={callToBookTreatments} onSave={save} onSaveAndSend={saveAndSend} onCancel={() => setEditing(false)} />
+            <IntakeForm initial={record} bookOnlineTreatments={bookOnlineTreatments || []} callToBookTreatments={callToBookTreatments} onSave={save} onSaveAndSend={saveAndSend} onCancel={() => setEditing(false)} />
           ) : (
             <div className="space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
