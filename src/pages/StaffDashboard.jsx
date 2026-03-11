@@ -282,7 +282,7 @@ export default function StaffDashboard() {
       case 'restaurant_daily':    return <StaffDailySpecials />;
       case 'housekeeping_tasks':  return <StaffHousekeepingView />;
       case 'staff_home':
-      default:                    return <StaffHome session={session} />;
+      default:                    return <StaffHome session={session} onNavigate={setView} />;
     }
   };
 
