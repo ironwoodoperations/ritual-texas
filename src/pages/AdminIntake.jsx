@@ -759,7 +759,7 @@ function IntakeCard({ record, onUpdate, bookOnlineTreatments, callToBookTreatmen
                     </div>
                   )}
                   {hasHotel && <ActionBtn label="🏨 Book in Cloudbeds" actionKey="BookHotel" completed={completed} actioning={actioning} onClick={() => runAction("BookHotel")} />}
-                  <a href="https://ritualtexas.simplybook.me/v2/#login" target="_blank" rel="noopener noreferrer" className="px-3 py-2 rounded-xl border border-[rgb(150,170,155)] text-xs text-[rgb(80,120,90)] hover:bg-[rgb(245,250,246)] transition-colors">
+                  <a href="https://simplybook.me" target="_blank" rel="noopener noreferrer" className="px-3 py-2 rounded-xl border border-[rgb(150,170,155)] text-xs text-[rgb(80,120,90)] hover:bg-[rgb(245,250,246)] transition-colors">
                     🧘 Book in SimplyBook
                   </a>
                   <ActionBtn label="👤 Add to CRM" actionKey="AddToCRM" completed={completed} actioning={actioning} onClick={() => runAction("AddToCRM")} />
