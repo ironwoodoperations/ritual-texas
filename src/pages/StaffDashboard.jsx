@@ -24,8 +24,9 @@ import StaffHousekeepingView from '@/components/staff/StaffHousekeepingView';
 import AdminSpaSchedule from '@/pages/AdminSpaSchedule';
 
 // ─── Staff Overview (arrivals/departures/HK) ─────────────────────────────────
-function StaffHome({ session }) {
+function StaffHome({ session, onNavigate }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [openTaskId, setOpenTaskId] = useState(null);
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
   const { data: bookings = [] } = useQuery({
@@ -33,7 +34,7 @@ function StaffHome({ session }) {
     queryFn: () => base44.entities.Booking.list('-created_date', 100),
   });
 
-  const { data: hkTasks = [] } = useQuery({
+  const { data: hkTasks = [], refetch: refetchHk } = useQuery({
     queryKey: ['hk-tasks-staff', dateStr],
     queryFn: () => base44.entities.HkTask.filter({ taskDate: dateStr }),
   });
@@ -41,11 +42,37 @@ function StaffHome({ session }) {
   const arrivals = bookings.filter(b => b.check_in_date === dateStr && b.booking_status !== 'cancelled');
   const departures = bookings.filter(b => b.check_out_date === dateStr && b.booking_status !== 'cancelled');
 
+  const openHkTasks = hkTasks.filter(t => t.status !== 'completed' && (t.completionPercent || 0) < 100);
+  const doneHkTasks = hkTasks.filter(t => t.status === 'completed' || (t.completionPercent >= 100 && t.totalItems > 0));
+
   const handlePrevDay = () => setSelectedDate(d => { const n = new Date(d); n.setDate(n.getDate() - 1); return n; });
   const handleNextDay = () => setSelectedDate(d => { const n = new Date(d); n.setDate(n.getDate() + 1); return n; });
 
+  const STATUS_COLOR = {
+    pending: "bg-yellow-100 text-yellow-800",
+    in_progress: "bg-blue-100 text-blue-800",
+    paused: "bg-orange-100 text-orange-800",
+    completed: "bg-green-100 text-green-800",
+    needs_review: "bg-red-100 text-red-800",
+  };
+  const TYPE_LABEL = {
+    checkout: "Checkout", stayover: "Stayover", deep_clean: "Deep Clean",
+    opening_duty: "Opening Duty", closing_duty: "Closing Duty",
+    public_space: "Public Space", manual: "Manual",
+  };
+
+  // If a task is open, show the task detail view inline
+  if (openTaskId) {
+    const StaffHousekeepingTask = React.lazy(() => import('@/components/staff/StaffHousekeepingTask'));
+    return (
+      <React.Suspense fallback={<div className="p-8 text-center text-[rgb(150,150,150)]">Loading…</div>}>
+        <StaffHousekeepingTask taskId={openTaskId} onBack={() => { setOpenTaskId(null); refetchHk(); }} />
+      </React.Suspense>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="bg-white border border-[rgb(235,225,213)] rounded-lg p-4">
         <p className="text-[rgb(107,85,64)] font-light text-lg">Welcome, <strong>{session?.name || 'Staff'}</strong></p>
         <p className="text-sm text-[rgb(45,45,45)] capitalize">Role: {session?.role || 'server'}</p>
@@ -60,29 +87,64 @@ function StaffHome({ session }) {
         <button onClick={handleNextDay} className="p-2 hover:bg-[rgb(235,225,213)] rounded"><ChevronRight className="w-5 h-5" /></button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white p-4 border border-[rgb(235,225,213)] rounded-lg text-center">
-          <Users className="w-6 h-6 mx-auto mb-2 text-[rgb(150,170,155)]" />
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-white p-3 border border-[rgb(235,225,213)] rounded-lg text-center">
+          <Users className="w-5 h-5 mx-auto mb-1 text-[rgb(150,170,155)]" />
           <p className="text-2xl font-light text-[rgb(107,85,64)]">{arrivals.length}</p>
           <p className="text-xs text-[rgb(45,45,45)]">Arrivals</p>
         </div>
-        <div className="bg-white p-4 border border-[rgb(235,225,213)] rounded-lg text-center">
-          <Home className="w-6 h-6 mx-auto mb-2 text-[rgb(196,155,145)]" />
+        <div className="bg-white p-3 border border-[rgb(235,225,213)] rounded-lg text-center">
+          <Home className="w-5 h-5 mx-auto mb-1 text-[rgb(196,155,145)]" />
           <p className="text-2xl font-light text-[rgb(107,85,64)]">{departures.length}</p>
           <p className="text-xs text-[rgb(45,45,45)]">Departures</p>
         </div>
-        <div className="bg-white p-4 border border-[rgb(235,225,213)] rounded-lg text-center">
-          <Package className="w-6 h-6 mx-auto mb-2 text-[rgb(198,182,165)]" />
-          <p className="text-2xl font-light text-[rgb(107,85,64)]">{hkTasks.length}</p>
-          <p className="text-xs text-[rgb(45,45,45)]">HK Tasks</p>
-        </div>
+        <button
+          onClick={() => onNavigate('housekeeping_tasks')}
+          className={`p-3 border rounded-lg text-center transition-colors ${openHkTasks.length > 0 ? 'bg-amber-50 border-amber-300' : 'bg-white border-[rgb(235,225,213)]'}`}
+        >
+          <Package className={`w-5 h-5 mx-auto mb-1 ${openHkTasks.length > 0 ? 'text-amber-500' : 'text-[rgb(198,182,165)]'}`} />
+          <p className={`text-2xl font-light ${openHkTasks.length > 0 ? 'text-amber-700' : 'text-[rgb(107,85,64)]'}`}>{openHkTasks.length}</p>
+          <p className="text-xs text-[rgb(45,45,45)]">Open Rooms</p>
+        </button>
       </div>
+
+      {/* Open HK Rooms — prominent section */}
+      {openHkTasks.length > 0 && (
+        <div>
+          <p className="text-xs uppercase tracking-widest text-amber-700 font-semibold mb-2">🧹 Rooms Needing Cleaning</p>
+          <div className="bg-white border border-amber-200 rounded-lg divide-y divide-[rgb(235,225,213)]">
+            {openHkTasks.map(t => (
+              <button
+                key={t.id}
+                onClick={() => setOpenTaskId(t.id)}
+                className="w-full flex items-center justify-between p-4 hover:bg-amber-50 transition-colors text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                    <span className="text-sm font-bold text-amber-700">{t.roomNumber}</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-[rgb(107,85,64)]">{t.roomNumber}</p>
+                    <p className="text-sm text-[rgb(45,45,45)]">{TYPE_LABEL[t.taskType] || t.taskType}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_COLOR[t.status] || 'bg-gray-100 text-gray-700'}`}>
+                    {t.status?.replace('_', ' ')}
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-[rgb(150,150,150)]" />
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <Tabs defaultValue="arrivals" className="space-y-4">
         <TabsList className="grid grid-cols-3 w-full bg-[rgb(235,225,213)]">
           <TabsTrigger value="arrivals" className="data-[state=active]:bg-white">Arrivals ({arrivals.length})</TabsTrigger>
           <TabsTrigger value="cleaning" className="data-[state=active]:bg-white">Checkouts ({departures.length})</TabsTrigger>
-          <TabsTrigger value="hk" className="data-[state=active]:bg-white">HK Tasks ({hkTasks.length})</TabsTrigger>
+          <TabsTrigger value="hk" className="data-[state=active]:bg-white">All HK ({hkTasks.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="arrivals">
@@ -137,13 +199,22 @@ function StaffHome({ session }) {
             {hkTasks.length === 0 ? (
               <p className="p-8 text-center text-[rgb(45,45,45)]">No housekeeping tasks for this day</p>
             ) : hkTasks.map(t => (
-              <div key={t.id} className="p-4 flex items-center justify-between">
+              <button
+                key={t.id}
+                onClick={() => setOpenTaskId(t.id)}
+                className="w-full flex items-center justify-between p-4 hover:bg-[rgb(248,246,242)] transition-colors text-left"
+              >
                 <div>
-                  <p className="font-medium text-[rgb(107,85,64)]">Room {t.roomNumber}</p>
-                  <p className="text-sm text-[rgb(45,45,45)] capitalize">{t.taskType?.replace('_', ' ')} · {t.priority}</p>
+                  <p className="font-medium text-[rgb(107,85,64)]">{t.roomNumber}</p>
+                  <p className="text-sm text-[rgb(45,45,45)] capitalize">{TYPE_LABEL[t.taskType] || t.taskType} · {t.priority}</p>
                 </div>
-                <Badge variant={t.status === 'completed' ? 'default' : 'secondary'}>{t.status}</Badge>
-              </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_COLOR[t.status] || 'bg-gray-100 text-gray-700'}`}>
+                    {t.status?.replace('_', ' ')}
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-[rgb(150,150,150)]" />
+                </div>
+              </button>
             ))}
           </div>
         </TabsContent>
