@@ -381,6 +381,13 @@ export default function AdminDashboard() {
       ],
     },
     {
+      title: "Base44",
+      color: "rgb(150,170,155)",
+      tiles: [
+        { icon: FileText, label: "Tech Spec", page: "AdminBase44" },
+      ],
+    },
+    {
       title: "Data Management",
       color: "rgb(120,120,120)",
       tiles: [
