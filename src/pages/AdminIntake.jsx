@@ -566,15 +566,18 @@ function IntakeCard({ record, onUpdate, callToBookTreatments }) {
         if (!intakeData.email) { setActionMsg({ success: false, text: "Guest email required." }); setActioning(null); return; }
         if (!intakeData.checkInDate || !intakeData.checkOutDate) { setActionMsg({ success: false, text: "Check-in and check-out dates required." }); setActioning(null); return; }
         const res = await base44.functions.invoke("intakeCreateInvoiceDraft", { intake: intakeData });
-        if (res.data?.error) setActionMsg({ success: false, text: res.data.error, detail: JSON.stringify(res.data, null, 2) });
-        else { 
-          setActionMsg({ 
-            success: true, 
-            text: res.data?.message, 
-            invoiceId: res.data?.invoiceId,
-            draftUrl: res.data?.draftUrl,
-            isPending: true
-          });
+        if (res.data?.error) { setActionMsg({ success: false, text: res.data.error, detail: JSON.stringify(res.data, null, 2) }); }
+        else {
+          const invoiceId = res.data?.invoiceId;
+          // Auto-publish to send the email immediately
+          const pubRes = await base44.functions.invoke("intakePublishInvoice", { invoiceId });
+          if (pubRes.data?.error) {
+            setActionMsg({ success: true, text: `Draft created but could not auto-send: ${pubRes.data.error}. Use "Send to Guest" below.`, invoiceId, draftUrl: res.data?.draftUrl, isPending: true });
+          } else {
+            markCompleted("SendQuote");
+            setActionMsg({ success: true, text: `Invoice sent to ${intakeData.email}!`, isPending: false });
+            setTimeout(() => setActionMsg(null), 6000);
+          }
         }
 
       } else if (type === "BookHotel") {
