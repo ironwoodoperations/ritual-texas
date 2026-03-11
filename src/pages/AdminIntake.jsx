@@ -775,6 +775,7 @@ export default function AdminIntake() {
   const [roomTypes, setRoomTypes] = useState([]);
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [callToBookTreatments, setCallToBookTreatments] = useState([]);
+  const [bookOnlineTreatments, setBookOnlineTreatments] = useState([]);
 
   const load = useCallback(async () => {
     setLoading(true);
