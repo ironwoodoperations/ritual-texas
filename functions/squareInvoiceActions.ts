@@ -32,15 +32,23 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'send') {
-      // Resend invoice notification - fetch latest version first
+      // Fetch latest invoice to get current status and version
       const getResp = await fetch(`${baseUrl}/v2/invoices/${invoiceId}`, { headers: sqHeaders });
       const getInvData = await getResp.json();
       if (getInvData.errors) return Response.json({ success: false, error: getInvData.errors[0]?.detail });
-      
-      const resp = await fetch(`${baseUrl}/v2/invoices/${invoiceId}/send`, {
+
+      const latestInv = getInvData.invoice;
+      const latestVersion = latestInv.version;
+
+      // DRAFT invoices need to be published (first send), not just resent
+      const endpoint = latestInv.status === 'DRAFT'
+        ? `${baseUrl}/v2/invoices/${invoiceId}/publish`
+        : `${baseUrl}/v2/invoices/${invoiceId}/send`;
+
+      const resp = await fetch(endpoint, {
         method: 'POST',
         headers: sqHeaders,
-        body: JSON.stringify({ version: getInvData.invoice.version, idempotency_key: `send-${invoiceId}-${Date.now()}` }),
+        body: JSON.stringify({ version: latestVersion, idempotency_key: `send-${invoiceId}-${Date.now()}` }),
       });
       const data = await resp.json();
       if (data.errors) return Response.json({ success: false, error: data.errors[0]?.detail });
@@ -48,11 +56,15 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'cancel') {
-      // Cancel invoice
+      // Fetch latest version before cancelling
+      const getResp = await fetch(`${baseUrl}/v2/invoices/${invoiceId}`, { headers: sqHeaders });
+      const getInvData = await getResp.json();
+      const latestVersion = getInvData.invoice?.version ?? version;
+
       const resp = await fetch(`${baseUrl}/v2/invoices/${invoiceId}/cancel`, {
         method: 'POST',
         headers: sqHeaders,
-        body: JSON.stringify({ version }),
+        body: JSON.stringify({ version: latestVersion }),
       });
       const data = await resp.json();
       if (data.errors) return Response.json({ success: false, error: data.errors[0]?.detail });
@@ -60,8 +72,13 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'delete') {
-      // Delete invoice (only works on DRAFT or CANCELLED invoices)
-      const resp = await fetch(`${baseUrl}/v2/invoices/${invoiceId}?version=${version}`, {
+      // Always fetch latest version before deleting (version mismatch causes failures)
+      const getResp = await fetch(`${baseUrl}/v2/invoices/${invoiceId}`, { headers: sqHeaders });
+      const getInvData = await getResp.json();
+      if (getInvData.errors) return Response.json({ success: false, error: getInvData.errors[0]?.detail });
+      const latestVersion = getInvData.invoice?.version ?? version;
+
+      const resp = await fetch(`${baseUrl}/v2/invoices/${invoiceId}?version=${latestVersion}`, {
         method: 'DELETE',
         headers: sqHeaders,
       });
