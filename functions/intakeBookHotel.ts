@@ -1,3 +1,4 @@
+// intakeBookHotel - creates a Cloudbeds reservation from an intake record
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 async function readKey(base44, entityName, key) {
