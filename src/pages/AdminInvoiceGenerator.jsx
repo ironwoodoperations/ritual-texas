@@ -292,7 +292,10 @@ function InvoiceList() {
         {displayed.map(inv => (
           <div 
             key={inv.id} 
-            onClick={() => setSelectedInv(inv)}
+            onClick={() => {
+              const raw = invoicesRaw.find(r => r.id === inv.id);
+              setSelectedInv(raw ? { ...inv, version: raw.version ?? inv.version } : inv);
+            }}
             className="bg-white border border-[rgb(235,225,213)] rounded-xl px-4 py-3 cursor-pointer hover:border-[rgb(150,170,155)] hover:shadow-md transition-all"
           >
             <div className="flex items-start justify-between gap-3">
