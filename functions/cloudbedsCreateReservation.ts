@@ -62,6 +62,8 @@ Deno.serve(async (req) => {
     }
 
     const doCreate = async (token) => {
+      const numAdults = Number(adults) || 1;
+      const roomEntry = { roomTypeID, quantity: 1 };
       const params = new URLSearchParams({
         propertyID: propertyId,
         guestFirstName,
@@ -69,8 +71,11 @@ Deno.serve(async (req) => {
         guestEmail,
         startDate,
         endDate,
-        roomTypeID,
-        adults: String(adults || 1),
+        rooms: JSON.stringify([roomEntry]),
+        adults: JSON.stringify([{ roomTypeID, quantity: 1, adults: numAdults }]),
+        children: JSON.stringify([{ roomTypeID, quantity: 1, children: 0 }]),
+        paymentMethod: 'credit_card',
+        guestCountry: 'US',
       });
       if (guestPhone) params.set('guestPhone', guestPhone);
       if (notes) params.set('notes', notes);
