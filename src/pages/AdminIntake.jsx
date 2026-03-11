@@ -98,29 +98,81 @@ function parseTreatmentEntries(arr) {
   });
 }
 
+// Manual room fallback list
+const MANUAL_ROOMS = [
+  { id: "Suite 1", name: "Suite 1" },
+  { id: "Suite 2", name: "Suite 2" },
+  { id: "Suite 3", name: "Suite 3" },
+  { id: "Suite 5", name: "Suite 5" },
+  { id: "Carriage House", name: "Carriage House — The Carriage House" },
+];
+
 // ── Long-scroll intake form ────────────────────────────────────────────────────
-function IntakeForm({ initial = BLANK, roomTypes = [], callToBookTreatments = [], loadingRooms = false, onSave, onCancel }) {
+function IntakeForm({ initial = BLANK, callToBookTreatments = [], onSave, onSaveAndSend, onCancel }) {
   const [form, setForm] = useState(() => ({
     ...BLANK,
     ...initial,
-    selectedTreatments: [],  // SB entries handled separately
+    selectedTreatments: [],
     callToBookTreatments: [],
   }));
   const [sbEntries, setSbEntries] = useState(() => parseTreatmentEntries(initial.selectedTreatments));
   const [ctbEntries, setCtbEntries] = useState(() => parseTreatmentEntries(initial.callToBookTreatments));
   const [saving, setSaving] = useState(false);
+  const [sendConfirm, setSendConfirm] = useState(false);
+
+  // Live room availability from Cloudbeds
+  const [liveRooms, setLiveRooms] = useState([]);
+  const [loadingLiveRooms, setLoadingLiveRooms] = useState(false);
+  const [roomsError, setRoomsError] = useState(false);
+  const [showManualRooms, setShowManualRooms] = useState(false);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  async function submit() {
-    setSaving(true);
-    const payload = {
+  // Fetch live rooms when both dates are set
+  useEffect(() => {
+    const { checkInDate, checkOutDate } = form;
+    if (!checkInDate || !checkOutDate || checkOutDate <= checkInDate) {
+      setLiveRooms([]);
+      setRoomsError(false);
+      return;
+    }
+    let cancelled = false;
+    setLoadingLiveRooms(true);
+    setRoomsError(false);
+    base44.functions.invoke("cloudbedsGetAvailableRooms", { startDate: checkInDate, endDate: checkOutDate })
+      .then(res => {
+        if (cancelled) return;
+        if (res.data?.success && res.data?.rooms?.length > 0) {
+          setLiveRooms(res.data.rooms.map(r => ({ id: String(r.roomTypeID), name: r.name + (r.price ? ` — $${r.price}/night` : "") })));
+          setRoomsError(false);
+        } else {
+          setLiveRooms([]);
+          setRoomsError(true);
+        }
+      })
+      .catch(() => { if (!cancelled) { setLiveRooms([]); setRoomsError(true); } })
+      .finally(() => { if (!cancelled) setLoadingLiveRooms(false); });
+    return () => { cancelled = true; };
+  }, [form.checkInDate, form.checkOutDate]);
+
+  function buildPayload() {
+    return {
       ...form,
-      // Store as JSON strings so entity (array of strings) is satisfied
       selectedTreatments: sbEntries.filter(e => e.serviceName || e.name).map(e => JSON.stringify(e)),
       callToBookTreatments: ctbEntries.filter(e => e.name).map(e => JSON.stringify(e)),
     };
-    await onSave(payload);
+  }
+
+  async function submit() {
+    setSaving(true);
+    await onSave(buildPayload());
+    setSaving(false);
+  }
+
+  async function submitAndSend() {
+    setSaving(true);
+    setSendConfirm(false);
+    await onSaveAndSend(buildPayload());
     setSaving(false);
   }
 
