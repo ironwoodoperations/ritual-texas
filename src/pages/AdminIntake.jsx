@@ -557,11 +557,11 @@ function IntakeCard({ record, onUpdate, roomTypes, loadingRooms, callToBookTreat
     return { ...record, _sbEntries: sbParsed, _ctbEntries: ctbParsed };
   }
 
-  async function runAction(type) {
+  async function runAction(type, overrideData = null) {
     setActioning(type);
     setActionMsg(null);
     try {
-      const intakeData = buildIntakeForAction();
+      const intakeData = overrideData ? { ...overrideData, _sbEntries: parseTreatmentEntries(overrideData.selectedTreatments || []), _ctbEntries: parseTreatmentEntries(overrideData.callToBookTreatments || []) } : buildIntakeForAction();
 
       if (type === "SendQuote") {
         if (!intakeData.email) { setActionMsg({ success: false, text: "Guest email required." }); setActioning(null); return; }
