@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { MessageSquare, Loader2 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import React from "react";
+import { MessageSquare } from "lucide-react";
 
 const fieldCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transparent py-2 text-sm text-[rgb(45,45,45)] focus:outline-none focus:border-[rgb(107,85,64)] placeholder-[rgb(190,180,170)] transition-colors";
 const selectCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transparent py-2 text-sm text-[rgb(45,45,45)] focus:outline-none focus:border-[rgb(107,85,64)] transition-colors cursor-pointer";
@@ -14,18 +13,10 @@ const THERAPIST_STATUSES = [
   { value: "declined", label: "Declined", color: "text-red-500" },
 ];
 
+const THERAPISTS = ["Whitney", "Bishop", "Tanita"];
+
 export default function TherapistSection({ form, onChange, sbEntries, ctbEntries }) {
-  const [therapists, setTherapists] = useState([]);
-  const [loadingStaff, setLoadingStaff] = useState(true);
-
-  useEffect(() => {
-    base44.functions.invoke("simplybookGetStaff", {})
-      .then(res => { if (res.data?.staff) setTherapists(res.data.staff); })
-      .catch(() => {})
-      .finally(() => setLoadingStaff(false));
-  }, []);
-
-  const selectedTherapist = therapists.find(t => t.name === form.therapistAssigned);
+  const selectedTherapist = form.therapistAssigned ? { name: form.therapistAssigned } : null;
 
   // Build a summary of requested treatments for the text message
   function buildTextBody() {
@@ -61,29 +52,16 @@ export default function TherapistSection({ form, onChange, sbEntries, ctbEntries
         {/* Therapist selector */}
         <div>
           <label className={labelCls}>Assign Therapist</label>
-          {loadingStaff ? (
-            <div className="flex items-center gap-2 py-2 text-xs text-[rgb(150,150,150)]">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading therapists…
-            </div>
-          ) : (
-            <select
-              value={form.therapistAssigned || ""}
-              onChange={e => onChange("therapistAssigned", e.target.value)}
-              className={selectCls}
-            >
-              <option value="">No therapist assigned</option>
-              {therapists.map(t => (
-                <option key={t.id} value={t.name}>
-                  {t.name}{t.position ? ` — ${t.position}` : ""}
-                </option>
-              ))}
-            </select>
-          )}
-          {selectedTherapist?.phone && (
-            <p className="text-xs text-[rgb(150,130,110)] mt-1">
-              📱 {selectedTherapist.phone}
-            </p>
-          )}
+          <select
+            value={form.therapistAssigned || ""}
+            onChange={e => onChange("therapistAssigned", e.target.value)}
+            className={selectCls}
+          >
+            <option value="">No therapist assigned</option>
+            {THERAPISTS.map(t => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
         </div>
 
         {/* Pipeline status */}
@@ -117,7 +95,7 @@ export default function TherapistSection({ form, onChange, sbEntries, ctbEntries
         {/* Text message button */}
         <div className="flex flex-col justify-end">
           <label className={labelCls}>Quick Text</label>
-          {selectedTherapist?.phone ? (
+          {selectedTherapist ? (
             <button
               type="button"
               onClick={openSmsToTherapist}
@@ -126,8 +104,6 @@ export default function TherapistSection({ form, onChange, sbEntries, ctbEntries
               <MessageSquare className="w-4 h-4" />
               Text {selectedTherapist.name}
             </button>
-          ) : selectedTherapist ? (
-            <p className="text-xs text-[rgb(180,165,150)] py-2 italic">No phone number on file in SimplyBook</p>
           ) : (
             <p className="text-xs text-[rgb(180,165,150)] py-2 italic">Assign a therapist to enable quick text</p>
           )}
