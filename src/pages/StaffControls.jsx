@@ -353,6 +353,23 @@ export default function StaffControls() {
           </CardContent>
         </Card>
 
+        {/* ── Checklist Templates ── */}
+        <Card className="border-[rgb(235,225,213)]">
+          <CardHeader>
+            <CardTitle className="text-[rgb(107,85,64)]">Opening & Closing Checklist Items</CardTitle>
+            <p className="text-sm text-[rgb(45,45,45)]">Enable/disable individual items, add custom tasks, or remove ones you don't need per department.</p>
+          </CardHeader>
+          <CardContent>
+            <Link to={createPageUrl('AdminChecklistSetup')} className="flex items-center justify-between px-4 py-3 bg-[rgb(248,246,242)] rounded-xl border border-[rgb(235,225,213)] hover:border-[rgb(198,182,165)] transition-all">
+              <div>
+                <p className="font-medium text-[rgb(107,85,64)]">Manage Checklist Items</p>
+                <p className="text-xs text-[rgb(45,45,45)] mt-0.5">FOH Open/Close · BOH Open/Close · Bar Open/Close · Food Safety</p>
+              </div>
+              <span className="text-sm text-[rgb(150,170,155)]">Edit →</span>
+            </Link>
+          </CardContent>
+        </Card>
+
         {/* ── Module Permissions ── */}
         <Card className="border-[rgb(235,225,213)]">
           <CardHeader>
