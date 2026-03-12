@@ -23,22 +23,56 @@ function buildRolesStr(arr) {
   return arr.join(',');
 }
 
+// ── Multi-role selector ────────────────────────────────────────────────────────
+function RoleCheckboxes({ selectedRoles, onChange }) {
+  const toggle = (r) => {
+    const next = selectedRoles.includes(r)
+      ? selectedRoles.filter(x => x !== r)
+      : [...selectedRoles, r];
+    // Require at least one role
+    if (next.length > 0) onChange(next);
+  };
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {ALL_ROLES.map(r => {
+        const checked = selectedRoles.includes(r);
+        return (
+          <button
+            key={r}
+            type="button"
+            onClick={() => toggle(r)}
+            className={`text-xs px-2 py-1 rounded-full font-medium border transition-all ${
+              checked
+                ? `${ROLE_COLORS[r] || 'bg-gray-100 text-gray-700'} border-transparent`
+                : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400'
+            }`}
+          >
+            {r.replace(/_/g, ' ')}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── Editable PIN row ──────────────────────────────────────────────────────────
 function PinRow({ p, onSave, onDelete }) {
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ name: p.name || '', pin: p.pin || '', role: p.role || 'server', is_active: p.is_active ?? true });
+  const initRoles = getPinRoles(p);
+  const [form, setForm] = useState({ name: p.name || '', pin: p.pin || '', roles: initRoles, is_active: p.is_active ?? true });
   const [err, setErr] = useState('');
 
   const save = () => {
     if (!form.name.trim()) { setErr('Name is required.'); return; }
     if (!/^\d{4}$/.test(form.pin)) { setErr('PIN must be exactly 4 digits.'); return; }
     setErr('');
-    onSave(p.id, form);
+    const rolesStr = buildRolesStr(form.roles);
+    onSave(p.id, { ...form, role: form.roles[0], roles: rolesStr });
     setEditing(false);
   };
 
   const cancel = () => {
-    setForm({ name: p.name || '', pin: p.pin || '', role: p.role || 'server', is_active: p.is_active ?? true });
+    setForm({ name: p.name || '', pin: p.pin || '', roles: getPinRoles(p), is_active: p.is_active ?? true });
     setErr('');
     setEditing(false);
   };
@@ -52,10 +86,9 @@ function PinRow({ p, onSave, onDelete }) {
         <td className="px-4 py-3">
           <Input value={form.pin} onChange={e => setForm(f => ({ ...f, pin: e.target.value.replace(/[^\d]/g, '').slice(0, 4) }))} placeholder="4 digits" inputMode="numeric" maxLength={4} className="h-8 text-sm w-24" />
         </td>
-        <td className="px-4 py-3">
-          <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} className="border border-input rounded-md px-2 py-1 text-sm bg-white h-8">
-            {ALL_ROLES.map(r => <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>)}
-          </select>
+        <td className="px-4 py-3 min-w-[260px]">
+          <p className="text-xs text-[rgb(150,150,150)] mb-1">Select all that apply:</p>
+          <RoleCheckboxes selectedRoles={form.roles} onChange={roles => setForm(f => ({ ...f, roles }))} />
         </td>
         <td className="px-4 py-3">
           <Switch checked={form.is_active} onCheckedChange={v => setForm(f => ({ ...f, is_active: v }))} />
@@ -71,14 +104,19 @@ function PinRow({ p, onSave, onDelete }) {
     );
   }
 
+  const displayRoles = getPinRoles(p);
   return (
     <tr className="border-t border-[rgb(235,225,213)] hover:bg-[rgb(248,246,242)] transition-colors">
       <td className="px-4 py-3 font-medium text-[rgb(107,85,64)]">{p.name || '—'}</td>
       <td className="px-4 py-3 font-mono text-sm text-[rgb(45,45,45)]">••••</td>
       <td className="px-4 py-3">
-        <span className={`text-xs px-2 py-1 rounded-full font-medium ${ROLE_COLORS[p.role] || 'bg-gray-100 text-gray-700'}`}>
-          {(p.role || 'server').replace(/_/g, ' ')}
-        </span>
+        <div className="flex flex-wrap gap-1">
+          {displayRoles.map(r => (
+            <span key={r} className={`text-xs px-2 py-0.5 rounded-full font-medium ${ROLE_COLORS[r] || 'bg-gray-100 text-gray-700'}`}>
+              {r.replace(/_/g, ' ')}
+            </span>
+          ))}
+        </div>
       </td>
       <td className="px-4 py-3">
         <Switch checked={p.is_active ?? true} onCheckedChange={v => onSave(p.id, { ...p, is_active: v })} />
@@ -96,15 +134,15 @@ function PinRow({ p, onSave, onDelete }) {
 }
 
 function AddPinRow({ onAdd }) {
-  const [form, setForm] = useState({ name: '', pin: '', role: 'server' });
+  const [form, setForm] = useState({ name: '', pin: '', roles: ['server'] });
   const [err, setErr] = useState('');
 
   const submit = () => {
     if (!form.name.trim()) { setErr('Name is required.'); return; }
     if (!/^\d{4}$/.test(form.pin)) { setErr('PIN must be exactly 4 digits.'); return; }
     setErr('');
-    onAdd({ ...form, is_active: true });
-    setForm({ name: '', pin: '', role: 'server' });
+    onAdd({ name: form.name, pin: form.pin, role: form.roles[0], roles: buildRolesStr(form.roles), is_active: true });
+    setForm({ name: '', pin: '', roles: ['server'] });
   };
 
   return (
@@ -115,10 +153,9 @@ function AddPinRow({ onAdd }) {
       <td className="px-4 py-3">
         <Input value={form.pin} onChange={e => { setForm(f => ({ ...f, pin: e.target.value.replace(/[^\d]/g, '').slice(0, 4) })); setErr(''); }} placeholder="4 digits *" inputMode="numeric" maxLength={4} className="h-8 text-sm w-24" />
       </td>
-      <td className="px-4 py-3">
-        <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} className="border border-input rounded-md px-2 py-1 text-sm bg-white h-8">
-          {ALL_ROLES.map(r => <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>)}
-        </select>
+      <td className="px-4 py-3 min-w-[260px]">
+        <p className="text-xs text-[rgb(150,150,150)] mb-1">Select all that apply:</p>
+        <RoleCheckboxes selectedRoles={form.roles} onChange={roles => setForm(f => ({ ...f, roles }))} />
       </td>
       <td className="px-4 py-3 text-xs text-[rgb(45,45,45)]">Active by default</td>
       <td className="px-4 py-3">
