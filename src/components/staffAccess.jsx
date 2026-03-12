@@ -32,7 +32,11 @@ export async function verifyPin(pin) {
     (r.is_active ?? true) === true
   );
   if (!match) return null;
-  return { role: match.role || 'server', name: match.name || 'Staff' };
+  // Support multi-role: use roles field if set, otherwise fall back to role
+  const roles = match.roles ? match.roles : (match.role || 'server');
+  // Primary role is the first one in the list
+  const primaryRole = roles.split(',')[0].trim();
+  return { role: primaryRole, roles, name: match.name || 'Staff' };
 }
 
 export async function getModuleSettings() {
