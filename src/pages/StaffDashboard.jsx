@@ -254,13 +254,14 @@ export default function StaffDashboard() {
 
   const visibleModules = React.useMemo(() => {
     if (!session) return [];
-    const role = session.role || 'server';
+    // Support multi-role: use roles if available, else fall back to role
+    const roleKey = session.roles || session.role || 'server';
     const map = settingsMap || new Map();
     return DEFAULT_MODULES.map(m => {
       const row = map.get(m.key);
       const staffVisible = row?.staff_visible ?? m.defaultVisible;
       const allowedRoles = row?.allowed_roles ?? m.defaultRoles;
-      return { ...m, staffVisible: !!staffVisible, okRole: isRoleAllowed({ allowed_roles: allowedRoles }, role) };
+      return { ...m, staffVisible: !!staffVisible, okRole: isRoleAllowed({ allowed_roles: allowedRoles }, roleKey) };
     }).filter(m => m.staffVisible && m.okRole);
   }, [session, settingsMap]);
 
