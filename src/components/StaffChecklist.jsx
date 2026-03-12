@@ -4,146 +4,21 @@ import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { CheckCircle2, Circle, ClipboardList, ChevronDown, ChevronUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-
-// ─── Templates from official Ritual Texas SOPs ───────────────────────────────
-
-const CHECKLIST_TEMPLATES = {
-  Kitchen_Open: [
-    // Equipment & Safety
-    "Turn on hood vents & exhaust fans",
-    "Turn on ovens, grill, flat top & fryers (preheat)",
-    "Check & log all refrigerator temps (≤41°F) – log sheet",
-    "Check & log all freezer temps (0°F) – log sheet",
-    "Verify walk-in cooler door seals & temp (≤41°F)",
-    // Sanitation & Setup
-    "Set up sanitizer buckets at all stations (200 ppm)",
-    "Set up cutting boards – color-coded & clean",
-    "Set out clean towels / side towels at each station",
-    "Stock hand-washing stations (soap, paper towels)",
-    "Inspect all equipment for cleanliness before use",
-    // Prep & Inventory
-    "Pull prep list – review with chef",
-    "Pull & date-check all items from walk-in (FIFO rotation)",
-    "Thaw proteins per schedule – label with date & time",
-    "Portion & complete daily mise en place",
-    "Prep soups, sauces, stocks as needed",
-    "Taste test soups / sauces – adjust seasoning",
-    "Stock all line stations to par levels",
-    "Check dry goods & dry storage – note low stock to manager",
-    "Sharpen & sanitize knives – inspect for damage",
-    // Communication & Sign-off
-    "Review reservation count & any special dietary needs with manager",
-    "Confirm daily specials with FOH team",
-    "Confirm allergy / 86'd items board is updated",
-    "Chef / lead sign-off – kitchen ready to open",
-  ],
-  FOH_Open: [
-    "Unlock & lights/music on",
-    "Sweep dining room",
-    "Wipe tables/chairs",
-    "Fold napkins (par set)",
-    "Roll silverware",
-    "Stock stations",
-    "Brew tea/coffee",
-    "Fill ice bins",
-    "Confirm daily special",
-    "Confirm soup of the day",
-    "Final walkthrough",
-  ],
-  FOH_Close: [
-    "Sanitize tables",
-    "Sweep & mop floors",
-    "Restock to par",
-    "Empty trash",
-    "Clean restrooms",
-    "Reset tables",
-    "Check doors",
-    "Turn off music/lights",
-    "Lock doors & set alarm",
-    "Manager initial / sign-off",
-  ],
-  KitchenClose: [
-    // Line & Equipment Breakdown
-    "Turn off grill, flat top, fryers & ovens",
-    "Turn off hood vents (after 15 min cool-down)",
-    "Filter & store fryer oil – log date",
-    "Scrape & clean flat top while warm",
-    "Clean & degrease grill grates",
-    "Clean burners & drip pans on range",
-    "Wipe down all equipment exteriors",
-    // Food Storage & Safety
-    "Cool all hot food to ≤70°F within 2 hrs (ice bath if needed)",
-    "Store & label ALL leftovers (item / date / time / initials)",
-    "Wrap & cover all open containers in walk-in",
-    "Date & rotate walk-in – discard expired items (FIFO)",
-    "Check & log walk-in temps before closing (≤41°F)",
-    "Check & log freezer temp (0°F)",
-    // Deep Clean
-    "Clean fryer baskets & housing",
-    "Wipe down & sanitize all prep surfaces & cutting boards",
-    "Clean & sanitize all sinks",
-    "Empty & sanitize sanitizer buckets",
-    "Take out all kitchen trash – replace liners",
-    "Sweep then mop all kitchen floors (including walk-in)",
-    "Degrease floor mats & reposition",
-    "Clean floor drains",
-    // End of Night
-    "Restock line stations for next day open",
-    "Write prep notes / carry-over list for next shift",
-    "Turn off non-essential lights",
-    "Lock walk-in cooler & walk-in freezer",
-    "Chef / lead sign-off – kitchen closed & clean",
-  ],
-  KitchenFoodSafety: [
-    "Label: Item / Date / Use By / Initials",
-    "No food on floor",
-    "Covered storage only",
-    "FIFO rotation confirmed",
-    "Fridges ≤41°F verified",
-    "Freezers 0°F verified",
-    "Weekly deep clean log updated",
-  ],
-  Bar_Open: [
-    "Unlock liquor",
-    "Stock beer coolers",
-    "Fill ice wells",
-    "Cut garnishes",
-    "Polish glassware",
-    "Batch house cocktails",
-    "Check wine levels",
-  ],
-  Bar_Close: [
-    "Dump ice wells",
-    "Wash mats/tools",
-    "Sanitize bar top",
-    "Count cash drawer",
-    "Log liquor levels",
-    "Lock liquor",
-    "Turn off taps/lights",
-    "Manager initial / sign-off",
-  ],
-};
-
-const DEPT_META = {
-  Kitchen_Open:      { label: 'BOH – Opening',             time: '60–90 min',  color: 'bg-orange-100 text-orange-800', header: 'bg-orange-50' },
-  FOH_Open:          { label: 'FOH – Opening',             time: '60–75 min',  color: 'bg-blue-100 text-blue-800',    header: 'bg-blue-50' },
-  FOH_Close:         { label: 'FOH – Closing',             time: '60 min',     color: 'bg-blue-100 text-blue-800',    header: 'bg-blue-50' },
-  KitchenClose:      { label: 'BOH – Closing',             time: '90–120 min', color: 'bg-orange-100 text-orange-800', header: 'bg-orange-50' },
-  KitchenFoodSafety: { label: 'Kitchen – Food Safety',     time: 'daily',      color: 'bg-red-100 text-red-800',      header: 'bg-red-50' },
-  Bar_Open:          { label: 'Bar – Opening',             time: '45–60 min',  color: 'bg-purple-100 text-purple-800', header: 'bg-purple-50' },
-  Bar_Close:         { label: 'Bar – Closing',             time: '45 min',     color: 'bg-purple-100 text-purple-800', header: 'bg-purple-50' },
-};
+import { CHECKLIST_TEMPLATES, DEPT_META, ALL_DEPTS } from '@/components/checklistDefaults';
 
 // Departments visible by role
 const ROLE_DEPTS = {
-  manager: ['FOH_Open', 'FOH_Close', 'Kitchen_Open', 'KitchenClose', 'KitchenFoodSafety', 'Bar_Open', 'Bar_Close'],
-  chef:    ['Kitchen_Open', 'KitchenClose', 'KitchenFoodSafety', 'FOH_Open', 'FOH_Close', 'Bar_Open', 'Bar_Close'],
-  staff:   ['FOH_Open', 'FOH_Close', 'Kitchen_Open', 'KitchenClose', 'Bar_Open', 'Bar_Close'],
+  manager:                ALL_DEPTS,
+  chef:                   ['Kitchen_Open', 'KitchenClose', 'KitchenFoodSafety', 'FOH_Open', 'FOH_Close', 'Bar_Open', 'Bar_Close'],
+  kitchen_staff:          ['Kitchen_Open', 'KitchenClose', 'KitchenFoodSafety'],
+  server:                 ['FOH_Open', 'FOH_Close', 'Bar_Open', 'Bar_Close'],
+  hotel_host:             ['FOH_Open', 'FOH_Close'],
+  hotel_service_provider: ['FOH_Open', 'FOH_Close'],
+  housekeeping:           ['FOH_Open', 'FOH_Close'],
 };
 
 // ─── Single department checklist card ────────────────────────────────────────
-
-function DeptChecklist({ department, today, staffName }) {
+function DeptChecklist({ department, today, staffName, templateOverride }) {
   const qc = useQueryClient();
   const meta = DEPT_META[department];
   const [collapsed, setCollapsed] = useState(true);
@@ -153,12 +28,11 @@ function DeptChecklist({ department, today, staffName }) {
     queryFn: async () => {
       const rows = await base44.entities.DailyChecklist.filter({ department, date: today });
       if (rows.length) return rows[0];
-      return base44.entities.DailyChecklist.create({
-        department,
-        date: today,
-        items: CHECKLIST_TEMPLATES[department].map(label => ({ label, done: false })),
-        completed: false,
-      });
+      // Build items from template (admin-customized if available, else hardcoded defaults)
+      const activeItems = templateOverride
+        ? (templateOverride.items || []).filter(i => i.active !== false).map(i => ({ label: i.label, done: false }))
+        : (CHECKLIST_TEMPLATES[department] || []).map(label => ({ label, done: false }));
+      return base44.entities.DailyChecklist.create({ department, date: today, items: activeItems, completed: false });
     },
   });
 
@@ -174,12 +48,7 @@ function DeptChecklist({ department, today, staffName }) {
     if (!list) return;
     const items = list.items.map((item, i) =>
       i === idx
-        ? {
-            ...item,
-            done: !item.done,
-            doneBy: !item.done ? staffName : '',
-            doneAt: !item.done ? new Date().toISOString() : '',
-          }
+        ? { ...item, done: !item.done, doneBy: !item.done ? staffName : '', doneAt: !item.done ? new Date().toISOString() : '' }
         : item
     );
     update.mutate({ id: list.id, items });
@@ -194,7 +63,6 @@ function DeptChecklist({ department, today, staffName }) {
 
   return (
     <div className="bg-white border border-[rgb(235,225,213)] rounded-xl overflow-hidden">
-      {/* Header */}
       <button
         onClick={() => setCollapsed(c => !c)}
         className={`w-full px-5 py-4 flex items-center justify-between border-b border-[rgb(235,225,213)] ${meta.header} transition-colors`}
@@ -212,16 +80,9 @@ function DeptChecklist({ department, today, staffName }) {
           {collapsed ? <ChevronDown className="w-4 h-4 text-[rgb(107,85,64)]" /> : <ChevronUp className="w-4 h-4 text-[rgb(107,85,64)]" />}
         </div>
       </button>
-
-      {/* Progress bar */}
       <div className="h-1.5 bg-[rgb(235,225,213)]">
-        <div
-          className="h-full bg-[rgb(150,170,155)] transition-all duration-300"
-          style={{ width: `${pct}%` }}
-        />
+        <div className="h-full bg-[rgb(150,170,155)] transition-all duration-300" style={{ width: `${pct}%` }} />
       </div>
-
-      {/* Items */}
       {!collapsed && (
         <ul className="divide-y divide-[rgb(235,225,213)]">
           {(list.items || []).map((item, idx) => (
@@ -250,13 +111,24 @@ function DeptChecklist({ department, today, staffName }) {
 }
 
 // ─── Main export ──────────────────────────────────────────────────────────────
-
 export default function StaffChecklist({ session }) {
   const today = format(new Date(), 'yyyy-MM-dd');
   const staffName = session?.name || 'Staff';
-  const role = session?.role || 'staff';
+  const roles = session?.roles
+    ? session.roles.split(',').map(r => r.trim()).filter(Boolean)
+    : [session?.role || 'server'];
 
-  const depts = ROLE_DEPTS[role] || ROLE_DEPTS.staff;
+  // Union of all depts across all roles
+  const depts = [...new Set(
+    roles.flatMap(role => ROLE_DEPTS[role] || ROLE_DEPTS.server)
+  )];
+
+  // Load admin-customized templates
+  const { data: allTemplates = [] } = useQuery({
+    queryKey: ['checklist-dept-templates'],
+    queryFn: () => base44.entities.ChecklistDeptTemplate.list(),
+  });
+  const templateMap = Object.fromEntries(allTemplates.map(t => [t.department, t]));
 
   return (
     <div className="space-y-4">
@@ -265,7 +137,13 @@ export default function StaffChecklist({ session }) {
         <p className="text-sm text-[rgb(45,45,45)]">{format(new Date(), 'EEEE, MMMM d')}</p>
       </div>
       {depts.map(dept => (
-        <DeptChecklist key={dept} department={dept} today={today} staffName={staffName} />
+        <DeptChecklist
+          key={dept}
+          department={dept}
+          today={today}
+          staffName={staffName}
+          templateOverride={templateMap[dept] || null}
+        />
       ))}
     </div>
   );

@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Plus, Trash2, Eye, EyeOff, Save, CheckCircle2 } from 'lucide-react';
-import { CHECKLIST_TEMPLATES, DEPT_META, ALL_DEPTS } from '@/lib/checklistDefaults';
+import { CHECKLIST_TEMPLATES, DEPT_META, ALL_DEPTS } from '@/components/checklistDefaults';
 
 export default function AdminChecklistSetup() {
   const qc = useQueryClient();
