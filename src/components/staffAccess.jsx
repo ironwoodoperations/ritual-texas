@@ -126,5 +126,8 @@ export const DEFAULT_MODULES = [
 export function isRoleAllowed(settingRow, role) {
   const allowed = String(settingRow?.allowed_roles || '').trim();
   if (!allowed) return true;
-  return allowed.split(',').map(s => s.trim()).filter(Boolean).includes(role);
+  const allowedList = allowed.split(',').map(s => s.trim()).filter(Boolean);
+  // Support comma-separated roles string (multi-role staff)
+  const roleList = String(role || '').split(',').map(s => s.trim()).filter(Boolean);
+  return roleList.some(r => allowedList.includes(r));
 }
