@@ -143,7 +143,15 @@ export default function AdminHousekeepingSetup() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {(template.items || []).map((item, idx) => (
-                  <div key={idx} style={{ background: 'rgba(0,0,0,.2)', borderRadius: '8px', padding: '12px', display: 'grid', gridTemplateColumns: '1fr 120px 80px 80px 32px', gap: '8px', alignItems: 'center' }}>
+                  <div key={idx} style={{ background: item.active === false ? 'rgba(0,0,0,.05)' : 'rgba(0,0,0,.2)', borderRadius: '8px', padding: '12px', display: 'grid', gridTemplateColumns: '28px 1fr 120px 80px 80px 32px 32px', gap: '8px', alignItems: 'center', opacity: item.active === false ? 0.5 : 1 }}>
+                    {/* Active toggle */}
+                    <button
+                      onClick={() => updateItem(idx, 'active', item.active === false ? true : false)}
+                      title={item.active !== false ? 'Disable item' : 'Enable item'}
+                      style={{ background: 'none', border: `1px solid ${item.active !== false ? '#4CAF50' : '#666'}`, borderRadius: '4px', cursor: 'pointer', color: item.active !== false ? '#4CAF50' : '#666', fontSize: '14px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      {item.active !== false ? '●' : '○'}
+                    </button>
                     <input value={item.label} onChange={e => updateItem(idx, 'label', e.target.value)} placeholder="Item label..." style={{ ...S.input, padding: '7px 10px', fontSize: '13px' }} />
                     <select value={item.category} onChange={e => updateItem(idx, 'category', e.target.value)} style={{ ...S.input, padding: '7px 8px', fontSize: '12px' }}>
                       {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
