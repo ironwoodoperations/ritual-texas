@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 function todayStr() {
   const d = new Date();
@@ -84,15 +84,16 @@ Deno.serve(async (req) => {
         source: 'admin',
         cloudbedsReservationId: booking.confirmation_code || null,
         adminNotes: booking.special_requests || '',
-        totalItems: checkoutTemplate?.items?.length || 0,
+        totalItems: checkoutTemplate?.items?.filter(i => i.active !== false).length || 0,
         completedItems: 0,
         completionPercent: 0,
       });
 
       // Seed checklist items from template
       if (checkoutTemplate?.items?.length) {
+        const activeItems = checkoutTemplate.items.filter(i => i.active !== false);
         await Promise.all(
-          checkoutTemplate.items.map((item, i) =>
+          activeItems.map((item, i) =>
             base44.asServiceRole.entities.HkTaskItem.create({
               ...item,
               taskId: task.id,
