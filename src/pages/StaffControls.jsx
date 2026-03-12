@@ -11,6 +11,18 @@ import { DEFAULT_MODULES, ALL_ROLES, ROLE_COLORS, ROLE_DESCRIPTIONS } from '@/co
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
+// Helper: get array of roles from a pin record
+function getPinRoles(p) {
+  if (p.roles) return p.roles.split(',').map(r => r.trim()).filter(Boolean);
+  if (p.role) return [p.role];
+  return ['server'];
+}
+
+// Helper: set roles back to the pin format
+function buildRolesStr(arr) {
+  return arr.join(',');
+}
+
 // ── Editable PIN row ──────────────────────────────────────────────────────────
 function PinRow({ p, onSave, onDelete }) {
   const [editing, setEditing] = useState(false);
