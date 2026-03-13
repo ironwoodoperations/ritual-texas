@@ -302,7 +302,7 @@ export default function AdminHousekeeping() {
               </div>
               <div>
                 <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>TASK TYPE</label>
-                <select value={newTask.taskType} onChange={e => setNewTask(t => ({ ...t, taskType: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', fontFamily: 'sans-serif' }}>
+                <select value={newTask.taskType} onChange={e => setNewTask(t => ({ ...t, taskType: e.target.value, areaTemplateId: '', roomId: '' }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', fontFamily: 'sans-serif' }}>
                   <option value="opening_duty">Opening Duty</option>
                   <option value="closing_duty">Closing Duty</option>
                   <option value="checkout">Checkout Clean</option>
