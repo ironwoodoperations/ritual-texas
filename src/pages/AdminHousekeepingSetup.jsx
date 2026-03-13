@@ -138,6 +138,44 @@ export default function AdminHousekeepingSetup() {
     onSuccess: () => qc.invalidateQueries(['hk-rooms'])
   });
 
+  const createTemplateMutation = useMutation({
+    mutationFn: (data) => base44.entities.HkTemplate.create(data),
+    onSuccess: (created) => {
+      qc.invalidateQueries(['hk-templates']);
+      setActiveTemplate(created.id);
+      setShowNewArea(false);
+      setNewAreaName('');
+      setNewAreaSeed('');
+    }
+  });
+
+  const deleteTemplateMutation = useMutation({
+    mutationFn: (id) => base44.entities.HkTemplate.delete(id),
+    onSuccess: () => { qc.invalidateQueries(['hk-templates']); setActiveTemplate(null); }
+  });
+
+  const handleCreateArea = () => {
+    if (!newAreaName.trim()) return;
+    const seed = COMMON_AREA_TEMPLATES.find(t => t.name === newAreaSeed);
+    createTemplateMutation.mutate({
+      name: newAreaName.trim(),
+      taskType: 'public_space',
+      active: true,
+      items: seed ? seed.items.map((item, i) => ({ ...item, sortOrder: i })) : [],
+    });
+  };
+
+  const handleAddPreset = (preset) => {
+    // Check if already exists
+    if (templates.some(t => t.name === preset.name)) return;
+    createTemplateMutation.mutate({
+      name: preset.name,
+      taskType: 'public_space',
+      active: true,
+      items: preset.items.map((item, i) => ({ ...item, sortOrder: i })),
+    });
+  };
+
   const template = templates.find(t => t.id === activeTemplate);
 
   const addItem = () => {
