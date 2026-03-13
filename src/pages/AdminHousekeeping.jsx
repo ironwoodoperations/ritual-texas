@@ -327,7 +327,7 @@ export default function AdminHousekeeping() {
               </div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
                 <button onClick={() => setShowAddTask(false)} style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#9AA8B5', cursor: 'pointer', fontFamily: 'sans-serif' }}>Cancel</button>
-                <button onClick={() => createTaskMutation.mutate(newTask)} disabled={(!newTask.roomId && !newTask.publicSpaceId) || createTaskMutation.isPending} style={{ flex: 2, padding: '10px', background: '#C6A85E', border: 'none', borderRadius: '8px', color: '#0C1C2C', cursor: 'pointer', fontWeight: 700, fontFamily: 'sans-serif', opacity: (!newTask.roomId && !newTask.publicSpaceId) ? 0.5 : 1 }}>
+                <button onClick={() => createTaskMutation.mutate(newTask)} disabled={(newTask.taskType !== 'public_space' && !newTask.roomId) || (newTask.taskType === 'public_space' && !newTask.areaTemplateId) || createTaskMutation.isPending} style={{ flex: 2, padding: '10px', background: '#C6A85E', border: 'none', borderRadius: '8px', color: '#0C1C2C', cursor: 'pointer', fontWeight: 700, fontFamily: 'sans-serif', opacity: ((newTask.taskType !== 'public_space' && !newTask.roomId) || (newTask.taskType === 'public_space' && !newTask.areaTemplateId)) ? 0.5 : 1 }}>
                    {createTaskMutation.isPending ? 'Creating…' : 'Create Task'}
                 </button>
               </div>
