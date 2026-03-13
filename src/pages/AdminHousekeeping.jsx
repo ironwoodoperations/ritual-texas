@@ -77,17 +77,35 @@ export default function AdminHousekeeping() {
 
   const createTaskMutation = useMutation({
     mutationFn: async (data) => {
-      const room = rooms.find(r => r.id === data.roomId);
-      // For public_space tasks, use the specific area template if selected; otherwise fall back to first match
-      let template;
-      if (data.taskType === 'public_space' && data.areaTemplateId) {
-        template = templates.find(t => t.id === data.areaTemplateId);
-      } else {
-        template = templates.find(t => t.taskType === data.taskType);
+      const isSpace = data.locationKey?.startsWith('space:');
+      const isRoom = data.locationKey?.startsWith('room:');
+      const locationId = data.locationKey?.split(':')[1];
+
+      let roomId = '', roomNumber = '', taskType = data.taskType, template = null;
+
+      if (isSpace) {
+        // Public space: use the template directly
+        template = templates.find(t => t.id === locationId);
+        roomNumber = template?.name || 'Public Space';
+        taskType = 'public_space';
+        roomId = locationId; // store template id as roomId for reference
+      } else if (isRoom) {
+        const room = rooms.find(r => r.id === locationId);
+        roomId = locationId;
+        roomNumber = room?.roomNumber || '';
+        template = templates.find(t => t.taskType === taskType);
       }
-      // Use area template name as roomNumber label for public space tasks
-      const roomLabel = data.taskType === 'public_space' && template ? template.name : (room?.roomNumber || '');
-      const task = await base44.entities.HkTask.create({ ...data, roomNumber: roomLabel, source: 'manual' });
+
+      const task = await base44.entities.HkTask.create({
+        taskDate: data.taskDate,
+        taskType,
+        priority: data.priority,
+        adminNotes: data.adminNotes,
+        roomId,
+        roomNumber,
+        source: 'manual',
+      });
+
       if (template?.items?.length) {
         await Promise.all(template.items.map((item, i) =>
           base44.entities.HkTaskItem.create({ ...item, taskId: task.id, isDone: false, sortOrder: i })
@@ -96,7 +114,7 @@ export default function AdminHousekeeping() {
       }
       return task;
     },
-    onSuccess: () => { qc.invalidateQueries(['hk-tasks']); setShowAddTask(false); setNewTask({ roomId: '', taskType: 'checkout', priority: 'normal', adminNotes: '', taskDate: today() }); }
+    onSuccess: () => { qc.invalidateQueries(['hk-tasks']); setShowAddTask(false); setNewTask({ locationKey: '', taskType: 'checkout', priority: 'normal', adminNotes: '', taskDate: today() }); }
   });
 
   const createNoteMutation = useMutation({
