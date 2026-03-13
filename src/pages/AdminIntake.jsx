@@ -10,6 +10,24 @@ import {
 import TreatmentSlotPicker from "@/components/intake/TreatmentSlotPicker";
 import TherapistSection from "@/components/intake/TherapistSection";
 
+// ─── Tax constants (same as Square Invoice Generator) ────────────────────────
+const SALES_TAXES = [
+  { key: 'sales_state',  label: 'State of Texas',                              rate: 6.25 },
+  { key: 'sales_city',   label: 'City of Jacksonville',                         rate: 1.00 },
+  { key: 'sales_jedc',   label: 'Jacksonville Economic Development (JEDC)',      rate: 0.50 },
+  { key: 'sales_county', label: 'Cherokee County',                              rate: 0.50 },
+];
+const HOTEL_TAXES = [
+  { key: 'hotel_state',  label: 'State of Texas',          rate: 6.00, note: 'Applies to stays $15+/day.' },
+  { key: 'hotel_city',   label: 'City of Jacksonville',    rate: 7.00, note: 'General municipal hotel tax.' },
+  { key: 'hotel_venue',  label: 'Jacksonville Venue Tax',  rate: 2.00, note: 'Voter-approved civic projects.' },
+];
+const ALL_TAXES = [...SALES_TAXES, ...HOTEL_TAXES];
+
+function fmtMoney(n) {
+  return `$${Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 // ─── Treatments that require call-to-book (loaded from DB) ───────────────────
 // booking_mode: call_to_book | call_and_info
 
@@ -51,6 +69,8 @@ const BLANK = {
   howDidYouHearAboutUs: "",
   bookingStatus: "new_inquiry", followUpDate: "", internalNotes: "",
   ccName: "", ccNumber: "", ccLast4: "", ccExpiry: "", ccCvc: "", ccType: "", ccNotes: "",
+  quoteRoomRate: "", quoteTreatmentsSubtotal: "", quoteOtherSubtotal: "",
+  quoteTaxes: {},
 };
 
 const fieldCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transparent py-2 text-sm text-[rgb(45,45,45)] focus:outline-none focus:border-[rgb(107,85,64)] placeholder-[rgb(190,180,170)] transition-colors";
@@ -98,26 +118,6 @@ function parseTreatmentEntries(arr) {
   });
 }
 
-// ─── Tax constants (same as Invoice Generator) ───────────────────────────────
-const SALES_TAXES = [
-  { key: 'sales_state',  label: 'State of Texas',                             rate: 6.25 },
-  { key: 'sales_city',   label: 'City of Jacksonville',                        rate: 1.00 },
-  { key: 'sales_jedc',   label: 'Jacksonville Economic Development (JEDC)',     rate: 0.50 },
-  { key: 'sales_county', label: 'Cherokee County',                             rate: 0.50 },
-];
-const HOTEL_TAXES = [
-  { key: 'hotel_state', label: 'State of Texas',         rate: 6.00, note: 'Applies to stays $15+/day.' },
-  { key: 'hotel_city',  label: 'City of Jacksonville',   rate: 7.00, note: 'General municipal hotel tax.' },
-  { key: 'hotel_venue', label: 'Jacksonville Venue Tax', rate: 2.00, note: 'Voter-approved civic projects.' },
-];
-const ALL_TAXES = [...SALES_TAXES, ...HOTEL_TAXES];
-
-function fmtMoney(n) {
-  return `$${Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-const blankQuoteItem = () => ({ name: '', amount: '', quantity: '1', _type: 'other' });
-
 // Manual room fallback list
 const MANUAL_ROOMS = [
   { id: "Suite 1", name: "Suite 1" },
@@ -139,25 +139,6 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
   const [ctbEntries, setCtbEntries] = useState(() => parseTreatmentEntries(initial.callToBookTreatments));
   const [saving, setSaving] = useState(false);
   const [sendConfirm, setSendConfirm] = useState(false);
-
-  // Quote builder state
-  const [quoteItems, setQuoteItems] = useState([blankQuoteItem()]);
-  const [quoteTaxes, setQuoteTaxes] = useState(Object.fromEntries(ALL_TAXES.map(t => [t.key, false])));
-
-  const setQuoteItem = (idx, key, val) => setQuoteItems(items => items.map((it, i) => i === idx ? { ...it, [key]: val } : it));
-  const quoteSubtotal = quoteItems.reduce((sum, it) => sum + (parseFloat(it.amount) || 0) * (parseInt(it.quantity) || 1), 0);
-  const quoteHotelSubtotal = quoteItems.filter(it => it._type === 'room').reduce((sum, it) => sum + (parseFloat(it.amount) || 0) * (parseInt(it.quantity) || 1), 0);
-  const quoteRetailSubtotal = quoteSubtotal - quoteHotelSubtotal;
-  const quoteTaxBreakdown = {};
-  let quoteTotalTax = 0;
-  ALL_TAXES.forEach(tax => {
-    if (quoteTaxes[tax.key]) {
-      const base = HOTEL_TAXES.some(h => h.key === tax.key) ? quoteHotelSubtotal : quoteRetailSubtotal;
-      const amount = (base * tax.rate) / 100;
-      if (amount > 0) { quoteTaxBreakdown[tax.key] = amount; quoteTotalTax += amount; }
-    }
-  });
-  const quoteTotal = quoteSubtotal + quoteTotalTax;
 
   // Live room availability from Cloudbeds
   const [liveRooms, setLiveRooms] = useState([]);
@@ -461,6 +442,100 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
             </Field>
           </div>
         </div>
+      </Section>
+
+      {/* Quote & Taxes */}
+      <Section title="Quote Estimate & Taxes">
+        {(() => {
+          const roomRate = parseFloat(form.quoteRoomRate) || 0;
+          const checkIn = form.checkInDate ? new Date(form.checkInDate) : null;
+          const checkOut = form.checkOutDate ? new Date(form.checkOutDate) : null;
+          const nights = checkIn && checkOut && checkOut > checkIn
+            ? Math.round((checkOut - checkIn) / 86400000) : 0;
+          const hotelSubtotal = roomRate * (nights || 1);
+          const retailSubtotal = (parseFloat(form.quoteTreatmentsSubtotal) || 0) + (parseFloat(form.quoteOtherSubtotal) || 0);
+          const subtotal = hotelSubtotal + retailSubtotal;
+
+          const selectedTaxes = form.quoteTaxes || {};
+          let totalTax = 0;
+          const taxLines = ALL_TAXES.filter(t => selectedTaxes[t.key]).map(t => {
+            const base = HOTEL_TAXES.some(h => h.key === t.key) ? hotelSubtotal : retailSubtotal;
+            const amt = (base * t.rate) / 100;
+            totalTax += amt;
+            return { ...t, amt };
+          });
+
+          return (
+            <div className="space-y-5">
+              {/* Inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-5">
+                <Field label={`Room Rate / Night${nights ? ` (× ${nights} nights)` : ''}`}>
+                  <input type="number" min="0" step="0.01" placeholder="0.00" value={form.quoteRoomRate}
+                    onChange={e => set("quoteRoomRate", e.target.value)} className={fieldCls} />
+                </Field>
+                <Field label="Treatments Subtotal">
+                  <input type="number" min="0" step="0.01" placeholder="0.00" value={form.quoteTreatmentsSubtotal}
+                    onChange={e => set("quoteTreatmentsSubtotal", e.target.value)} className={fieldCls} />
+                </Field>
+                <Field label="Other / Extras Subtotal">
+                  <input type="number" min="0" step="0.01" placeholder="0.00" value={form.quoteOtherSubtotal}
+                    onChange={e => set("quoteOtherSubtotal", e.target.value)} className={fieldCls} />
+                </Field>
+              </div>
+
+              {/* Sales Tax */}
+              <div className="bg-white border border-[rgb(220,210,200)] rounded-xl p-4">
+                <p className="text-[10px] font-extrabold tracking-widest text-[rgb(107,85,64)] uppercase mb-2">Sales Tax — Retail / Treatments (8.25% combined)</p>
+                <div className="space-y-1.5">
+                  {SALES_TAXES.map(tax => (
+                    <label key={tax.key} className="flex items-center gap-2 cursor-pointer text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] rounded px-1 py-0.5">
+                      <input type="checkbox" checked={!!selectedTaxes[tax.key]}
+                        onChange={e => set("quoteTaxes", { ...selectedTaxes, [tax.key]: e.target.checked })}
+                        className="accent-[rgb(150,170,155)] w-4 h-4" />
+                      <span className="flex-1">{tax.label}</span>
+                      <span className="font-medium text-[rgb(107,85,64)]">{tax.rate}%</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Hotel Occupancy Tax */}
+              <div className="bg-white border border-[rgb(220,210,200)] rounded-xl p-4">
+                <p className="text-[10px] font-extrabold tracking-widest text-[rgb(107,85,64)] uppercase mb-2">Hotel Occupancy Tax — Room Stays (15% combined)</p>
+                <div className="space-y-1.5">
+                  {HOTEL_TAXES.map(tax => (
+                    <label key={tax.key} className="flex items-center gap-2 cursor-pointer text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] rounded px-1 py-0.5">
+                      <input type="checkbox" checked={!!selectedTaxes[tax.key]}
+                        onChange={e => set("quoteTaxes", { ...selectedTaxes, [tax.key]: e.target.checked })}
+                        className="accent-[rgb(150,170,155)] w-4 h-4" />
+                      <div className="flex-1">
+                        <span>{tax.label}</span>
+                        {tax.note && <p className="text-xs text-[rgb(150,150,150)]">{tax.note}</p>}
+                      </div>
+                      <span className="font-medium text-[rgb(107,85,64)] shrink-0">{tax.rate}%</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Totals */}
+              <div className="bg-[rgb(252,250,247)] border border-[rgb(220,210,200)] rounded-xl p-4 space-y-1.5 text-sm">
+                {hotelSubtotal > 0 && <div className="flex justify-between"><span className="text-[rgb(150,130,110)]">Room ({nights || 1} night{nights !== 1 ? 's' : ''})</span><span>{fmtMoney(hotelSubtotal)}</span></div>}
+                {retailSubtotal > 0 && <div className="flex justify-between"><span className="text-[rgb(150,130,110)]">Treatments / Other</span><span>{fmtMoney(retailSubtotal)}</span></div>}
+                <div className="flex justify-between font-medium border-t border-[rgb(220,210,200)] pt-1.5"><span className="text-[rgb(150,130,110)]">Subtotal</span><span>{fmtMoney(subtotal)}</span></div>
+                {taxLines.map(t => (
+                  <div key={t.key} className="flex justify-between text-xs text-[rgb(150,130,110)]">
+                    <span>{t.label} ({t.rate}%)</span><span>{fmtMoney(t.amt)}</span>
+                  </div>
+                ))}
+                {totalTax > 0 && <div className="flex justify-between text-sm border-t border-[rgb(220,210,200)] pt-1.5"><span className="text-[rgb(150,130,110)]">Total Taxes</span><span>{fmtMoney(totalTax)}</span></div>}
+                <div className="flex justify-between font-bold text-base border-t border-[rgb(220,210,200)] pt-1.5 text-[rgb(107,85,64)]">
+                  <span>Estimated Total</span><span>{fmtMoney(subtotal + totalTax)}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </Section>
 
       {/* Save / Send */}
