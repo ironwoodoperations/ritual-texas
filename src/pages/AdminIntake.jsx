@@ -297,6 +297,42 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
         </div>
       </Section>
 
+      {/* Taxes */}
+      <Section title="Taxes · For Square Invoice">
+        <div className="grid sm:grid-cols-2 gap-5">
+          <div>
+            <p className={labelCls + " mb-2"}>Sales Tax — Retail / Treatments (8.25%)</p>
+            <div className="space-y-2">
+              {SALES_TAXES.map(tax => (
+                <label key={tax.key} className="flex items-center gap-2 cursor-pointer text-sm text-[rgb(45,45,45)]">
+                  <input type="checkbox"
+                    checked={!!(form.quoteTaxes || {})[tax.key]}
+                    onChange={e => set("quoteTaxes", { ...(form.quoteTaxes || {}), [tax.key]: e.target.checked })}
+                    className="accent-[rgb(150,170,155)] w-4 h-4" />
+                  <span className="flex-1">{tax.label}</span>
+                  <span className="text-[rgb(107,85,64)] font-medium">{tax.rate}%</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className={labelCls + " mb-2"}>Hotel Occupancy Tax — Room Stays (15%)</p>
+            <div className="space-y-2">
+              {HOTEL_TAXES.map(tax => (
+                <label key={tax.key} className="flex items-center gap-2 cursor-pointer text-sm text-[rgb(45,45,45)]">
+                  <input type="checkbox"
+                    checked={!!(form.quoteTaxes || {})[tax.key]}
+                    onChange={e => set("quoteTaxes", { ...(form.quoteTaxes || {}), [tax.key]: e.target.checked })}
+                    className="accent-[rgb(150,170,155)] w-4 h-4" />
+                  <span className="flex-1">{tax.label}</span>
+                  <span className="text-[rgb(107,85,64)] font-medium">{tax.rate}%</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Section>
+
       {/* Treatments — SimplyBook + Call-to-book */}
       <Section title="Spa & Wellness · Treatments">
         <TreatmentSlotPicker
