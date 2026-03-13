@@ -116,8 +116,6 @@ function fmtMoney(n) {
   return `$${Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-const blankQuoteItem = () => ({ name: '', amount: '', quantity: '1', _type: 'other' });
-
 // Manual room fallback list
 const MANUAL_ROOMS = [
   { id: "Suite 1", name: "Suite 1" },
