@@ -278,13 +278,17 @@ export default function AdminHousekeeping() {
           <div style={{ background: '#132336', border: '1px solid rgba(198,168,94,.2)', borderRadius: '16px', padding: '28px', maxWidth: '420px', width: '100%' }}>
             <h3 style={{ color: '#C6A85E', fontSize: '11px', letterSpacing: '3px', margin: '0 0 20px', fontFamily: 'sans-serif' }}>ADD MANUAL TASK</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div>
-                <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>PUBLIC SPACE</label>
-                <select value={newTask.publicSpaceId} onChange={e => setNewTask(t => ({ ...t, publicSpaceId: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', fontFamily: 'sans-serif' }}>
-                   <option value="">Select public space...</option>
-                   {publicSpaces.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-              </div>
+              {newTask.taskType === 'public_space' && (
+                <div>
+                  <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>SELECT AREA</label>
+                  <select value={newTask.areaTemplateId} onChange={e => setNewTask(t => ({ ...t, areaTemplateId: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', fontFamily: 'sans-serif' }}>
+                    <option value="">Select area...</option>
+                    {templates.filter(t => t.taskType === 'public_space').map(t => (
+                      <option key={t.id} value={t.id}>{t.name} ({t.items?.length || 0} items)</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div>
                 <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>ROOM</label>
                 <select value={newTask.roomId} onChange={e => setNewTask(t => ({ ...t, roomId: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', fontFamily: 'sans-serif' }}>
