@@ -140,25 +140,6 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
   const [saving, setSaving] = useState(false);
   const [sendConfirm, setSendConfirm] = useState(false);
 
-  // Quote builder state
-  const [quoteItems, setQuoteItems] = useState([blankQuoteItem()]);
-  const [quoteTaxes, setQuoteTaxes] = useState(Object.fromEntries(ALL_TAXES.map(t => [t.key, false])));
-
-  const setQuoteItem = (idx, key, val) => setQuoteItems(items => items.map((it, i) => i === idx ? { ...it, [key]: val } : it));
-  const quoteSubtotal = quoteItems.reduce((sum, it) => sum + (parseFloat(it.amount) || 0) * (parseInt(it.quantity) || 1), 0);
-  const quoteHotelSubtotal = quoteItems.filter(it => it._type === 'room').reduce((sum, it) => sum + (parseFloat(it.amount) || 0) * (parseInt(it.quantity) || 1), 0);
-  const quoteRetailSubtotal = quoteSubtotal - quoteHotelSubtotal;
-  const quoteTaxBreakdown = {};
-  let quoteTotalTax = 0;
-  ALL_TAXES.forEach(tax => {
-    if (quoteTaxes[tax.key]) {
-      const base = HOTEL_TAXES.some(h => h.key === tax.key) ? quoteHotelSubtotal : quoteRetailSubtotal;
-      const amount = (base * tax.rate) / 100;
-      if (amount > 0) { quoteTaxBreakdown[tax.key] = amount; quoteTotalTax += amount; }
-    }
-  });
-  const quoteTotal = quoteSubtotal + quoteTotalTax;
-
   // Live room availability from Cloudbeds
   const [liveRooms, setLiveRooms] = useState([]);
   const [loadingLiveRooms, setLoadingLiveRooms] = useState(false);
