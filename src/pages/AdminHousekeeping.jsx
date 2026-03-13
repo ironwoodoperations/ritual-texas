@@ -295,44 +295,49 @@ export default function AdminHousekeeping() {
       {showAddTask && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
           <div style={{ background: '#132336', border: '1px solid rgba(198,168,94,.2)', borderRadius: '16px', padding: '28px', maxWidth: '420px', width: '100%' }}>
-            <h3 style={{ color: '#C6A85E', fontSize: '11px', letterSpacing: '3px', margin: '0 0 20px', fontFamily: 'sans-serif' }}>ADD MANUAL TASK</h3>
+            <h3 style={{ color: '#C6A85E', fontSize: '11px', letterSpacing: '3px', margin: '0 0 20px', fontFamily: 'sans-serif' }}>ADD TASK</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {newTask.taskType === 'public_space' && (
+
+              {/* Single unified location dropdown */}
+              <div>
+                <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>LOCATION</label>
+                <select value={newTask.locationKey} onChange={e => setNewTask(t => ({ ...t, locationKey: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: newTask.locationKey ? '#F5F0E8' : '#9AA8B5', fontSize: '14px', outline: 'none', fontFamily: 'sans-serif' }}>
+                  <option value="">Select room or area…</option>
+                  {rooms.length > 0 && (
+                    <optgroup label="── Rooms ──">
+                      {rooms.map(r => <option key={r.id} value={`room:${r.id}`}>{r.roomNumber}</option>)}
+                    </optgroup>
+                  )}
+                  {templates.filter(t => t.taskType === 'public_space').length > 0 && (
+                    <optgroup label="── Public Spaces ──">
+                      {templates.filter(t => t.taskType === 'public_space').map(t => (
+                        <option key={t.id} value={`space:${t.id}`}>{t.name}</option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+              </div>
+
+              {/* Task type — only shown for room selections */}
+              {newTask.locationKey?.startsWith('room:') && (
                 <div>
-                  <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>SELECT AREA</label>
-                  <select value={newTask.areaTemplateId} onChange={e => setNewTask(t => ({ ...t, areaTemplateId: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', fontFamily: 'sans-serif' }}>
-                    <option value="">Select area...</option>
-                    {templates.filter(t => t.taskType === 'public_space').map(t => (
-                      <option key={t.id} value={t.id}>{t.name} ({t.items?.length || 0} items)</option>
-                    ))}
+                  <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>TASK TYPE</label>
+                  <select value={newTask.taskType} onChange={e => setNewTask(t => ({ ...t, taskType: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', fontFamily: 'sans-serif' }}>
+                    <option value="opening_duty">Opening Duty</option>
+                    <option value="closing_duty">Closing Duty</option>
+                    <option value="checkout">Checkout Clean</option>
+                    <option value="stayover">Stayover Refresh</option>
+                    <option value="deep_clean">Deep Clean</option>
+                    <option value="manual">Manual / Other</option>
                   </select>
                 </div>
               )}
-              {newTask.taskType !== 'public_space' && (
-                <div>
-                  <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>ROOM</label>
-                  <select value={newTask.roomId} onChange={e => setNewTask(t => ({ ...t, roomId: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', fontFamily: 'sans-serif' }}>
-                    <option value="">Select room...</option>
-                    {rooms.map(r => <option key={r.id} value={r.id}>{r.roomNumber}</option>)}
-                  </select>
-                </div>
-              )}
+
               <div>
                 <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>DATE</label>
                 <input type="date" value={newTask.taskDate} onChange={e => setNewTask(t => ({ ...t, taskDate: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'sans-serif' }} />
               </div>
-              <div>
-                <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>TASK TYPE</label>
-                <select value={newTask.taskType} onChange={e => setNewTask(t => ({ ...t, taskType: e.target.value, areaTemplateId: '', roomId: '' }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', fontFamily: 'sans-serif' }}>
-                  <option value="opening_duty">Opening Duty</option>
-                  <option value="closing_duty">Closing Duty</option>
-                  <option value="checkout">Checkout Clean</option>
-                  <option value="stayover">Stayover Refresh</option>
-                  <option value="deep_clean">Deep Clean</option>
-                  <option value="public_space">Public Space</option>
-                  <option value="manual">Manual / Other</option>
-                </select>
-              </div>
+
               <div>
                 <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>PRIORITY</label>
                 <select value={newTask.priority} onChange={e => setNewTask(t => ({ ...t, priority: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', fontFamily: 'sans-serif' }}>
@@ -342,14 +347,16 @@ export default function AdminHousekeeping() {
                   <option value="urgent">Urgent</option>
                 </select>
               </div>
+
               <div>
-                <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>ADMIN NOTES</label>
-                <textarea value={newTask.adminNotes} onChange={e => setNewTask(t => ({ ...t, adminNotes: e.target.value }))} placeholder="Special requests, guest preferences..." rows={3} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'sans-serif' }} />
+                <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>NOTES</label>
+                <textarea value={newTask.adminNotes} onChange={e => setNewTask(t => ({ ...t, adminNotes: e.target.value }))} placeholder="Special requests, guest preferences..." rows={2} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'sans-serif' }} />
               </div>
+
               <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
                 <button onClick={() => setShowAddTask(false)} style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#9AA8B5', cursor: 'pointer', fontFamily: 'sans-serif' }}>Cancel</button>
-                <button onClick={() => createTaskMutation.mutate(newTask)} disabled={(newTask.taskType !== 'public_space' && !newTask.roomId) || (newTask.taskType === 'public_space' && !newTask.areaTemplateId) || createTaskMutation.isPending} style={{ flex: 2, padding: '10px', background: '#C6A85E', border: 'none', borderRadius: '8px', color: '#0C1C2C', cursor: 'pointer', fontWeight: 700, fontFamily: 'sans-serif', opacity: ((newTask.taskType !== 'public_space' && !newTask.roomId) || (newTask.taskType === 'public_space' && !newTask.areaTemplateId)) ? 0.5 : 1 }}>
-                   {createTaskMutation.isPending ? 'Creating…' : 'Create Task'}
+                <button onClick={() => createTaskMutation.mutate(newTask)} disabled={!newTask.locationKey || createTaskMutation.isPending} style={{ flex: 2, padding: '10px', background: '#C6A85E', border: 'none', borderRadius: '8px', color: '#0C1C2C', cursor: 'pointer', fontWeight: 700, fontFamily: 'sans-serif', opacity: !newTask.locationKey ? 0.5 : 1 }}>
+                  {createTaskMutation.isPending ? 'Creating…' : 'Create Task'}
                 </button>
               </div>
             </div>
