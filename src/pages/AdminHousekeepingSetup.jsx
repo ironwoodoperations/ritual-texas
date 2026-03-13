@@ -104,6 +104,9 @@ export default function AdminHousekeepingSetup() {
   const [saved, setSaved] = useState(false);
   const [newRoom, setNewRoom] = useState({ roomNumber: '', roomType: 'Suite' });
   const [showAddRoom, setShowAddRoom] = useState(false);
+  const [showNewArea, setShowNewArea] = useState(false);
+  const [newAreaName, setNewAreaName] = useState('');
+  const [newAreaSeed, setNewAreaSeed] = useState('');
 
   const { data: templates = [] } = useQuery({
     queryKey: ['hk-templates'],
