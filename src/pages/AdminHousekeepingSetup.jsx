@@ -216,7 +216,7 @@ export default function AdminHousekeepingSetup() {
         <div>
           <p style={{ color: '#C6A85E', fontSize: '11px', letterSpacing: '2px', margin: '0 0 12px', fontFamily: 'sans-serif' }}>TEMPLATES</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '24px' }}>
-            {templates.map(t => (
+            {templates.filter(t => t.taskType !== 'public_space').map(t => (
               <button key={t.id} onClick={() => setActiveTemplate(t.id)} style={{ padding: '10px 14px', borderRadius: '8px', border: activeTemplate === t.id ? '1px solid #C6A85E' : '1px solid rgba(198,168,94,.15)', background: activeTemplate === t.id ? 'rgba(198,168,94,.1)' : 'transparent', color: activeTemplate === t.id ? '#C6A85E' : '#9AA8B5', cursor: 'pointer', textAlign: 'left', fontSize: '14px', fontFamily: 'sans-serif' }}>
                 {t.name}
                 <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>{t.items?.length || 0} items</div>
