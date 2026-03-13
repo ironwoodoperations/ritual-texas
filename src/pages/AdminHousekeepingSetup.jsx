@@ -3,9 +3,96 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Plus, Trash2, GripVertical, Save, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, CheckCircle2, Layers } from 'lucide-react';
 
-const CATEGORIES = ['strip','bath','bed','dust','floors','replenish','inspect','trash','final'];
+const CATEGORIES = ['strip','bath','bed','dust','floors','replenish','inspect','trash','final','chemicals','safety','outdoor','general'];
+
+const COMMON_AREA_TEMPLATES = [
+  {
+    name: 'Pool Area',
+    taskType: 'public_space',
+    items: [
+      { label: 'Test pH and chlorine levels', category: 'chemicals', required: true, active: true },
+      { label: 'Skim surface for debris', category: 'inspect', required: true, active: true },
+      { label: 'Check pump and filter operation', category: 'inspect', required: true, active: true },
+      { label: 'Clean pool deck / surrounding area', category: 'floors', required: true, active: true },
+      { label: 'Brush pool steps and walls', category: 'general', required: false, active: true },
+      { label: 'Restock pool towels', category: 'replenish', required: true, active: true },
+      { label: 'Check and arrange pool furniture', category: 'general', required: true, active: true },
+      { label: 'Inspect safety equipment (life ring, etc.)', category: 'safety', required: true, active: true },
+      { label: 'Empty trash cans', category: 'trash', required: true, active: true },
+      { label: 'Check water temperature', category: 'chemicals', required: true, active: true },
+      { label: 'Clean pool gate / latch check', category: 'safety', required: true, active: true },
+      { label: 'Wipe down pool signage', category: 'dust', required: false, active: true },
+    ],
+  },
+  {
+    name: 'Hot Tub / Jacuzzi',
+    taskType: 'public_space',
+    items: [
+      { label: 'Test chemical levels (pH, bromine/chlorine)', category: 'chemicals', required: true, active: true },
+      { label: 'Skim surface and remove debris', category: 'inspect', required: true, active: true },
+      { label: 'Clean and wipe down surround / ledge', category: 'general', required: true, active: true },
+      { label: 'Wipe jets and interior walls', category: 'general', required: true, active: true },
+      { label: 'Check and clean filter', category: 'inspect', required: true, active: true },
+      { label: 'Verify water temperature setting', category: 'chemicals', required: true, active: true },
+      { label: 'Clean hot tub cover (inside and out)', category: 'general', required: false, active: true },
+      { label: 'Restock towels nearby', category: 'replenish', required: true, active: true },
+      { label: 'Clean steps and entry area', category: 'floors', required: true, active: true },
+      { label: 'Empty trash', category: 'trash', required: true, active: true },
+    ],
+  },
+  {
+    name: 'Sauna',
+    taskType: 'public_space',
+    items: [
+      { label: 'Wipe down all benches', category: 'general', required: true, active: true },
+      { label: 'Sweep and mop floor', category: 'floors', required: true, active: true },
+      { label: 'Check heater operation', category: 'inspect', required: true, active: true },
+      { label: 'Inspect sauna rocks', category: 'inspect', required: false, active: true },
+      { label: 'Clean and refill water bucket and ladle', category: 'replenish', required: true, active: true },
+      { label: 'Restock towels', category: 'replenish', required: true, active: true },
+      { label: 'Wipe door handle and glass', category: 'general', required: true, active: true },
+      { label: 'Ventilate / air out room', category: 'general', required: true, active: true },
+      { label: 'Check temperature set correctly', category: 'inspect', required: true, active: true },
+      { label: 'Empty trash', category: 'trash', required: true, active: true },
+    ],
+  },
+  {
+    name: 'Grounds / Exterior',
+    taskType: 'public_space',
+    items: [
+      { label: 'Pick up litter and debris (all areas)', category: 'trash', required: true, active: true },
+      { label: 'Blow or sweep walkways and paths', category: 'floors', required: true, active: true },
+      { label: 'Check and tidy outdoor seating / furniture', category: 'general', required: true, active: true },
+      { label: 'Water plants and garden areas', category: 'outdoor', required: false, active: true },
+      { label: 'Check all exterior lighting', category: 'inspect', required: true, active: true },
+      { label: 'Clean entry / front door area', category: 'general', required: true, active: true },
+      { label: 'Check signage is clean and visible', category: 'inspect', required: false, active: true },
+      { label: 'Inspect parking area / driveway', category: 'outdoor', required: false, active: true },
+      { label: 'Rake gravel, mulch, or garden beds', category: 'outdoor', required: false, active: true },
+      { label: 'Check gate latches and fencing', category: 'safety', required: true, active: true },
+      { label: 'Remove spider webs from eaves / entry', category: 'general', required: false, active: true },
+    ],
+  },
+  {
+    name: 'Lobby / Common Areas',
+    taskType: 'public_space',
+    items: [
+      { label: 'Vacuum or sweep all floors', category: 'floors', required: true, active: true },
+      { label: 'Mop hard floors', category: 'floors', required: false, active: true },
+      { label: 'Dust surfaces, shelves, and décor', category: 'dust', required: true, active: true },
+      { label: 'Wipe down high-touch surfaces (handles, switches)', category: 'general', required: true, active: true },
+      { label: 'Clean mirrors and windows', category: 'general', required: true, active: true },
+      { label: 'Empty all trash cans', category: 'trash', required: true, active: true },
+      { label: 'Restock any amenity baskets', category: 'replenish', required: false, active: true },
+      { label: 'Straighten furniture and pillows', category: 'general', required: true, active: true },
+      { label: 'Check all lighting is working', category: 'inspect', required: false, active: true },
+      { label: 'Clean restrooms (if applicable)', category: 'bath', required: true, active: true },
+      { label: 'Restock restroom supplies', category: 'replenish', required: true, active: true },
+    ],
+  },
+];
 const S = {
   input: { width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'sans-serif' },
   label: { color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' },
