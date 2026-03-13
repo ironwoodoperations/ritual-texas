@@ -346,6 +346,7 @@ export default function AdminDashboard() {
       tiles: [
         { icon: BedDouble, label: "Rooms", page: "AdminRooms" },
         { icon: FileText, label: "Packages", page: "AdminPackages" },
+        { icon: Brush, label: "HK Setup", page: "AdminHousekeepingSetup" },
       ],
     },
     {
