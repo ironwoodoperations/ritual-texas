@@ -32,7 +32,8 @@ export default function AdminHousekeeping() {
   const [generating, setGenerating] = useState(false);
   const [showAddNote, setShowAddNote] = useState(false);
   const [showAddSpace, setShowAddSpace] = useState(false);
-  const [newTask, setNewTask] = useState({ roomId: '', publicSpaceId: '', areaTemplateId: '', taskType: 'checkout', priority: 'normal', adminNotes: '', taskDate: today() });
+  // locationKey: "room:roomId" or "space:templateId"
+  const [newTask, setNewTask] = useState({ locationKey: '', taskType: 'checkout', priority: 'normal', adminNotes: '', taskDate: today() });
   const [newNote, setNewNote] = useState({ scope: 'hotel', roomId: '', note: '', priority: 'normal' });
   const [newSpace, setNewSpace] = useState({ name: '', description: '' });
   const qc = useQueryClient();
