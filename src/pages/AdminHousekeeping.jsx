@@ -77,9 +77,16 @@ export default function AdminHousekeeping() {
   const createTaskMutation = useMutation({
     mutationFn: async (data) => {
       const room = rooms.find(r => r.id === data.roomId);
-      const task = await base44.entities.HkTask.create({ ...data, roomNumber: room?.roomNumber || '', source: 'manual' });
-      // seed checklist from template
-      const template = templates.find(t => t.taskType === data.taskType);
+      // For public_space tasks, use the specific area template if selected; otherwise fall back to first match
+      let template;
+      if (data.taskType === 'public_space' && data.areaTemplateId) {
+        template = templates.find(t => t.id === data.areaTemplateId);
+      } else {
+        template = templates.find(t => t.taskType === data.taskType);
+      }
+      // Use area template name as roomNumber label for public space tasks
+      const roomLabel = data.taskType === 'public_space' && template ? template.name : (room?.roomNumber || '');
+      const task = await base44.entities.HkTask.create({ ...data, roomNumber: roomLabel, source: 'manual' });
       if (template?.items?.length) {
         await Promise.all(template.items.map((item, i) =>
           base44.entities.HkTaskItem.create({ ...item, taskId: task.id, isDone: false, sortOrder: i })
