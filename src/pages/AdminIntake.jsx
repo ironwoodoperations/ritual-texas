@@ -98,6 +98,26 @@ function parseTreatmentEntries(arr) {
   });
 }
 
+// ─── Tax constants (same as Invoice Generator) ───────────────────────────────
+const SALES_TAXES = [
+  { key: 'sales_state',  label: 'State of Texas',                             rate: 6.25 },
+  { key: 'sales_city',   label: 'City of Jacksonville',                        rate: 1.00 },
+  { key: 'sales_jedc',   label: 'Jacksonville Economic Development (JEDC)',     rate: 0.50 },
+  { key: 'sales_county', label: 'Cherokee County',                             rate: 0.50 },
+];
+const HOTEL_TAXES = [
+  { key: 'hotel_state', label: 'State of Texas',         rate: 6.00, note: 'Applies to stays $15+/day.' },
+  { key: 'hotel_city',  label: 'City of Jacksonville',   rate: 7.00, note: 'General municipal hotel tax.' },
+  { key: 'hotel_venue', label: 'Jacksonville Venue Tax', rate: 2.00, note: 'Voter-approved civic projects.' },
+];
+const ALL_TAXES = [...SALES_TAXES, ...HOTEL_TAXES];
+
+function fmtMoney(n) {
+  return `$${Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+const blankQuoteItem = () => ({ name: '', amount: '', quantity: '1', _type: 'other' });
+
 // Manual room fallback list
 const MANUAL_ROOMS = [
   { id: "Suite 1", name: "Suite 1" },
