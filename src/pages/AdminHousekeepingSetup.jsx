@@ -224,6 +224,53 @@ export default function AdminHousekeepingSetup() {
             ))}
           </div>
 
+          {/* Common Areas Section */}
+          <p style={{ color: '#C6A85E', fontSize: '11px', letterSpacing: '2px', margin: '20px 0 10px', fontFamily: 'sans-serif' }}>COMMON AREAS</p>
+          {/* Existing public_space templates */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
+            {templates.filter(t => t.taskType === 'public_space').map(t => (
+              <button key={t.id} onClick={() => setActiveTemplate(t.id)} style={{ padding: '10px 14px', borderRadius: '8px', border: activeTemplate === t.id ? '1px solid #C6A85E' : '1px solid rgba(198,168,94,.15)', background: activeTemplate === t.id ? 'rgba(198,168,94,.1)' : 'transparent', color: activeTemplate === t.id ? '#C6A85E' : '#9AA8B5', cursor: 'pointer', textAlign: 'left', fontSize: '13px', fontFamily: 'sans-serif', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div>{t.name}</div>
+                  <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>{t.items?.length || 0} items</div>
+                </div>
+                <button onClick={(e) => { e.stopPropagation(); if (confirm(`Delete "${t.name}"?`)) deleteTemplateMutation.mutate(t.id); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C57C5D', padding: '2px', opacity: 0.6 }}><Trash2 size={12} /></button>
+              </button>
+            ))}
+          </div>
+          {/* Preset suggestions */}
+          <div style={{ marginBottom: '8px' }}>
+            <p style={{ color: '#666', fontSize: '10px', letterSpacing: '1px', margin: '0 0 6px', fontFamily: 'sans-serif' }}>ADD PRESET</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {COMMON_AREA_TEMPLATES.filter(p => !templates.some(t => t.name === p.name)).map(p => (
+                <button key={p.name} onClick={() => handleAddPreset(p)} style={{ padding: '6px 10px', background: 'transparent', border: '1px dashed rgba(198,168,94,.25)', borderRadius: '6px', color: '#9AA8B5', cursor: 'pointer', fontSize: '12px', fontFamily: 'sans-serif', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Plus size={11} /> {p.name}
+                </button>
+              ))}
+              {COMMON_AREA_TEMPLATES.every(p => templates.some(t => t.name === p.name)) && (
+                <p style={{ color: '#555', fontSize: '11px', fontFamily: 'sans-serif' }}>All presets added ✓</p>
+              )}
+            </div>
+          </div>
+          {/* Custom area */}
+          {showNewArea ? (
+            <div style={{ background: 'rgba(245,240,232,.04)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
+              <input placeholder="Area name (e.g. Fitness Room)" value={newAreaName} onChange={e => setNewAreaName(e.target.value)} style={{ ...S.input, padding: '8px 10px', fontSize: '13px' }} />
+              <select value={newAreaSeed} onChange={e => setNewAreaSeed(e.target.value)} style={{ ...S.input, padding: '8px 10px', fontSize: '12px' }}>
+                <option value="">Start blank</option>
+                {COMMON_AREA_TEMPLATES.map(p => <option key={p.name} value={p.name}>Copy from: {p.name}</option>)}
+              </select>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button onClick={() => { setShowNewArea(false); setNewAreaName(''); setNewAreaSeed(''); }} style={{ flex: 1, padding: '7px', background: 'transparent', border: '1px solid rgba(198,168,94,.2)', borderRadius: '6px', color: '#9AA8B5', cursor: 'pointer', fontSize: '12px', fontFamily: 'sans-serif' }}>Cancel</button>
+                <button onClick={handleCreateArea} disabled={!newAreaName.trim()} style={{ flex: 2, padding: '7px', background: '#C6A85E', border: 'none', borderRadius: '6px', color: '#0C1C2C', cursor: 'pointer', fontWeight: 700, fontSize: '12px', fontFamily: 'sans-serif' }}>Create</button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setShowNewArea(true)} style={{ width: '100%', padding: '8px', background: 'transparent', border: '1px dashed rgba(198,168,94,.3)', borderRadius: '8px', color: '#C6A85E', cursor: 'pointer', fontSize: '12px', fontFamily: 'sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginBottom: '16px' }}>
+              <Layers size={12} /> Custom Area
+            </button>
+          )}
+
           <p style={{ color: '#C6A85E', fontSize: '11px', letterSpacing: '2px', margin: '0 0 12px', fontFamily: 'sans-serif' }}>ROOMS</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
             {rooms.map(r => (
