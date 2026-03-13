@@ -289,13 +289,15 @@ export default function AdminHousekeeping() {
                   </select>
                 </div>
               )}
-              <div>
-                <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>ROOM</label>
-                <select value={newTask.roomId} onChange={e => setNewTask(t => ({ ...t, roomId: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', fontFamily: 'sans-serif' }}>
-                   <option value="">Select room...</option>
-                   {rooms.map(r => <option key={r.id} value={r.id}>{r.roomNumber}</option>)}
-                </select>
-              </div>
+              {newTask.taskType !== 'public_space' && (
+                <div>
+                  <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>ROOM</label>
+                  <select value={newTask.roomId} onChange={e => setNewTask(t => ({ ...t, roomId: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', fontFamily: 'sans-serif' }}>
+                    <option value="">Select room...</option>
+                    {rooms.map(r => <option key={r.id} value={r.id}>{r.roomNumber}</option>)}
+                  </select>
+                </div>
+              )}
               <div>
                 <label style={{ color: '#9AA8B5', fontSize: '11px', letterSpacing: '1px', display: 'block', marginBottom: '5px', fontFamily: 'sans-serif' }}>DATE</label>
                 <input type="date" value={newTask.taskDate} onChange={e => setNewTask(t => ({ ...t, taskDate: e.target.value }))} style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'sans-serif' }} />
