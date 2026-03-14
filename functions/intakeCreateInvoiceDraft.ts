@@ -133,6 +133,37 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Build tax line items from intake.taxes
+    const SALES_TAXES = [
+      { key: 'sales_state',  label: 'State of Texas (Sales Tax)',                     rate: 6.25 },
+      { key: 'sales_city',   label: 'City of Jacksonville (Sales Tax)',                rate: 1.00 },
+      { key: 'sales_jedc',   label: 'Jacksonville Economic Development (JEDC)',        rate: 0.50 },
+      { key: 'sales_county', label: 'Cherokee County (Sales Tax)',                     rate: 0.50 },
+    ];
+    const HOTEL_TAXES = [
+      { key: 'hotel_state',  label: 'State of Texas (Hotel Occupancy Tax)',            rate: 6.00 },
+      { key: 'hotel_city',   label: 'City of Jacksonville (Hotel Occupancy Tax)',      rate: 7.00 },
+      { key: 'hotel_venue',  label: 'Jacksonville Venue Tax',                          rate: 2.00 },
+    ];
+    const ALL_TAXES = [...SALES_TAXES, ...HOTEL_TAXES];
+
+    const selectedTaxes = intake?.taxes || {};
+    const hotelSubtotal = ROOM_RATE * nights;
+    const treatmentSubtotal = lineItems.slice(1).reduce((sum, li) => sum + (li.base_price_money.amount / 100), 0);
+
+    for (const tax of ALL_TAXES) {
+      if (!selectedTaxes[tax.key]) continue;
+      const isHotel = tax.key.startsWith('hotel_');
+      const base = isHotel ? hotelSubtotal : treatmentSubtotal;
+      const amount = Math.round(base * tax.rate) / 100;
+      if (amount <= 0) continue;
+      lineItems.push({
+        name: tax.label,
+        quantity: "1",
+        base_price_money: { amount: Math.round(amount * 100), currency: "USD" },
+      });
+    }
+
     // Create order
     const orderResp = await fetch(`${baseUrl}/v2/orders`, {
       method: "POST",
