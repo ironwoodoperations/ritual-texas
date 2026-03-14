@@ -636,8 +636,8 @@ function IntakeCard({ record, onUpdate, bookOnlineTreatments, callToBookTreatmen
             setActionMsg({ success: true, text: `Draft created but could not auto-send: ${pubRes.data.error}. Use "Send to Guest" below.`, invoiceId, draftUrl: res.data?.draftUrl, isPending: true });
           } else {
             markCompleted("SendQuote");
-            setActionMsg({ success: true, text: `Invoice sent to ${intakeData.email}!`, isPending: false });
-            setTimeout(() => setActionMsg(null), 6000);
+            const publicUrl = pubRes.data?.publicUrl || res.data?.draftUrl || null;
+            setActionMsg({ success: true, text: `Invoice sent to ${intakeData.email}!`, publicUrl, isPending: false });
           }
         }
 
