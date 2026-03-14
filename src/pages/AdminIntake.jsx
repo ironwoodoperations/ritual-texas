@@ -528,7 +528,7 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
               title={!form.email ? "Guest email required to send quote" : ""}
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[rgb(150,170,155)] text-white text-sm disabled:opacity-50 hover:opacity-90 transition-opacity"
             >
-              <Send className="w-4 h-4" /> Send Quote Now
+              <Send className="w-4 h-4" /> View Quote Before Sending
             </button>
           )}
           {onCancel && (
