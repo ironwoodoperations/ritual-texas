@@ -39,6 +39,20 @@ const THERAPIST_STATUS_COLORS = {
   declined: "bg-red-100 text-red-600",
 };
 
+// ─── Tax definitions (same as Invoice Generator) ─────────────────────────────
+const SALES_TAXES = [
+  { key: 'sales_state',  label: 'State of Texas',                           rate: 6.25 },
+  { key: 'sales_city',   label: 'City of Jacksonville',                      rate: 1.00 },
+  { key: 'sales_jedc',   label: 'Jacksonville Economic Development (JEDC)',   rate: 0.50 },
+  { key: 'sales_county', label: 'Cherokee County',                           rate: 0.50 },
+];
+const HOTEL_TAXES = [
+  { key: 'hotel_state',  label: 'State of Texas',         rate: 6.00, note: 'Applies to stays $15+/day.' },
+  { key: 'hotel_city',   label: 'City of Jacksonville',   rate: 7.00, note: 'General municipal hotel tax.' },
+  { key: 'hotel_venue',  label: 'Jacksonville Venue Tax', rate: 2.00, note: 'Voter-approved civic projects.' },
+];
+const ALL_TAXES = [...SALES_TAXES, ...HOTEL_TAXES];
+
 const BLANK = {
   guestName: "", phone: "", email: "", preferredContactMethod: "phone",
   checkInDate: "", checkOutDate: "", numberOfGuests: 1, numberOfChildren: 0,
@@ -51,6 +65,7 @@ const BLANK = {
   howDidYouHearAboutUs: "",
   bookingStatus: "new_inquiry", followUpDate: "", internalNotes: "",
   ccName: "", ccNumber: "", ccLast4: "", ccExpiry: "", ccCvc: "", ccType: "", ccNotes: "",
+  taxes: {},
 };
 
 const fieldCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transparent py-2 text-sm text-[rgb(45,45,45)] focus:outline-none focus:border-[rgb(107,85,64)] placeholder-[rgb(190,180,170)] transition-colors";
