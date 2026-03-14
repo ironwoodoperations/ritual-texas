@@ -98,24 +98,6 @@ function parseTreatmentEntries(arr) {
   });
 }
 
-// ─── Tax constants (same as Invoice Generator) ───────────────────────────────
-const SALES_TAXES = [
-  { key: 'sales_state',  label: 'State of Texas',                             rate: 6.25 },
-  { key: 'sales_city',   label: 'City of Jacksonville',                        rate: 1.00 },
-  { key: 'sales_jedc',   label: 'Jacksonville Economic Development (JEDC)',     rate: 0.50 },
-  { key: 'sales_county', label: 'Cherokee County',                             rate: 0.50 },
-];
-const HOTEL_TAXES = [
-  { key: 'hotel_state', label: 'State of Texas',         rate: 6.00, note: 'Applies to stays $15+/day.' },
-  { key: 'hotel_city',  label: 'City of Jacksonville',   rate: 7.00, note: 'General municipal hotel tax.' },
-  { key: 'hotel_venue', label: 'Jacksonville Venue Tax', rate: 2.00, note: 'Voter-approved civic projects.' },
-];
-const ALL_TAXES = [...SALES_TAXES, ...HOTEL_TAXES];
-
-function fmtMoney(n) {
-  return `$${Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
 // Manual room fallback list
 const MANUAL_ROOMS = [
   { id: "Suite 1", name: "Suite 1" },
@@ -291,42 +273,6 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
             <Field label="Special Hotel Requests">
               <textarea placeholder="Ground floor, early check-in, pet, anniversary setup…" value={form.hotelNotes} onChange={e => set("hotelNotes", e.target.value)} className={fieldCls + " resize-none h-16"} />
             </Field>
-          </div>
-        </div>
-      </Section>
-
-      {/* Taxes */}
-      <Section title="Taxes · For Square Invoice">
-        <div className="grid sm:grid-cols-2 gap-5">
-          <div>
-            <p className={labelCls + " mb-2"}>Sales Tax — Retail / Treatments (8.25%)</p>
-            <div className="space-y-2">
-              {SALES_TAXES.map(tax => (
-                <label key={tax.key} className="flex items-center gap-2 cursor-pointer text-sm text-[rgb(45,45,45)]">
-                  <input type="checkbox"
-                    checked={!!(form.quoteTaxes || {})[tax.key]}
-                    onChange={e => set("quoteTaxes", { ...(form.quoteTaxes || {}), [tax.key]: e.target.checked })}
-                    className="accent-[rgb(150,170,155)] w-4 h-4" />
-                  <span className="flex-1">{tax.label}</span>
-                  <span className="text-[rgb(107,85,64)] font-medium">{tax.rate}%</span>
-                </label>
-              ))}
-            </div>
-          </div>
-          <div>
-            <p className={labelCls + " mb-2"}>Hotel Occupancy Tax — Room Stays (15%)</p>
-            <div className="space-y-2">
-              {HOTEL_TAXES.map(tax => (
-                <label key={tax.key} className="flex items-center gap-2 cursor-pointer text-sm text-[rgb(45,45,45)]">
-                  <input type="checkbox"
-                    checked={!!(form.quoteTaxes || {})[tax.key]}
-                    onChange={e => set("quoteTaxes", { ...(form.quoteTaxes || {}), [tax.key]: e.target.checked })}
-                    className="accent-[rgb(150,170,155)] w-4 h-4" />
-                  <span className="flex-1">{tax.label}</span>
-                  <span className="text-[rgb(107,85,64)] font-medium">{tax.rate}%</span>
-                </label>
-              ))}
-            </div>
           </div>
         </div>
       </Section>
@@ -698,7 +644,6 @@ function IntakeCard({ record, onUpdate, bookOnlineTreatments, callToBookTreatmen
       <button className="w-full text-left px-5 py-4 flex items-start justify-between gap-4" onClick={() => { setExpanded(e => !e); setEditing(false); }}>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            {record.intakeNumber && <span className="text-xs font-mono bg-[rgb(235,225,213)] text-[rgb(107,85,64)] px-2 py-0.5 rounded-full font-semibold">#{record.intakeNumber}</span>}
             <span className="font-medium text-[rgb(45,45,45)]">{record.guestName}</span>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[record.bookingStatus] || "bg-gray-100 text-gray-600"}`}>
               {STATUS_LABELS[record.bookingStatus] || record.bookingStatus}
@@ -892,10 +837,7 @@ export default function AdminIntake() {
   }, [load]);
 
   async function createNew(form) {
-    // Auto-assign next intake number
-    const all = await base44.entities.HotelTreatmentIntake.list("-intakeNumber", 1);
-    const nextNum = (all[0]?.intakeNumber || 0) + 1;
-    await base44.entities.HotelTreatmentIntake.create({ ...form, intakeNumber: nextNum });
+    await base44.entities.HotelTreatmentIntake.create(form);
     setShowNew(false);
     load();
   }

@@ -54,7 +54,6 @@ import AdminBookings from './pages/AdminBookings';
 import AdminCatering from './pages/AdminCatering';
 import AdminCateringMenu from './pages/AdminCateringMenu';
 import AdminCateringQuote from './pages/AdminCateringQuote';
-import AdminChecklistSetup from './pages/AdminChecklistSetup';
 import AdminCloudbeds from './pages/AdminCloudbeds';
 import AdminCloudbedsImport from './pages/AdminCloudbedsImport';
 import AdminConciergeInbox from './pages/AdminConciergeInbox';
@@ -119,7 +118,6 @@ export const PAGES = {
     "AdminCatering": AdminCatering,
     "AdminCateringMenu": AdminCateringMenu,
     "AdminCateringQuote": AdminCateringQuote,
-    "AdminChecklistSetup": AdminChecklistSetup,
     "AdminCloudbeds": AdminCloudbeds,
     "AdminCloudbedsImport": AdminCloudbedsImport,
     "AdminConciergeInbox": AdminConciergeInbox,

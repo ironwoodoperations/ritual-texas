@@ -133,51 +133,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Tax line items from quoteTaxes selections
-    const SALES_TAXES = [
-      { key: 'sales_state',  label: 'State of Texas (Sales)',                          rate: 6.25 },
-      { key: 'sales_city',   label: 'City of Jacksonville (Sales)',                    rate: 1.00 },
-      { key: 'sales_jedc',   label: 'Jacksonville Economic Development (JEDC)',        rate: 0.50 },
-      { key: 'sales_county', label: 'Cherokee County (Sales)',                         rate: 0.50 },
-    ];
-    const HOTEL_TAXES = [
-      { key: 'hotel_state', label: 'State of Texas Hotel Occupancy Tax',  rate: 6.00 },
-      { key: 'hotel_city',  label: 'City of Jacksonville Hotel Tax',      rate: 7.00 },
-      { key: 'hotel_venue', label: 'Jacksonville Venue Tax',              rate: 2.00 },
-    ];
-
-    const quoteTaxes = intake?.quoteTaxes || {};
-
-    // Room subtotal (first line item = hotel stay)
-    const roomSubtotal = ROOM_RATE * nights;
-    // Treatment subtotal
-    const treatmentSubtotal = lineItems.slice(1).reduce((s, li) => s + (li.base_price_money.amount / 100), 0);
-
-    for (const tax of HOTEL_TAXES) {
-      if (quoteTaxes[tax.key]) {
-        const amount = Math.round(roomSubtotal * tax.rate) / 100 * 100; // cents
-        if (amount > 0) {
-          lineItems.push({
-            name: tax.label,
-            quantity: "1",
-            base_price_money: { amount: Math.round(amount), currency: "USD" },
-          });
-        }
-      }
-    }
-    for (const tax of SALES_TAXES) {
-      if (quoteTaxes[tax.key]) {
-        const amount = Math.round(treatmentSubtotal * tax.rate) / 100 * 100; // cents
-        if (amount > 0) {
-          lineItems.push({
-            name: tax.label,
-            quantity: "1",
-            base_price_money: { amount: Math.round(amount), currency: "USD" },
-          });
-        }
-      }
-    }
-
     // Create order
     const orderResp = await fetch(`${baseUrl}/v2/orders`, {
       method: "POST",
