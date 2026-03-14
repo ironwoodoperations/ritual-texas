@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import TreatmentSlotPicker from "@/components/intake/TreatmentSlotPicker";
 import TherapistSection from "@/components/intake/TherapistSection";
+import InvoicePreviewModal from "@/components/intake/InvoicePreviewModal";
 
 // ─── Treatments that require call-to-book (loaded from DB) ───────────────────
 // booking_mode: call_to_book | call_and_info
