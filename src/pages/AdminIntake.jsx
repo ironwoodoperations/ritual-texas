@@ -803,7 +803,7 @@ function IntakeCard({ record, onUpdate, bookOnlineTreatments, callToBookTreatmen
                 <p className="text-[10px] text-[rgb(150,130,110)] font-semibold uppercase tracking-widest">Actions</p>
                 <div className="flex flex-wrap gap-2">
                   {hasHotel && (
-                    <ActionBtn label="📧 Send Square Quote" actionKey="SendQuote" completed={completed} actioning={actioning} onClick={() => setShowInvoicePreview(true)} variant="primary" />
+                    <ActionBtn label="👁️ View & Send Quote" actionKey="SendQuote" completed={completed} actioning={actioning} onClick={() => setShowInvoicePreview(true)} variant="primary" />
                   )}
                   {hasHotel && <ActionBtn label="🏨 Book in Cloudbeds" actionKey="BookHotel" completed={completed} actioning={actioning} onClick={() => runAction("BookHotel")} />}
                   <a href="https://simplybook.me" target="_blank" rel="noopener noreferrer" className="px-3 py-2 rounded-xl border border-[rgb(150,170,155)] text-xs text-[rgb(80,120,90)] hover:bg-[rgb(245,250,246)] transition-colors">
