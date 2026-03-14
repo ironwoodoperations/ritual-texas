@@ -582,9 +582,6 @@ function IntakeCard({ record, onUpdate, bookOnlineTreatments, callToBookTreatmen
   const [actioning, setActioning] = useState(null);
   const [actionMsg, setActionMsg] = useState(null);
   const [confirmSendQuote, setConfirmSendQuote] = useState(false);
-  const [squareInvoice, setSquareInvoice] = useState(null); // null=not loaded, false=not found, object=found
-  const [loadingInvoice, setLoadingInvoice] = useState(false);
-  const [draftResult, setDraftResult] = useState(null); // after creating draft
 
   const storageKey = `intake_completed_${record.id}`;
   const [completed, setCompleted] = useState(() => {
@@ -688,40 +685,6 @@ function IntakeCard({ record, onUpdate, bookOnlineTreatments, callToBookTreatmen
       setActionMsg({ success: false, text: err.message, detail });
     }
     setActioning(null);
-  }
-
-  // Look up invoice in Square by guest email
-  async function lookupInvoice() {
-    if (!record.email) return;
-    setLoadingInvoice(true);
-    setSquareInvoice(null);
-    setDraftResult(null);
-    const res = await base44.functions.invoke('squareListInvoices', {});
-    const invoices = res.data?.invoices || [];
-    const match = invoices.find(i =>
-      (i.recipientEmail || '').toLowerCase() === record.email.toLowerCase() &&
-      !['CANCELED', 'CANCELLED', 'DELETED'].includes(i.status)
-    );
-    setSquareInvoice(match || false);
-    setLoadingInvoice(false);
-  }
-
-  // Create a draft invoice (no send)
-  async function createDraftInvoice() {
-    setActioning('draft');
-    setDraftResult(null);
-    const sbParsed = parseTreatmentEntries(record.selectedTreatments || []);
-    const ctbParsed = parseTreatmentEntries(record.callToBookTreatments || []);
-    const intakeData = { ...record, _sbEntries: sbParsed, _ctbEntries: ctbParsed };
-    const res = await base44.functions.invoke('intakeCreateInvoiceDraft', { intake: intakeData });
-    setActioning(null);
-    if (res.data?.error) {
-      setDraftResult({ success: false, text: res.data.error });
-    } else {
-      setDraftResult({ success: true, invoiceId: res.data?.invoiceId, draftUrl: res.data?.draftUrl });
-      // refresh invoice lookup
-      setSquareInvoice(null);
-    }
   }
 
   async function handleArchive() {
@@ -834,99 +797,6 @@ function IntakeCard({ record, onUpdate, bookOnlineTreatments, callToBookTreatmen
                   )}
                 </div>
               )}
-
-              {/* Square Invoice Panel */}
-              <div className="bg-white border border-[rgb(235,225,213)] rounded-xl p-4 space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-[rgb(150,130,110)]">Square Invoice</p>
-                  <button
-                    onClick={lookupInvoice}
-                    disabled={loadingInvoice || !record.email}
-                    className="text-xs text-[rgb(107,85,64)] hover:underline disabled:opacity-50 flex items-center gap-1"
-                  >
-                    {loadingInvoice ? <><span className="inline-block w-3 h-3 border border-[rgb(107,85,64)] border-t-transparent rounded-full animate-spin" /> Checking…</> : squareInvoice === null ? '🔍 Check Square' : '↺ Refresh'}
-                  </button>
-                </div>
-
-                {squareInvoice === null && !draftResult && (
-                  <p className="text-xs text-[rgb(170,150,130)]">Tap "Check Square" to look up an invoice for {record.email || 'this guest'}.</p>
-                )}
-
-                {squareInvoice && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-[rgb(45,45,45)] font-medium">#{squareInvoice.invoiceNumber} · {squareInvoice.status}</span>
-                      <span className="font-semibold text-[rgb(107,85,64)]">${Number(squareInvoice.amountDue || 0).toFixed(2)}</span>
-                    </div>
-                    {squareInvoice.amountPaid > 0 && (
-                      <p className="text-xs text-green-600">${Number(squareInvoice.amountPaid).toFixed(2)} paid</p>
-                    )}
-                    {squareInvoice.publicUrl && (
-                      <div className="flex gap-2">
-                        <a
-                          href={squareInvoice.publicUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1 text-center py-2 rounded-lg bg-[rgb(107,85,64)] text-white text-xs font-medium hover:bg-[rgb(85,65,45)] transition-colors"
-                        >
-                          💳 Open Payment Page
-                        </a>
-                        <button
-                          onClick={() => { navigator.clipboard.writeText(squareInvoice.publicUrl); }}
-                          className="px-3 py-2 rounded-lg border border-[rgb(235,225,213)] text-xs text-[rgb(107,85,64)] hover:bg-[rgb(248,246,242)]"
-                        >
-                          Copy Link
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {squareInvoice === false && !draftResult && (
-                  <div className="space-y-2">
-                    <p className="text-xs text-[rgb(150,150,150)]">No active invoice found in Square for this guest.</p>
-                    <button
-                      onClick={createDraftInvoice}
-                      disabled={actioning === 'draft'}
-                      className="w-full py-2.5 rounded-lg bg-[rgb(150,170,155)] text-white text-xs font-medium hover:bg-[rgb(130,150,135)] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
-                    >
-                      {actioning === 'draft' ? <><span className="inline-block w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" /> Creating Draft…</> : '📄 Create Draft Invoice (Review Before Sending)'}
-                    </button>
-                  </div>
-                )}
-
-                {draftResult && (
-                  <div className={`rounded-lg p-3 text-xs ${draftResult.success ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-700'}`}>
-                    {draftResult.success ? (
-                      <div className="space-y-2">
-                        <p className="font-medium">✅ Draft invoice created — not yet sent to guest.</p>
-                        <div className="flex gap-2">
-                          <a
-                            href="https://squareup.com/dashboard/invoices"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-1 text-center py-2 rounded-lg bg-[rgb(107,85,64)] text-white font-medium hover:bg-[rgb(85,65,45)] transition-colors"
-                          >
-                            Review in Square Dashboard →
-                          </a>
-                          {draftResult.draftUrl && (
-                            <a
-                              href={draftResult.draftUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="px-3 py-2 rounded-lg border border-[rgb(235,225,213)] text-[rgb(107,85,64)] hover:bg-[rgb(248,246,242)]"
-                            >
-                              Preview
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      <p>{draftResult.text}</p>
-                    )}
-                  </div>
-                )}
-              </div>
 
               <div className="space-y-2">
                 <p className="text-[10px] text-[rgb(150,130,110)] font-semibold uppercase tracking-widest">Actions</p>
