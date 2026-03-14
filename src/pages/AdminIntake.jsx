@@ -795,6 +795,13 @@ function IntakeCard({ record, onUpdate, bookOnlineTreatments, callToBookTreatmen
                       </button>
                     </div>
                   )}
+                  {actionMsg.success && !actionMsg.isPending && actionMsg.publicUrl && (
+                    <div className="border-t px-3 py-2 flex items-center gap-2">
+                      <a href={actionMsg.publicUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-blue-600 hover:underline font-medium">
+                        📄 Open Payment Link
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
 
