@@ -827,6 +827,18 @@ function IntakeCard({ record, onUpdate, bookOnlineTreatments, callToBookTreatmen
           )}
         </div>
       )}
+
+      {showInvoicePreview && (
+        <InvoicePreviewModal
+          intake={record}
+          onClose={() => setShowInvoicePreview(false)}
+          sending={actioning === "SendQuote"}
+          onConfirmSend={() => {
+            setShowInvoicePreview(false);
+            runAction("SendQuote");
+          }}
+        />
+      )}
     </div>
   );
 }
