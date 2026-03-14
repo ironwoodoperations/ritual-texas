@@ -698,6 +698,7 @@ function IntakeCard({ record, onUpdate, bookOnlineTreatments, callToBookTreatmen
       <button className="w-full text-left px-5 py-4 flex items-start justify-between gap-4" onClick={() => { setExpanded(e => !e); setEditing(false); }}>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
+            {record.intakeNumber && <span className="text-xs font-mono bg-[rgb(235,225,213)] text-[rgb(107,85,64)] px-2 py-0.5 rounded-full font-semibold">#{record.intakeNumber}</span>}
             <span className="font-medium text-[rgb(45,45,45)]">{record.guestName}</span>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[record.bookingStatus] || "bg-gray-100 text-gray-600"}`}>
               {STATUS_LABELS[record.bookingStatus] || record.bookingStatus}
@@ -891,7 +892,10 @@ export default function AdminIntake() {
   }, [load]);
 
   async function createNew(form) {
-    await base44.entities.HotelTreatmentIntake.create(form);
+    // Auto-assign next intake number
+    const all = await base44.entities.HotelTreatmentIntake.list("-intakeNumber", 1);
+    const nextNum = (all[0]?.intakeNumber || 0) + 1;
+    await base44.entities.HotelTreatmentIntake.create({ ...form, intakeNumber: nextNum });
     setShowNew(false);
     load();
   }
