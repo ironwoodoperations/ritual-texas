@@ -690,6 +690,40 @@ function IntakeCard({ record, onUpdate, bookOnlineTreatments, callToBookTreatmen
     setActioning(null);
   }
 
+  // Look up invoice in Square by guest email
+  async function lookupInvoice() {
+    if (!record.email) return;
+    setLoadingInvoice(true);
+    setSquareInvoice(null);
+    setDraftResult(null);
+    const res = await base44.functions.invoke('squareListInvoices', {});
+    const invoices = res.data?.invoices || [];
+    const match = invoices.find(i =>
+      (i.recipientEmail || '').toLowerCase() === record.email.toLowerCase() &&
+      !['CANCELED', 'CANCELLED', 'DELETED'].includes(i.status)
+    );
+    setSquareInvoice(match || false);
+    setLoadingInvoice(false);
+  }
+
+  // Create a draft invoice (no send)
+  async function createDraftInvoice() {
+    setActioning('draft');
+    setDraftResult(null);
+    const sbParsed = parseTreatmentEntries(record.selectedTreatments || []);
+    const ctbParsed = parseTreatmentEntries(record.callToBookTreatments || []);
+    const intakeData = { ...record, _sbEntries: sbParsed, _ctbEntries: ctbParsed };
+    const res = await base44.functions.invoke('intakeCreateInvoiceDraft', { intake: intakeData });
+    setActioning(null);
+    if (res.data?.error) {
+      setDraftResult({ success: false, text: res.data.error });
+    } else {
+      setDraftResult({ success: true, invoiceId: res.data?.invoiceId, draftUrl: res.data?.draftUrl });
+      // refresh invoice lookup
+      setSquareInvoice(null);
+    }
+  }
+
   async function handleArchive() {
     await base44.entities.HotelTreatmentIntake.update(record.id, { bookingStatus: "archived" });
     onUpdate();
