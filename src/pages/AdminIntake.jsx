@@ -439,6 +439,51 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
         </div>
       </Section>
 
+      {/* Taxes */}
+      <Section title="Taxes · Quote Line Items">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <p className="text-[10px] font-semibold tracking-widest text-[rgb(150,130,110)] uppercase mb-2">Sales Tax (Retail / Treatments)</p>
+            <p className="text-xs text-[rgb(170,150,130)] mb-3">Combined rate: 8.25%</p>
+            <div className="space-y-2">
+              {SALES_TAXES.map(tax => (
+                <label key={tax.key} className="flex items-center gap-2 cursor-pointer text-sm text-[rgb(45,45,45)]">
+                  <input
+                    type="checkbox"
+                    checked={!!(form.taxes || {})[tax.key]}
+                    onChange={e => set("taxes", { ...(form.taxes || {}), [tax.key]: e.target.checked })}
+                    className="accent-[rgb(107,85,64)] w-4 h-4"
+                  />
+                  <span className="flex-1">{tax.label}</span>
+                  <span className="text-[rgb(107,85,64)] font-medium">{tax.rate}%</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold tracking-widest text-[rgb(150,130,110)] uppercase mb-2">Hotel Occupancy Tax (Room Stay)</p>
+            <p className="text-xs text-[rgb(170,150,130)] mb-3">Combined rate: 15.00%</p>
+            <div className="space-y-2">
+              {HOTEL_TAXES.map(tax => (
+                <label key={tax.key} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={!!(form.taxes || {})[tax.key]}
+                    onChange={e => set("taxes", { ...(form.taxes || {}), [tax.key]: e.target.checked })}
+                    className="accent-[rgb(107,85,64)] w-4 h-4"
+                  />
+                  <div className="flex-1">
+                    <span className="text-sm text-[rgb(45,45,45)]">{tax.label}</span>
+                    {tax.note && <p className="text-xs text-[rgb(170,150,130)]">{tax.note}</p>}
+                  </div>
+                  <span className="text-[rgb(107,85,64)] font-medium text-sm">{tax.rate}%</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Section>
+
       {/* Save / Send */}
       <div className="pt-4 border-t border-[rgb(220,210,200)] space-y-3">
         {sendConfirm && (
