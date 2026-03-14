@@ -582,7 +582,7 @@ function IntakeCard({ record, onUpdate, bookOnlineTreatments, callToBookTreatmen
   const [editing, setEditing] = useState(false);
   const [actioning, setActioning] = useState(null);
   const [actionMsg, setActionMsg] = useState(null);
-  const [confirmSendQuote, setConfirmSendQuote] = useState(false);
+  const [showInvoicePreview, setShowInvoicePreview] = useState(false);
 
   const storageKey = `intake_completed_${record.id}`;
   const [completed, setCompleted] = useState(() => {
