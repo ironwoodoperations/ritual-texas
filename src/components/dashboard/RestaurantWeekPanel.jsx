@@ -100,10 +100,9 @@ export default function RestaurantWeekPanel() {
     queryFn: () => base44.entities.ManualSalesDay.filter({ weekKey }),
   });
 
-  const { data: cateringRecord } = useQuery({
+  const { data: cateringRecords = [] } = useQuery({
     queryKey: ["catering-sales-week", weekKey],
-    queryFn: () => base44.entities.ManualSalesDay.filter({ weekKey, date: `catering-${weekKey}` }).then(r => r[0] || null),
-    onSuccess: (rec) => { if (rec) setCatering({ sales: rec.sales || "", labor: rec.labor || "", laborHours: rec.laborHours || "" }); },
+    queryFn: () => base44.entities.ManualSalesDay.filter({ weekKey, date: { $regex: `^catering-` } }),
   });
 
   const { data: archivedWeeks = [] } = useQuery({
