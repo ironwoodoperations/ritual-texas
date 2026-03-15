@@ -267,38 +267,58 @@ export default function RestaurantWeekPanel() {
 
           {/* Catering box */}
           <div className="mt-3 rounded-xl border border-[rgb(235,225,213)] bg-white p-3">
-            <div className="text-xs font-semibold text-[rgb(107,85,64)] mb-2">🍽️ Catering</div>
-            <div className="grid grid-cols-[44px_1fr_1fr_1fr_34px] gap-1.5 px-1 mb-1">
-              {["", "Sales ($)", "Labor ($)", "Hrs", ""].map((h, i) => (
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs font-semibold text-[rgb(107,85,64)]">🍽️ Catering</div>
+              <button
+                onClick={() => setCateringRows(prev => [...prev, { id: Date.now(), label: "", sales: "", labor: "", laborHours: "" }])}
+                className="text-[10px] px-2 py-1 rounded-lg border border-[rgb(235,225,213)] text-[rgb(107,85,64)] hover:bg-[rgb(248,246,242)] transition-colors"
+              >
+                + Add Event
+              </button>
+            </div>
+            <div className="grid grid-cols-[80px_1fr_1fr_1fr_34px] gap-1.5 px-1 mb-1">
+              {["Event", "Sales ($)", "Labor ($)", "Hrs", ""].map((h, i) => (
                 <span key={i} className="text-[10px] text-[rgb(150,150,150)] font-semibold">{h}</span>
               ))}
             </div>
-            <div className="grid grid-cols-[44px_1fr_1fr_1fr_34px] gap-1.5 items-center">
-              <span className="text-xs font-medium text-[rgb(45,45,45)]">Wk</span>
-              {["sales", "labor", "laborHours"].map((field) => (
-                <input
-                  key={field}
-                  type="number"
-                  placeholder="0"
-                  value={catering[field]}
-                  onChange={(e) => setCatering(prev => ({ ...prev, [field]: e.target.value }))}
-                  className="w-full text-xs border border-[rgb(235,225,213)] rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:border-[rgb(198,182,165)]"
-                />
+            <div className="flex flex-col gap-1.5">
+              {cateringRows.map((row) => (
+                <div key={row.id} className="grid grid-cols-[80px_1fr_1fr_1fr_34px] gap-1.5 items-center">
+                  <input
+                    type="text"
+                    placeholder="Name"
+                    value={row.label}
+                    onChange={(e) => setCateringRows(prev => prev.map(r => r.id === row.id ? { ...r, label: e.target.value } : r))}
+                    className="w-full text-xs border border-[rgb(235,225,213)] rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:border-[rgb(198,182,165)]"
+                  />
+                  {["sales", "labor", "laborHours"].map((field) => (
+                    <input
+                      key={field}
+                      type="number"
+                      placeholder="0"
+                      value={row[field]}
+                      onChange={(e) => setCateringRows(prev => prev.map(r => r.id === row.id ? { ...r, [field]: e.target.value } : r))}
+                      className="w-full text-xs border border-[rgb(235,225,213)] rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:border-[rgb(198,182,165)]"
+                    />
+                  ))}
+                  <button
+                    onClick={async () => {
+                      const dateKey = `catering-${weekKey}-${row.id}`;
+                      const existing = cateringRecords.find(r => r.date === dateKey);
+                      const data = { date: dateKey, weekKey, label: row.label, sales: parseFloat(row.sales) || 0, labor: parseFloat(row.labor) || 0, laborHours: parseFloat(row.laborHours) || 0 };
+                      if (existing) { await base44.entities.ManualSalesDay.update(existing.id, data); }
+                      else { await base44.entities.ManualSalesDay.create(data); }
+                      queryClient.invalidateQueries({ queryKey: ["catering-sales-week", weekKey] });
+                      setCateringSaved(prev => ({ ...prev, [row.id]: true }));
+                      setTimeout(() => setCateringSaved(prev => ({ ...prev, [row.id]: false })), 2000);
+                    }}
+                    className={`flex items-center justify-center w-8 h-8 rounded-lg text-white transition-colors ${cateringSaved[row.id] ? "bg-green-500" : "bg-[rgb(150,170,155)] hover:bg-[rgb(130,150,135)]"}`}
+                    title="Save"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               ))}
-              <button
-                onClick={async () => {
-                  const data = { date: `catering-${weekKey}`, weekKey, sales: parseFloat(catering.sales) || 0, labor: parseFloat(catering.labor) || 0, laborHours: parseFloat(catering.laborHours) || 0 };
-                  if (cateringRecord) { await base44.entities.ManualSalesDay.update(cateringRecord.id, data); }
-                  else { await base44.entities.ManualSalesDay.create(data); }
-                  queryClient.invalidateQueries({ queryKey: ["catering-sales-week", weekKey] });
-                  setCateringSaved(true);
-                  setTimeout(() => setCateringSaved(false), 2000);
-                }}
-                className={`flex items-center justify-center w-8 h-8 rounded-lg text-white transition-colors ${cateringSaved ? "bg-green-500" : "bg-[rgb(150,170,155)] hover:bg-[rgb(130,150,135)]"}`}
-                title="Save"
-              >
-                <Save className="w-3.5 h-3.5" />
-              </button>
             </div>
           </div>
 
