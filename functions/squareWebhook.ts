@@ -63,7 +63,50 @@ Deno.serve(async (req) => {
 
     const event = JSON.parse(rawBody);
     const eventType = event?.type || "unknown";
-    
+
+    // ── Invoice payment: mark matching intake as confirmed ──────────────────
+    if (eventType === "invoice.payment_made" || eventType === "invoice.updated") {
+      const invoice = event?.data?.object?.invoice;
+      const invoiceStatus = invoice?.status;
+      const isPaid = invoiceStatus === "PAID" || invoiceStatus === "PARTIALLY_PAID";
+
+      if (isPaid || eventType === "invoice.payment_made") {
+        const base44 = createClientFromRequest(req);
+        // Get customer email from invoice recipient
+        const customerId = invoice?.primary_recipient?.customer_id;
+        let guestEmail = "";
+        if (customerId) {
+          try {
+            const custResp = await fetch(`https://connect.squareup.com/v2/customers/${encodeURIComponent(customerId)}`, {
+              headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+            });
+            const custData = await custResp.json();
+            guestEmail = custData?.customer?.email_address || "";
+          } catch (e) {
+            console.error("Failed to fetch customer for invoice event:", e.message);
+          }
+        }
+
+        if (guestEmail) {
+          try {
+            const intakes = await base44.asServiceRole.entities.HotelTreatmentIntake.filter({ email: guestEmail });
+            const active = intakes.filter(i => i.bookingStatus !== "confirmed" && i.bookingStatus !== "archived" && i.bookingStatus !== "declined");
+            for (const intake of active) {
+              await base44.asServiceRole.entities.HotelTreatmentIntake.update(intake.id, { bookingStatus: "confirmed" });
+              console.log(`Marked intake ${intake.id} (${guestEmail}) as confirmed via Square invoice payment.`);
+            }
+          } catch (e) {
+            console.error("Failed to update intake on invoice payment:", e.message);
+          }
+        }
+
+        return Response.json({ received: true, action: "invoice_payment_processed", email: guestEmail }, { status: 200 });
+      }
+
+      return Response.json({ received: true, action: "invoice_event_skipped", status: invoiceStatus }, { status: 200 });
+    }
+
+    // ── Spa booking events ───────────────────────────────────────────────────
     // Get booking ID from the correct location (without :0 suffix)
     const booking = event?.data?.object?.booking;
     const bookingId = booking?.id;
