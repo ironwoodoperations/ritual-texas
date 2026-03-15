@@ -88,8 +88,8 @@ export default function RestaurantWeekPanel() {
   const [editing, setEditing] = useState({});
   const [saving, setSaving] = useState({});
   const [archiving, setArchiving] = useState(false);
-  const [catering, setCatering] = useState({ sales: "", labor: "", laborHours: "" });
-  const [cateringSaved, setCateringSaved] = useState(false);
+  const [cateringRows, setCateringRows] = useState([{ id: Date.now(), label: "", sales: "", labor: "", laborHours: "" }]);
+  const [cateringSaved, setCateringSaved] = useState({});
   const queryClient = useQueryClient();
 
   const weekDays = getCurrentWeekDays();
