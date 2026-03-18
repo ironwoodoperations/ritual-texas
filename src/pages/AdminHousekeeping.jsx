@@ -263,10 +263,10 @@ export default function AdminHousekeeping() {
               const pc = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.normal;
               const pct = task.totalItems > 0 ? Math.round((task.completedItems || 0) / task.totalItems * 100) : 0;
               return (
-                <Link key={task.id} to={createPageUrl(`AdminHousekeepingTask?id=${task.id}`)} style={{ textDecoration: 'none' }}>
-                  <div style={{ background: 'rgba(245,240,232,.05)', border: '1px solid rgba(198,168,94,.15)', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'background 0.15s' }}>
+                <div key={task.id} style={{ background: 'rgba(245,240,232,.05)', border: '1px solid rgba(198,168,94,.15)', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <Link to={createPageUrl(`AdminHousekeepingTask?id=${task.id}`)} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: '28px', minWidth: '36px', textAlign: 'center' }}>🛏️</div>
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
                         <span style={{ color: '#F5F0E8', fontWeight: 600, fontSize: '16px' }}>{task.roomNumber}</span>
                         <span style={{ padding: '2px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, background: pc.bg, color: pc.text, border: `1px solid ${pc.border}`, fontFamily: 'sans-serif' }}>
@@ -276,6 +276,7 @@ export default function AdminHousekeeping() {
                         {task.adminNotes && <span style={{ fontSize: '14px' }} title="Has admin notes">📌</span>}
                         {task.status === 'needs_review' && <span style={{ fontSize: '14px' }}>⚠️</span>}
                       </div>
+                      <div style={{ color: '#9AA8B5', fontSize: '11px', fontFamily: 'sans-serif', marginBottom: task.totalItems > 0 ? '6px' : 0 }}>{task.taskDate}</div>
                       {task.totalItems > 0 && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <div style={{ flex: 1, height: '4px', background: 'rgba(245,240,232,.1)', borderRadius: '2px' }}>
@@ -289,8 +290,15 @@ export default function AdminHousekeeping() {
                       {STATUS_ICONS[task.status]}
                       <ChevronRight size={16} color="#9AA8B5" />
                     </div>
-                  </div>
-                </Link>
+                  </Link>
+                  <button
+                    onClick={(e) => { e.preventDefault(); setEditDateTask({ id: task.id, taskDate: task.taskDate }); }}
+                    title="Change date"
+                    style={{ flexShrink: 0, padding: '6px', background: 'rgba(198,168,94,.1)', border: '1px solid rgba(198,168,94,.25)', borderRadius: '8px', color: '#C6A85E', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  >
+                    <CalendarDays size={15} />
+                  </button>
+                </div>
               );
             })}
           </div>
