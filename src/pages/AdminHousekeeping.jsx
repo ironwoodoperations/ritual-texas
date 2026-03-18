@@ -137,6 +137,12 @@ export default function AdminHousekeeping() {
     onSuccess: () => qc.invalidateQueries(['hk-public-spaces'])
   });
 
+  const [editDateTask, setEditDateTask] = useState(null); // { id, taskDate }
+  const updateDateMutation = useMutation({
+    mutationFn: ({ id, taskDate }) => base44.entities.HkTask.update(id, { taskDate }),
+    onSuccess: () => { qc.invalidateQueries(['hk-tasks']); setEditDateTask(null); }
+  });
+
   // Check if opening duties block access
   const canAccessOtherTasks = openingDutiesCompleted || openingDuties.length === 0;
 
