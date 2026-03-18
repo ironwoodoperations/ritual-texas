@@ -403,6 +403,31 @@ export default function AdminHousekeeping() {
         </div>
       )}
 
+      {/* Edit Task Date Modal */}
+      {editDateTask && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div style={{ background: '#132336', border: '1px solid rgba(198,168,94,.2)', borderRadius: '16px', padding: '28px', maxWidth: '340px', width: '100%' }}>
+            <h3 style={{ color: '#C6A85E', fontSize: '11px', letterSpacing: '3px', margin: '0 0 20px', fontFamily: 'sans-serif' }}>CHANGE TASK DATE</h3>
+            <input
+              type="date"
+              value={editDateTask.taskDate}
+              onChange={e => setEditDateTask(d => ({ ...d, taskDate: e.target.value }))}
+              style={{ width: '100%', padding: '10px 12px', background: 'rgba(245,240,232,.06)', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#F5F0E8', fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'sans-serif', marginBottom: '16px' }}
+            />
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setEditDateTask(null)} style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid rgba(198,168,94,.2)', borderRadius: '8px', color: '#9AA8B5', cursor: 'pointer', fontFamily: 'sans-serif' }}>Cancel</button>
+              <button
+                onClick={() => updateDateMutation.mutate(editDateTask)}
+                disabled={!editDateTask.taskDate || updateDateMutation.isPending}
+                style={{ flex: 2, padding: '10px', background: '#C6A85E', border: 'none', borderRadius: '8px', color: '#0C1C2C', cursor: 'pointer', fontWeight: 700, fontFamily: 'sans-serif' }}
+              >
+                {updateDateMutation.isPending ? 'Saving…' : 'Save Date'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add Note Modal */}
       {showAddNote && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
