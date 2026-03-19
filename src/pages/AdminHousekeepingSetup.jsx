@@ -4,6 +4,29 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Plus, Trash2, Save, CheckCircle2, Layers } from 'lucide-react';
+import PageHelpBanner from '@/components/PageHelpBanner';
+
+const HELP_CONTENT = `Configure the checklists that staff work through for each room type and common area.
+
+TEMPLATES (left sidebar)
+• Each template defines the checklist items for a task type (Checkout, Stayover, Opening Duty, etc.).
+• Click a template name to open its checklist editor on the right.
+
+EDITING CHECKLIST ITEMS
+• Click any item to edit its label, category, and whether it's Required.
+• Green ● = item is active. Click to disable without deleting.
+• Qty column: set an expected count for replenishment items (e.g. 2 towels, 3 toiletries).
+• Click "+ Add Item" to add new steps to any checklist.
+• Click Save Template when done — changes are NOT auto-saved.
+
+COMMON AREAS
+• Add preset templates (Pool, Sauna, Lobby, etc.) or create a custom area with a blank or copied checklist.
+
+ROOMS
+• Register each physical room (Suite 1, Suite 2, etc.) so housekeeping tasks can be assigned per room.
+• Toggle the green/grey dot to activate or deactivate a room without deleting it.
+
+Pro Tip: Build your checkout checklist to match exactly what a departing guest should see when the next guest opens the door.`;
 
 const CATEGORIES = ['strip','bath','bed','dust','floors','replenish','inspect','trash','final','chemicals','safety','outdoor','general'];
 

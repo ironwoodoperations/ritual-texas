@@ -4,6 +4,18 @@ import { createPageUrl } from '@/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Plus, Pencil, Trash2, ArrowLeft, Video, FileText } from 'lucide-react';
+import PageHelpBanner from '@/components/PageHelpBanner';
+
+const HELP_CONTENT = `The content that powers Whitney (AI concierge) and the guest-facing Help pages.
+
+1. Add Content: Click "+ Add Content". Choose a category, write a title, and fill in the content field with accurate, warm, detailed information.
+2. Categories: Check-In · Check-Out · Treatments · Property · Policies · What to Bring · FAQ. Match each article to the right category so Whitney retrieves it correctly.
+3. Writing Tips: Write as if speaking directly to a guest. Use complete sentences. Include specific details (times, phone numbers, prices). Vague articles produce vague AI answers.
+4. Video URLs: Attach a YouTube or Vimeo URL to any article to embed a visual walkthrough.
+5. Active Toggle: Inactive articles are hidden from Whitney and guests. Use this instead of deleting outdated info — you may want it back.
+6. Review Quarterly: Outdated information in the KB is worse than no information. Review all articles at least once per quarter.
+
+Pro Tip: If guests repeatedly ask the same question to staff, that question belongs in the Knowledge Base. Every answered question here means one fewer call or text to Whitney.`;
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';

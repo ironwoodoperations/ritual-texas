@@ -7,6 +7,28 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Plus, Users, Pencil, Check, X } from 'lucide-react';
+import PageHelpBanner from '@/components/PageHelpBanner';
+
+const HELP_CONTENT = `Manage who can access the Staff Dashboard, what role they have, and which modules they see.
+
+STAFF MEMBERS & PINS
+• Each staff member needs a name, a 4-digit PIN, and one or more roles.
+• PINs are used to log into the Staff Dashboard at StaffLogin. Keep them private.
+• Multiple roles: a staff member can be both "housekeeper" and "server" — check all that apply.
+• Active toggle: Deactivate immediately when someone leaves — do not delete (preserves history).
+
+ROLE REFERENCE
+• Roles control which dashboard modules a staff member can see. Review the Role Reference card to understand what each role unlocks.
+
+MODULE PERMISSIONS
+• Each module (Spa Schedule, Housekeeping, Checklists, etc.) can be toggled visible/hidden.
+• Click role badges to grant or revoke access per module per role.
+• "Visible" toggle = the module appears in the Staff Dashboard sidebar. Role badges = which roles can see it.
+
+CHECKLIST ITEMS
+• Click "Manage Checklist Items" to configure Opening/Closing duties for FOH, BOH, and Bar.
+
+Pro Tip: Always deactivate a staff member's PIN the same day they leave. Never share admin credentials.`;
 import { DEFAULT_MODULES, ALL_ROLES, ROLE_COLORS, ROLE_DESCRIPTIONS } from '@/components/staffAccess';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';

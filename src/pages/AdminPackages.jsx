@@ -4,6 +4,17 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Eye, EyeOff, GripVertical, ArrowLeft } from 'lucide-react';
+import PageHelpBanner from '@/components/PageHelpBanner';
+
+const HELP_CONTENT = `Wellness packages sold on the website — combinations of rooms, treatments, and experiences.
+
+1. Create a Package: Click "New Package". Fill in title, subtitle, price, hero image URL, short description, and what's included (one item per line).
+2. Fine Print: Add any booking conditions or restrictions guests should know before purchasing.
+3. Toggle Active: Eye icon shows/hides the package from the public Packages page. Use this instead of deleting.
+4. Reorder: Drag the grip handle (⠿) to reorder packages. Click "Save Order" when done.
+5. Delete: Only delete if a package will never be offered again. Prefer hiding (inactive) for seasonal packages.
+
+Pro Tip: Packages that include specific treatments need to have those treatments booked separately in SimplyBook. The package page creates the inquiry — staff fulfills the booking.`;
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
