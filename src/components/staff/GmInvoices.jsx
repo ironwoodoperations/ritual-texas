@@ -116,18 +116,6 @@ function InvoiceDetailModal({ inv, onClose, onRefresh }) {
                 {loading === "send" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />} Resend Invoice Email
               </button>
             )}
-            {canCancel && (
-              <button onClick={() => { if (confirm("Cancel this invoice? This cannot be undone.")) doAction("cancel"); }} disabled={!!loading}
-                className="flex items-center justify-center gap-2 w-full py-2.5 border border-orange-300 text-orange-700 rounded-xl text-sm font-medium hover:bg-orange-50 disabled:opacity-60">
-                {loading === "cancel" ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} Cancel Invoice
-              </button>
-            )}
-            {canDelete && (
-              <button onClick={() => { if (confirm("Permanently delete this invoice?")) doAction("delete"); }} disabled={!!loading}
-                className="flex items-center justify-center gap-2 w-full py-2.5 border border-red-300 text-red-600 rounded-xl text-sm font-medium hover:bg-red-50 disabled:opacity-60">
-                {loading === "delete" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Delete Invoice
-              </button>
-            )}
           </div>
         </div>
       </DialogContent>
