@@ -4,6 +4,22 @@ import { createPageUrl } from '@/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, MessageSquare, Package, CheckCircle, Clock, Mail, Plus, X, Save, CalendarCheck, UserX } from 'lucide-react';
+import PageHelpBanner from '@/components/PageHelpBanner';
+
+const CONCIERGE_HELP = `All inbound guest inquiries from the website — two tabs.
+
+GUEST MESSAGES TAB
+• Direct contact form submissions from the website.
+• Click the email to open a pre-addressed reply. Click the phone to open a text thread.
+• Toggle the clock icon to mark as Replied / New.
+
+PACKAGE INQUIRIES TAB
+• Guests who clicked "Request Info" on a package page.
+• Reply via Email opens a pre-filled Gmail compose.
+• Create Intake converts the inquiry into a full Hotel/Treatment intake record for follow-up.
+• Completed — Booked: removes from inbox and treats as won. Completed — Not Booked: saves to CRM and removes.
+
+Target response time: 2 hours for all new inquiries.`;
 import { format } from 'date-fns';
 
 function fmtDate(dateStr) {

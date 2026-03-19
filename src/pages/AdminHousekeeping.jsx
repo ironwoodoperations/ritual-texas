@@ -4,6 +4,26 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, RefreshCw, AlertTriangle, ChevronRight, Clock, CheckCircle2, Pause, Play, Wrench, ArrowLeft, CalendarDays } from 'lucide-react';
+import PageHelpBanner from '@/components/PageHelpBanner';
+
+const HK_HELP = `Daily housekeeping task management across all rooms and public spaces.
+
+DAILY WORKFLOW
+• Opening Duties must be completed FIRST — all other tasks are blocked until done.
+• Auto-Fill Checkouts: Click to auto-generate checkout cleaning tasks for today's departures.
+• Today tab: Shows all open tasks for today. Tomorrow: plan ahead.
+
+TASK CARDS
+• Click any task card to open the full checklist — staff check items off one by one.
+• Calendar icon on each card: Reschedule a task to a different date.
+• Open Issues link in the header: Flagged maintenance issues reported by housekeeping staff.
+
+ADDING TASKS
+• + Add Task: Select a room or public space, set task type, priority, and date.
+• + Note: Post a hotel-wide note visible to all housekeeping staff (e.g., "VIP arriving, use extra towels").
+• + Public Space: Register a common area (lobby, hallway) to include in task tracking.
+
+Pro Tip: Never release a room for check-in until the HK task shows Completed and has been verified.`;
 
 const PRIORITY_COLORS = {
   low: { bg: '#f0f9f0', text: '#2d7a2d', border: '#b8e0b8' },

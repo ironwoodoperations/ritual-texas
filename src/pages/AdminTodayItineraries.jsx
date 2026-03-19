@@ -4,6 +4,19 @@ import { createPageUrl } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Leaf, Printer, RefreshCw, Sparkles, Mail, MessageCircle, Check, ChevronDown, X } from 'lucide-react';
+import PageHelpBanner from '@/components/PageHelpBanner';
+
+const ITINERARY_HELP = `Print-ready guest briefings for every arrival and spa guest today — pulled live from Cloudbeds and SimplyBook.
+
+1. Review by 10 AM: Check each arriving guest's itinerary for accuracy before their arrival window.
+2. Expand a Card: Click a guest name to see their full stay details, spa appointments, and contact info.
+3. Send Itinerary via Email: Enter their email and click Email — opens Gmail compose pre-filled with their details.
+4. Send via Text: Click "Open Text Message" to send a pre-filled SMS itinerary to the guest.
+5. Print All: Prints every expanded itinerary — great for a physical front desk folder.
+6. Refresh: Pulls the latest from Cloudbeds if you've made recent changes.
+
+HOTEL ARRIVALS: Guests checking in today with room assignments.
+SPA GUESTS TODAY: Guests with spa appointments today who are not hotel guests.`;
 import { format } from 'date-fns';
 
 function todayStr() {

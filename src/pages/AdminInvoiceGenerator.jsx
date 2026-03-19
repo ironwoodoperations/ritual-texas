@@ -15,6 +15,24 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
+import PageHelpBanner from '@/components/PageHelpBanner';
+
+const INVOICE_HELP = `Create and manage Square invoices for guests, groups, and catering deposits.
+
+ALL INVOICES TAB
+• View all outstanding and active invoices synced from Square.
+• Search by name, email, or phone to find a specific invoice.
+• Click any invoice to resend it, copy the payment link, cancel, or delete.
+• Hit Refresh to pull the latest status from Square.
+
+NEW INVOICE TAB
+1. Enter guest name and email.
+2. Add from Catalog: Select a room, treatment, or package to pre-fill a line item.
+3. Edit amounts and quantities as needed. Add custom line items for anything else.
+4. Apply Taxes: Check Sales Tax boxes for retail/spa items. Check Hotel Occupancy Tax boxes for room stays.
+5. Set a due date and optional note, then click Create & Send (emails guest immediately) or Save as Draft.
+
+Pro Tip: Always double-check the email address before hitting Send — Square invoices cannot be recalled.`;
 
 const blankItem = () => ({ name: '', amount: '', quantity: '1' });
 

@@ -3,6 +3,19 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Printer, Download, RefreshCw, Sparkles, ArrowLeft, Send } from 'lucide-react';
+import PageHelpBanner from '@/components/PageHelpBanner';
+
+const SPA_HELP = `Daily spa appointment viewer synced from SimplyBook.me.
+
+1. Select Date: Click any date on the calendar or use the date input. Appointments load automatically.
+2. Filter by Provider: Use the Provider dropdown to see one therapist's schedule.
+3. Filter by Status: Show only Confirmed, Booked, Cancelled, etc.
+4. Send Tip Request: Click "Tip" next to any appointment to send the guest a tipping link via text or email.
+5. Provider Tip Links: Click a provider's name card to text them their personal Square tip link.
+6. Print Day Sheet: Generates a clean printable version for the front desk or therapists.
+7. Export ICS: Downloads the day's appointments as a calendar file to import into Google Calendar.
+
+CRITICAL: This page is read-only. To modify bookings, click the SimplyBook.me logo to go directly to the booking admin.`;
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import SpaCalendar from '@/components/spa/SpaCalendar';
 import { Link } from 'react-router-dom';
