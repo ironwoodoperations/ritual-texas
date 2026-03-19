@@ -299,6 +299,7 @@ export default function StaffDashboard() {
 
   const renderView = () => {
     switch (view) {
+      case 'time_clock':          return <StaffTimeClock session={session} />;
       case 'daily_checklists':    return <StaffChecklist session={session} />;
       case 'spa_schedule':        return <AdminSpaSchedule />;
       case 'hotel':               return <StaffHotelReservations />;

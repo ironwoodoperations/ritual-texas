@@ -66,6 +66,8 @@ const AuthenticatedApp = () => {
       <Route path="/AdminChecklistSetup" element={<LayoutWrapper currentPageName="AdminChecklistSetup"><AdminChecklistSetup /></LayoutWrapper>} />
       <Route path="/AdminFiles" element={<LayoutWrapper currentPageName="AdminFiles"><AdminFiles /></LayoutWrapper>} />
       <Route path="/AdminTrainingManual" element={<LayoutWrapper currentPageName="AdminTrainingManual"><AdminTrainingManual /></LayoutWrapper>} />
+      <Route path="/AdminScheduling" element={<LayoutWrapper currentPageName="AdminScheduling"><AdminScheduling /></LayoutWrapper>} />
+      <Route path="/StaffTimeClock" element={<LayoutWrapper currentPageName="StaffTimeClock"><StaffTimeClock session={null} standalone={true} /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
