@@ -170,6 +170,7 @@ export default function AdminKnowledge() {
       </header>
 
       <main className="max-w-6xl mx-auto p-6">
+        <PageHelpBanner title="Knowledge Base" content={HELP_CONTENT} accentColor="rgb(150,170,155)" />
         <div className="bg-[rgb(235,225,213)] p-4 mb-6">
           <p className="text-sm text-[rgb(107,85,64)]">
             <strong>Tip:</strong> The AI concierge (Ask Ritual) uses this content to answer guest questions. 

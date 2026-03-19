@@ -234,7 +234,10 @@ export default function AdminHousekeepingSetup() {
         </div>
       </div>
 
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 20px', display: 'grid', gridTemplateColumns: '220px 1fr', gap: '24px', alignItems: 'start' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 20px' }}>
+        <PageHelpBanner title="Housekeeping Setup" content={HELP_CONTENT} accentColor="rgb(198,168,94)" />
+      </div>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 20px 24px', display: 'grid', gridTemplateColumns: '220px 1fr', gap: '24px', alignItems: 'start' }}>
         {/* Sidebar */}
         <div>
           <p style={{ color: '#C6A85E', fontSize: '11px', letterSpacing: '2px', margin: '0 0 12px', fontFamily: 'sans-serif' }}>TEMPLATES</p>

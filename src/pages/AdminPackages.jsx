@@ -126,6 +126,7 @@ export default function AdminPackages() {
   return (
     <div style={{ background: '#F0E8DD', minHeight: '100vh', padding: '32px 20px' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <PageHelpBanner title="Chapter 2: Packages" content={HELP_CONTENT} accentColor="rgb(107,85,64)" />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Link to={createPageUrl('AdminDashboard')} style={{ color: '#3B4831', display: 'flex', padding: '6px' }}><ArrowLeft size={20} /></Link>

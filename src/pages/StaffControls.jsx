@@ -313,6 +313,7 @@ export default function StaffControls() {
     <div className="min-h-screen bg-[rgb(248,246,242)]">
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
 
+        <PageHelpBanner title="Staff Controls" content={HELP_CONTENT} accentColor="rgb(150,170,155)" />
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
