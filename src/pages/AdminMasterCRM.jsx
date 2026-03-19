@@ -111,6 +111,7 @@ export default function AdminMasterCRM() {
       </header>
 
       <main className="max-w-7xl mx-auto p-6">
+        <PageHelpBanner title="Chapter 5: CRM & Marketing" content={HELP_CONTENT} accentColor="rgb(150,170,155)" />
         {/* Controls */}
         <div className="bg-white border border-[rgb(235,225,213)] rounded-lg p-6 mb-6">
           <div className="grid gap-4 mb-4">

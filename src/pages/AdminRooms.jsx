@@ -185,6 +185,7 @@ export default function AdminRooms() {
       </header>
 
       <main className="max-w-6xl mx-auto p-6">
+        <PageHelpBanner title="Chapter 2: Rooms & Stays" content={HELP_CONTENT} accentColor="rgb(107,85,64)" />
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {rooms?.map(room => (
             <motion.div

@@ -102,6 +102,7 @@ export default function AdminCatering() {
       </div>
 
       <div className="catering-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>
+        <PageHelpBanner title="Chapter 4: Catering" content={HELP_CONTENT} accentColor="rgb(198,168,94)" />
         {/* Stats Row */}
         <div className="catering-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
           {[

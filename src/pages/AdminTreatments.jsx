@@ -197,6 +197,7 @@ export default function AdminTreatments() {
       </header>
 
       <main className="max-w-6xl mx-auto p-6">
+        <PageHelpBanner title="Chapter 3: Spa & Wellness" content={HELP_CONTENT} accentColor="rgb(150,170,155)" />
         <div className="space-y-4">
                 {treatments?.map((treatment, index) => (
                       <motion.div

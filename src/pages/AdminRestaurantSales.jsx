@@ -149,6 +149,8 @@ export default function AdminRestaurantSales() {
 
       <div className="max-w-3xl mx-auto p-6 space-y-8">
 
+        <PageHelpBanner title="Chapter 4: Restaurant Sales" content={HELP_CONTENT} accentColor="rgb(196,155,145)" />
+
         {/* Manual Entry Modal */}
         {showManual && (
           <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">

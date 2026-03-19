@@ -71,6 +71,7 @@ export default function AdminRestaurant() {
           ))}
         </div>
 
+        <PageHelpBanner title="Chapter 4: Restaurant" content={HELP_CONTENT} accentColor="rgb(196,155,145)" />
         {activeTab === 'specials' && <SpecialsManager />}
         {activeTab === 'menu' && <MenuManager />}
         {activeTab === 'categories' && <CategoryManager />}

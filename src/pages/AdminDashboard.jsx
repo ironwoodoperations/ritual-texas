@@ -466,6 +466,8 @@ export default function AdminDashboard() {
 
       <div className="max-w-6xl mx-auto p-6">
 
+        <PageHelpBanner title="Chapter 1: The Dashboard" content={CH1_CONTENT} accentColor="rgb(107,85,64)" />
+
         {/* Quick Action Tiles */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <Link to={createPageUrl("AdminTodayItineraries")} className="bg-[rgb(107,85,64)] text-white rounded-2xl p-5 hover:bg-[rgb(85,65,45)] transition-all flex items-center gap-4">
