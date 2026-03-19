@@ -183,7 +183,7 @@ function InvoiceDetailModal({ inv, onClose, onRefresh, isGM = false }) {
 }
 
 // ─── Invoice List Tab ─────────────────────────────────────────────────────────
-function InvoiceList() {
+function InvoiceList({ isGM = false }) {
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('outstanding');
