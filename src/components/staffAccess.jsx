@@ -134,7 +134,7 @@ export const DEFAULT_MODULES = [
     key: 'gm_home',
     label: 'GM Dashboard',
     defaultVisible: true,
-    defaultRoles: 'general_manager',
+    defaultRoles: 'server,chef,kitchen_staff,housekeeping,hotel_host,hotel_service_provider,manager,general_manager',
   },
 ];
 
