@@ -333,6 +333,7 @@ function InvoiceList({ isGM = false }) {
           inv={selectedInv}
           onClose={() => setSelectedInv(null)}
           onRefresh={refresh}
+          isGM={isGM}
         />
       )}
     </div>
