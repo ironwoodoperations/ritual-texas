@@ -10,6 +10,8 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AdminChecklistSetup from './pages/AdminChecklistSetup';
 import AdminFiles from './pages/AdminFiles';
 import AdminTrainingManual from './pages/AdminTrainingManual';
+import AdminScheduling from './pages/AdminScheduling';
+import StaffTimeClock from './pages/StaffTimeClock';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];

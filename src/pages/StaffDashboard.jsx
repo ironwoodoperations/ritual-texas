@@ -16,6 +16,7 @@ import {
   DEFAULT_MODULES, isRoleAllowed
 } from '@/components/staffAccess';
 import StaffChecklist from '@/components/StaffChecklist';
+import StaffTimeClock from '@/pages/StaffTimeClock';
 import StaffHotelReservations from '@/components/staff/StaffHotelReservations';
 import StaffDailySpecials from '@/components/staff/StaffDailySpecials';
 import StaffHousekeepingView from '@/components/staff/StaffHousekeepingView';

@@ -399,6 +399,13 @@ export default function AdminDashboard() {
       ],
     },
     {
+      title: "Staff & HR",
+      color: "rgb(107,85,64)",
+      tiles: [
+        { icon: CalendarDays, label: "Staff Schedule", page: "AdminScheduling" },
+      ],
+    },
+    {
       title: "Content & Settings",
       color: "rgb(198,182,165)",
       tiles: [
