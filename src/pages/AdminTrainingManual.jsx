@@ -288,12 +288,12 @@ LOMAN (loman.ai) — AI phone answering and voice concierge
 • Review Loman call transcripts weekly to identify common questions. If guests frequently ask something Loman answers poorly, add it to the Knowledge Base.
 • Loman's effectiveness = Knowledge Base quality. A well-maintained KB equals a well-performing phone system.
 
-OPTIMUM (Optimum Control) — Restaurant inventory and recipe costing
-• Tracks food and beverage costs, connecting to Toast to pull sales data and compare against recipes and purchase orders.
-• Use Optimum to build and maintain recipe cards — this is how you calculate the true cost of each dish and set profitable menu prices.
-• Weekly inventory count report shows what you have on hand vs. what you should have based on sales. Discrepancies indicate waste, theft, or counting errors.
-• If Optimum shows food cost consistently above 32-35%, review recipe cards for inaccurate yields or check that portion sizes are being followed.
-• Once your chef builds the recipe database, Optimum essentially runs itself from the daily Toast sales import.`,
+OPTIMUM (optimum.net) — Business phone service provider
+• Optimum is Ritual's business phone and internet provider for the property.
+• Use the Optimum portal to manage phone lines, view bills, configure call forwarding, and adjust service settings.
+• Go to optimum.net and log in with the business account credentials to access phone settings.
+• If a phone line is down or call forwarding is not working, start here before calling support.
+• This is NOT a restaurant inventory tool — it is purely for phone and internet service management.`,
   },
   {
     id: "ch10",
