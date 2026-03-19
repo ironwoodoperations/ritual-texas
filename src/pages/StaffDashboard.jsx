@@ -277,14 +277,17 @@ export default function StaffDashboard() {
 
   const visibleModules = React.useMemo(() => {
     if (!session) return [];
-    // Support multi-role: use roles if available, else fall back to role
     const roleKey = session.roles || session.role || 'server';
+    const isGM = roleKey.includes('general_manager');
     const map = settingsMap || new Map();
     return DEFAULT_MODULES.map(m => {
       const row = map.get(m.key);
       const staffVisible = row?.staff_visible ?? m.defaultVisible;
       const allowedRoles = row?.allowed_roles ?? m.defaultRoles;
-      return { ...m, staffVisible: !!staffVisible, okRole: isRoleAllowed({ allowed_roles: allowedRoles }, roleKey) };
+      // GMs always see every module regardless of toggle settings
+      const okRole = isGM || isRoleAllowed({ allowed_roles: allowedRoles }, roleKey);
+      const visible = isGM || !!staffVisible;
+      return { ...m, staffVisible: visible, okRole };
     }).filter(m => m.staffVisible && m.okRole);
   }, [session, settingsMap]);
 
