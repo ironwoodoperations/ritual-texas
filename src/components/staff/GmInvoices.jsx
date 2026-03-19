@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
   Loader2, RefreshCw, Search, ExternalLink, Copy, Mail,
-  Trash2, Plus, FileText, Send, CheckCircle2, AlertCircle
+  Trash2, Plus, FileText, Send, CheckCircle2, AlertCircle, X
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
