@@ -8,6 +8,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AdminChecklistSetup from './pages/AdminChecklistSetup';
+import AdminFiles from './pages/AdminFiles';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
         />
       ))}
       <Route path="/AdminChecklistSetup" element={<LayoutWrapper currentPageName="AdminChecklistSetup"><AdminChecklistSetup /></LayoutWrapper>} />
+      <Route path="/AdminFiles" element={<LayoutWrapper currentPageName="AdminFiles"><AdminFiles /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
