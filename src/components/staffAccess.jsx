@@ -55,6 +55,7 @@ export const ALL_ROLES = [
   'hotel_host',
   'hotel_service_provider',
   'manager',
+  'general_manager',
 ];
 
 export const ROLE_COLORS = {
@@ -65,6 +66,7 @@ export const ROLE_COLORS = {
   hotel_host:             'bg-indigo-100 text-indigo-800',
   hotel_service_provider: 'bg-purple-100 text-purple-800',
   manager:                'bg-rose-100 text-rose-800',
+  general_manager:        'bg-violet-100 text-violet-800',
 };
 
 export const ROLE_DESCRIPTIONS = {
@@ -75,6 +77,7 @@ export const ROLE_DESCRIPTIONS = {
   hotel_host:             'Front desk — hotel arrivals, check-ins, check-outs.',
   hotel_service_provider: 'Spa & wellness — treatment schedule, tip links, bookings.',
   manager:                'Full access to all staff modules.',
+  general_manager:        'General Manager — full staff access plus Day in 60 Seconds, Today\'s Itineraries, and Square Invoices.',
 };
 
 export const DEFAULT_MODULES = [
@@ -119,7 +122,25 @@ export const DEFAULT_MODULES = [
     key: 'restaurant_daily',
     label: 'Daily Specials & Soup',
     defaultVisible: true,
-    defaultRoles: 'server,chef,manager',
+    defaultRoles: 'server,chef,manager,general_manager',
+  },
+  {
+    key: 'gm_day_snapshot',
+    label: 'Day in 60 Seconds',
+    defaultVisible: true,
+    defaultRoles: 'general_manager',
+  },
+  {
+    key: 'gm_itineraries',
+    label: "Today's Itineraries",
+    defaultVisible: true,
+    defaultRoles: 'general_manager',
+  },
+  {
+    key: 'gm_invoices',
+    label: 'Square Invoices',
+    defaultVisible: true,
+    defaultRoles: 'general_manager',
   },
 ];
 
