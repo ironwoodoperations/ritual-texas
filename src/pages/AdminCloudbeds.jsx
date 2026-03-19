@@ -6,6 +6,23 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, CheckCircle, XCircle, RefreshCw, ExternalLink, Loader2 } from 'lucide-react';
+import PageHelpBanner from '@/components/PageHelpBanner';
+
+const HELP_CONTENT = `Cloudbeds is Ritual's Hotel Property Management System — every room reservation lives here.
+
+CONNECTION STATUS
+• Green checkmark = Connected. Data flows live to the dashboard (arrivals, departures, in-house counts).
+• Red X = Not connected. The Day in 60 Seconds panel will show no hotel data until reconnected.
+
+IF THE TOKEN EXPIRES (happens every 8 hours automatically, or if connection drops)
+1. Try "Refresh Token" first — this silently renews the connection without re-authorizing.
+2. If Refresh fails, click "Reconnect Cloudbeds" — this sends you through the OAuth flow again.
+3. After reconnecting, return to the Admin Dashboard and confirm the hotel panel shows live data.
+
+TEST RESERVATION LOOKUP
+• Use this to verify the Cloudbeds connection is working — enter a confirmation code or guest email to pull their reservation directly.
+
+Pro Tip: The Cloudbeds token refresh runs automatically every few hours. If hotel data disappears from the dashboard mid-day, come here first and click Refresh Token.`;
 
 export default function AdminCloudbeds() {
   const [lookupConfirmation, setLookupConfirmation] = useState('');
@@ -73,6 +90,7 @@ export default function AdminCloudbeds() {
       </header>
 
       <div className="max-w-2xl mx-auto p-6 space-y-6">
+        <PageHelpBanner title="Cloudbeds Integration" content={HELP_CONTENT} accentColor="rgb(107,85,64)" />
 
         {/* Status Card */}
         <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-6">
