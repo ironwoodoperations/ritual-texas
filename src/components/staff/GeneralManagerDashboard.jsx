@@ -10,6 +10,25 @@ import {
 } from "lucide-react";
 import HotelTodayPanel from "@/components/dashboard/HotelTodayPanel";
 import RestaurantWeekPanel from "@/components/dashboard/RestaurantWeekPanel";
+import PageHelpBanner from "@/components/PageHelpBanner";
+
+const GM_HELP_CONTENT = `Your command center for daily hotel, spa, and restaurant operations.
+
+QUICK ACTION TILES
+• TODAY'S ITINERARIES: Print-ready briefing for every arriving guest — room, spa appointments, special requests. Review before 10 AM and text guests 2-3 hours before their expected arrival.
+• SQUARE INVOICES: Create and manage invoices for group bookings, catering deposits, and custom packages.
+
+DAY IN 60 SECONDS PANEL
+Scan every morning at open and again at 3 PM:
+• CONCIERGE INBOX: Unread guest inquiries. Target: 2-hour response time.
+• INTAKE: Warm leads needing follow-up or booking confirmation.
+• HOTEL TODAY: Live arrivals, departures, and in-house counts from Cloudbeds.
+• SPA TODAY: Appointments + gap count. Gaps of 30+ min = revenue opportunity for walk-ins.
+• HOUSEKEEPING: Open tasks + flagged issues. Never release a room until HK shows Complete.
+• RESTAURANT: Current week's sales and labor entered below.
+
+INTEGRATION QUICK LINKS
+Icons at the bottom link to SimplyBook (spa bookings), Cloudbeds (hotel PMS), Toast (restaurant POS), Square (payments), Loman (AI phone), and Sonos (music system).`;
 
 function todayStrLocal() {
   const d = new Date();
@@ -95,6 +114,7 @@ export default function GeneralManagerDashboard() {
 
   return (
     <div className="space-y-4">
+      <PageHelpBanner title="General Manager Dashboard" content={GM_HELP_CONTENT} accentColor="rgb(107,85,64)" />
       <div>
         <p className="text-lg font-light text-[rgb(107,85,64)]">General Manager</p>
         <p className="text-xs text-[rgb(150,150,150)]">{format(today, "EEEE, MMMM d, yyyy")}</p>
