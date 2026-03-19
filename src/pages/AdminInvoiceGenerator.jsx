@@ -779,6 +779,8 @@ export default function AdminInvoiceGenerator() {
   const [user, setUser] = React.useState(null);
   const [tab, setTab] = useState('invoices');
 
+  const isGM = user?.role === 'general_manager';
+
   React.useEffect(() => {
     base44.auth.me().then(u => {
       setUser(u);
