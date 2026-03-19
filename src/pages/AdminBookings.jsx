@@ -194,6 +194,7 @@ export default function AdminBookings() {
       </header>
 
       <main className="max-w-6xl mx-auto p-6">
+        <PageHelpBanner title="Hotel Bookings (Cloudbeds)" content={HELP_CONTENT} accentColor="rgb(107,85,64)" />
         {/* Tabs */}
         <div className="flex gap-1 bg-[rgb(235,225,213)] p-1 rounded-lg w-fit mb-6">
           <button
