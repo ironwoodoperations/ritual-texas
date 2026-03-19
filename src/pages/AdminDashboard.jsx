@@ -378,6 +378,7 @@ export default function AdminDashboard() {
         { icon: ClipboardList, label: "Knowledge Base", page: "AdminKnowledge" },
         { icon: Image, label: "Image Library", page: "AdminImages" },
         { icon: BookOpen, label: "Media", page: "AdminMedia" },
+        { icon: FileText, label: "Files", page: "AdminFiles" },
         { icon: Users, label: "Staff Controls", page: "StaffControls" },
       ],
     },
