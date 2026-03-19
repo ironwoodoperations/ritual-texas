@@ -8,6 +8,30 @@ import {
   Search, ArrowLeft, RefreshCw, LogIn, LogOut, CreditCard,
   Loader2, Link2, CheckCircle2
 } from 'lucide-react';
+import PageHelpBanner from '@/components/PageHelpBanner';
+
+const HELP_CONTENT = `Live Cloudbeds hotel reservations — view upcoming stays, check guests in/out, and take payments.
+
+CLOUDBEDS (UPCOMING) TAB
+• Shows all upcoming and in-house reservations pulled live from Cloudbeds.
+• Search by guest name, email, or confirmation ID.
+• Click Refresh to pull the latest data if something looks stale.
+
+ACTIONS PER RESERVATION
+• Check In — marks the guest as checked in inside Cloudbeds (use on arrival day).
+• Check Out — marks the guest as departed. Do this after key return.
+• Payment — records a cash or card payment against the reservation balance in Cloudbeds.
+
+NEW RESERVATION TAB
+• Creates a reservation directly in Cloudbeds without logging into Cloudbeds separately.
+• Select dates → click Check Availability → choose a room → fill in guest info → submit.
+• The reservation will appear in Cloudbeds immediately and sync to Today's Itineraries.
+
+CONNECT CLOUDBEDS (top right button)
+• Use only if the connection drops. Normally the token auto-refreshes.
+• If hotel data is missing, try Admin → Cloudbeds Integration → Refresh Token first.
+
+Pro Tip: Payments taken here are recorded in Cloudbeds only. If using Square for card processing, post in Square separately and record here as "cash" for reconciliation.`;
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
