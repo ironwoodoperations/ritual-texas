@@ -68,8 +68,8 @@ function InvoiceDetailModal({ inv, onClose, onRefresh }) {
   };
 
   const canSend   = ["UNPAID","PARTIALLY_PAID","SCHEDULED","DRAFT"].includes(inv.status);
+  const canCancel = ["UNPAID","PARTIALLY_PAID","SCHEDULED"].includes(inv.status);
   const canDelete = ["DRAFT","CANCELED","CANCELLED"].includes(inv.status);
-  // NOTE: Cancel is intentionally hidden for General Manager
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -114,6 +114,12 @@ function InvoiceDetailModal({ inv, onClose, onRefresh }) {
               <button onClick={() => doAction("send")} disabled={!!loading}
                 className="flex items-center justify-center gap-2 w-full py-2.5 bg-[rgb(150,170,155)] text-white rounded-xl text-sm font-medium hover:bg-[rgb(130,150,135)] disabled:opacity-60">
                 {loading === "send" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />} Resend Invoice Email
+              </button>
+            )}
+            {canCancel && (
+              <button onClick={() => { if (confirm("Cancel this invoice? This cannot be undone.")) doAction("cancel"); }} disabled={!!loading}
+                className="flex items-center justify-center gap-2 w-full py-2.5 border border-orange-300 text-orange-700 rounded-xl text-sm font-medium hover:bg-orange-50 disabled:opacity-60">
+                {loading === "cancel" ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} Cancel Invoice
               </button>
             )}
             {canDelete && (
