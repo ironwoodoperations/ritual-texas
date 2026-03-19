@@ -380,6 +380,7 @@ export default function AdminDashboard() {
         { icon: BookOpen, label: "Media", page: "AdminMedia" },
         { icon: FileText, label: "Files", page: "AdminFiles" },
         { icon: Users, label: "Staff Controls", page: "StaffControls" },
+        { icon: BookOpen, label: "Training Manual", page: "AdminTrainingManual" },
       ],
     },
     {

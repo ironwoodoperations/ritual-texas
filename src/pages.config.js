@@ -82,6 +82,7 @@ import AdminSpaSchedule from './pages/AdminSpaSchedule';
 import AdminSquareBackup from './pages/AdminSquareBackup';
 import AdminSquareImport from './pages/AdminSquareImport';
 import AdminTodayItineraries from './pages/AdminTodayItineraries';
+import AdminTrainingManual from './pages/AdminTrainingManual';
 import AdminTreatments from './pages/AdminTreatments';
 import Amenities from './pages/Amenities';
 import AskRitual from './pages/AskRitual';
@@ -148,6 +149,7 @@ export const PAGES = {
     "AdminSquareBackup": AdminSquareBackup,
     "AdminSquareImport": AdminSquareImport,
     "AdminTodayItineraries": AdminTodayItineraries,
+    "AdminTrainingManual": AdminTrainingManual,
     "AdminTreatments": AdminTreatments,
     "Amenities": Amenities,
     "AskRitual": AskRitual,
