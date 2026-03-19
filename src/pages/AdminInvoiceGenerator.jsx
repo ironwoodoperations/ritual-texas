@@ -845,7 +845,7 @@ export default function AdminInvoiceGenerator() {
           ))}
         </div>
 
-        {tab === 'invoices' && <InvoiceList />}
+        {tab === 'invoices' && <InvoiceList isGM={isGM} />}
         {tab === 'new' && <NewInvoice rooms={rooms} treatments={treatments} packages={packages} />}
       </main>
     </div>
