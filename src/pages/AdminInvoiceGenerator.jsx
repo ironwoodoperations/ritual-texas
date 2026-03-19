@@ -155,7 +155,7 @@ function InvoiceDetailModal({ inv, onClose, onRefresh, isGM = false }) {
                 Resend Invoice Email
               </button>
             )}
-            {canCancel && (
+            {canCancel && !isGM && (
               <button
                 onClick={() => { if (confirm('Cancel this invoice? This cannot be undone.')) doAction('cancel'); }}
                 disabled={!!loading}
