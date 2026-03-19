@@ -132,6 +132,7 @@ export default function AdminSpaSchedule() {
 
   return (
     <div className="px-4 py-6 max-w-4xl mx-auto">
+      <PageHelpBanner title="Spa Schedule" content={SPA_HELP} accentColor="rgb(150,170,155)" />
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-3">

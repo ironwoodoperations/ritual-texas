@@ -351,6 +351,7 @@ export default function AdminTodayItineraries() {
       </header>
 
       <main className="max-w-4xl mx-auto p-6">
+        <PageHelpBanner title="Today's Itineraries" content={ITINERARY_HELP} accentColor="rgb(107,85,64)" />
         {isLoading ? (
           <div className="flex items-center justify-center py-24">
             <div className="animate-spin w-8 h-8 border-2 border-[rgb(150,170,155)] border-t-transparent rounded-full" />

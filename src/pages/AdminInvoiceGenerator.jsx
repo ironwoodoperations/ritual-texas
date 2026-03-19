@@ -846,6 +846,7 @@ export default function AdminInvoiceGenerator() {
       </header>
 
       <main className="max-w-2xl mx-auto p-6">
+        <PageHelpBanner title="Square Invoices" content={INVOICE_HELP} accentColor="rgb(150,170,155)" />
         {/* Tabs */}
         <div className="flex gap-1 bg-[rgb(235,225,213)] rounded-xl p-1 mb-6">
           {[

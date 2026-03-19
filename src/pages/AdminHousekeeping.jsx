@@ -218,6 +218,7 @@ export default function AdminHousekeeping() {
       </div>
 
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '20px' }}>
+        <PageHelpBanner title="Housekeeping" content={HK_HELP} accentColor="rgb(198,168,94)" />
         {/* Hotel-wide notes */}
         {hotelNotes.length > 0 && (
           <div style={{ marginBottom: '20px' }}>
