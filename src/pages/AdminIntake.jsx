@@ -8,6 +8,23 @@ import {
   Send, AlertTriangle
 } from "lucide-react";
 import TreatmentSlotPicker from "@/components/intake/TreatmentSlotPicker";
+import PageHelpBanner from "@/components/PageHelpBanner";
+
+const INTAKE_HELP = `Hotel + Treatment intake forms — your central booking pipeline.
+
+STATUS FLOW: New Inquiry → Pending → Confirmed → Archived
+
+1. View Active Intakes: Default filter shows all active (non-archived) records. Expand a card to see full details.
+2. Create New Intake: Click "+ New Intake". Fill in guest info, check-in/out dates, treatments, therapist, and card on file.
+3. Live Room Availability: Enter check-in/out dates and the form auto-checks Cloudbeds for available rooms.
+4. Treatments: SimplyBook treatments show date/time/provider. Call-to-book treatments are tracked separately.
+5. Actions (in each card):
+   • View & Send Quote: Previews a Square invoice with all line items and taxes, then sends to guest email.
+   • Book in Cloudbeds: Creates the hotel reservation directly in Cloudbeds.
+   • Book in SimplyBook: Opens SimplyBook admin to manually confirm spa bookings.
+   • Add to CRM: Syncs guest to the Master CRM.
+6. Therapist Pipeline: Track outreach status (Not Contacted → Contacted → Approved) per intake.
+7. Archive: Removes from active view but keeps the record.`;
 import TherapistSection from "@/components/intake/TherapistSection";
 import InvoicePreviewModal from "@/components/intake/InvoicePreviewModal";
 

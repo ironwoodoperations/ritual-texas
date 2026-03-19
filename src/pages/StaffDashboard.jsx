@@ -20,6 +20,24 @@ import StaffHotelReservations from '@/components/staff/StaffHotelReservations';
 import StaffDailySpecials from '@/components/staff/StaffDailySpecials';
 import StaffHousekeepingView from '@/components/staff/StaffHousekeepingView';
 import GeneralManagerDashboard from '@/components/staff/GeneralManagerDashboard';
+import PageHelpBanner from '@/components/PageHelpBanner';
+
+const STAFF_HOME_HELP = `Your daily operations hub.
+
+DATE NAVIGATOR: Use the arrows to view arrivals and departures for any date. Today is default.
+
+ARRIVALS: Guests checking in. Note their arrival window and any special requests listed.
+CHECKOUTS: Guests leaving today. Their rooms need cleaning before next guest arrives.
+OPEN ROOMS: Rooms with housekeeping tasks not yet completed — click to open the task checklist.
+
+LEFT SIDEBAR MODULES (what you see depends on your role):
+• Daily Checklists: Opening/closing duties and recurring tasks for your shift.
+• Spa Schedule: Today's appointment calendar from SimplyBook.
+• Hotel Reservations: Full guest list with contact info and stay details.
+• Restaurant Specials: View and update today's daily specials.
+• Housekeeping: Room-by-room task view with checklist items.
+
+Pro Tip: Complete your opening duties first — they unlock the rest of the day's tasks.`;
 
 // Lazy import for spa schedule (it's heavy)
 import AdminSpaSchedule from '@/pages/AdminSpaSchedule';
@@ -74,6 +92,7 @@ function StaffHome({ session, onNavigate }) {
 
   return (
     <div className="space-y-5">
+      <PageHelpBanner title="Staff Dashboard" content={STAFF_HOME_HELP} accentColor="rgb(150,170,155)" />
       <div className="bg-white border border-[rgb(235,225,213)] rounded-lg p-4">
         <p className="text-[rgb(107,85,64)] font-light text-lg">Welcome, <strong>{session?.name || 'Staff'}</strong></p>
         <p className="text-sm text-[rgb(45,45,45)] capitalize">Role: {session?.role || 'server'}</p>
