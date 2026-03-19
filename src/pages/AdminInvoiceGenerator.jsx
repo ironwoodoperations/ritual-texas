@@ -782,7 +782,7 @@ export default function AdminInvoiceGenerator() {
   React.useEffect(() => {
     base44.auth.me().then(u => {
       setUser(u);
-      if (u.role !== 'admin') window.location.href = createPageUrl('Home');
+      if (u.role !== 'admin' && u.role !== 'general_manager') window.location.href = createPageUrl('Home');
     }).catch(() => base44.auth.redirectToLogin(createPageUrl('AdminInvoiceGenerator')));
   }, []);
 
@@ -814,7 +814,7 @@ export default function AdminInvoiceGenerator() {
     <div className="min-h-screen bg-[rgb(248,246,242)]">
       <header className="bg-white border-b border-[rgb(235,225,213)] px-6 py-4 sticky top-0 z-40">
         <div className="max-w-2xl mx-auto flex items-center gap-4">
-          <Link to={createPageUrl('AdminDashboard')} className="p-2 hover:bg-[rgb(235,225,213)] rounded">
+          <Link to={createPageUrl(user?.role === 'general_manager' ? 'StaffDashboard' : 'AdminDashboard')} className="p-2 hover:bg-[rgb(235,225,213)] rounded">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>

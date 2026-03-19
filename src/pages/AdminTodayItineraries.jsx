@@ -219,7 +219,7 @@ export default function AdminTodayItineraries() {
   React.useEffect(() => {
     base44.auth.me().then(u => {
       setUser(u);
-      if (u.role !== 'admin') window.location.href = createPageUrl('Home');
+      if (u.role !== 'admin' && u.role !== 'general_manager') window.location.href = createPageUrl('Home');
     }).catch(() => base44.auth.redirectToLogin(createPageUrl('AdminTodayItineraries')));
   }, []);
 
@@ -312,7 +312,7 @@ export default function AdminTodayItineraries() {
       <header className="no-print bg-white border-b border-[rgb(235,225,213)] px-6 py-4 sticky top-0 z-40">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to={createPageUrl('AdminDashboard')} className="p-2 hover:bg-[rgb(235,225,213)] rounded">
+            <Link to={createPageUrl(user?.role === 'general_manager' ? 'StaffDashboard' : 'AdminDashboard')} className="p-2 hover:bg-[rgb(235,225,213)] rounded">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
