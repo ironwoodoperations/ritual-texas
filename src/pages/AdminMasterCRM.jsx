@@ -4,6 +4,17 @@ import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { ArrowLeft, RefreshCw, Download, Search, Loader2 } from "lucide-react";
+import PageHelpBanner from "@/components/PageHelpBanner";
+
+const HELP_CONTENT = `Your unified guest database — every person who has booked a room, treatment, or attended an event.
+
+1. Sync All Data: Click "Sync Now" to pull latest records from Cloudbeds, SimplyBook, and Square. Run weekly.
+2. Search a Guest: Type name, email, or phone to pull a complete record.
+3. Guest Profile: Contact info, stay history, treatment history, total spend, last visit date, and notes.
+4. Filter by Tag: Use the tag dropdown to segment by source (hotel, spa, square, etc.).
+5. Export CSV: Filter first, then click Export CSV to download a list for email campaigns.
+
+Pro Tip: Before every shift, pull up today's arriving guests in the CRM. Knowing their history turns a transactional check-in into a reunion.`;
 import { Input } from "@/components/ui/input";
 
 export default function AdminMasterCRM() {

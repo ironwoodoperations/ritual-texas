@@ -11,6 +11,23 @@ import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Download } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import PageHelpBanner from "@/components/PageHelpBanner";
+
+const HELP_CONTENT = `4 tabs control the full restaurant experience.
+
+DAILY SPECIALS TAB
+• Items marked active display on the public menu page automatically. Only one special per category can be active at a time.
+• Add specials with title, description, price, and category (Lunch/Dinner/Bar). Use the Soup toggle for daily soups.
+• Deactivate when sold out — never delete. You'll want to reuse them next time.
+
+MENU ITEMS TAB
+Full permanent menu management by category. Filter by Lunch, Bar, Dinner, Dessert, etc.
+
+MENU SECTIONS TAB
+Enable or disable entire menu categories seasonally. Turn off sections you're not currently serving.
+
+HOURS TAB
+Set public hours for each day of the week. Displays on the Restaurant page and is used by Loman to answer guest phone calls.`;
 
 export default function AdminRestaurant() {
   const [activeTab, setActiveTab] = useState('specials');

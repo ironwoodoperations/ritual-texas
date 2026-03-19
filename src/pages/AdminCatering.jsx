@@ -4,6 +4,17 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, FileText, ShoppingCart, ChefHat, Search, Edit, Copy, Archive, Mail, CheckCircle, DollarSign, ArrowLeft } from 'lucide-react';
+import PageHelpBanner from "@/components/PageHelpBanner";
+
+const HELP_CONTENT = `Catering quotes, event management, and deposit tracking.
+
+1. View Quotes: All submitted catering requests with event type, guest count, date, and status.
+2. New Quote: Click "New Quote". Select menu items, add venue fee, apply discount, generate PDF quote.
+3. Status Flow: Draft → Sent → Accepted → Deposit Paid → Completed. Update status as the deal progresses.
+4. Collect Deposit: Once accepted — mark Deposit Paid, collect via Square Invoice, add to operations calendar.
+5. Duplicate: Copy icon duplicates a quote — useful for repeat clients or similar events.
+
+Deposit Policy: 50% deposit, non-refundable within 14 days of the event. Always get this paid before holding a date.`;
 
 const STATUS_COLORS = {
   draft: { bg: '#F5F0E8', text: '#8B7355' },

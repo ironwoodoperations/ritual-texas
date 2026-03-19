@@ -4,6 +4,18 @@ import { createPageUrl } from "@/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { ArrowLeft, RefreshCw, ExternalLink, PlusCircle, X } from "lucide-react";
+import PageHelpBanner from "@/components/PageHelpBanner";
+
+const HELP_CONTENT = `Daily and weekly restaurant sales & labor reporting, synced from Toast POS.
+
+1. Sync Today: Click "Sync Today" in the header to pull latest data from Toast. If Toast is still compiling, try again in 30-60 seconds.
+2. Manual Entry: Click "Enter Data" to manually enter Net Sales, Labor Cost, and Labor Hours for any date.
+3. Today Panel: Shows today's net sales, labor cost, labor hours, and labor % at a glance.
+4. This Week Panel: Running week totals from the most recent Monday.
+5. Daily Breakdown: Last 30 days of history. Rows are color-highlighted for today.
+6. Open Toast: Jumps directly to Toast admin for full POS reporting, menu changes, and timeclock.
+
+A healthy restaurant runs labor at 28-32% of net sales. Flag anything above 35% for Whitney's review.`;
 
 function todayStrLocal() {
   const d = new Date();

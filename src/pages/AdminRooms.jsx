@@ -12,6 +12,17 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import ImageSelector from '@/components/ImageSelector';
+import PageHelpBanner from "@/components/PageHelpBanner";
+
+const HELP_CONTENT = `Your room inventory. Every bookable suite lives here.
+
+1. View All Rooms: List with name, price per night, capacity, and availability dot.
+2. Add a New Room: Click "Add Room". Fill in Suite Name, Headline, Description, Level, Capacity, Price, Images. Click Create Suite.
+3. Edit a Room: Click Edit. Update details and Save Changes. Goes live on the booking page immediately.
+4. Toggle Availability: Green dot = bookable, red dot = blocked. Edit the room and toggle "Available for booking".
+5. Delete a Room: Only if the room no longer physically exists — historical bookings may lose their reference.
+
+Pro Tip: Keep room descriptions sensory — guests choose an experience, not a spec sheet. Mention the view, the linens, the light.`;
 
 export default function AdminRooms() {
   const [user, setUser] = useState(null);

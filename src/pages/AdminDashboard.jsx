@@ -12,6 +12,33 @@ import {
 } from "lucide-react";
 import HotelTodayPanel from "@/components/dashboard/HotelTodayPanel";
 import RestaurantWeekPanel from "@/components/dashboard/RestaurantWeekPanel";
+import PageHelpBanner from "@/components/PageHelpBanner";
+
+const CH1_CONTENT = `LOGGING IN
+Navigate to ritualtexas.com and use the Staff Login link. Enter your admin credentials. The dashboard loads automatically showing today's date and the full operational overview.
+
+THE HEADER BAR
+Top-right contains three links: Staff (staff-facing dashboard), View Site (public website), and Logout. Always log out when leaving a shared device.
+
+QUICK ACTION TILES
+• TODAY'S ITINERARIES (Brown): Print-ready guest briefing for every arrival today. Review before 10 AM and text guests 2-3 hours before their expected arrival.
+• SQUARE INVOICES (Green): Invoice Generator for custom Square invoices — group bookings, catering deposits, custom packages.
+
+THE DAY IN 60 SECONDS PANEL
+Scan every morning at open and again at 3 PM:
+• CONCIERGE INBOX: Unread guest inquiries. Target: 2-hour response time.
+• HOTEL TODAY: Three live numbers from Cloudbeds — arrivals, departures, in-house.
+• SPA TODAY: Appointments today + gap count. Gaps = revenue opportunity.
+• HOUSEKEEPING: Open tasks + flagged issues. Resolve before checking guests out.
+• RESTAURANT LEADS: Pending reservations and event inquiries needing confirmation.
+• INTAKE FOLLOW-UPS: Warm leads not yet converted to bookings.
+
+NAVIGATION GRID
+• ROOMS & STAYS (Brown): Rooms · Packages · Housekeeping Setup
+• SPA & WELLNESS (Green): Treatments
+• RESTAURANT (Blush): Restaurant · Catering
+• CRM & MARKETING: Master CRM
+• CONTENT & SETTINGS: Knowledge Base · Image Library · Media · Staff Controls · Files · Training Manual`;
 import { motion } from "framer-motion";
 
 

@@ -14,6 +14,18 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import ImageSelector from '@/components/ImageSelector';
+import PageHelpBanner from "@/components/PageHelpBanner";
+
+const HELP_CONTENT = `The spa's service menu. Every bookable treatment with full pricing and visibility control.
+
+1. View All Treatments: Name, duration, price, category, availability toggle, sort order.
+2. Add a Treatment: Click "Add Treatment". Fill in Name, Duration, Price, Category, Description. Toggle "Show on website".
+3. Edit Pricing: Click Edit. CRITICAL: also update prices in SimplyBook.me to keep both systems in sync.
+4. Reorder: Use the up/down arrows on each treatment card to control display order.
+5. Hide vs. Delete: Eye icon hides without losing data. Only delete if the treatment truly no longer exists.
+6. Booking Mode: Set per-treatment — Book Online, Request Info, Call to Book, or Both buttons.
+
+CRITICAL: Prices here must always match SimplyBook.me exactly. A mismatch causes guests to see one price and get charged another.`;
 
 const CATEGORIES = [
   { value: 'massage', label: 'Massage' },
