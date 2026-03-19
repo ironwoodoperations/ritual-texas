@@ -119,7 +119,7 @@ export default function AdminConciergeInbox() {
       try {
         const userData = await base44.auth.me();
         setUser(userData);
-        if (userData.role !== 'admin') window.location.href = createPageUrl('Home');
+        if (userData.role !== 'admin' && userData.role !== 'general_manager') window.location.href = createPageUrl('Home');
       } catch (e) {
         base44.auth.redirectToLogin(createPageUrl('AdminConciergeInbox'));
       }
@@ -180,7 +180,7 @@ export default function AdminConciergeInbox() {
       {/* Sticky Header */}
       <header className="bg-white border-b border-[rgb(235,225,213)] px-4 py-3 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <Link to={createPageUrl('AdminDashboard')} className="p-2 hover:bg-[rgb(235,225,213)] rounded">
+          <Link to={createPageUrl(user?.role === 'general_manager' ? 'StaffDashboard' : 'AdminDashboard')} className="p-2 hover:bg-[rgb(235,225,213)] rounded">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>

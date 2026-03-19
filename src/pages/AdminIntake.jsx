@@ -930,7 +930,7 @@ export default function AdminIntake() {
       <header className="bg-white border-b border-[rgb(235,225,213)] px-6 py-4 sticky top-0 z-40">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Link to={createPageUrl("AdminDashboard")} className="p-2 rounded-xl hover:bg-[rgb(248,246,242)]">
+            <Link to={createPageUrl("AdminDashboard")} className="p-2 rounded-xl hover:bg-[rgb(248,246,242)]" onClick={e => { if (window.history.length > 1) { e.preventDefault(); window.history.back(); } }}>
               <ArrowLeft className="w-4 h-4 text-[rgb(107,85,64)]" />
             </Link>
             <div>
