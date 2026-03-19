@@ -19,9 +19,7 @@ import StaffChecklist from '@/components/StaffChecklist';
 import StaffHotelReservations from '@/components/staff/StaffHotelReservations';
 import StaffDailySpecials from '@/components/staff/StaffDailySpecials';
 import StaffHousekeepingView from '@/components/staff/StaffHousekeepingView';
-import GmDaySnapshot from '@/components/staff/GmDaySnapshot';
-import GmItineraries from '@/components/staff/GmItineraries';
-import GmInvoices from '@/components/staff/GmInvoices';
+import GeneralManagerDashboard from '@/components/staff/GeneralManagerDashboard';
 
 // Lazy import for spa schedule (it's heavy)
 import AdminSpaSchedule from '@/pages/AdminSpaSchedule';
@@ -235,9 +233,7 @@ const ICON_MAP = {
   hotel:                   Hotel,
   restaurant_daily:        Soup,
   daily_checklists:        ClipboardList,
-  gm_day_snapshot:         LayoutDashboard,
-  gm_itineraries:          Users,
-  gm_invoices:             Sparkles,
+  gm_home:                 LayoutDashboard,
 };
 
 // ─── Main StaffDashboard ──────────────────────────────────────────────────────
@@ -288,9 +284,7 @@ export default function StaffDashboard() {
       case 'hotel':               return <StaffHotelReservations />;
       case 'restaurant_daily':    return <StaffDailySpecials />;
       case 'housekeeping_tasks':  return <StaffHousekeepingView />;
-      case 'gm_day_snapshot':     return <GmDaySnapshot />;
-      case 'gm_itineraries':      return <GmItineraries />;
-      case 'gm_invoices':         return <GmInvoices />;
+      case 'gm_home':             return <GeneralManagerDashboard />;
       case 'staff_home':
       default:                    return <StaffHome session={session} onNavigate={setView} />;
     }

@@ -125,20 +125,8 @@ export const DEFAULT_MODULES = [
     defaultRoles: 'server,chef,manager,general_manager',
   },
   {
-    key: 'gm_day_snapshot',
-    label: 'Day in 60 Seconds',
-    defaultVisible: true,
-    defaultRoles: 'general_manager',
-  },
-  {
-    key: 'gm_itineraries',
-    label: "Today's Itineraries",
-    defaultVisible: true,
-    defaultRoles: 'general_manager',
-  },
-  {
-    key: 'gm_invoices',
-    label: 'Square Invoices',
+    key: 'gm_home',
+    label: 'GM Dashboard',
     defaultVisible: true,
     defaultRoles: 'general_manager',
   },

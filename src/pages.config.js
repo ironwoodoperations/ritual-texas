@@ -60,6 +60,7 @@ import AdminCloudbedsImport from './pages/AdminCloudbedsImport';
 import AdminConciergeInbox from './pages/AdminConciergeInbox';
 import AdminCreateReservation from './pages/AdminCreateReservation';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminFiles from './pages/AdminFiles';
 import AdminHousekeeping from './pages/AdminHousekeeping';
 import AdminHousekeepingIssues from './pages/AdminHousekeepingIssues';
 import AdminHousekeepingSetup from './pages/AdminHousekeepingSetup';
@@ -125,6 +126,7 @@ export const PAGES = {
     "AdminConciergeInbox": AdminConciergeInbox,
     "AdminCreateReservation": AdminCreateReservation,
     "AdminDashboard": AdminDashboard,
+    "AdminFiles": AdminFiles,
     "AdminHousekeeping": AdminHousekeeping,
     "AdminHousekeepingIssues": AdminHousekeepingIssues,
     "AdminHousekeepingSetup": AdminHousekeepingSetup,
