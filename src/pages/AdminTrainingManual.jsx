@@ -331,6 +331,35 @@ function highlightText(text, query) {
   );
 }
 
+// ── URL extraction helper ──────────────────────────────────────────────────────
+// Finds URLs in parentheses like (squareup.com) or (cloudbeds.com) in section headers
+// and renders the header text with a clickable link icon
+function renderLineWithLinks(line, searchQuery) {
+  // Check if ALL-CAPS header line contains a URL in parentheses
+  const urlMatch = line.match(/\(([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/[^\)]*)?)\)/);
+  if (urlMatch && line === line.toUpperCase()) {
+    const url = urlMatch[1];
+    const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+    return (
+      <span>
+        {highlightText(line.replace(urlMatch[0], ''), searchQuery)}
+        {' '}
+        <a
+          href={fullUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-white text-xs font-medium hover:opacity-80 transition-opacity"
+          style={{ backgroundColor: "rgb(150,170,155)", verticalAlign: 'middle' }}
+          onClick={e => e.stopPropagation()}
+        >
+          {url} ↗
+        </a>
+      </span>
+    );
+  }
+  return highlightText(line, searchQuery);
+}
+
 // ── Chapter Accordion ─────────────────────────────────────────────────────────
 function ChapterAccordion({ chapter, isOpen, onToggle, searchQuery, dimmed }) {
   const lines = chapter.content.split("\n");
@@ -355,11 +384,11 @@ function ChapterAccordion({ chapter, isOpen, onToggle, searchQuery, dimmed }) {
           {lines.map((line, i) => {
             if (!line.trim()) return <div key={i} className="h-2" />;
 
-            // ALL-CAPS section headers
+            // ALL-CAPS section headers (may include URL in parens)
             if (line === line.toUpperCase() && line.trim().length > 3 && !line.startsWith("•") && !line.match(/^\d\./)) {
               return (
-                <p key={i} className="text-sm font-semibold tracking-widest mt-4 mb-1" style={{ color: "rgb(150,170,155)" }}>
-                  {highlightText(line, searchQuery)}
+                <p key={i} className="text-sm font-semibold tracking-widest mt-4 mb-1 flex items-center gap-2 flex-wrap" style={{ color: "rgb(150,170,155)" }}>
+                  {renderLineWithLinks(line, searchQuery)}
                 </p>
               );
             }
