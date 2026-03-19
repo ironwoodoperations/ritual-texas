@@ -82,6 +82,12 @@ export const ROLE_DESCRIPTIONS = {
 
 export const DEFAULT_MODULES = [
   {
+    key: 'time_clock',
+    label: 'Time Clock',
+    defaultVisible: true,
+    defaultRoles: 'server,chef,kitchen_staff,housekeeping,hotel_host,hotel_service_provider,manager,general_manager',
+  },
+  {
     key: 'staff_home',
     label: 'Overview',
     defaultVisible: true,
