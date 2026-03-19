@@ -246,6 +246,7 @@ function StaffHome({ session, onNavigate }) {
 
 // ─── Icon map ─────────────────────────────────────────────────────────────────
 const ICON_MAP = {
+  time_clock:              Clock,
   staff_home:              LayoutDashboard,
   ritual_kitchen_inventory: UtensilsCrossed,
   housekeeping_tasks:      Home,
