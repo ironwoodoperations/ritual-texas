@@ -54,7 +54,7 @@ function fmtDate(s) {
 }
 
 // ─── Invoice Detail Modal ─────────────────────────────────────────────────────
-function InvoiceDetailModal({ inv, onClose, onRefresh }) {
+function InvoiceDetailModal({ inv, onClose, onRefresh, isGM = false }) {
   const [loading, setLoading] = useState('');
   const [msg, setMsg] = useState(null);
 
