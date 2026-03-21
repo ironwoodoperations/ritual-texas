@@ -299,6 +299,12 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
             >
               ✏️ Edit Full Record
             </button>
+            <button
+              onClick={() => { setDeleteInput(""); setShowDeleteModal(true); }}
+              className="w-full mt-1 py-2 rounded-xl border border-red-200 text-xs text-red-600 hover:bg-red-50 transition-colors flex items-center justify-center gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Delete Record
+            </button>
           </div>
 
           {/* Action Message */}
