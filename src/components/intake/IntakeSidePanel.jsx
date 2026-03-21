@@ -3,6 +3,7 @@ import { X, Phone, Mail, Copy, CheckCircle2, Loader2, CreditCard, AlertTriangle,
 import { base44 } from "@/api/base44Client";
 import ActivityLog, { appendLogEntry } from "./ActivityLog";
 import InvoicePreviewModal from "./InvoicePreviewModal";
+import InvoiceActionsSection from "./InvoiceActionsSection";
 
 const STATUS_STEPS = ["new_inquiry", "pending", "confirmed", "booked_reserved"];
 const STATUS_LABELS = {
