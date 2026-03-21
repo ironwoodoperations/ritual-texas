@@ -51,7 +51,9 @@ function buildSmsText(reservation, spaBookings) {
 }
 
 function GuestCard({ reservation, spaBookings }) {
-  const [emailAddr, setEmailAddr] = useState(reservation.guestEmail || '');
+  // Prefer hotel reservation email; fall back to first spa booking email
+  const derivedEmail = reservation.guestEmail || spaBookings.find(b => b.email)?.email || '';
+  const [emailAddr, setEmailAddr] = useState(derivedEmail);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [emailError, setEmailError] = useState('');
