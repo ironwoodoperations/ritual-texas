@@ -132,11 +132,11 @@ Deno.serve(async (req) => {
       // Email from detail
       const guestEmail = detail?.guestEmail || detail?.guest?.email || '';
 
-      // Room from detail assignments
-      const assignments = detail?.roomsAssigned || detail?.assignment || [];
-      const firstAssign = Array.isArray(assignments) ? assignments[0] : assignments;
-      const roomName = firstAssign?.roomName || firstAssign?.roomTypeName || detail?.roomTypeName || r.roomTypeName || '';
-      const roomNumber = firstAssign?.roomID || firstAssign?.roomNumber || '';
+      // Room from detail — Cloudbeds returns rooms[] array
+      const rooms = detail?.rooms || detail?.roomsAssigned || detail?.assignment || [];
+      const firstRoom = Array.isArray(rooms) ? rooms[0] : rooms;
+      const roomName = firstRoom?.roomName || firstRoom?.roomTypeName || detail?.roomTypeName || r.roomTypeName || '';
+      const roomNumber = firstRoom?.roomID || firstRoom?.roomNumber || '';
 
       return {
         reservationID: r.reservationID,
