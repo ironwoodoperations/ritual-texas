@@ -52,6 +52,7 @@ function FollowUpChip({ date }) {
 }
 
 function PipelineCard({ record, onSelect, onArchive, onDragStart }) {
+  const [confirmArchive, setConfirmArchive] = useState(false);
   const sbCount = Array.isArray(record.selectedTreatments) ? record.selectedTreatments.length : 0;
   const ctbCount = Array.isArray(record.callToBookTreatments) ? record.callToBookTreatments.length : 0;
   const txCount = sbCount + ctbCount;
@@ -60,7 +61,8 @@ function PipelineCard({ record, onSelect, onArchive, onDragStart }) {
     <div
       draggable
       onDragStart={e => onDragStart(e, record.id)}
-      className="bg-white border border-[rgb(235,225,213)] rounded-xl p-3 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing select-none"
+      onClick={() => onSelect(record)}
+      className="bg-white border border-[rgb(235,225,213)] rounded-xl p-3 shadow-sm hover:shadow-md hover:border-[rgb(198,182,165)] transition-all cursor-pointer select-none"
     >
       <div className="font-semibold text-[rgb(45,45,45)] text-sm mb-1 truncate">{record.guestName}</div>
       {record.checkInDate && (
@@ -81,18 +83,26 @@ function PipelineCard({ record, onSelect, onArchive, onDragStart }) {
         </span>
       </div>
       <div className="flex gap-1.5 mt-2 pt-2 border-t border-[rgb(235,225,213)]">
-        <button
-          onClick={e => { e.stopPropagation(); onSelect(record); }}
-          className="flex-1 py-1 text-[10px] rounded-lg bg-[rgb(248,246,242)] text-[rgb(107,85,64)] hover:bg-[rgb(235,225,213)] transition-colors"
-        >
-          ⚡ Actions
-        </button>
-        <button
-          onClick={e => { e.stopPropagation(); onArchive(record); }}
-          className="px-2 py-1 text-[10px] rounded-lg border border-[rgb(235,225,213)] text-[rgb(150,150,150)] hover:bg-[rgb(248,246,242)] transition-colors"
-        >
-          Archive
-        </button>
+        {confirmArchive ? (
+          <>
+            <span className="flex-1 text-[10px] text-[rgb(107,85,64)] py-1">Archive this record?</span>
+            <button
+              onClick={e => { e.stopPropagation(); onArchive(record); setConfirmArchive(false); }}
+              className="px-2 py-1 text-[10px] rounded-lg bg-[rgb(107,85,64)] text-white hover:opacity-90 transition-colors"
+            >Yes</button>
+            <button
+              onClick={e => { e.stopPropagation(); setConfirmArchive(false); }}
+              className="px-2 py-1 text-[10px] rounded-lg border border-[rgb(235,225,213)] text-[rgb(150,150,150)] hover:bg-[rgb(248,246,242)] transition-colors"
+            >No</button>
+          </>
+        ) : (
+          <button
+            onClick={e => { e.stopPropagation(); setConfirmArchive(true); }}
+            className="px-2 py-1 text-[10px] rounded-lg border border-[rgb(235,225,213)] text-[rgb(150,150,150)] hover:bg-[rgb(248,246,242)] transition-colors ml-auto"
+          >
+            Archive
+          </button>
+        )}
       </div>
     </div>
   );
