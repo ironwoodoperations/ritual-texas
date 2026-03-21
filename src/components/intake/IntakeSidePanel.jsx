@@ -61,33 +61,33 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
   const [deleteInput, setDeleteInput] = useState("");
   const [deleting, setDeleting] = useState(false);
 
-  const storageKey = `intake_completed_${record.id}`;
   const [completed, setCompleted] = useState(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem(storageKey) || "{}");
-      if (record.crmSynced) stored.AddToCRM = true;
-      return stored;
-    } catch { return record.crmSynced ? { AddToCRM: true } : {}; }
+    const stored = {};
+    if (record.crmSynced) stored.AddToCRM = true;
+    if (record.quoteSent) stored.SendQuote = true;
+    if (record.hotelBooked) stored.BookHotel = true;
+    return stored;
   });
 
   // Reset completed state when switching records
   const prevIdRef = useRef(record.id);
   if (prevIdRef.current !== record.id) {
     prevIdRef.current = record.id;
-    try {
-      const stored = JSON.parse(localStorage.getItem(`intake_completed_${record.id}`) || "{}");
-      // If crmSynced is true on the record, reflect that
-      if (record.crmSynced) stored.AddToCRM = true;
-      setCompleted(stored);
-    } catch { setCompleted(record.crmSynced ? { AddToCRM: true } : {}); }
+    const stored = {};
+    if (record.crmSynced) stored.AddToCRM = true;
+    if (record.quoteSent) stored.SendQuote = true;
+    if (record.hotelBooked) stored.BookHotel = true;
+    setCompleted(stored);
   }
 
-  function markCompleted(key) {
-    setCompleted(c => {
-      const next = { ...c, [key]: true };
-      try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch {}
-      return next;
-    });
+  async function markCompleted(key) {
+    setCompleted(c => ({ ...c, [key]: true }));
+    if (key === "SendQuote") {
+      await base44.entities.HotelTreatmentIntake.update(record.id, { quoteSent: true });
+    } else if (key === "BookHotel") {
+      await base44.entities.HotelTreatmentIntake.update(record.id, { hotelBooked: true });
+    }
+    onUpdate();
   }
 
   async function logEvent(text) {
