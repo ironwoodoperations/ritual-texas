@@ -566,8 +566,9 @@ export default function AdminIntake() {
       r.phone?.includes(search) ||
       r.email?.toLowerCase().includes(search.toLowerCase());
 
+    const LOST_STATUSES = ["archived","declined","not_now","lost_price","lost_competitor","lost_no_response","lost_dates_unavailable","do_not_contact"];
     let matchStatus = true;
-    if (statusFilter === "active") matchStatus = r.bookingStatus !== "archived" && r.bookingStatus !== "declined";
+    if (statusFilter === "active") matchStatus = !LOST_STATUSES.includes(r.bookingStatus);
     else if (statusFilter === "new_inquiry") matchStatus = r.bookingStatus === "new_inquiry";
     else if (statusFilter === "pending") matchStatus = r.bookingStatus === "pending";
     else if (statusFilter === "confirmed") matchStatus = r.bookingStatus === "confirmed";

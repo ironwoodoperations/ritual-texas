@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Phone, Mail, Copy, CheckCircle2, Loader2, CreditCard, AlertTriangle } from "lucide-react";
+import { X, Phone, Mail, Copy, CheckCircle2, Loader2, CreditCard, AlertTriangle, Trash2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import ActivityLog, { appendLogEntry } from "./ActivityLog";
 import InvoicePreviewModal from "./InvoicePreviewModal";
