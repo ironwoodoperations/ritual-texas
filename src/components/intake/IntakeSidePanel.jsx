@@ -71,8 +71,10 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
     prevIdRef.current = record.id;
     try {
       const stored = JSON.parse(localStorage.getItem(`intake_completed_${record.id}`) || "{}");
+      // If crmSynced is true on the record, reflect that
+      if (record.crmSynced) stored.AddToCRM = true;
       setCompleted(stored);
-    } catch { setCompleted({}); }
+    } catch { setCompleted(record.crmSynced ? { AddToCRM: true } : {}); }
   }
 
   function markCompleted(key) {
