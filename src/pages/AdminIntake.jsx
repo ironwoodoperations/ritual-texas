@@ -190,6 +190,23 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
       ))
     : null;
 
+  // Room conflict detection
+  const roomConflict = (
+    form.cloudbedsRoomTypeId &&
+    form.checkInDate &&
+    form.checkOutDate &&
+    form.checkOutDate > form.checkInDate
+  )
+    ? allRecords.find(r =>
+        r.id !== initial?.id &&
+        r.cloudbedsRoomTypeId === form.cloudbedsRoomTypeId &&
+        !["archived", "declined"].includes(r.bookingStatus) &&
+        r.checkInDate && r.checkOutDate &&
+        r.checkInDate < form.checkOutDate &&
+        r.checkOutDate > form.checkInDate
+      )
+    : null;
+
   useEffect(() => {
     const { checkInDate, checkOutDate } = form;
     if (!checkInDate || !checkOutDate || checkOutDate <= checkInDate) {
@@ -281,6 +298,16 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
         <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 flex items-center gap-3 text-sm text-amber-800">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           Heads up: a record for <strong className="mx-1">{duplicate.guestName}</strong> already exists.
+        </div>
+      )}
+
+      {/* Room conflict warning */}
+      {roomConflict && (
+        <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 flex items-center gap-3 text-sm text-red-800">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
+          <span>
+            <strong>{roomConflict.roomRequested || roomConflict.cloudbedsRoomTypeId}</strong> is already assigned to <strong>{roomConflict.guestName}</strong> ({roomConflict.checkInDate} → {roomConflict.checkOutDate}). Check dates or choose a different room.
+          </span>
         </div>
       )}
 
