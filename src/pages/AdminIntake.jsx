@@ -143,6 +143,16 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
   const [form, setForm] = useState(() => ({ ...BLANK, ...initial, selectedTreatments: [], callToBookTreatments: [] }));
   const [sbEntries, setSbEntries] = useState(() => parseTreatmentEntries(initial.selectedTreatments));
   const [ctbEntries, setCtbEntries] = useState(() => parseTreatmentEntries(initial.callToBookTreatments));
+
+  // Reset form when `initial` record changes (e.g. switching between editing different records)
+  const initialId = initial?.id;
+  useEffect(() => {
+    setForm({ ...BLANK, ...initial, selectedTreatments: [], callToBookTreatments: [] });
+    setSbEntries(parseTreatmentEntries(initial.selectedTreatments));
+    setCtbEntries(parseTreatmentEntries(initial.callToBookTreatments));
+    setHasChanges(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialId]);
   const [saving, setSaving] = useState(false);
   const [sendConfirm, setSendConfirm] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
