@@ -128,6 +128,10 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
         if (res.data?.error) { setActionMsg({ success: false, text: res.data.error }); }
         else {
           const invoiceId = res.data?.invoiceId;
+          // Save invoiceId to the record immediately
+          if (invoiceId) {
+            await base44.entities.HotelTreatmentIntake.update(record.id, { squareInvoiceId: invoiceId });
+          }
           const pubRes = await base44.functions.invoke("intakePublishInvoice", { invoiceId });
           if (pubRes.data?.error) {
             setActionMsg({ success: true, text: `Draft created. Send manually.`, invoiceId, draftUrl: res.data?.draftUrl, isPending: true });
@@ -363,6 +367,13 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
                   <button onClick={() => runAction("PublishQuote")} disabled={!!actioning} className="px-2 py-1 rounded text-xs bg-green-600 text-white hover:bg-green-700 disabled:opacity-50">Send to Guest</button>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Invoice Actions */}
+          {record.squareInvoiceId && (
+            <div className="border border-[rgb(235,225,213)] rounded-xl p-3">
+              <InvoiceActionsSection record={record} onUpdate={onUpdate} />
             </div>
           )}
 
