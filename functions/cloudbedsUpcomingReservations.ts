@@ -112,24 +112,18 @@ Deno.serve(async (req) => {
     const fetchDetail = async (reservationID, token) => {
       const url = `https://hotels.cloudbeds.com/api/v1.1/getReservation?propertyID=${encodeURIComponent(propertyId)}&reservationID=${encodeURIComponent(reservationID)}`;
       const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-      const text = await resp.text();
-      console.log(`getReservation ${reservationID} status=${resp.status} body=${text.slice(0, 500)}`);
       if (!resp.ok) return null;
-      const data = JSON.parse(text);
+      const data = await resp.json();
       return data?.success ? data.data : null;
     };
 
-    // Enrich today's arrivals with full detail in parallel
+    // Enrich today's arrivals with full detail in parallel (email + room assignment)
     const rawReservations = json.data || [];
     const todayArrivals = rawReservations.filter(r => r.startDate === todayStr);
     const detailMap = {};
     await Promise.all(todayArrivals.map(async r => {
       const detail = await fetchDetail(r.reservationID, accessToken);
-      if (detail) {
-        console.log('DETAIL keys:', Object.keys(detail));
-        console.log('DETAIL rooms/assignment:', JSON.stringify({ roomsAssigned: detail.roomsAssigned, assignment: detail.assignment, rooms: detail.rooms, roomName: detail.roomName, roomTypeName: detail.roomTypeName }));
-        detailMap[r.reservationID] = detail;
-      }
+      if (detail) detailMap[r.reservationID] = detail;
     }));
 
     const reservations = rawReservations.map(r => {
