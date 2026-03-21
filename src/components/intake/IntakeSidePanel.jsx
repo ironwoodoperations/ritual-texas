@@ -4,9 +4,10 @@ import { base44 } from "@/api/base44Client";
 import ActivityLog, { appendLogEntry } from "./ActivityLog";
 import InvoicePreviewModal from "./InvoicePreviewModal";
 
-const STATUS_STEPS = ["new_inquiry", "pending", "confirmed"];
+const STATUS_STEPS = ["new_inquiry", "pending", "confirmed", "booked_reserved"];
 const STATUS_LABELS = {
   new_inquiry: "New Inquiry", pending: "Pending", confirmed: "Confirmed",
+  booked_reserved: "Booked / Reserved ✓",
   not_now: "Not Now", lost_price: "Lost – Price", lost_competitor: "Lost – Competitor",
   lost_no_response: "Lost – No Response", lost_dates_unavailable: "Lost – Dates N/A",
   do_not_contact: "Do Not Contact", declined: "Declined", archived: "Archived",
@@ -15,6 +16,7 @@ const STATUS_COLORS = {
   new_inquiry: "bg-blue-100 text-blue-700",
   pending: "bg-amber-100 text-amber-700",
   confirmed: "bg-green-100 text-green-700",
+  booked_reserved: "bg-emerald-100 text-emerald-800",
   not_now: "bg-purple-100 text-purple-700",
   lost_price: "bg-orange-100 text-orange-700",
   lost_competitor: "bg-orange-100 text-orange-700",
