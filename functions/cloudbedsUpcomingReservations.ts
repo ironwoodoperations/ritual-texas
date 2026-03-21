@@ -112,8 +112,10 @@ Deno.serve(async (req) => {
     const fetchDetail = async (reservationID, token) => {
       const url = `https://hotels.cloudbeds.com/api/v1.1/getReservation?propertyID=${encodeURIComponent(propertyId)}&reservationID=${encodeURIComponent(reservationID)}`;
       const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      const text = await resp.text();
+      console.log(`getReservation ${reservationID} status=${resp.status} body=${text.slice(0, 500)}`);
       if (!resp.ok) return null;
-      const data = await resp.json();
+      const data = JSON.parse(text);
       return data?.success ? data.data : null;
     };
 
