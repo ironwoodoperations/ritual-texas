@@ -275,7 +275,17 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
           <Field label="Children"><NumSelect value={form.numberOfChildren || 0} onChange={v => set("numberOfChildren", v)} max={20} start={0} /></Field>
           <Field label="Room Type">
             {!form.checkInDate || !form.checkOutDate ? (
-              <p className={fieldCls + " text-[rgb(190,170,150)] italic"}>Enter dates above to see available rooms</p>
+              // Show existing value if we have one, even without dates
+              form.cloudbedsRoomTypeId ? (
+                <div className="space-y-1">
+                  <p className={fieldCls + " text-[rgb(107,85,64)]"}>
+                    {MANUAL_ROOMS.find(r => r.id === form.cloudbedsRoomTypeId)?.name || form.cloudbedsRoomTypeId}
+                  </p>
+                  <p className="text-xs text-[rgb(170,150,130)]">Enter dates to re-check availability</p>
+                </div>
+              ) : (
+                <p className={fieldCls + " text-[rgb(190,170,150)] italic"}>Enter dates above to see available rooms</p>
+              )
             ) : loadingLiveRooms ? (
               <p className={fieldCls + " text-[rgb(170,155,140)] flex items-center gap-2"}><Loader2 className="w-3.5 h-3.5 animate-spin inline" /> Checking Cloudbeds availability…</p>
             ) : liveRooms.length > 0 ? (
@@ -292,7 +302,7 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
                     {!showManualRooms && <button type="button" onClick={() => setShowManualRooms(true)} className="ml-auto underline font-semibold whitespace-nowrap">Enter Manually</button>}
                   </div>
                 )}
-                {showManualRooms && (
+                {(showManualRooms || form.cloudbedsRoomTypeId) && (
                   <select value={form.cloudbedsRoomTypeId} onChange={e => set("cloudbedsRoomTypeId", e.target.value)} className={selectCls}>
                     <option value="">Select room manually</option>
                     {MANUAL_ROOMS.map(rt => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
