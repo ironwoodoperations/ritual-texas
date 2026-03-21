@@ -582,7 +582,7 @@ export default function AdminIntake() {
               <button onClick={() => setViewMode("pipeline")} className={`p-2 transition-colors ${viewMode === "pipeline" ? "bg-[rgb(107,85,64)] text-white" : "bg-white text-[rgb(150,150,150)] hover:bg-[rgb(248,246,242)]"}`} title="Pipeline view"><LayoutGrid className="w-4 h-4" /></button>
               <button onClick={() => setViewMode("list")} className={`p-2 transition-colors ${viewMode === "list" ? "bg-[rgb(107,85,64)] text-white" : "bg-white text-[rgb(150,150,150)] hover:bg-[rgb(248,246,242)]"}`} title="List view"><List className="w-4 h-4" /></button>
             </div>
-            <button onClick={() => { setShowNew(v => !v); setEditingRecord(null); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[rgb(107,85,64)] text-white text-sm hover:opacity-90 transition-opacity">
+            <button onClick={() => { setShowNew(v => !v); setEditingRecord(null); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[rgb(107,85,64)] text-white text-sm hover:opacity-90 transition-opacity">
               <Plus className="w-4 h-4" /> New Intake
             </button>
           </div>
@@ -662,7 +662,7 @@ export default function AdminIntake() {
             setRecords(fresh);
             setSelectedRecord(prev => fresh.find(r => r.id === prev?.id) || prev);
           }}
-          onEdit={() => { setEditingRecord(selectedRecord); setSelectedRecord(null); }}
+          onEdit={() => { setEditingRecord(selectedRecord); setSelectedRecord(null); window.scrollTo({ top: 0, behavior: "smooth" }); }}
         />
       )}
     </div>
