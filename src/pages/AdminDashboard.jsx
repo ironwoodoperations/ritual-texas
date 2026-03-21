@@ -421,7 +421,7 @@ export default function AdminDashboard() {
       title: "Base44",
       color: "rgb(150,170,155)",
       tiles: [
-        { icon: BookOpen, label: "Docs Folder", page: "AdminDocs" },
+        { icon: FolderOpen, label: "Docs Folder", page: "AdminDocs" },
       ],
     },
     {
