@@ -66,7 +66,7 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
   });
 
   // Reset completed state when switching records
-  const prevIdRef = React.useRef(record.id);
+  const prevIdRef = useRef(record.id);
   if (prevIdRef.current !== record.id) {
     prevIdRef.current = record.id;
     try {
