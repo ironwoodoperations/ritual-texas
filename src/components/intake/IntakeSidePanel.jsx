@@ -136,10 +136,9 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
           if (pubRes.data?.error) {
             setActionMsg({ success: true, text: `Draft created. Send manually.`, invoiceId, draftUrl: res.data?.draftUrl, isPending: true });
           } else {
-            markCompleted("SendQuote");
+            await markCompleted("SendQuote");
             await logEvent(`Quote sent to ${record.email}`);
             setActionMsg({ success: true, text: `Invoice sent to ${record.email}!` });
-            onUpdate();
             setTimeout(() => setActionMsg(null), 5000);
           }
         }
@@ -149,10 +148,9 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
         const res = await base44.functions.invoke("intakeBookHotel", { intake: intakeData });
         if (res.data?.error) setActionMsg({ success: false, text: res.data.error });
         else {
-          markCompleted("BookHotel");
+          await markCompleted("BookHotel");
           await logEvent("Hotel reservation created in Cloudbeds");
           setActionMsg({ success: true, text: res.data?.message || "Hotel booked!" });
-          onUpdate();
           setTimeout(() => setActionMsg(null), 5000);
         }
       } else if (type === "AddToCRM") {
@@ -174,7 +172,7 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
         const res = await base44.functions.invoke("intakePublishInvoice", { invoiceId: actionMsg.invoiceId });
         if (res.data?.error) setActionMsg({ success: false, text: res.data.error });
         else {
-          markCompleted("SendQuote");
+          await markCompleted("SendQuote");
           setActionMsg({ success: true, text: res.data?.message, isPending: false });
           setTimeout(() => setActionMsg(null), 5000);
         }
