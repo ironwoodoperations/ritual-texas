@@ -62,7 +62,11 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
 
   const storageKey = `intake_completed_${record.id}`;
   const [completed, setCompleted] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(storageKey) || "{}"); } catch { return {}; }
+    try {
+      const stored = JSON.parse(localStorage.getItem(storageKey) || "{}");
+      if (record.crmSynced) stored.AddToCRM = true;
+      return stored;
+    } catch { return record.crmSynced ? { AddToCRM: true } : {}; }
   });
 
   // Reset completed state when switching records
