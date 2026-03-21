@@ -12,6 +12,8 @@ import AdminFiles from './pages/AdminFiles';
 import AdminTrainingManual from './pages/AdminTrainingManual';
 import AdminScheduling from './pages/AdminScheduling';
 import StaffTimeClock from './pages/StaffTimeClock';
+import AdminDocs from './pages/AdminDocs';
+import AdminIntakeDocs from './pages/AdminIntakeDocs';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -68,6 +70,8 @@ const AuthenticatedApp = () => {
       <Route path="/AdminTrainingManual" element={<LayoutWrapper currentPageName="AdminTrainingManual"><AdminTrainingManual /></LayoutWrapper>} />
       <Route path="/AdminScheduling" element={<LayoutWrapper currentPageName="AdminScheduling"><AdminScheduling /></LayoutWrapper>} />
       <Route path="/StaffTimeClock" element={<LayoutWrapper currentPageName="StaffTimeClock"><StaffTimeClock session={null} standalone={true} /></LayoutWrapper>} />
+      <Route path="/AdminDocs" element={<LayoutWrapper currentPageName="AdminDocs"><AdminDocs /></LayoutWrapper>} />
+      <Route path="/AdminIntakeDocs" element={<LayoutWrapper currentPageName="AdminIntakeDocs"><AdminIntakeDocs /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
