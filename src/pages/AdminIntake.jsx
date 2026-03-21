@@ -534,11 +534,25 @@ export default function AdminIntake() {
     }).catch(() => {});
   }, [load]);
 
+  async function syncToCRM(form, recordId) {
+    try {
+      const nameParts = form.guestName?.trim().split(" ") || [];
+      const res = await base44.functions.invoke("crmUpsertContact", {
+        firstName: nameParts[0] || form.guestName, lastName: nameParts.slice(1).join(" ") || "",
+        fullName: form.guestName, email: form.email || "", phone: form.phone || "", tags: ["intake"],
+      });
+      if (res.data?.ok) {
+        await base44.entities.HotelTreatmentIntake.update(recordId, { crmSynced: true });
+      }
+    } catch {}
+  }
+
   async function createNew(form) {
     const newLog = appendLogEntry("", new Date().toISOString(), "Record created", "Staff");
-    await base44.entities.HotelTreatmentIntake.create({ ...form, internalNotes: newLog });
+    const record = await base44.entities.HotelTreatmentIntake.create({ ...form, internalNotes: newLog });
     setShowNew(false);
     load();
+    if (record?.id) syncToCRM(form, record.id);
   }
 
   async function createNewAndSend(form) {
@@ -546,6 +560,7 @@ export default function AdminIntake() {
     const record = await base44.entities.HotelTreatmentIntake.create({ ...form, internalNotes: newLog });
     setShowNew(false);
     load();
+    if (record?.id) syncToCRM(form, record.id);
     if (form.email && form.checkInDate && form.checkOutDate) {
       try { await base44.functions.invoke("intakeCreateInvoiceDraft", { intake: { ...form, id: record?.id } }); } catch {}
     }
