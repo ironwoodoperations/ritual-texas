@@ -89,6 +89,9 @@ export default function IntakeListView({ records, onSelect, sortKey, onSortChang
                   {r.checkInDate && <span>{r.checkInDate} → {r.checkOutDate}</span>}
                   {txCount > 0 && <span className="text-[rgb(150,170,155)]">✨ {txCount} tx</span>}
                 </div>
+                {getLastNote(r) && (
+                  <div className="mt-0.5 text-xs text-[rgb(150,150,150)] truncate">{getLastNote(r)}</div>
+                )}
               </div>
               {r.followUpDate && (
                 <div className={`text-xs shrink-0 flex items-center gap-1 ${followOverdue ? "text-red-600 font-medium" : followToday ? "text-amber-600 font-medium" : "text-[rgb(150,150,150)]"}`}>
