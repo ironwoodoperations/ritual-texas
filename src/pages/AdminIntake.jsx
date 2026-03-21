@@ -356,6 +356,7 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
                 <option value="new_inquiry">New Inquiry</option>
                 <option value="pending">Pending</option>
                 <option value="confirmed">Confirmed</option>
+                <option value="booked_reserved">Booked / Reserved ✓</option>
               </optgroup>
               <optgroup label="Closed / Lost">
                 <option value="not_now">Not Now (Future Interest)</option>
