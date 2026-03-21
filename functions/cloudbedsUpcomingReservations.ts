@@ -106,22 +106,37 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: json?.message || 'API error' }, { status: 200 });
     }
 
-    // Log first raw record to inspect field names
-    if (json.data?.[0]) {
-      console.log('RAW first reservation keys:', Object.keys(json.data[0]));
-      console.log('RAW first reservation:', JSON.stringify(json.data[0]));
-    }
+    const todayStr = fmt(today);
 
-    const reservations = (json.data || []).map(r => {
-      // Cloudbeds uses "rooms" array for room assignments
-      const rooms = Array.isArray(r.rooms) ? r.rooms : [];
-      const firstRoom = rooms[0] || {};
-      const assignment = Array.isArray(r.assignment) ? r.assignment[0] : (r.assignment || {});
-      const roomName = firstRoom.roomName || firstRoom.roomTypeName || assignment?.roomName || assignment?.roomTypeName || r.roomName || r.roomTypeName || '';
-      const roomNumber = firstRoom.roomID || firstRoom.roomNumber || assignment?.roomID || assignment?.roomNumber || '';
+    // For today's arrivals, fetch full reservation details (email + room)
+    const fetchDetail = async (reservationID, token) => {
+      const url = `https://hotels.cloudbeds.com/api/v1.1/getReservation?propertyID=${encodeURIComponent(propertyId)}&reservationID=${encodeURIComponent(reservationID)}`;
+      const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!resp.ok) return null;
+      const data = await resp.json();
+      return data?.success ? data.data : null;
+    };
 
-      // Email may be nested under guest object or at top level
-      const guestEmail = r.guestEmail || r.guest?.email || r.email || '';
+    // Enrich today's arrivals with full detail in parallel
+    const rawReservations = json.data || [];
+    const todayArrivals = rawReservations.filter(r => r.startDate === todayStr);
+    const detailMap = {};
+    await Promise.all(todayArrivals.map(async r => {
+      const detail = await fetchDetail(r.reservationID, accessToken);
+      if (detail) detailMap[r.reservationID] = detail;
+    }));
+
+    const reservations = rawReservations.map(r => {
+      const detail = detailMap[r.reservationID];
+
+      // Email from detail
+      const guestEmail = detail?.guestEmail || detail?.guest?.email || '';
+
+      // Room from detail assignments
+      const assignments = detail?.roomsAssigned || detail?.assignment || [];
+      const firstAssign = Array.isArray(assignments) ? assignments[0] : assignments;
+      const roomName = firstAssign?.roomName || firstAssign?.roomTypeName || detail?.roomTypeName || r.roomTypeName || '';
+      const roomNumber = firstAssign?.roomID || firstAssign?.roomNumber || '';
 
       return {
         reservationID: r.reservationID,
@@ -129,7 +144,7 @@ Deno.serve(async (req) => {
         guestEmail,
         roomName,
         roomNumber,
-        roomTypeName: r.roomTypeName || '',
+        roomTypeName: detail?.roomTypeName || r.roomTypeName || '',
         checkIn: r.startDate,
         checkOut: r.endDate,
         status: r.status,
