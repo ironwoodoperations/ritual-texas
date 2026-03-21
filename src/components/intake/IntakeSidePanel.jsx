@@ -7,12 +7,20 @@ import InvoicePreviewModal from "./InvoicePreviewModal";
 const STATUS_STEPS = ["new_inquiry", "pending", "confirmed"];
 const STATUS_LABELS = {
   new_inquiry: "New Inquiry", pending: "Pending", confirmed: "Confirmed",
-  declined: "Declined", archived: "Archived",
+  not_now: "Not Now", lost_price: "Lost – Price", lost_competitor: "Lost – Competitor",
+  lost_no_response: "Lost – No Response", lost_dates_unavailable: "Lost – Dates N/A",
+  do_not_contact: "Do Not Contact", declined: "Declined", archived: "Archived",
 };
 const STATUS_COLORS = {
   new_inquiry: "bg-blue-100 text-blue-700",
   pending: "bg-amber-100 text-amber-700",
   confirmed: "bg-green-100 text-green-700",
+  not_now: "bg-purple-100 text-purple-700",
+  lost_price: "bg-orange-100 text-orange-700",
+  lost_competitor: "bg-orange-100 text-orange-700",
+  lost_no_response: "bg-orange-100 text-orange-700",
+  lost_dates_unavailable: "bg-orange-100 text-orange-700",
+  do_not_contact: "bg-red-200 text-red-800",
   declined: "bg-red-100 text-red-600",
   archived: "bg-gray-100 text-gray-500",
 };
