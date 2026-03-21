@@ -657,7 +657,11 @@ export default function AdminIntake() {
         <IntakeSidePanel
           record={selectedRecord}
           onClose={() => setSelectedRecord(null)}
-          onUpdate={() => { load(); setSelectedRecord(prev => records.find(r => r.id === prev?.id) || prev); }}
+          onUpdate={async () => {
+            const fresh = await base44.entities.HotelTreatmentIntake.list("-created_date", 100);
+            setRecords(fresh);
+            setSelectedRecord(prev => fresh.find(r => r.id === prev?.id) || prev);
+          }}
           onEdit={() => { setEditingRecord(selectedRecord); setSelectedRecord(null); }}
         />
       )}
