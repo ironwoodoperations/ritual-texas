@@ -65,6 +65,16 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
     try { return JSON.parse(localStorage.getItem(storageKey) || "{}"); } catch { return {}; }
   });
 
+  // Reset completed state when switching records
+  const prevIdRef = React.useRef(record.id);
+  if (prevIdRef.current !== record.id) {
+    prevIdRef.current = record.id;
+    try {
+      const stored = JSON.parse(localStorage.getItem(`intake_completed_${record.id}`) || "{}");
+      setCompleted(stored);
+    } catch { setCompleted({}); }
+  }
+
   function markCompleted(key) {
     setCompleted(c => {
       const next = { ...c, [key]: true };
