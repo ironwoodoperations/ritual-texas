@@ -232,7 +232,7 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
           {/* Status Progression */}
           <div>
             <p className="text-[10px] font-semibold tracking-widest text-[rgb(150,130,110)] uppercase mb-2">Status</p>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 mb-2">
               {STATUS_STEPS.map((s, i) => (
                 <React.Fragment key={s}>
                   <button
@@ -251,6 +251,27 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
                 </React.Fragment>
               ))}
             </div>
+            {/* Closed / Lost dropdown */}
+            {!STATUS_STEPS.includes(record.bookingStatus) && (
+              <div className={`text-xs px-2 py-1 rounded-lg font-medium mb-1 inline-block ${STATUS_COLORS[record.bookingStatus] || "bg-gray-100 text-gray-500"}`}>
+                {STATUS_LABELS[record.bookingStatus] || record.bookingStatus}
+              </div>
+            )}
+            <select
+              value={STATUS_STEPS.includes(record.bookingStatus) ? "" : record.bookingStatus}
+              onChange={e => { if (e.target.value) changeStatus(e.target.value); }}
+              className="w-full mt-1 text-xs border border-[rgb(220,210,200)] rounded-lg px-2 py-1.5 bg-white text-[rgb(45,45,45)] focus:outline-none"
+            >
+              <option value="">↓ Mark as Closed / Lost…</option>
+              <option value="not_now">Not Now (Future Interest)</option>
+              <option value="lost_price">Lost – Price Too High</option>
+              <option value="lost_competitor">Lost – Went with Competitor</option>
+              <option value="lost_no_response">Lost – No Response</option>
+              <option value="lost_dates_unavailable">Lost – Dates Unavailable</option>
+              <option value="do_not_contact">Do Not Contact</option>
+              <option value="declined">Declined</option>
+              <option value="archived">Archived</option>
+            </select>
           </div>
 
           {/* Action Buttons */}
