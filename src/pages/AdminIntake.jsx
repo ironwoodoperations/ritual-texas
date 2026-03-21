@@ -156,6 +156,7 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
   const [saving, setSaving] = useState(false);
   const [sendConfirm, setSendConfirm] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  // (hasChanges declared above, useEffect below uses it safely)
 
   const [liveRooms, setLiveRooms] = useState([]);
   const [loadingLiveRooms, setLoadingLiveRooms] = useState(false);
