@@ -242,6 +242,36 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
     window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${start}&details=${details}`, "_blank");
   }
 
+  // Auto-apply taxes based on booking content
+  useEffect(() => {
+    const hasRoom = !!(form.checkInDate && form.checkOutDate);
+    const hasTreatments =
+      (Array.isArray(sbEntries) && sbEntries.length > 0) ||
+      (Array.isArray(ctbEntries) && ctbEntries.length > 0);
+
+    if (!hasRoom && !hasTreatments) return;
+
+    setForm(prev => {
+      const currentTaxes = prev.taxes || {};
+      const next = { ...currentTaxes };
+      let changed = false;
+
+      if (hasRoom) {
+        ["hotel_state", "hotel_city", "hotel_venue"].forEach(key => {
+          if (!next[key]) { next[key] = true; changed = true; }
+        });
+      }
+
+      if (hasTreatments) {
+        ["sales_state", "sales_city", "sales_jedc", "sales_county"].forEach(key => {
+          if (!next[key]) { next[key] = true; changed = true; }
+        });
+      }
+
+      return changed ? { ...prev, taxes: next } : prev;
+    });
+  }, [form.checkInDate, form.checkOutDate, sbEntries, ctbEntries]);
+
   const isValid = !!form.guestName && (!!form.phone || !!form.email) && !!form.checkInDate && !!form.checkOutDate;
 
   return (
