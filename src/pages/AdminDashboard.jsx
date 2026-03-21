@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import {
   Users, Sparkles, ArrowRight, Bell, UtensilsCrossed, ChefHat,
   BedDouble, ClipboardList, FileText, Image, LogOut, Leaf,
-  CalendarDays, BookOpen, Brush, AlertTriangle, BedSingle,
+  CalendarDays, BookOpen, Brush, AlertTriangle, BedSingle, FolderOpen,
   MessageSquare, Activity, BadgeDollarSign, Timer, Archive, Printer, Upload, Settings,
 } from "lucide-react";
 import HotelTodayPanel from "@/components/dashboard/HotelTodayPanel";
