@@ -687,6 +687,7 @@ export default function AdminIntake() {
             <option value="new_inquiry">New Inquiry</option>
             <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
+            <option value="booked_reserved">Booked / Reserved</option>
             <option value="overdue_followup">Overdue Follow-Up</option>
             <option value="arriving_week">Arriving This Week</option>
             <option value="declined">Declined</option>
