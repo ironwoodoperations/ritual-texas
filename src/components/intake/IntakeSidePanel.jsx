@@ -383,6 +383,47 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
       </div>
 
       {/* Invoice Preview Modal */}
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-[rgb(45,45,45)]">Delete This Record?</h3>
+                <p className="text-xs text-[rgb(150,150,150)]">This cannot be undone.</p>
+              </div>
+            </div>
+            <p className="text-sm text-[rgb(45,45,45)] mb-4">
+              Type <strong>{record.guestName}</strong> to confirm deletion.
+            </p>
+            <input
+              value={deleteInput}
+              onChange={e => setDeleteInput(e.target.value)}
+              placeholder={record.guestName}
+              className="w-full border border-[rgb(220,210,200)] rounded-xl px-3 py-2 text-sm mb-4 focus:outline-none focus:border-red-400"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 py-2 rounded-xl border border-[rgb(220,210,200)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={deleteRecord}
+                disabled={deleteInput.trim().toLowerCase() !== record.guestName.trim().toLowerCase() || deleting}
+                className="flex-1 py-2 rounded-xl bg-red-600 text-white text-sm font-medium disabled:opacity-40 hover:bg-red-700 transition-colors"
+              >
+                {deleting ? "Deleting…" : "Delete Forever"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showInvoicePreview && (
         <InvoicePreviewModal
           intake={record}
