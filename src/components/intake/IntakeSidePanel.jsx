@@ -54,6 +54,9 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
   const [actionMsg, setActionMsg] = useState(null);
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteInput, setDeleteInput] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   const storageKey = `intake_completed_${record.id}`;
   const [completed, setCompleted] = useState(() => {
@@ -71,6 +74,16 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
   async function logEvent(text) {
     const newLog = appendLogEntry(record.internalNotes, record.created_date, text, "System");
     await base44.entities.HotelTreatmentIntake.update(record.id, { internalNotes: newLog });
+  }
+
+  async function deleteRecord() {
+    if (deleteInput.trim().toLowerCase() !== record.guestName.trim().toLowerCase()) return;
+    setDeleting(true);
+    await base44.entities.HotelTreatmentIntake.delete(record.id);
+    setDeleting(false);
+    setShowDeleteModal(false);
+    onClose();
+    onUpdate();
   }
 
   async function changeStatus(newStatus) {
