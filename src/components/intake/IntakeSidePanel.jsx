@@ -305,14 +305,20 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
               >
                 🧘 Open SimplyBook
               </a>
-              <button
-                onClick={() => runAction("AddToCRM")}
-                disabled={!!actioning}
-                className={`flex items-center justify-center gap-1.5 py-2 rounded-xl border text-xs font-medium transition-all disabled:opacity-40 ${completed.AddToCRM ? "border-green-300 bg-green-50 text-green-700" : "border-[rgb(235,225,213)] text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]"}`}
-              >
-                {actioning === "AddToCRM" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : completed.AddToCRM ? <CheckCircle2 className="w-3.5 h-3.5" /> : null}
-                👤 Add to CRM
-              </button>
+              {record.crmSynced || completed.AddToCRM ? (
+                <div className="flex items-center justify-center gap-1.5 py-2 rounded-xl border border-green-300 bg-green-50 text-green-700 text-xs font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Saved to CRM
+                </div>
+              ) : (
+                <button
+                  onClick={() => runAction("AddToCRM")}
+                  disabled={!!actioning}
+                  className="flex items-center justify-center gap-1.5 py-2 rounded-xl border border-[rgb(235,225,213)] text-xs font-medium text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)] transition-all disabled:opacity-40"
+                >
+                  {actioning === "AddToCRM" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                  👤 Add to CRM
+                </button>
+              )}
             </div>
             <button
               onClick={onEdit}
