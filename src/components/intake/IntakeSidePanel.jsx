@@ -60,6 +60,7 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [showCard, setShowCard] = useState(false);
 
   const [completed, setCompleted] = useState(() => {
     const stored = {};
@@ -216,6 +217,12 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
 
   const missingEmail = !record.email;
   const missingDates = !record.checkInDate || !record.checkOutDate;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const therapistOverdue =
+    record.therapistFollowUpDate &&
+    record.therapistFollowUpDate <= today &&
+    !["approved", "declined"].includes(record.therapistStatus);
 
   const stepIndex = STATUS_STEPS.indexOf(record.bookingStatus);
 

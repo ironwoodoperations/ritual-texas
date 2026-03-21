@@ -728,6 +728,7 @@ export default function AdminIntake() {
 
         {/* Stats Bar */}
         <IntakeStatsBar records={records} activeFilter={statusFilter} onFilter={setStatusFilter} />
+        <IntakeRevenueBar records={records} />
 
         {/* Follow-up Banner */}
         <FollowUpBanner records={records} onFilter={setStatusFilter} />
