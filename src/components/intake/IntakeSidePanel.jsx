@@ -66,6 +66,7 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
     if (record.crmSynced) stored.AddToCRM = true;
     if (record.quoteSent) stored.SendQuote = true;
     if (record.hotelBooked) stored.BookHotel = true;
+    if (record.treatmentsBooked) stored.BookSimplyBook = true;
     return stored;
   });
 
@@ -77,6 +78,7 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
     if (record.crmSynced) stored.AddToCRM = true;
     if (record.quoteSent) stored.SendQuote = true;
     if (record.hotelBooked) stored.BookHotel = true;
+    if (record.treatmentsBooked) stored.BookSimplyBook = true;
     setCompleted(stored);
   }
 
