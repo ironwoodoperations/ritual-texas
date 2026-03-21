@@ -81,6 +81,7 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
     if (record.hotelBooked) stored.BookHotel = true;
     if (record.treatmentsBooked) stored.BookSimplyBook = true;
     setCompleted(stored);
+    setShowCard(false);
   }
 
   async function markCompleted(key) {
@@ -439,6 +440,12 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
           {(record.therapistAssigned || record.therapistStatus) && (
             <div>
               <p className="text-[10px] font-semibold tracking-widest text-[rgb(150,130,110)] uppercase mb-2">Therapist</p>
+              {therapistOverdue && (
+                <div className="flex items-center gap-2 mb-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-xs text-red-700">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  Therapist follow-up was due {record.therapistFollowUpDate} — action needed.
+                </div>
+              )}
               <div className="flex items-center gap-2 flex-wrap">
                 {record.therapistAssigned && <span className="text-sm text-[rgb(45,45,45)]">🧘 {record.therapistAssigned}</span>}
                 <span className={`text-xs px-2 py-0.5 rounded-full ${THERAPIST_STATUS_COLORS[record.therapistStatus || "not_contacted"]}`}>
@@ -450,17 +457,26 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
           )}
 
           {/* Card on File */}
-          {record.ccNumber && (
+          {(record.ccNumber || record.ccLast4) && (
             <div>
               <p className="text-[10px] font-semibold tracking-widest text-[rgb(150,130,110)] uppercase mb-2">Card on File</p>
               <div className="flex items-center gap-2 border border-[rgb(220,210,200)] rounded-xl px-3 py-2">
                 <CreditCard className="w-4 h-4 text-[rgb(150,150,150)] shrink-0" />
                 <span className="text-sm text-[rgb(45,45,45)]">
-                  {record.ccType && `${record.ccType} · `}•••• {record.ccNumber.slice(-4)}
+                  {record.ccType && `${record.ccType} · `}
+                  {showCard
+                    ? record.ccNumber || `•••• •••• •••• ${record.ccLast4}`
+                    : `•••• •••• •••• ${record.ccLast4 || record.ccNumber?.slice(-4) || "••••"}`}
                   {record.ccExpiry && ` · ${record.ccExpiry}`}
+                  {showCard && record.ccName && ` · ${record.ccName}`}
                 </span>
-                <span className="ml-auto text-xs text-green-600 font-medium">Card on file ✓</span>
+                <button onClick={() => setShowCard(v => !v)} className="text-xs text-[rgb(107,85,64)] underline shrink-0 hover:opacity-70 ml-auto">
+                  {showCard ? "Hide" : "Reveal"}
+                </button>
               </div>
+              {showCard && record.ccNotes && (
+                <p className="text-xs text-[rgb(150,150,150)] mt-1 px-1">{record.ccNotes}</p>
+              )}
             </div>
           )}
 

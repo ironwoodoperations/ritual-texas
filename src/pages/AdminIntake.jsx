@@ -567,6 +567,71 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
   );
 }
 
+// ── Revenue Bar ───────────────────────────────────────────────────────────────
+const ROOM_RATE = 198;
+
+function nightsBetween(ci, co) {
+  if (!ci || !co) return 0;
+  const a = new Date(ci + "T00:00:00");
+  const b = new Date(co + "T00:00:00");
+  return Math.max(0, Math.round((b - a) / 86400000));
+}
+
+function recordValue(r) {
+  const nights = nightsBetween(r.checkInDate, r.checkOutDate);
+  const roomAmt = nights * ROOM_RATE;
+  const treatments = [
+    ...parseTreatmentEntries(r.selectedTreatments || []),
+    ...parseTreatmentEntries(r.callToBookTreatments || []),
+  ];
+  const txAmt = treatments.reduce((s, t) => s + Number(t.price || 0), 0);
+  return roomAmt + txAmt;
+}
+
+function fmtRevenue(n) {
+  if (n >= 1000) return `$${(n / 1000).toFixed(1)}k`;
+  return `$${Math.round(n).toLocaleString()}`;
+}
+
+function IntakeRevenueBar({ records }) {
+  const activeStatuses = ["new_inquiry", "pending", "confirmed", "booked_reserved"];
+  const active = records.filter(r => activeStatuses.includes(r.bookingStatus));
+  const pipelineTotal = active.reduce((s, r) => s + recordValue(r), 0);
+
+  const confirmedTotal = records
+    .filter(r => r.bookingStatus === "confirmed" || r.bookingStatus === "booked_reserved")
+    .reduce((s, r) => s + recordValue(r), 0);
+
+  const now = new Date();
+  const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  const monthEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-31`;
+  const thisMonthTotal = records
+    .filter(r =>
+      (r.bookingStatus === "confirmed" || r.bookingStatus === "booked_reserved") &&
+      r.checkInDate >= monthStart && r.checkInDate <= monthEnd
+    )
+    .reduce((s, r) => s + recordValue(r), 0);
+
+  if (pipelineTotal === 0) return null;
+
+  const bars = [
+    { label: "Pipeline (Active)", value: pipelineTotal, color: "text-[rgb(107,85,64)]" },
+    { label: "Confirmed Value", value: confirmedTotal, color: "text-green-700" },
+    { label: "This Month (Check-ins)", value: thisMonthTotal, color: "text-blue-700" },
+  ];
+
+  return (
+    <div className="grid grid-cols-3 gap-3">
+      {bars.map(b => (
+        <div key={b.label} className="bg-white border border-[rgb(235,225,213)] rounded-xl px-4 py-3 text-center">
+          <div className={`text-lg font-semibold ${b.color}`}>{fmtRevenue(b.value)}</div>
+          <div className="text-[10px] text-[rgb(150,150,150)] tracking-wide mt-0.5">{b.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function AdminIntake() {
   const [records, setRecords] = useState([]);
