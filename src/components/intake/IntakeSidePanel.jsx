@@ -88,6 +88,8 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
       await base44.entities.HotelTreatmentIntake.update(record.id, { quoteSent: true });
     } else if (key === "BookHotel") {
       await base44.entities.HotelTreatmentIntake.update(record.id, { hotelBooked: true });
+    } else if (key === "BookSimplyBook") {
+      await base44.entities.HotelTreatmentIntake.update(record.id, { treatmentsBooked: true });
     }
     onUpdate();
   }
@@ -168,6 +170,25 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
           setTimeout(() => setActionMsg(null), 4000);
         } else {
           setActionMsg({ success: false, text: res.data?.error || "CRM error" });
+        }
+      } else if (type === "BookSimplyBook") {
+        if (!record.selectedTreatments?.length) {
+          setActionMsg({ success: false, text: "No SimplyBook treatments on this record." });
+          setActioning(null);
+          return;
+        }
+        const sbParsed = parseTreatmentEntries(record.selectedTreatments);
+        const res = await base44.functions.invoke("intakeBookTreatments", {
+          intake: { ...record, selectedTreatments: sbParsed },
+        });
+        if (res.data?.success) {
+          await markCompleted("BookSimplyBook");
+          await logEvent(`SimplyBook treatments booked: ${res.data.message}`);
+          setActionMsg({ success: true, text: res.data.message || "Treatments booked in SimplyBook!" });
+          setTimeout(() => setActionMsg(null), 5000);
+        } else {
+          const errText = res.data?.errors?.join(", ") || res.data?.message || "SimplyBook booking failed.";
+          setActionMsg({ success: false, text: errText });
         }
       } else if (type === "PublishQuote") {
         if (!actionMsg?.invoiceId) { setActioning(null); return; }
