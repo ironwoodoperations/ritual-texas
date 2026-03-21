@@ -127,6 +127,19 @@ Deno.serve(async (req) => {
         try { entry = JSON.parse(rawItem); } catch { entry = { serviceName: rawItem }; }
       }
 
+      // Early validation — clear staff-readable messages
+      const entryNameForValidation = clean(entry?.serviceName || entry?.name || "Unknown treatment");
+      const earlyDate = clean(entry?.date || "");
+      if (!earlyDate || !/^\d{4}-\d{2}-\d{2}$/.test(earlyDate)) {
+        errors.push(`"${entryNameForValidation}" is missing a valid date (YYYY-MM-DD required). Edit the record and add a date to each treatment slot before booking.`);
+        continue;
+      }
+      const earlyTime = entry?.time ? normalizeTime(entry.time) : null;
+      if (!earlyTime) {
+        errors.push(`"${entryNameForValidation}" is missing a start time. Edit the record and add a time to each treatment slot before booking.`);
+        continue;
+      }
+
       const entryGuestName  = clean(entry?.guestName) || guestName;
       const entryGuestEmail = clean(entry?.email || guestEmail).toLowerCase();
       const entryGuestPhone = clean(entry?.phone || guestPhone);

@@ -189,8 +189,10 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
           setActionMsg({ success: true, text: res.data.message || "Treatments booked in SimplyBook!" });
           setTimeout(() => setActionMsg(null), 5000);
         } else {
-          const errText = res.data?.errors?.join(", ") || res.data?.message || "SimplyBook booking failed.";
-          setActionMsg({ success: false, text: errText });
+          const errors = res.data?.errors || [];
+          const mainMsg = res.data?.message || "SimplyBook booking failed.";
+          const detail = errors.length ? errors.map((e, i) => `${i + 1}. ${e}`).join("\n") : null;
+          setActionMsg({ success: false, text: mainMsg, detail });
         }
       } else if (type === "PublishQuote") {
         if (!actionMsg?.invoiceId) { setActioning(null); return; }
@@ -395,6 +397,9 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
           {actionMsg && (
             <div className={`text-xs rounded-xl border px-3 py-2 ${actionMsg.success ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"}`}>
               <div className="font-medium">{actionMsg.text}</div>
+              {actionMsg.detail && (
+                <pre className="mt-1.5 text-[11px] whitespace-pre-wrap leading-relaxed opacity-90">{actionMsg.detail}</pre>
+              )}
               {actionMsg.isPending && actionMsg.draftUrl && (
                 <div className="flex items-center gap-2 mt-2">
                   <a href={actionMsg.draftUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">📄 Preview Invoice</a>

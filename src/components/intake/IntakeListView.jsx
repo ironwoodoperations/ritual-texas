@@ -1,5 +1,14 @@
 import React from "react";
 import { AlertTriangle, Clock } from "lucide-react";
+import { parseActivityLog } from "@/components/intake/ActivityLog";
+
+function getLastNote(record) {
+  const entries = parseActivityLog(record.internalNotes, record.created_date);
+  if (!entries.length) return "";
+  const last = entries[entries.length - 1];
+  const text = last.text || "";
+  return text.length > 80 ? text.slice(0, 80) + "…" : text;
+}
 
 const STATUS_COLORS = {
   new_inquiry: "bg-blue-100 text-blue-700",
