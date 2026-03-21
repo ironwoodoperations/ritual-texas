@@ -340,13 +340,30 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
           <Field label="Booking Status">
             <select value={form.bookingStatus} onChange={e => set("bookingStatus", e.target.value)} className={selectCls}>
-              <option value="new_inquiry">New Inquiry</option>
-              <option value="pending">Pending</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="declined">Declined</option>
-              <option value="archived">Archived</option>
+              <optgroup label="Active">
+                <option value="new_inquiry">New Inquiry</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+              </optgroup>
+              <optgroup label="Closed / Lost">
+                <option value="not_now">Not Now (Future Interest)</option>
+                <option value="lost_price">Lost – Price Too High</option>
+                <option value="lost_competitor">Lost – Went with Competitor</option>
+                <option value="lost_no_response">Lost – No Response</option>
+                <option value="lost_dates_unavailable">Lost – Dates Unavailable</option>
+                <option value="do_not_contact">Do Not Contact</option>
+                <option value="declined">Declined</option>
+                <option value="archived">Archived</option>
+              </optgroup>
             </select>
           </Field>
+          {["not_now","lost_price","lost_competitor","lost_no_response","lost_dates_unavailable","declined"].includes(form.bookingStatus) && (
+            <div className="sm:col-span-2">
+              <Field label="Lost / Closed Reason (Optional)">
+                <textarea placeholder="Any additional context on why this lead was lost…" value={form.lostReason || ""} onChange={e => set("lostReason", e.target.value)} className={fieldCls + " resize-none h-14"} />
+              </Field>
+            </div>
+          )}
           <div>
             <Field label="Follow-Up Date">
               <input type="date" value={form.followUpDate} onChange={e => set("followUpDate", e.target.value)} className={fieldCls} />
@@ -644,6 +661,12 @@ export default function AdminIntake() {
             <option value="overdue_followup">Overdue Follow-Up</option>
             <option value="arriving_week">Arriving This Week</option>
             <option value="declined">Declined</option>
+            <option value="not_now">Not Now</option>
+            <option value="lost_price">Lost – Price</option>
+            <option value="lost_competitor">Lost – Competitor</option>
+            <option value="lost_no_response">Lost – No Response</option>
+            <option value="lost_dates_unavailable">Lost – Dates N/A</option>
+            <option value="do_not_contact">Do Not Contact</option>
             <option value="archived">Archived</option>
           </select>
         </div>
