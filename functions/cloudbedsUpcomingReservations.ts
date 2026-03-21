@@ -123,7 +123,11 @@ Deno.serve(async (req) => {
     const detailMap = {};
     await Promise.all(todayArrivals.map(async r => {
       const detail = await fetchDetail(r.reservationID, accessToken);
-      if (detail) detailMap[r.reservationID] = detail;
+      if (detail) {
+        console.log('DETAIL keys:', Object.keys(detail));
+        console.log('DETAIL rooms/assignment:', JSON.stringify({ roomsAssigned: detail.roomsAssigned, assignment: detail.assignment, rooms: detail.rooms, roomName: detail.roomName, roomTypeName: detail.roomTypeName }));
+        detailMap[r.reservationID] = detail;
+      }
     }));
 
     const reservations = rawReservations.map(r => {
