@@ -341,14 +341,19 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
                 {actioning === "BookHotel" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : completed.BookHotel ? <CheckCircle2 className="w-3.5 h-3.5" /> : null}
                 🏨 Book Cloudbeds
               </button>
-              <a
-                href="https://simplybook.me"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 py-2 rounded-xl border border-[rgb(150,170,155)] text-xs text-[rgb(80,120,90)] hover:bg-[rgb(245,250,246)] transition-colors"
+              <button
+                onClick={() => runAction("BookSimplyBook")}
+                disabled={!record.selectedTreatments?.length || !!actioning}
+                title={!record.selectedTreatments?.length ? "No SimplyBook treatments on this record" : ""}
+                className={`flex items-center justify-center gap-1.5 py-2 rounded-xl border text-xs font-medium transition-all disabled:opacity-40 ${
+                  completed.BookSimplyBook
+                    ? "border-green-300 bg-green-50 text-green-700"
+                    : "border-[rgb(150,170,155)] text-[rgb(80,120,90)] hover:bg-[rgb(245,250,246)]"
+                }`}
               >
-                🧘 Open SimplyBook
-              </a>
+                {actioning === "BookSimplyBook" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : completed.BookSimplyBook ? <CheckCircle2 className="w-3.5 h-3.5" /> : null}
+                🧘 Book SimplyBook
+              </button>
               {record.crmSynced || completed.AddToCRM ? (
                 <div className="flex items-center justify-center gap-1.5 py-2 rounded-xl border border-green-300 bg-green-50 text-green-700 text-xs font-medium">
                   <CheckCircle2 className="w-3.5 h-3.5" /> Saved to CRM
