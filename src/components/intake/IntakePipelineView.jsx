@@ -147,7 +147,7 @@ export default function IntakePipelineView({ records, onSelect, onUpdate }) {
     <div className="overflow-x-auto pb-4">
       <div className="flex gap-4 min-w-[640px]">
         {COLUMNS.map(col => {
-          const colRecords = records.filter(r => r.bookingStatus === col.key);
+          const colRecords = sortByCheckIn(records.filter(r => r.bookingStatus === col.key));
           return (
             <div
               key={col.key}
