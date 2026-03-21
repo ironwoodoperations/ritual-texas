@@ -234,23 +234,23 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
           {/* Status Progression */}
           <div>
             <p className="text-[10px] font-semibold tracking-widest text-[rgb(150,130,110)] uppercase mb-2">Status</p>
-            <div className="flex items-center gap-1 mb-2">
+            <div className="grid grid-cols-4 gap-1 mb-2">
               {STATUS_STEPS.map((s, i) => (
-                <React.Fragment key={s}>
-                  <button
-                    onClick={() => changeStatus(s)}
-                    className={`flex-1 py-1.5 text-xs rounded-lg font-medium transition-all border ${
-                      record.bookingStatus === s
-                        ? "bg-[rgb(107,85,64)] text-white border-[rgb(107,85,64)]"
-                        : i < stepIndex
-                          ? "bg-[rgb(235,225,213)] text-[rgb(107,85,64)] border-[rgb(198,182,165)]"
-                          : "bg-white text-[rgb(150,150,150)] border-[rgb(235,225,213)] hover:border-[rgb(198,182,165)]"
-                    }`}
-                  >
-                    {STATUS_LABELS[s]}
-                  </button>
-                  {i < STATUS_STEPS.length - 1 && <div className="w-4 h-px bg-[rgb(220,210,200)] shrink-0" />}
-                </React.Fragment>
+                <button
+                  key={s}
+                  onClick={() => changeStatus(s)}
+                  className={`py-1.5 text-[10px] rounded-lg font-medium transition-all border leading-tight ${
+                    record.bookingStatus === s
+                      ? s === "booked_reserved"
+                        ? "bg-emerald-600 text-white border-emerald-600"
+                        : "bg-[rgb(107,85,64)] text-white border-[rgb(107,85,64)]"
+                      : i < stepIndex
+                        ? "bg-[rgb(235,225,213)] text-[rgb(107,85,64)] border-[rgb(198,182,165)]"
+                        : "bg-white text-[rgb(150,150,150)] border-[rgb(235,225,213)] hover:border-[rgb(198,182,165)]"
+                  }`}
+                >
+                  {s === "booked_reserved" ? "Booked ✓" : STATUS_LABELS[s]}
+                </button>
               ))}
             </div>
             {/* Closed / Lost dropdown */}
