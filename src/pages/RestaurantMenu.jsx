@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { FileText, ExternalLink } from 'lucide-react';
+import { FileText, ExternalLink, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 export default function RestaurantMenu() {
   const [activeCategory, setActiveCategory] = useState('Lunch');
@@ -37,6 +39,10 @@ export default function RestaurantMenu() {
   return (
     <div style={{ background: '#F0E8DD', minHeight: '100vh', padding: '40px 20px' }}>
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+        <Link to={createPageUrl('Restaurant')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '24px', color: '#3B4831', textDecoration: 'none', fontSize: '14px', fontWeight: 500, hover: { textDecoration: 'underline' } }}>
+          <ArrowLeft className="w-4 h-4" />
+          Back to Restaurant
+        </Link>
         <h1 style={{ margin: 0, fontFamily: 'serif', fontSize: '42px', color: '#3B4831', textAlign: 'center' }}>Menu</h1>
         <p style={{ marginTop: '12px', textAlign: 'center', color: '#1B1B1B', fontSize: '16px' }}>
           Fresh, local, and made with love
