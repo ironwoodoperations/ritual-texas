@@ -305,7 +305,7 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
 
       return changed ? { ...prev, taxes: next } : prev;
     });
-  }, [form.checkInDate, form.checkOutDate, sbEntries, ctbEntries]);
+  }, [form.checkInDate, form.checkOutDate]);
 
   const isValid = !!form.guestName && (!!form.phone || !!form.email) && !!form.checkInDate && !!form.checkOutDate;
 
