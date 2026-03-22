@@ -223,24 +223,34 @@ export default function AdminConciergeInbox() {
         {/* Tabs + Mark All Read */}
         <div className="flex mt-3 border-b border-[rgb(235,225,213)] items-center justify-between">
           <div className="flex">
-          {tabs.map(tab => (
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-[rgb(107,85,64)] text-[rgb(107,85,64)]'
+                    : 'border-transparent text-[rgb(150,150,150)] hover:text-[rgb(107,85,64)]'
+                }`}
+              >
+                {tab.label}
+                {tab.count > 0 && (
+                  <span className="text-[10px] bg-[rgb(107,85,64)] text-white px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+          {((activeTab === 'messages' && newContacts.length > 0) || (activeTab === 'packages' && newPackageInquiries.length > 0)) && (
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === tab.id
-                  ? 'border-[rgb(107,85,64)] text-[rgb(107,85,64)]'
-                  : 'border-transparent text-[rgb(150,150,150)] hover:text-[rgb(107,85,64)]'
-              }`}
+              onClick={() => markAllReadMutation.mutate(activeTab)}
+              disabled={markAllReadMutation.isPending}
+              className="text-xs text-[rgb(150,150,150)] hover:text-[rgb(107,85,64)] px-3 py-1 transition-colors disabled:opacity-50 shrink-0 mb-1"
             >
-              {tab.label}
-              {tab.count > 0 && (
-                <span className="text-[10px] bg-[rgb(107,85,64)] text-white px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                  {tab.count}
-                </span>
-              )}
+              Mark all read
             </button>
-          ))}
+          )}
         </div>
       </header>
 
