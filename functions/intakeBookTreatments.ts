@@ -206,22 +206,23 @@ Deno.serve(async (req) => {
       }
 
       // ── Match service by ID then by name ──────────────────────────────
-      const requestedServiceId   = clean(entry?.serviceId || entry?.simplybookServiceId || entry?.id || "");
-      const requestedServiceName = clean(entry?.serviceName || entry?.name || "");
+      const requestedSimplybookId = clean(entry?.simplybookServiceId || "");
+      const requestedServiceId    = clean(entry?.serviceId || entry?.id || "");
+      const requestedServiceName  = clean(entry?.serviceName || entry?.name || "");
 
-      let svc = services.find(s => requestedServiceId && String(s.id) === requestedServiceId);
-      if (!svc && requestedServiceName) {
-        svc = services.find(s =>
-          clean(s.name).toLowerCase() === requestedServiceName.toLowerCase()
-        );
-        if (!svc) {
-          // Fuzzy fallback: partial name match
-          svc = services.find(s =>
-            clean(s.name).toLowerCase().includes(requestedServiceName.toLowerCase()) ||
-            requestedServiceName.toLowerCase().includes(clean(s.name).toLowerCase())
-          );
-        }
-      }
+      let svc =
+        // 1. Direct SimplyBook ID match (most reliable — set by live availability picker)
+        (requestedSimplybookId && services.find(s => String(s.id) === requestedSimplybookId)) ||
+        // 2. Local service ID match
+        (requestedServiceId && services.find(s => String(s.id) === requestedServiceId)) ||
+        // 3. Exact name match
+        services.find(s => clean(s.name).toLowerCase() === requestedServiceName.toLowerCase()) ||
+        // 4. Fuzzy name match
+        services.find(s => {
+          const sn = clean(s.name).toLowerCase();
+          const rn = requestedServiceName.toLowerCase();
+          return sn && rn && (sn.includes(rn) || rn.includes(sn));
+        });
 
       if (!svc) {
         errors.push(
