@@ -44,6 +44,7 @@ export default function InvoiceActionsSection({ record, onUpdate }) {
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [paymentNote, setPaymentNote] = useState("");
   const [recordingPayment, setRecordingPayment] = useState(false);
+  const [showResendConfirm, setShowResendConfirm] = useState(false);
 
   useEffect(() => {
     if (!invoiceId) return;
@@ -152,16 +153,16 @@ export default function InvoiceActionsSection({ record, onUpdate }) {
       </div>
 
       {/* Resend */}
-      {!isFinal && (
-        <button
-          onClick={handleResend}
-          disabled={resending}
-          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl border border-[rgb(107,85,64)] bg-[rgb(250,247,244)] text-xs text-[rgb(107,85,64)] hover:bg-[rgb(235,225,213)] transition-colors disabled:opacity-40"
-        >
-          {resending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-          {resending ? "Resending…" : "Resend Invoice to Guest"}
-        </button>
-      )}
+       {!isFinal && (
+         <button
+           onClick={() => setShowResendConfirm(true)}
+           disabled={resending}
+           className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl border border-[rgb(107,85,64)] bg-[rgb(250,247,244)] text-xs text-[rgb(107,85,64)] hover:bg-[rgb(235,225,213)] transition-colors disabled:opacity-40"
+         >
+           {resending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+           {resending ? "Resending…" : "Resend Invoice to Guest"}
+         </button>
+       )}
 
       {/* Open Payment Page */}
       {publicUrl && (
@@ -267,6 +268,41 @@ export default function InvoiceActionsSection({ record, onUpdate }) {
               >
                 {recordingPayment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                 {recordingPayment ? "Recording…" : "Record Payment"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showResendConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                <Send className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-[rgb(45,45,45)]">Resend Invoice to Guest?</h3>
+                <p className="text-xs text-[rgb(150,150,150)]">Send confirmation</p>
+              </div>
+            </div>
+            <p className="text-sm text-[rgb(120,120,120)] mb-4">
+              Send the invoice to <strong>{record.email}</strong>?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowResendConfirm(false)}
+                className="flex-1 py-2 rounded-xl border border-[rgb(220,210,200)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { setShowResendConfirm(false); handleResend(); }}
+                disabled={resending}
+                className="flex-1 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium disabled:opacity-40 hover:bg-blue-700 transition-colors flex items-center justify-center gap-1.5"
+              >
+                {resending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                {resending ? "Resending…" : "Yes, Resend"}
               </button>
             </div>
           </div>
