@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MessageSquare, Clock } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
@@ -44,7 +44,7 @@ export default function ActivityLog({ record, onUpdate }) {
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const loadUser = async () => {
       try {
         const userData = await base44.auth.me();
