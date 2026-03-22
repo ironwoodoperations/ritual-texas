@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Sparkles, BedDouble } from 'lucide-react';
+import { Sparkles, BedDouble, Leaf, Phone, Mail } from 'lucide-react';
 
 export default function BookRooms() {
   const [loading, setLoading] = useState(true);
