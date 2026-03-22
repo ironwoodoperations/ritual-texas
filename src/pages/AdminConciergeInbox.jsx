@@ -85,6 +85,7 @@ function CreateIntakeModal({ inq, onClose, onCreated, onDelete }) {
     });
     setSaving(false);
     onCreated();
+    if (onDelete) await onDelete(inq.id);
     onClose();
   }
 
