@@ -65,7 +65,7 @@ export default function Treatments() {
                       onClick={() => setExpandedVideo(isExpanded ? null : treatment.id)}
                       style={{ background: '#C57C5D', color: '#FCF9F4', border: 'none', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, cursor: 'pointer', fontSize: '14px' }}
                     >
-                      {isExpanded ? '✕ Close' : '▶ Watch Video'}
+                      {isExpanded ? '✕ Close' : '▶ Watch on YouTube'}
                     </button>
                   )}
                   {(!treatment.booking_mode || treatment.booking_mode === 'book_online') && (
