@@ -37,36 +37,65 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: "No refresh token stored. Please re-authorize Cloudbeds via Admin → Cloudbeds." }, { status: 400 });
     }
 
-    const tokenResponse = await fetch('https://hotels.cloudbeds.com/api/v1.1/access_token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'refresh_token',
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: redirectUri,
-        refresh_token: refreshToken,
-      }),
-    });
-
-    const tokenData = await tokenResponse.json();
-
-    if (!tokenResponse.ok || !tokenData.access_token) {
-      console.error('Cloudbeds token refresh failed:', JSON.stringify(tokenData));
-      return Response.json({ success: false, error: 'Token refresh failed', details: tokenData }, { status: 500 });
+    // ── RACE CONDITION LOCK ────────────────────────────────────────────────
+    const lockKey = "CLOUDBEDS_REFRESH_LOCK";
+    const lockTTLMs = 15_000;
+    const existingLock = await getSetting(base44, lockKey);
+    if (existingLock) {
+      const lockAge = Date.now() - new Date(existingLock).getTime();
+      if (lockAge < lockTTLMs) {
+        // Another refresh is in progress — wait 6s then return current token
+        await new Promise(r => setTimeout(r, 6_000));
+        const freshExpiry = await getSetting(base44, "CLOUDBEDS_EXPIRES_AT");
+        return Response.json({
+          success: true,
+          note: "Token was being refreshed by concurrent call — returned current token",
+          expiresAt: freshExpiry,
+        });
+      }
+      // Lock is stale — proceed and overwrite it
     }
 
-    const expiresAt = new Date(Date.now() + (tokenData.expires_in || 3600) * 1000).toISOString();
+    // Set the lock
+    await upsertSetting(base44, lockKey, new Date().toISOString(), "Cloudbeds refresh in progress — lock timestamp");
 
-    await upsertSetting(base44, 'CLOUDBEDS_ACCESS_TOKEN', tokenData.access_token, `Cloudbeds access token - refreshed at ${new Date().toISOString()}, expires ${expiresAt}`);
-    await upsertSetting(base44, 'CLOUDBEDS_EXPIRES_AT', expiresAt, 'Cloudbeds token expiry');
+    try {
+      const tokenResponse = await fetch('https://hotels.cloudbeds.com/api/v1.1/access_token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type: 'refresh_token',
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: redirectUri,
+          refresh_token: refreshToken,
+        }),
+      });
 
-    if (tokenData.refresh_token) {
-      await upsertSetting(base44, 'CLOUDBEDS_REFRESH_TOKEN', tokenData.refresh_token, 'Cloudbeds refresh token');
+      const tokenData = await tokenResponse.json();
+
+      if (!tokenResponse.ok || !tokenData.access_token) {
+        console.error('Cloudbeds token refresh failed:', JSON.stringify(tokenData));
+        return Response.json({ success: false, error: 'Token refresh failed', details: tokenData }, { status: 500 });
+      }
+
+      const expiresAt = new Date(Date.now() + (tokenData.expires_in || 3600) * 1000).toISOString();
+
+      await upsertSetting(base44, 'CLOUDBEDS_ACCESS_TOKEN', tokenData.access_token, `Cloudbeds access token - refreshed at ${new Date().toISOString()}, expires ${expiresAt}`);
+      await upsertSetting(base44, 'CLOUDBEDS_EXPIRES_AT', expiresAt, 'Cloudbeds token expiry');
+      await upsertSetting(base44, 'CLOUDBEDS_TOKEN_EXPIRES_AT', expiresAt, 'Cloudbeds token expiry (display)');
+
+      if (tokenData.refresh_token) {
+        await upsertSetting(base44, 'CLOUDBEDS_REFRESH_TOKEN', tokenData.refresh_token, 'Cloudbeds refresh token');
+      }
+
+      console.log(`Cloudbeds token refreshed successfully. Expires: ${expiresAt}`);
+      return Response.json({ success: true, expiresAt });
+
+    } finally {
+      // Always release the lock
+      await upsertSetting(base44, lockKey, '', 'Cloudbeds refresh lock — cleared');
     }
-
-    console.log(`Cloudbeds token refreshed successfully. Expires: ${expiresAt}`);
-    return Response.json({ success: true, expiresAt });
 
   } catch (error) {
     console.error('refreshCloudbedsToken error:', error.message);
