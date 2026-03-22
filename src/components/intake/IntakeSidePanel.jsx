@@ -175,19 +175,24 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
         }
       } else if (type === "BookSimplyBook") {
         const res = await base44.functions.invoke("intakeBookTreatments", { intake: record });
-        if (res.data?.errors?.length > 0 && res.data?.bookingsCreated?.length === 0) {
-          setActionMsg({ success: false, text: "SimplyBook errors: " + res.data.errors.join(" | ") });
-        } else if (res.data?.errors?.length > 0) {
+        const bookings = res.data?.bookings || res.data?.bookingsCreated || [];
+        const errors   = res.data?.errors || [];
+        const authError = res.data?.error;
+
+        if (authError) {
+          setActionMsg({ success: false, text: `SimplyBook error: ${authError}` });
+        } else if (bookings.length === 0 && errors.length > 0) {
+          setActionMsg({ success: false, text: `No bookings created. Errors: ${errors.join(" | ")}` });
+        } else if (bookings.length === 0 && errors.length === 0) {
+          setActionMsg({ success: false, text: "No treatments were booked. This record's treatments may be missing date, time, or SimplyBook service ID. Edit the record and re-add treatments using the new picker." });
+        } else if (bookings.length > 0 && errors.length > 0) {
           await markCompleted("BookSimplyBook");
           await logEvent(`SimplyBook treatments booked with errors`);
-          setActionMsg({ success: true, text: `✓ ${res.data.bookingsCreated.length} treatment(s) booked. ${res.data.errors.length} error(s): ${res.data.errors.join(" | ")}` });
-        } else if (res.data?.bookingsCreated?.length > 0) {
-          await markCompleted("BookSimplyBook");
-          await logEvent(`SimplyBook treatments booked: ${res.data.bookingsCreated.length} treatment(s)`);
-          setActionMsg({ success: true, text: `✓ ${res.data.bookingsCreated.length} treatment(s) booked in SimplyBook` });
-          setTimeout(() => setActionMsg(null), 5000);
+          setActionMsg({ success: true, text: `✓ ${bookings.length} treatment(s) booked. ${errors.length} failed: ${errors.join(" | ")}` });
         } else {
-          setActionMsg({ success: false, text: res.data?.error || "SimplyBook booking failed — check treatment data" });
+          await markCompleted("BookSimplyBook");
+          await logEvent(`SimplyBook treatments booked: ${bookings.length} treatment(s)`);
+          setActionMsg({ success: true, text: `✓ ${bookings.length} treatment(s) booked in SimplyBook` });
         }
       } else if (type === "PublishQuote") {
         if (!actionMsg?.invoiceId) { setActioning(null); return; }
