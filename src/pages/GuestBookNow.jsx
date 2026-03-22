@@ -296,6 +296,10 @@ export default function GuestBookNow() {
   const isStep3Valid = selectedOnline.every((item) => item.date && item.time) || selectedCallToBook.length > 0 || (selectedOnline.length === 0 && selectedCallToBook.length === 0);
   const isStep4Valid = guestName && email && phone;
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div style={{ backgroundColor: DESIGN_TOKENS.bg, minHeight: '100vh', padding: DESIGN_TOKENS.padding }}>
       <div style={{ maxWidth: DESIGN_TOKENS.maxWidth, margin: '0 auto', paddingTop: '32px' }}>
