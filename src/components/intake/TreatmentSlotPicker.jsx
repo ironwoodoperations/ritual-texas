@@ -8,79 +8,69 @@ const labelCls = "block text-[10px] font-semibold tracking-widest text-[rgb(150,
 
 const THERAPISTS = ["Whitney", "Bishop", "Tanita"];
 
-// A single "book online" treatment row — uses DB dropdown + live SimplyBook availability
+// A single "book online" treatment row — date-first, all dropdowns live from SimplyBook
 function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName }) {
-  const [availSlots, setAvailSlots] = useState([]);
-  const [availLoading, setAvailLoading] = useState(false);
-  const [availError, setAvailError] = useState(null);
-  const [sbServiceId, setSbServiceId] = useState(entry.simplybookServiceId || null);
+  const [sbServices, setSbServices] = useState([]);
+  const [sbLoading, setSbLoading]   = useState(false);
+  const [sbError, setSbError]       = useState(null);
 
-  // When treatment + date are both set, fetch live availability from SimplyBook
+  // Derived from selection
+  const selectedService    = sbServices.find(s => s.id === entry.simplybookServiceId) || null;
+  const availableProviders = selectedService?.providers || [];
+  const selectedProvider   = availableProviders.find(p => p.id === entry.staffId) || null;
+  const availableSlots     = selectedProvider?.slots || [];
+
+  // Fetch availability whenever the date changes
   useEffect(() => {
-    const serviceName = entry.serviceName;
     const date = entry.date;
-
-    if (!serviceName || !date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      setAvailSlots([]);
-      setAvailError(null);
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      setSbServices([]);
+      setSbError(null);
       return;
     }
-
     let cancelled = false;
-    setAvailLoading(true);
-    setAvailError(null);
+    setSbLoading(true);
+    setSbError(null);
 
     base44.functions.invoke("simplybookGetAvailability", { date })
       .then(res => {
         if (cancelled) return;
         const services = res.data?.services || [];
-        const matched =
-          services.find(s => s.name?.toLowerCase() === serviceName.toLowerCase()) ||
-          services.find(s =>
-            s.name?.toLowerCase().includes(serviceName.toLowerCase()) ||
-            serviceName.toLowerCase().includes(s.name?.toLowerCase())
-          );
-
-        if (matched) {
-          if (matched.id && matched.id !== entry.simplybookServiceId) {
-            setSbServiceId(matched.id);
-            onUpdate(index, { ...entry, simplybookServiceId: matched.id });
-          }
-          const slots = matched.slots || [];
-          setAvailSlots(slots);
-          if (!slots.length) setAvailError(`No open slots for ${serviceName} on ${date}`);
-        } else {
-          setAvailSlots([]);
-          setAvailError(`${serviceName} not found in SimplyBook for ${date} — enter time manually`);
-        }
+        setSbServices(services);
+        if (!services.length) setSbError("No services available on this date");
       })
       .catch(() => {
-        if (!cancelled) {
-          setAvailSlots([]);
-          setAvailError("Could not load availability — enter time manually");
-        }
+        if (!cancelled) setSbError("Could not load SimplyBook availability");
       })
-      .finally(() => { if (!cancelled) setAvailLoading(false); });
+      .finally(() => { if (!cancelled) setSbLoading(false); });
 
     return () => { cancelled = true; };
-  }, [entry.serviceName, entry.date]);
+  }, [entry.date]);
 
-  function handleTreatmentChange(id) {
-    const t = treatments.find(t => t.id === id);
-    setAvailSlots([]);
-    setAvailError(null);
-    setSbServiceId(null);
-    if (t) {
-      onUpdate(index, { ...entry, serviceId: t.id, serviceName: t.name, price: t.price, duration: t.duration_minutes, simplybookServiceId: null, time: "" });
+  function handleDateChange(date) {
+    // Clear all downstream fields when date changes
+    onUpdate(index, { ...entry, date, simplybookServiceId: "", serviceName: "", price: 0, duration: 0, staffId: "", staffName: "", time: "" });
+  }
+
+  function handleServiceChange(sbServiceId) {
+    const svc = sbServices.find(s => s.id === sbServiceId);
+    if (svc) {
+      onUpdate(index, { ...entry, simplybookServiceId: svc.id, serviceName: svc.name, price: svc.price, duration: svc.duration, staffId: "", staffName: "", time: "" });
     } else {
-      onUpdate(index, { ...entry, serviceId: "", serviceName: "", price: 0, duration: 0, simplybookServiceId: null, time: "" });
+      onUpdate(index, { ...entry, simplybookServiceId: "", serviceName: "", price: 0, duration: 0, staffId: "", staffName: "", time: "" });
     }
   }
 
-  function handleDateChange(date) {
-    setAvailSlots([]);
-    setAvailError(null);
-    onUpdate(index, { ...entry, date, time: "" });
+  function handleProviderChange(providerId) {
+    const provider = availableProviders.find(p => p.id === providerId);
+    onUpdate(index, { ...entry, staffId: providerId, staffName: provider?.name || "", time: "" });
+  }
+
+  function fmtSlot(slot) {
+    const [h, m] = slot.split(":").map(Number);
+    const ampm = h >= 12 ? "PM" : "AM";
+    const dh = h % 12 || 12;
+    return `${dh}:${String(m).padStart(2, "0")} ${ampm}`;
   }
 
   return (
@@ -89,87 +79,150 @@ function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName
         <X className="w-4 h-4" />
       </button>
       <p className="text-[10px] font-bold tracking-widest text-[rgb(150,130,110)] uppercase mb-3">
-        Treatment {index + 1} {guestName && `· ${guestName}`}
+        Treatment {index + 1}{guestName ? ` · ${guestName}` : ""}
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+
+        {/* Step 1: Date — always first so we can fetch availability */}
         <div className="sm:col-span-2">
-          <label className={labelCls}>Treatment</label>
-          {treatments.length > 0 ? (
-            <select value={entry.serviceId || ""} onChange={e => handleTreatmentChange(e.target.value)} className={selectCls}>
-              <option value="">Select treatment…</option>
-              {treatments.map(t => (
-                <option key={t.id} value={t.id}>{t.name} — {t.duration_minutes}min — ${t.price}</option>
-              ))}
-            </select>
-          ) : (
-            <input
-              placeholder="Treatment name…"
-              value={entry.serviceName || ""}
-              onChange={e => onUpdate(index, { ...entry, serviceName: e.target.value, serviceId: "manual" })}
-              className={fieldCls}
-            />
+          <label className={labelCls}>
+            Date
+            {sbLoading && <Loader2 className="inline w-3 h-3 animate-spin ml-1.5 text-[rgb(150,170,155)]" />}
+          </label>
+          <input
+            type="date"
+            value={entry.date || ""}
+            onChange={e => handleDateChange(e.target.value)}
+            className={fieldCls}
+          />
+          {sbError && !sbLoading && entry.date && (
+            <p className="text-[10px] text-amber-600 mt-0.5">{sbError}</p>
           )}
         </div>
 
-        <div>
-          <label className={labelCls}>Date</label>
-          <input type="date" value={entry.date || ""} onChange={e => handleDateChange(e.target.value)} className={fieldCls} />
-        </div>
-
-        <div>
+        {/* Step 2: Treatment — live from SimplyBook, gated on date */}
+        <div className="sm:col-span-2">
           <label className={labelCls}>
-            Time
-            {availLoading && <Loader2 className="inline w-3 h-3 animate-spin ml-1.5 text-[rgb(150,170,155)]" />}
-            {!availLoading && availSlots.length > 0 && (
+            Treatment
+            {sbServices.length > 0 && !sbLoading && (
               <span className="ml-1.5 text-[10px] text-[rgb(150,170,155)] font-normal normal-case tracking-normal">
-                {availSlots.length} slot{availSlots.length !== 1 ? "s" : ""} available
+                {sbServices.length} available this day
               </span>
             )}
           </label>
-          {availSlots.length > 0 ? (
-            <select value={entry.time || ""} onChange={e => onUpdate(index, { ...entry, time: e.target.value })} className={selectCls}>
-              <option value="">Select available time…</option>
-              {availSlots.map(slot => {
-                const [h, m] = slot.split(":").map(Number);
-                const ampm = h >= 12 ? "PM" : "AM";
-                const displayH = h % 12 || 12;
-                const display = `${displayH}:${String(m).padStart(2, "0")} ${ampm}`;
-                return <option key={slot} value={slot}>{display}</option>;
-              })}
+          {!entry.date ? (
+            <p className="text-xs text-[rgb(190,175,160)] py-2 italic">Select a date first to see available treatments</p>
+          ) : sbLoading ? (
+            <p className="text-xs text-[rgb(150,170,155)] py-2 flex items-center gap-1.5">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading treatments from SimplyBook…
+            </p>
+          ) : sbServices.length > 0 ? (
+            <select value={entry.simplybookServiceId || ""} onChange={e => handleServiceChange(e.target.value)} className={selectCls}>
+              <option value="">Select treatment…</option>
+              {sbServices.map(s => (
+                <option key={s.id} value={s.id}>{s.name} — {s.duration}min — ${s.price}</option>
+              ))}
             </select>
           ) : (
+            // Fallback to local DB treatments if SimplyBook unavailable
             <>
-              <input type="time" value={entry.time || ""} onChange={e => onUpdate(index, { ...entry, time: e.target.value })} className={fieldCls} />
-              {availError && !availLoading && entry.date && entry.serviceName && (
-                <p className="text-[10px] text-amber-600 mt-0.5">{availError}</p>
+              {treatments.length > 0 ? (
+                <select
+                  value={entry.serviceId || ""}
+                  onChange={e => {
+                    const t = treatments.find(t => t.id === e.target.value);
+                    if (t) onUpdate(index, { ...entry, serviceId: t.id, serviceName: t.name, price: t.price, duration: t.duration_minutes });
+                  }}
+                  className={selectCls}
+                >
+                  <option value="">Select treatment (offline)…</option>
+                  {treatments.map(t => (
+                    <option key={t.id} value={t.id}>{t.name} — {t.duration_minutes}min — ${t.price}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  placeholder="Treatment name…"
+                  value={entry.serviceName || ""}
+                  onChange={e => onUpdate(index, { ...entry, serviceName: e.target.value })}
+                  className={fieldCls}
+                />
               )}
+              {entry.date && <p className="text-[10px] text-amber-600 mt-0.5">SimplyBook unavailable — using local catalog</p>}
             </>
           )}
         </div>
 
+        {/* Step 3: Provider — live from SimplyBook, gated on service selection */}
         <div>
-          <label className={labelCls}>Therapist</label>
-          <select value={entry.staffName || ""} onChange={e => onUpdate(index, { ...entry, staffName: e.target.value })} className={selectCls}>
-            <option value="">Select therapist…</option>
-            {THERAPISTS.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
+          <label className={labelCls}>
+            Therapist / Provider
+            {selectedService && availableProviders.length > 0 && (
+              <span className="ml-1.5 text-[10px] text-[rgb(150,170,155)] font-normal normal-case tracking-normal">
+                {availableProviders.length} available
+              </span>
+            )}
+          </label>
+          {!entry.simplybookServiceId ? (
+            <p className="text-xs text-[rgb(190,175,160)] py-2 italic">Select a treatment first</p>
+          ) : availableProviders.length > 0 ? (
+            <select value={entry.staffId || ""} onChange={e => handleProviderChange(e.target.value)} className={selectCls}>
+              <option value="">Select provider…</option>
+              {availableProviders.map(p => (
+                <option key={p.id} value={p.id}>{p.name} — {p.slots.length} slot{p.slots.length !== 1 ? "s" : ""} available</option>
+              ))}
+            </select>
+          ) : (
+            <p className="text-xs text-amber-600 py-2">No providers available for this service on this date</p>
+          )}
         </div>
 
+        {/* Step 4: Time — live slots for selected provider */}
+        <div>
+          <label className={labelCls}>
+            Time
+            {selectedProvider && availableSlots.length > 0 && (
+              <span className="ml-1.5 text-[10px] text-[rgb(150,170,155)] font-normal normal-case tracking-normal">
+                {availableSlots.length} open
+              </span>
+            )}
+          </label>
+          {!entry.staffId ? (
+            <p className="text-xs text-[rgb(190,175,160)] py-2 italic">Select a provider first</p>
+          ) : availableSlots.length > 0 ? (
+            <select value={entry.time || ""} onChange={e => onUpdate(index, { ...entry, time: e.target.value })} className={selectCls}>
+              <option value="">Select time…</option>
+              {availableSlots.map(slot => (
+                <option key={slot} value={slot}>{fmtSlot(slot)}</option>
+              ))}
+            </select>
+          ) : (
+            <p className="text-xs text-amber-600 py-2">No time slots available</p>
+          )}
+        </div>
+
+        {/* Price (editable override) */}
         <div>
           <label className={labelCls}>Price ($)</label>
-          <input type="number" min={0} value={entry.price || ""} onChange={e => onUpdate(index, { ...entry, price: parseFloat(e.target.value) || 0 })} className={fieldCls} placeholder="0" />
+          <input
+            type="number"
+            min={0}
+            value={entry.price || ""}
+            onChange={e => onUpdate(index, { ...entry, price: parseFloat(e.target.value) || 0 })}
+            className={fieldCls}
+            placeholder="0"
+          />
         </div>
+
       </div>
 
-      {entry.serviceName && (
+      {/* Confirmation summary */}
+      {entry.serviceName && entry.staffName && entry.time && (
         <div className="mt-3 text-xs text-[rgb(107,85,64)] font-medium bg-[rgb(248,244,240)] rounded-lg px-3 py-1.5">
-          ✓ {entry.serviceName}
-          {entry.date && ` · ${entry.date}`}
-          {entry.time && ` at ${entry.time.slice(0, 5)}`}
+          ✓ {entry.serviceName} · {entry.staffName} · {entry.date} at {fmtSlot(entry.time)}
           {entry.price ? ` · $${entry.price}` : ""}
-          {entry.staffName ? ` · ${entry.staffName}` : ""}
-          {sbServiceId && <span className="ml-1.5 text-[rgb(150,170,155)]">· SimplyBook ✓</span>}
+          <span className="ml-1.5 text-[rgb(150,170,155)]">· SimplyBook live ✓</span>
         </div>
       )}
     </div>
