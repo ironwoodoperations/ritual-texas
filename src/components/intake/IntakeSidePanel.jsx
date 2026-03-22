@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { X, Phone, Mail, Copy, CheckCircle2, Loader2, CreditCard, AlertTriangle, Trash2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import ActivityLog, { appendLogEntry } from "./ActivityLog";
@@ -63,7 +63,7 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
   const [showCard, setShowCard] = useState(false);
   const [user, setUser] = useState(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const loadUser = async () => {
       try {
         const userData = await base44.auth.me();
