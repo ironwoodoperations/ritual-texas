@@ -366,7 +366,7 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
                       {actioning === "BookSimplyBook" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : alreadyBooked ? <CheckCircle2 className="w-3.5 h-3.5" /> : null}
                       🧘 {alreadyBooked ? "Treatments Booked" : "Book SimplyBook"}
                     </button>
-                    <a href="https://simplybook.me/admin" target="_blank" rel="noopener noreferrer" className="text-center text-[10px] text-[rgb(150,150,150)] underline hover:text-[rgb(107,85,64)] transition-colors col-span-1">
+                    <a href="https://simplybook.me" target="_blank" rel="noopener noreferrer" className="text-center text-[10px] text-[rgb(150,150,150)] underline hover:text-[rgb(107,85,64)] transition-colors col-span-1">
                       Open SimplyBook admin manually ↗
                     </a>
                   </>
