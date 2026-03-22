@@ -289,11 +289,8 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
   // Auto-apply taxes based on booking content
   useEffect(() => {
     const hasRoom = !!(form.checkInDate && form.checkOutDate);
-    const hasTreatments =
-      (Array.isArray(sbEntries) && sbEntries.length > 0) ||
-      (Array.isArray(ctbEntries) && ctbEntries.length > 0);
 
-    if (!hasRoom && !hasTreatments) return;
+    if (!hasRoom) return;
 
     setForm(prev => {
       const currentTaxes = prev.taxes || {};
@@ -302,12 +299,6 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
 
       if (hasRoom) {
         ["hotel_state", "hotel_city", "hotel_venue"].forEach(key => {
-          if (!next[key]) { next[key] = true; changed = true; }
-        });
-      }
-
-      if (hasTreatments) {
-        ["sales_state", "sales_city", "sales_jedc", "sales_county"].forEach(key => {
           if (!next[key]) { next[key] = true; changed = true; }
         });
       }
