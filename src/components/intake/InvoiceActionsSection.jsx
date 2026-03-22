@@ -36,6 +36,7 @@ export default function InvoiceActionsSection({ record, onUpdate }) {
   const [resending, setResending] = useState(false);
   const [voiding, setVoiding] = useState(false);
   const [showVoidConfirm, setShowVoidConfirm] = useState(false);
+  const [voidInput, setVoidInput] = useState("");
   const [msg, setMsg] = useState(null);
 
   useEffect(() => {
