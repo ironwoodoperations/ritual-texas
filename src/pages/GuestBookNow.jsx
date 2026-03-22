@@ -378,7 +378,7 @@ export default function GuestBookNow() {
             )}
 
             {roomsError && (
-              <div style={{ backgroundColor: 'rgba(201, 160, 80, 0.1)', border: `1px solid ${DESIGN_TOKENS.accentTerracotta}`, borderRadius: '8px', padding: '16px', marginBottom: '24px', fontSize: '14px', color: DESIGN_TOKENS.accentTerracotta' }}>
+              <div style={{ backgroundColor: 'rgba(201, 160, 80, 0.1)', border: `1px solid ${DESIGN_TOKENS.accentTerracotta}`, borderRadius: '8px', padding: '16px', marginBottom: '24px', fontSize: '14px', color: DESIGN_TOKENS.accentTerracotta }}>
                 {roomsError}
               </div>
             )}
@@ -690,7 +690,7 @@ export default function GuestBookNow() {
                 </div>
 
                 {selectedCallToBook.length > 0 && (
-                  <div style={{ backgroundColor: 'rgba(201, 160, 80, 0.1)', border: `1px solid rgba(201, 160, 80, 0.3)`, borderRadius: '8px', padding: '14px 16px', marginBottom: '24px', fontSize: '13px', color: DESIGN_TOKENS.mutedBrown' }}>
+                  <div style={{ backgroundColor: 'rgba(201, 160, 80, 0.1)', border: `1px solid rgba(201, 160, 80, 0.3)`, borderRadius: '8px', padding: '14px 16px', marginBottom: '24px', fontSize: '13px', color: DESIGN_TOKENS.mutedBrown }}>
                     <strong>Your booking includes call-to-book treatments.</strong> We'll contact you to confirm availability before finalizing your reservation. Room and any online treatments will still be booked automatically.
                   </div>
                 )}
@@ -915,7 +915,7 @@ export default function GuestBookNow() {
             </div>
 
             {submitError && (
-              <div style={{ backgroundColor: 'rgba(197, 124, 93, 0.1)', border: `1px solid ${DESIGN_TOKENS.accentTerracotta}`, borderRadius: '8px', padding: '14px 16px', marginBottom: '24px', fontSize: '13px', color: DESIGN_TOKENS.accentTerracotta' }}>
+              <div style={{ backgroundColor: 'rgba(197, 124, 93, 0.1)', border: `1px solid ${DESIGN_TOKENS.accentTerracotta}`, borderRadius: '8px', padding: '14px 16px', marginBottom: '24px', fontSize: '13px', color: DESIGN_TOKENS.accentTerracotta }}>
                 {submitError}
               </div>
             )}
