@@ -61,6 +61,17 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
   const [deleteInput, setDeleteInput] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [showCard, setShowCard] = useState(false);
+  const [user, setUser] = useState(null);
+
+  React.useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const userData = await base44.auth.me();
+        setUser(userData);
+      } catch {}
+    };
+    loadUser();
+  }, []);
 
   const [completed, setCompleted] = useState(() => {
     const stored = {};
@@ -97,7 +108,8 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
   }
 
   async function logEvent(text) {
-    const newLog = appendLogEntry(record.internalNotes, record.created_date, text, "System");
+    const authorName = user?.full_name || "System";
+    const newLog = appendLogEntry(record.internalNotes, record.created_date, text, authorName);
     await base44.entities.HotelTreatmentIntake.update(record.id, { internalNotes: newLog });
   }
 
@@ -115,7 +127,8 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
     if (record.bookingStatus === newStatus) return;
     const oldLabel = STATUS_LABELS[record.bookingStatus] || record.bookingStatus;
     const newLabel = STATUS_LABELS[newStatus] || newStatus;
-    const newLog = appendLogEntry(record.internalNotes, record.created_date, `Status changed: ${oldLabel} → ${newLabel}`, "Staff");
+    const authorName = user?.full_name || "Staff";
+    const newLog = appendLogEntry(record.internalNotes, record.created_date, `Status changed: ${oldLabel} → ${newLabel}`, authorName);
     await base44.entities.HotelTreatmentIntake.update(record.id, { bookingStatus: newStatus, internalNotes: newLog });
     onUpdate();
   }
