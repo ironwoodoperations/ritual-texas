@@ -207,7 +207,7 @@ export default function AdminConciergeInbox() {
           inq={intakeModal}
           onClose={() => setIntakeModal(null)}
           onCreated={() => queryClient.invalidateQueries(['pkg-inquiries-inbox'])}
-          onDelete={(id) => deletePkgMutation.mutateAsync(id)}
+          onDelete={(id) => updatePkgMutation.mutateAsync({ id, data: { status: 'archived' } })}
         />
       )}
       {/* Sticky Header */}
