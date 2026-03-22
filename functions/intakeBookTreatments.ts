@@ -82,22 +82,27 @@ Deno.serve(async (req) => {
 
     // ── Debug mode: test auth and return service list ───────────────────────
     if (body?._debugAuth) {
-      const loginUrl = "https://user-api.simplybook.me/login";
-      const token = await sbRPC(loginUrl, "getToken", [company, apiKey]);
-      if (!token || typeof token !== "string") {
-        return Response.json({ error: "Auth failed — bad API key or company login", detail: token });
-      }
-      const headers = { "X-Company-Login": company, "X-Token": token };
-      const baseUrl = "https://user-api.simplybook.me";
-      const [services, providers] = await Promise.all([
-        sbRPC(baseUrl, "getEventList", [], headers),
-        sbRPC(baseUrl, "getUnitList", [], headers),
+      const dUserLogin = (Deno.env.get("SIMPLYBOOK_USER_LOGIN") || "").trim();
+      const dUserPass  = (Deno.env.get("SIMPLYBOOK_USER_PASSWORD") || "").trim();
+      const dSecretKey = (Deno.env.get("SIMPLYBOOK_SECRET_KEY") || "").trim();
+      const LOGIN_URL_D = "https://user-api.simplybook.me/login";
+      const BASE_URL_D  = "https://user-api.simplybook.me";
+      const [pubTok, admTok] = await Promise.all([
+        sbRPC(LOGIN_URL_D, "getToken", [company, apiKey]).catch(e => ({ error: e.message })),
+        sbRPC(LOGIN_URL_D, "getUserToken", [company, dUserLogin, dUserPass, dSecretKey]).catch(e => ({ error: e.message })),
       ]);
+      const adminOk = typeof admTok === "string";
+      const rTok = adminOk ? admTok : "";
+      const rHeaders = { "X-Company-Login": company, "X-Token": rTok, "X-User-Token": rTok };
+      const services  = adminOk ? await sbRPC(BASE_URL_D, "getEventList", [], rHeaders).catch(() => null) : null;
+      const providers = adminOk ? await sbRPC(BASE_URL_D, "getUnitList", [], rHeaders).catch(() => null) : null;
       return Response.json({
-        auth: "OK",
-        company,
-        services: asArrayMap(services).map(s => ({ id: s.id, name: s.name })),
-        providers: asArrayMap(providers).map(p => ({ id: p.id, name: p.name })),
+        publicTokenOk: typeof pubTok === "string",
+        adminTokenOk: adminOk,
+        publicTokenError: typeof pubTok !== "string" ? pubTok : null,
+        adminTokenError: !adminOk ? admTok : null,
+        services: services ? asArrayMap(services).map(s => ({ id: s.id, name: s.name })) : null,
+        providers: providers ? asArrayMap(providers).map(p => ({ id: p.id, name: p.name })) : null,
       });
     }
 
@@ -120,26 +125,50 @@ Deno.serve(async (req) => {
     const BASE_URL  = "https://user-api.simplybook.me";
     const ADMIN_URL = "https://user-api.simplybook.me/admin/";
 
-    const token = await sbRPC(LOGIN_URL, "getToken", [company, apiKey]);
-    if (!token || typeof token !== "string") {
+    const userLogin = (Deno.env.get("SIMPLYBOOK_USER_LOGIN") || "").trim();
+    const userPass  = (Deno.env.get("SIMPLYBOOK_USER_PASSWORD") || "").trim();
+    const secretKey = (Deno.env.get("SIMPLYBOOK_SECRET_KEY") || "").trim();
+
+    if (!userLogin || !userPass || !secretKey) {
       return Response.json({
-        error: "SimplyBook authentication failed. Verify SIMPLYBOOK_COMPANY_LOGIN and SIMPLYBOOK_API_KEY are correct.",
-        detail: token,
+        error: "Missing env vars for admin write access: SIMPLYBOOK_USER_LOGIN, SIMPLYBOOK_USER_PASSWORD, SIMPLYBOOK_SECRET_KEY are all required to book treatments.",
       }, { status: 500 });
     }
 
-    // Both X-Token and X-User-Token are set for maximum compatibility
-    const headers = {
+    // Public token — for reads (getEventList, getUnitList)
+    // Admin token — for writes (addClient, book) — requires secret key
+    const [publicToken, adminToken] = await Promise.all([
+      sbRPC(LOGIN_URL, "getToken", [company, apiKey]).catch(() => null),
+      sbRPC(LOGIN_URL, "getUserToken", [company, userLogin, userPass, secretKey]),
+    ]);
+
+    if (!adminToken || typeof adminToken !== "string") {
+      return Response.json({
+        error: "SimplyBook admin authentication failed. Check SIMPLYBOOK_USER_LOGIN, SIMPLYBOOK_USER_PASSWORD, and SIMPLYBOOK_SECRET_KEY.",
+        detail: adminToken,
+      }, { status: 500 });
+    }
+
+    // Use whichever token is available for reads; use admin token for writes
+    const readToken = (typeof publicToken === "string" && publicToken) ? publicToken : adminToken;
+
+    const readHeaders = {
       "X-Company-Login": company,
-      "X-Token": token,
-      "X-User-Token": token,
+      "X-Token": readToken,
+      "X-User-Token": readToken,
+    };
+
+    const adminHeaders = {
+      "X-Company-Login": company,
+      "X-Token": adminToken,
+      "X-User-Token": adminToken,
     };
 
     // ── Load services and providers ────────────────────────────────────────
     // Use BASE_URL (not /admin/) for read operations — this is the working pattern
     const [servicesRaw, providersRaw] = await Promise.all([
-      sbRPC(BASE_URL, "getEventList", [], headers),
-      sbRPC(BASE_URL, "getUnitList", [], headers),
+      sbRPC(BASE_URL, "getEventList", [], readHeaders),
+      sbRPC(BASE_URL, "getUnitList", [], readHeaders),
     ]);
 
     const services  = asArrayMap(servicesRaw);
@@ -224,7 +253,7 @@ Deno.serve(async (req) => {
       let clientId = null;
       try {
         // addClient is a write operation — use ADMIN_URL
-        const addClientResult = await sbRPC(ADMIN_URL, "addClient", [clientPayload, false], headers);
+        const addClientResult = await sbRPC(ADMIN_URL, "addClient", [clientPayload, false], adminHeaders);
         if (typeof addClientResult === "number") {
           clientId = addClientResult;
         } else if (addClientResult && typeof addClientResult === "object") {
@@ -269,7 +298,7 @@ Deno.serve(async (req) => {
       let bookingResult = null;
       try {
         // book is a write operation — use ADMIN_URL
-        bookingResult = await sbRPC(ADMIN_URL, "book", bookPayload, headers);
+        bookingResult = await sbRPC(ADMIN_URL, "book", bookPayload, adminHeaders);
       } catch (e) {
         errors.push(`Booking failed for "${entryName}" on ${requestedDate} at ${startTime}: ${e.message}`);
         debug.push({ stage: "book_failed", serviceId: svc.id, unitId, clientId, requestedDate, startTime, endTime, error: e.message });
