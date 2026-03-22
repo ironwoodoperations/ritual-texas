@@ -254,6 +254,28 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
     setSaving(false);
   }
 
+  async function handleCreateInvoice() {
+    if (!form.email) return;
+    setInvoiceLoading(true);
+    setInvoiceResult(null);
+    try {
+      // Auto-save first
+      await onSave(buildPayload());
+      setHasChanges(false);
+      // Create draft
+      const draftRes = await base44.functions.invoke("intakeCreateInvoiceDraft", { intakeId: initial.id });
+      if (draftRes?.data?.error) throw new Error(draftRes.data.error);
+      // Publish
+      const pubRes = await base44.functions.invoke("intakePublishInvoice", { invoiceId: draftRes.data.invoiceId });
+      const publicUrl = pubRes?.data?.invoice?.public_url || pubRes?.data?.publicUrl;
+      setInvoiceResult({ success: true, invoiceId: draftRes.data.invoiceId, publicUrl, message: `Invoice sent to ${form.email}` });
+    } catch (err) {
+      setInvoiceResult({ success: false, error: err.message || "Invoice creation failed" });
+    } finally {
+      setInvoiceLoading(false);
+    }
+  }
+
   function openGoogleCalendar() {
     const date = form.followUpDate;
     if (!date) return;
