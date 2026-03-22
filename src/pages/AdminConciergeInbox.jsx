@@ -372,60 +372,14 @@ export default function AdminConciergeInbox() {
                           </div>
                         )}
                         {/* Action buttons */}
-                        <div className="flex items-center gap-2 mt-3 flex-wrap">
-                          <a
-                            href={buildReplyEmail(inq)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgb(107,85,64)] text-white text-xs hover:opacity-90 transition-opacity"
-                          >
-                            <Mail className="w-3 h-3" /> Reply via Email
-                          </a>
-                          <button
-                            onClick={() => setIntakeModal(inq)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgb(150,170,155)] text-[rgb(150,170,155)] text-xs hover:bg-[rgb(240,245,241)] transition-colors"
-                          >
-                            <Plus className="w-3 h-3" /> Create Intake
-                          </button>
-                          {inq.status !== 'completed_booked' && (
-                            <button
-                              onClick={async () => {
-                                if (window.confirm('Mark as booked and remove from inbox?')) {
-                                  await deletePkgMutation.mutateAsync(inq.id);
-                                }
-                              }}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgb(150,170,155)] bg-[rgb(150,170,155)] text-white text-xs hover:opacity-90 transition-opacity"
-                            >
-                              <CalendarCheck className="w-3 h-3" /> Completed — Booked
-                            </button>
-                          )}
-                          {inq.status !== 'completed_not_booked' && (
-                            <button
-                              onClick={async () => {
-                                // Save to MarketingCRM then delete
-                                const existing = await base44.entities.MarketingCRM.filter({ source_ref_id: inq.id });
-                                if (existing.length === 0) {
-                                  await base44.entities.MarketingCRM.create({
-                                    full_name: inq.full_name || inq.guest_name || '',
-                                    email: inq.email || inq.guest_email || '',
-                                    phone: inq.phone || inq.guest_phone || '',
-                                    source: 'package_inquiry',
-                                    source_ref_id: inq.id,
-                                    package_interest: inq.package_title || inq.package_name || '',
-                                    preferred_checkin: inq.preferred_checkin || '',
-                                    preferred_checkout: inq.preferred_checkout || '',
-                                    guests: inq.guests || 1,
-                                    original_message: inq.message || '',
-                                    tags: ['package_inquiry', inq.package_slug].filter(Boolean),
-                                    status: 'active',
-                                  });
-                                }
-                                await deletePkgMutation.mutateAsync(inq.id);
-                              }}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgb(198,182,165)] text-[rgb(107,85,64)] text-xs hover:bg-[rgb(248,246,242)] transition-colors"
-                            >
-                              <UserX className="w-3 h-3" /> Completed — Not Booked
-                            </button>
-                          )}
-                        </div>
+                         <div className="flex items-center gap-2 mt-3">
+                           <button
+                             onClick={() => setIntakeModal(inq)}
+                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgb(107,85,64)] text-white text-xs hover:opacity-90 transition-opacity"
+                           >
+                             <Plus className="w-3 h-3" /> Create Intake
+                           </button>
+                         </div>
                       </div>
                     </div>
                     <button
