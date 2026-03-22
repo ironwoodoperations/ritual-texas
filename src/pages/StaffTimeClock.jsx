@@ -39,6 +39,7 @@ function elapsedStr(isoStart) {
 export default function StaffTimeClock({ session, standalone = false }) {
   const [now, setNow] = useState(new Date());
   const [actionMsg, setActionMsg] = useState('');
+  const [managerOverride, setManagerOverride] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -88,9 +89,9 @@ export default function StaffTimeClock({ session, standalone = false }) {
       const curTime = getCurrentTimeHHMM();
       const curMins = timeToMinutes(curTime);
 
-      if (!myShift) {
-        throw new Error('You are not scheduled to work today. Please see a manager.');
-      }
+       if (!myShift && !managerOverride) {
+         throw new Error('You are not scheduled to work today. Please see a manager.');
+       }
       const startMins = timeToMinutes(myShift.scheduled_start);
       const endMins = timeToMinutes(myShift.scheduled_end);
 
@@ -105,10 +106,11 @@ export default function StaffTimeClock({ session, standalone = false }) {
         staff_pin_id: myPin.id,
         staff_name: session.name,
         role: session.role,
-        shift_id: myShift.id,
+        shift_id: myShift?.id || null,
         clock_in_time: new Date().toISOString(),
         clock_in_date: todayStr,
         status: 'clocked_in',
+        notes: managerOverride && !myShift ? 'Manager override — no shift scheduled' : undefined,
       });
     },
     onSuccess: () => { setActionMsg(''); queryClient.invalidateQueries(['my-time-entries', myPin?.id]); },
@@ -134,7 +136,9 @@ export default function StaffTimeClock({ session, standalone = false }) {
   let clockState = 'blocked';
   let blockReason = '';
 
-  if (openEntry) {
+  if (managerOverride && !openEntry && completedToday.length === 0) {
+    clockState = 'ready';
+  } else if (openEntry) {
     clockState = 'clocked_in';
   } else if (completedToday.length > 0 && !openEntry) {
     clockState = 'done';
@@ -261,6 +265,25 @@ export default function StaffTimeClock({ session, standalone = false }) {
             <div>
               <p className="text-xl font-light text-amber-800">{blockReason}</p>
               <p className="text-sm text-amber-600 mt-3">Please see a manager if you believe this is an error.</p>
+              {!myShift && !managerOverride && (
+                <button
+                  onClick={() => {
+                    const pin = window.prompt('Manager PIN required to override:');
+                    const managerPin = (pins || []).find(p =>
+                      String(p.pin).trim() === String(pin || '').trim() &&
+                      (p.role === 'manager' || p.role === 'general_manager' || (p.roles || '').includes('manager'))
+                    );
+                    if (managerPin) {
+                      setManagerOverride(true);
+                    } else if (pin) {
+                      alert('Invalid manager PIN.');
+                    }
+                  }}
+                  className="text-xs text-amber-700 underline hover:text-amber-900 cursor-pointer bg-transparent border-none mt-3"
+                >
+                  Manager override
+                </button>
+              )}
             </div>
           </div>
         )}

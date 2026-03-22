@@ -12,6 +12,13 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 
 const STEPS = ['dates', 'room', 'enhance', 'preferences', 'payment'];
+const STEP_LABELS = {
+  dates: 'Dates',
+  room: 'Room',
+  enhance: 'Enhance',
+  preferences: 'Preferences',
+  payment: 'Confirm',
+};
 
 export default function BookingFlow() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -127,6 +134,9 @@ export default function BookingFlow() {
                   idx <= step ? 'bg-[rgb(150,170,155)]' : 'bg-[rgb(235,225,213)]'
                 }`}
               />
+              <span className="text-xs text-[rgb(150,150,150)] tracking-widest font-light">
+                {STEP_LABELS[s]}
+              </span>
               {idx < STEPS.length - 1 && (
                 <div className={`w-12 h-px transition-colors ${
                   idx < step ? 'bg-[rgb(150,170,155)]' : 'bg-[rgb(235,225,213)]'
@@ -409,8 +419,8 @@ export default function BookingFlow() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
             >
-              <h2 className="text-3xl font-extralight text-[rgb(107,85,64)] mb-4 text-center">Complete your reservation</h2>
-              <p className="text-[rgb(45,45,45)] font-light mb-8 text-center">Review your stay and provide your details</p>
+              <h2 className="text-3xl font-extralight text-[rgb(107,85,64)] mb-4 text-center">Confirm your reservation</h2>
+              <p className="text-[rgb(45,45,45)] font-light mb-8 text-center">Review your booking details below. We'll follow up by email to confirm availability and arrange payment.</p>
 
               <div className="grid md:grid-cols-2 gap-10">
                 {/* Summary */}
@@ -480,8 +490,13 @@ export default function BookingFlow() {
                     />
                   </div>
 
-                  <p className="text-xs text-[rgb(45,45,45)] pt-4">
-                    By completing this reservation, you agree to receive your itinerary and check-in instructions via email.
+                  <div className="bg-[rgb(248,246,242)] border border-[rgb(235,225,213)] rounded-lg p-3 mb-4">
+                    <p className="text-xs font-medium text-[rgb(107,85,64)] mb-2">No payment required now</p>
+                    <p className="text-xs text-[rgb(45,45,45)]">We'll confirm your dates and follow up within 24 hours with payment details. A credit card hold may be required to secure your room.</p>
+                  </div>
+
+                  <p className="text-xs text-[rgb(45,45,45)]">
+                    By completing this reservation request, you agree to receive your itinerary and check-in instructions via email.
                   </p>
                 </div>
               </div>
@@ -525,7 +540,7 @@ export default function BookingFlow() {
                   : 'bg-[rgb(235,225,213)] text-[rgb(198,182,165)] cursor-not-allowed'
               }`}
             >
-              {createBookingMutation.isPending ? 'RESERVING...' : 'COMPLETE RESERVATION'}
+              {createBookingMutation.isPending ? 'SUBMITTING...' : 'REQUEST RESERVATION'}
               <Check className="w-4 h-4" />
             </button>
           )}

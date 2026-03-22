@@ -17,6 +17,7 @@ export default function RestaurantReservations() {
     notes: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [submittedData, setSubmittedData] = useState(null);
 
   const { data: settings = [] } = useQuery({
     queryKey: ['site-settings'],
@@ -27,10 +28,10 @@ export default function RestaurantReservations() {
 
   const createReservation = useMutation({
     mutationFn: (data) => base44.entities.RestaurantReservationRequests.create(data),
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['reservation-requests'] });
       setSubmitted(true);
-      setFormData({ name: '', phone: '', email: '', dateTimeRequested: '', partySize: 2, notes: '' });
+      setSubmittedData(variables);
     },
   });
 
@@ -38,6 +39,38 @@ export default function RestaurantReservations() {
     e.preventDefault();
     createReservation.mutate(formData);
   };
+
+  if (submitted && submittedData) {
+    return (
+      <div style={{ background: '#F0E8DD', minHeight: '100vh', padding: '40px 20px' }}>
+        <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
+          <div style={{ fontSize: '64px', marginBottom: '20px' }}>✓</div>
+          <h1 style={{ margin: '0 0 8px 0', fontFamily: 'serif', fontSize: '32px', color: '#3B4831' }}>
+            Reservation Request Received
+          </h1>
+          <p style={{ margin: '16px 0 24px 0', color: '#1B1B1B', fontSize: '16px', lineHeight: '1.6' }}>
+            Thank you, <strong>{submittedData.name}</strong>! We've received your request for{' '}
+            {submittedData.partySize ? `${submittedData.partySize} guests` : 'your party'}
+            {submittedData.dateTimeRequested ? ` on ${submittedData.dateTimeRequested}` : ''}.
+          </p>
+          <p style={{ margin: '0 0 32px 0', color: '#666', fontSize: '15px', lineHeight: '1.6' }}>
+            Our team will confirm your reservation within a few hours. If you need immediate assistance, call us at <a href="tel:9032846880" style={{ color: '#C57C5D', textDecoration: 'none', fontWeight: 700 }}>(903) 284-6880</a>.
+          </p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '24px' }}>
+            <a href={`mailto:info@ritualtexas.com?subject=Restaurant%20Reservation%20Inquiry`} style={{ padding: '12px 24px', background: '#C57C5D', color: 'white', textDecoration: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 500 }}>
+              Email Us
+            </a>
+            <a href="tel:9032846880" style={{ padding: '12px 24px', background: '#F0E8DD', color: '#3B4831', textDecoration: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 500, border: '1px solid rgba(59,72,49,.1)' }}>
+              Call (903) 284-6880
+            </a>
+          </div>
+          <button onClick={() => { setSubmitted(false); setSubmittedData(null); setFormData({ name: '', phone: '', email: '', dateTimeRequested: '', partySize: 2, notes: '' }); }} style={{ color: '#888', fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+            Submit another request
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ background: '#F0E8DD', minHeight: '100vh', padding: '40px 20px' }}>

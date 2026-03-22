@@ -19,10 +19,11 @@ export default function RestaurantEvents() {
     notes: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [submittedData, setSubmittedData] = useState(null);
 
   const createEventLead = useMutation({
     mutationFn: (data) => base44.entities.RestaurantEventLeads.create(data),
-    onSuccess: async (newLead) => {
+    onSuccess: async (newLead, variables) => {
       queryClient.invalidateQueries({ queryKey: ['event-leads'] });
       
       // Send email notification
@@ -45,7 +46,7 @@ export default function RestaurantEvents() {
       });
       
       setSubmitted(true);
-      setFormData({ name: '', phone: '', email: '', dateRequested: '', partySize: 10, eventType: '', notes: '' });
+      setSubmittedData(variables);
     },
   });
 
@@ -126,13 +127,36 @@ export default function RestaurantEvents() {
           </div>
         </section>
 
-        {/* Inquiry Form */}
-        {submitted && (
-          <div style={{ background: 'rgba(150,170,155,.15)', padding: '16px', borderRadius: '12px', marginBottom: '24px', color: '#3B4831', textAlign: 'center' }}>
-            Thank you for your inquiry! We'll be in touch within 24 hours to discuss your event.
+        {/* Confirmation Screen */}
+        {submitted && submittedData && (
+          <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center', marginBottom: '40px', padding: '40px', background: '#FCF9F4', borderRadius: '18px', border: '1px solid rgba(59,72,49,.1)' }}>
+            <div style={{ fontSize: '64px', marginBottom: '20px' }}>✓</div>
+            <h2 style={{ margin: '0 0 8px 0', fontFamily: 'serif', fontSize: '32px', color: '#3B4831' }}>
+              Event Inquiry Received
+            </h2>
+            <p style={{ margin: '16px 0 24px 0', color: '#1B1B1B', fontSize: '16px', lineHeight: '1.6' }}>
+              Thank you, <strong>{submittedData.name}</strong>! We've received your inquiry about{' '}
+              {submittedData.eventType ? submittedData.eventType : 'your private event'}
+              {submittedData.dateRequested ? ` on ${submittedData.dateRequested}` : ''}.
+            </p>
+            <p style={{ margin: '0 0 32px 0', color: '#666', fontSize: '15px', lineHeight: '1.6' }}>
+              Our events team will be in touch within 24 hours to discuss your vision. For urgent inquiries, call us at <a href="tel:9038106695" style={{ color: '#C57C5D', textDecoration: 'none', fontWeight: 700 }}>(903) 810-6695</a>.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '24px' }}>
+              <a href={`mailto:info@ritualtexas.com?subject=Event%20Inquiry`} style={{ padding: '12px 24px', background: '#C57C5D', color: 'white', textDecoration: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 500 }}>
+                Email Us
+              </a>
+              <a href="tel:9038106695" style={{ padding: '12px 24px', background: '#F0E8DD', color: '#3B4831', textDecoration: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 500, border: '1px solid rgba(59,72,49,.1)' }}>
+                Call (903) 810-6695
+              </a>
+            </div>
+            <button onClick={() => { setSubmitted(false); setSubmittedData(null); setFormData({ name: '', phone: '', email: '', dateRequested: '', partySize: 10, eventType: '', notes: '' }); }} style={{ color: '#888', fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+              Submit another inquiry
+            </button>
           </div>
         )}
 
+        {!submitted && (
         <form onSubmit={handleSubmit} style={{ background: '#FCF9F4', padding: '40px', borderRadius: '18px', border: '1px solid rgba(59,72,49,.1)' }}>
           <h2 style={{ margin: '0 0 24px 0', fontFamily: 'serif', fontSize: '28px', color: '#3B4831' }}>
             Event Inquiry
@@ -200,6 +224,7 @@ export default function RestaurantEvents() {
             </div>
           </div>
         </form>
+        )}
 
         {/* Additional Info */}
         <div style={{ marginTop: '40px', padding: '32px', background: 'rgba(197,124,93,.1)', borderRadius: '18px', textAlign: 'center' }}>
