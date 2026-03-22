@@ -52,7 +52,7 @@ function buildReplyEmail(inq) {
   return `mailto:${inq.email || inq.guest_email || ''}?subject=${subject}&body=${body}`;
 }
 
-function CreateIntakeModal({ inq, onClose, onCreated }) {
+function CreateIntakeModal({ inq, onClose, onCreated, onDelete }) {
   const [saving, setSaving] = useState(false);
   const guestName = inq.full_name || inq.guest_name || inq.name || '';
   const email = inq.email || inq.guest_email || '';
