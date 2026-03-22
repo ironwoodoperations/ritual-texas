@@ -9,10 +9,12 @@ export default function TreatmentRequestForm({ treatment, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    await base44.integrations.Core.SendEmail({
-      to: 'concierge@hotelritual.com',
-      subject: `Treatment Inquiry: ${treatment.name}`,
-      body: `Name: ${form.name}\nEmail: ${form.email}\nPhone: ${form.phone}\n\nMessage: ${form.message || 'No message provided.'}\n\nTreatment: ${treatment.name} (${treatment.duration_minutes} min, $${treatment.price})`
+    await base44.entities.RestaurantContactLeads.create({
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      message: `Treatment inquiry: ${treatment.name} (${treatment.duration_minutes} min, $${treatment.price})\n\n${form.message || ''}`.trim(),
+      status: 'new',
     });
     setSubmitted(true);
     setLoading(false);

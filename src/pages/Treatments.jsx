@@ -105,7 +105,7 @@ export default function Treatments() {
                           Call to Book
                         </a>
                         <button
-                          onClick={() => setRequestTreatment(treatment)}
+                          onClick={(e) => { e.stopPropagation(); setRequestTreatment(treatment); }}
                           style={{ background: '#8B7355', color: '#FCF9F4', border: 'none', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, cursor: 'pointer', fontSize: '14px' }}
                         >
                           Get More Info
@@ -172,6 +172,7 @@ export default function Treatments() {
 
       {requestTreatment && (
         <TreatmentRequestForm
+          key={requestTreatment.id}
           treatment={requestTreatment}
           onClose={() => setRequestTreatment(null)}
         />
