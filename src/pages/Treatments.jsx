@@ -117,45 +117,27 @@ export default function Treatments() {
 
                 {isExpanded && treatment.video_url && (
                 <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(59,72,49,.10)' }}>
-                  <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', background: '#000', borderRadius: '12px', overflow: 'hidden' }}>
-                    {(() => {
-                      let url = treatment.video_url || '';
-                      let embedUrl = '';
-                      
-                      // Extract video ID from various formats
-                      if (url.includes('youtu.be/')) {
-                        const videoId = url.replace(/^.*youtu\.be\//, '').split(/[?&#]/)[0];
-                        if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}`;
-                      } else if (url.includes('watch?v=')) {
-                        const videoId = url.replace(/^.*v=/, '').split(/[&#]/)[0];
-                        if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}`;
-                      } else if (url.includes('/embed/')) {
-                        embedUrl = url;
-                      } else if (url.match(/^[a-zA-Z0-9_-]{11}$/)) {
-                        // Plain video ID
-                        embedUrl = `https://www.youtube.com/embed/${url}`;
-                      }
-                      
-                      if (!embedUrl) return null;
-                      
-                      return (
-                        <iframe
-                          style={{ 
-                            position: 'absolute', 
-                            top: 0, 
-                            left: 0, 
-                            width: '100%', 
-                            height: '100%',
-                            border: 'none'
-                          }}
-                          src={embedUrl}
-                          title={treatment.name}
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      );
-                    })()}
-                  </div>
+                  <a
+                    href={treatment.video_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      background: '#FF0000',
+                      color: '#fff',
+                      borderRadius: '12px',
+                      padding: '12px 18px',
+                      textDecoration: 'none',
+                      fontWeight: 700,
+                      fontSize: '14px',
+                      width: 'fit-content'
+                    }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                    Watch on YouTube
+                  </a>
                 </div>
                 )}
                 </article>
