@@ -480,7 +480,9 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
                   {showCard
                     ? record.ccNumber || `•••• •••• •••• ${record.ccLast4}`
                     : `•••• •••• •••• ${record.ccLast4 || record.ccNumber?.slice(-4) || "••••"}`}
-                  {record.ccExpiry && ` · ${record.ccExpiry}`}
+                  {record.ccExpiry && ` · Exp ${record.ccExpiry}`}
+                  {showCard && record.ccCvc && ` · CVC ${record.ccCvc}`}
+                  {showCard && record.ccZip && ` · ZIP ${record.ccZip}`}
                   {showCard && record.ccName && ` · ${record.ccName}`}
                 </span>
                 <button onClick={() => setShowCard(v => !v)} className="text-xs text-[rgb(107,85,64)] underline shrink-0 hover:opacity-70 ml-auto">
