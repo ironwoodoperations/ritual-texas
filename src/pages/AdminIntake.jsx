@@ -730,6 +730,7 @@ export default function AdminIntake() {
   const [editingRecord, setEditingRecord] = useState(null);
   const [viewMode, setViewMode] = useState("pipeline"); // "pipeline" | "list"
   const [sortKey, setSortKey] = useState("newest");
+  const [user, setUser] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -740,6 +741,13 @@ export default function AdminIntake() {
 
   useEffect(() => {
     load();
+    const loadUser = async () => {
+      try {
+        const userData = await base44.auth.me();
+        setUser(userData);
+      } catch {}
+    };
+    loadUser();
     const loadRooms = async () => {
       try {
         const res = await base44.functions.invoke("getIntakeFormData", {});
@@ -768,7 +776,8 @@ export default function AdminIntake() {
   }
 
   async function createNew(form) {
-    const newLog = appendLogEntry("", new Date().toISOString(), "Record created", "Staff");
+    const authorName = user?.full_name || "Staff";
+    const newLog = appendLogEntry("", new Date().toISOString(), "Record created", authorName);
     const record = await base44.entities.HotelTreatmentIntake.create({ ...form, internalNotes: newLog });
     setShowNew(false);
     load();
@@ -776,7 +785,8 @@ export default function AdminIntake() {
   }
 
   async function createNewAndSend(form) {
-    const newLog = appendLogEntry("", new Date().toISOString(), "Record created", "Staff");
+    const authorName = user?.full_name || "Staff";
+    const newLog = appendLogEntry("", new Date().toISOString(), "Record created", authorName);
     const record = await base44.entities.HotelTreatmentIntake.create({ ...form, internalNotes: newLog });
     setShowNew(false);
     load();
