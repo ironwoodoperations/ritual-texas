@@ -4,7 +4,8 @@ import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft, Plus, Search, Save, Send, CheckCircle2, Clock, Phone, Mail,
-  MessageSquare, CreditCard, Loader2, CalendarCheck, AlertTriangle, LayoutGrid, List
+  MessageSquare, CreditCard, Loader2, CalendarCheck, AlertTriangle, LayoutGrid, List,
+  ExternalLink, Copy
 } from "lucide-react";
 import TreatmentSlotPicker from "@/components/intake/TreatmentSlotPicker";
 import TherapistSection from "@/components/intake/TherapistSection";
