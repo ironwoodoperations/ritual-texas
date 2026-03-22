@@ -557,6 +557,72 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
         </div>
       </Section>
 
+      {/* Square Invoice Section — only for existing saved records */}
+      {initial?.id && (
+        <Section title="Square Invoice">
+          <p className="text-xs text-[rgb(150,150,150)] mb-4">
+            Create and send a Square invoice to the guest without leaving this form.
+          </p>
+          {!invoiceResult ? (
+            <div className="flex flex-col gap-3">
+              {!form.email && (
+                <p className="text-xs text-amber-600 flex items-center gap-1">
+                  <AlertTriangle className="w-3.5 h-3.5" /> Guest email required to send invoice
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={handleCreateInvoice}
+                disabled={invoiceLoading || !form.email}
+                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[rgb(107,85,64)] text-white text-sm font-medium disabled:opacity-40 hover:opacity-90 transition-opacity"
+              >
+                {invoiceLoading
+                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Creating Invoice…</>
+                  : <><CreditCard className="w-4 h-4" /> Create &amp; Send Invoice</>
+                }
+              </button>
+            </div>
+          ) : invoiceResult.success ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-green-700 text-sm font-medium">
+                <CheckCircle2 className="w-4 h-4" /> Invoice sent to {form.email}
+              </div>
+              {invoiceResult.publicUrl && (
+                <div className="flex gap-2">
+                  <a
+                    href={invoiceResult.publicUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm text-[rgb(107,85,64)] hover:bg-[rgb(248,246,242)] transition-all font-medium"
+                  >
+                    <ExternalLink className="w-4 h-4" /> Open Payment Page
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => navigator.clipboard.writeText(invoiceResult.publicUrl)}
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm text-[rgb(107,85,64)] hover:bg-[rgb(248,246,242)] transition-all font-medium"
+                  >
+                    <Copy className="w-4 h-4" /> Copy Link
+                  </button>
+                </div>
+              )}
+              <button type="button" onClick={() => setInvoiceResult(null)} className="text-xs text-[rgb(150,150,150)] underline hover:text-[rgb(107,85,64)]">
+                Create a new invoice
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">
+                ⚠️ {invoiceResult.error}
+              </div>
+              <button type="button" onClick={() => setInvoiceResult(null)} className="text-xs text-[rgb(150,150,150)] underline hover:text-[rgb(107,85,64)]">
+                Try again
+              </button>
+            </div>
+          )}
+        </Section>
+      )}
+
       <div className="pt-4 border-t border-[rgb(220,210,200)] space-y-3">
         {sendConfirm && (
           <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 space-y-3">
