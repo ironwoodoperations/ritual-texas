@@ -1,28 +1,12 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
-interface SubmitPayload {
-  guestName: string;
-  email: string;
-  phone: string;
-  checkInDate: string;
-  checkOutDate: string;
-  numberOfGuests: number;
-  cloudbedsRoomTypeId: string;
-  roomRequested?: string;
-  roomPricePerNight?: number;
-  selectedTreatments?: string[];
-  callToBookTreatments?: string[];
-  specialRequests?: string;
-  howDidYouHearAboutUs?: string;
-}
-
-function calculateNights(checkIn: string, checkOut: string): number {
+function calculateNights(checkIn, checkOut) {
   const start = new Date(checkIn + 'T00:00:00');
   const end = new Date(checkOut + 'T00:00:00');
   return Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
 }
 
-function parseTreatmentEntry(entry: string | Record<string, any>): Record<string, any> {
+function parseTreatmentEntry(entry) {
   if (typeof entry === 'string') {
     try {
       return JSON.parse(entry);
@@ -33,10 +17,7 @@ function parseTreatmentEntry(entry: string | Record<string, any>): Record<string
   return entry;
 }
 
-async function bookRoomInCloudbeds(
-  base44: any,
-  payload: SubmitPayload
-): Promise<{ success: boolean; reservationId?: string; error?: string }> {
+async function bookRoomInCloudbeds(base44, payload) {
   try {
     const res = await base44.asServiceRole.functions.invoke('intakeBookHotel', {
       intake: {
@@ -50,16 +31,12 @@ async function bookRoomInCloudbeds(
     } else {
       return { success: false, error: res.data?.error || 'Cloudbeds booking failed' };
     }
-  } catch (err: any) {
+  } catch (err) {
     return { success: false, error: err.message };
   }
 }
 
-async function bookTreatmentsInSimplyBook(
-  base44: any,
-  intakeId: string,
-  payload: SubmitPayload
-): Promise<{ success: boolean; errors: string[] }> {
+async function bookTreatmentsInSimplyBook(base44, intakeId, payload) {
   if (!payload.selectedTreatments || payload.selectedTreatments.length === 0) {
     return { success: true, errors: [] };
   }
@@ -75,16 +52,12 @@ async function bookTreatmentsInSimplyBook(
 
     const errors = res.data?.errors || [];
     return { success: true, errors };
-  } catch (err: any) {
+  } catch (err) {
     return { success: true, errors: [err.message] };
   }
 }
 
-async function createAndPublishInvoice(
-  base44: any,
-  intakeId: string,
-  payload: SubmitPayload
-): Promise<{ success: boolean; invoiceId?: string; publicUrl?: string; error?: string }> {
+async function createAndPublishInvoice(base44, intakeId, payload) {
   try {
     const draftRes = await base44.asServiceRole.functions.invoke('intakeCreateInvoiceDraft', {
       intakeId,
@@ -114,7 +87,7 @@ async function createAndPublishInvoice(
     const publicUrl = pubRes.data?.invoice?.public_url || pubRes.data?.publicUrl;
 
     return { success: true, invoiceId, publicUrl };
-  } catch (err: any) {
+  } catch (err) {
     return { success: false, error: err.message };
   }
 }
@@ -123,7 +96,7 @@ Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
 
   try {
-    const payload = (await req.json()) as SubmitPayload;
+    const payload = await req.json();
 
     // Validate required fields
     if (!payload.guestName || !payload.email || !payload.checkInDate || !payload.checkOutDate || !payload.cloudbedsRoomTypeId) {
@@ -162,10 +135,10 @@ Deno.serve(async (req) => {
       preferredContactMethod: 'email',
     };
 
-    let intake: any;
+    let intake;
     try {
       intake = await base44.asServiceRole.entities.HotelTreatmentIntake.create(intakePayload);
-    } catch (err: any) {
+    } catch (err) {
       return Response.json(
         { success: false, error: 'Could not save your booking. Please call us at (903) 810-6695.' },
         { status: 500 }
@@ -180,9 +153,9 @@ Deno.serve(async (req) => {
         await base44.integrations.Core.SendEmail({
           to: payload.email,
           subject: 'Your Booking Request — Hotel RITUAL',
-          body: `Hi ${payload.guestName},\n\nThank you for your booking request at Hotel RITUAL!\n\nWe've received your request and will contact you within 24 hours to confirm availability for all your selected treatments and finalize your reservation.\n\nYour request details:\n• Dates: ${payload.checkInDate} – ${payload.checkOutDate}\n• Room: ${payload.roomRequested}\n• Guests: ${payload.numberOfGuests}\n\nQuestions? Call us at (903) 810-6695 or reply to this email.\n\nWarm regards,\nHotel RITUAL\nSan Augustine, TX`,
+          body: `Hi ${payload.guestName},\n\nThank you for your booking request at Hotel RITUAL!\n\nWe have received your request and will contact you within 24 hours to confirm availability for all your selected treatments and finalize your reservation.\n\nYour request details:\n• Dates: ${payload.checkInDate} – ${payload.checkOutDate}\n• Room: ${payload.roomRequested}\n• Guests: ${payload.numberOfGuests}\n\nQuestions? Call us at (903) 810-6695 or reply to this email.\n\nWarm regards,\nHotel RITUAL\nSan Augustine, TX`,
         });
-      } catch (err: any) {
+      } catch (err) {
         console.error('Failed to send confirmation email:', err);
       }
 
@@ -190,7 +163,7 @@ Deno.serve(async (req) => {
         success: true,
         type: 'request',
         intakeId,
-        message: 'Your request has been received. We'll contact you shortly to confirm.',
+        message: 'Your request has been received. We will contact you shortly to confirm.',
       });
     }
 
@@ -230,7 +203,7 @@ Deno.serve(async (req) => {
         success: true,
         type: 'request',
         intakeId,
-        message: 'Your booking has been received. We'll send your payment link shortly.',
+        message: 'Your booking has been received. We will send your payment link shortly.',
       });
     }
 
@@ -247,7 +220,7 @@ Deno.serve(async (req) => {
       publicUrl: invoiceResult.publicUrl,
       message: 'Booking created. Redirecting to payment...',
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error('[guestSubmitBooking] Unexpected error:', err);
     return Response.json(
       { success: false, error: 'An unexpected error occurred. Please call us at (903) 810-6695.' },
