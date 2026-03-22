@@ -148,15 +148,62 @@ export default function GmItineraries() {
     queryFn: () => base44.entities.SpaBooking.list("-startAt", 500),
   });
 
+  const { data: todayIntakes = [] } = useQuery({
+    queryKey: ["gm-intake-itineraries", today],
+    queryFn: async () => {
+      const all = await base44.entities.HotelTreatmentIntake.list("-created_date", 200);
+      return all.filter(intake => {
+        if (intake.checkInDate === today) return true;
+        if (Array.isArray(intake.selectedTreatments)) {
+          return intake.selectedTreatments.some(t => {
+            try { const parsed = typeof t === "string" ? JSON.parse(t) : t; return parsed.date === today; } catch { return false; }
+          });
+        }
+        return false;
+      });
+    },
+  });
+
+  const getIntakeTreatmentsForGuest = (guestEmail, guestName) => {
+    const email = (guestEmail || "").toLowerCase().trim();
+    const name = (guestName || "").toLowerCase().trim();
+    const matchingIntakes = todayIntakes.filter(intake => {
+      const intakeEmail = (intake.email || "").toLowerCase().trim();
+      const intakeName = (intake.guestName || "").toLowerCase().trim();
+      return (email && intakeEmail === email) || (name && intakeName === name);
+    });
+    const treatments = [];
+    matchingIntakes.forEach(intake => {
+      (intake.selectedTreatments || []).forEach(raw => {
+        try {
+          const t = typeof raw === "string" ? JSON.parse(raw) : raw;
+          if (t.date === today && t.source !== "simplybook") {
+            treatments.push({
+              id: `intake-${intake.id}-${t.simplybookServiceId || t.serviceName}`,
+              serviceName: t.serviceName || "Treatment",
+              staffName: t.staffName || "",
+              startAt: t.date && t.time ? `${t.date}T${t.time}` : null,
+              durationMinutes: t.duration || null,
+              status: "confirmed",
+              fromIntake: true,
+            });
+          }
+        } catch {}
+      });
+    });
+    return treatments;
+  };
+
   const todayArrivals = (cloudbedsData?.reservations || []).filter(r => r.checkIn === today);
   const arrivalsWithSpa = todayArrivals.map(r => {
     const guestEmail = (r.guestEmail || "").toLowerCase().trim();
-    const spa = allSpaBookings.filter(b =>
+    const simplybookSpa = allSpaBookings.filter(b =>
       b.status !== "booking.cancelled" &&
       (b.email || "").toLowerCase().trim() === guestEmail &&
       b.startAt >= r.checkIn && b.startAt <= (r.checkOut + "T23:59:59")
     );
-    return { reservation: r, spaBookings: spa };
+    const intakeTreatments = getIntakeTreatmentsForGuest(r.guestEmail, r.guestName);
+    return { reservation: r, spaBookings: [...simplybookSpa, ...intakeTreatments] };
   });
 
   const hotelGuestEmails = new Set(todayArrivals.map(r => (r.guestEmail || "").toLowerCase().trim()));
