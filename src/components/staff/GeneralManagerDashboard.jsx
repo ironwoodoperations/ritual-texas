@@ -101,6 +101,20 @@ export default function GeneralManagerDashboard() {
   });
   const conciergeCount = contactLeads.length + packageInquiries.length;
 
+  // ── Cloudbeds status ──
+  const { data: siteSettings = [] } = useQuery({
+    queryKey: ['site-settings-cloudbeds-status'],
+    queryFn: () => base44.entities.SiteSettings.list(),
+    staleTime: 5 * 60 * 1000,
+  });
+  const cloudbedsStatus = (() => {
+    const accessToken = siteSettings.find(s => s.key === 'CLOUDBEDS_ACCESS_TOKEN')?.value;
+    const tokenExpiry = siteSettings.find(s => s.key === 'CLOUDBEDS_TOKEN_EXPIRES_AT')?.value;
+    if (!accessToken) return 'disconnected';
+    if (tokenExpiry && new Date(tokenExpiry) < new Date()) return 'disconnected';
+    return 'connected';
+  })();
+
   // ── Intake ──
   const { data: intakePending = [] } = useQuery({
     queryKey: ["gm-intake-pending"],
@@ -159,7 +173,7 @@ export default function GeneralManagerDashboard() {
             <span className="text-xs text-[rgb(120,120,120)]">{intakeCount > 0 ? `${intakeCount} need attention` : "Hotel + Treatment"}</span>
           </Link>
 
-          <HotelTodayPanel arrivalsToday={arrivalsToday} departuresToday={departuresToday} inHouseTonight={inHouseTonight} />
+          <HotelTodayPanel arrivalsToday={arrivalsToday} departuresToday={departuresToday} inHouseTonight={inHouseTonight} cloudbedsStatus={cloudbedsStatus} />
 
           <Link to={createPageUrl("AdminSpaSchedule")} className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
             <div className="flex items-center gap-2">

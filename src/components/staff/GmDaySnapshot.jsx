@@ -52,6 +52,19 @@ export default function GmDaySnapshot() {
     queryFn: () => base44.entities.HotelTreatmentIntake.filter({ bookingStatus: "pending" }),
   });
 
+  const { data: siteSettings = [] } = useQuery({
+    queryKey: ['site-settings-cloudbeds-status'],
+    queryFn: () => base44.entities.SiteSettings.list(),
+    staleTime: 5 * 60 * 1000,
+  });
+  const cloudbedsStatus = (() => {
+    const accessToken = siteSettings.find(s => s.key === 'CLOUDBEDS_ACCESS_TOKEN')?.value;
+    const tokenExpiry = siteSettings.find(s => s.key === 'CLOUDBEDS_TOKEN_EXPIRES_AT')?.value;
+    if (!accessToken) return 'disconnected';
+    if (tokenExpiry && new Date(tokenExpiry) < new Date()) return 'disconnected';
+    return 'connected';
+  })();
+
   const active = bookings.filter(b => b.booking_status !== "cancelled");
   const arrivalsToday = active.filter(b => b.check_in_date === today);
   const departuresToday = active.filter(b => b.check_out_date === today);
@@ -90,7 +103,7 @@ export default function GmDaySnapshot() {
           </div>
         )}
 
-        <HotelTodayPanel arrivalsToday={arrivalsToday} departuresToday={departuresToday} inHouseTonight={inHouseTonight} />
+        <HotelTodayPanel arrivalsToday={arrivalsToday} departuresToday={departuresToday} inHouseTonight={inHouseTonight} cloudbedsStatus={cloudbedsStatus} />
 
         <div className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2">
           <div className="flex items-center gap-2">
