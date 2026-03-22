@@ -219,6 +219,28 @@ export default function GmItineraries() {
     }
   });
 
+  // Also include intake guests with today's treatments who aren't in SimplyBook
+  todayIntakes.forEach(intake => {
+    if (!intake.selectedTreatments?.some(raw => {
+      try { const t = typeof raw === "string" ? JSON.parse(raw) : raw; return t.date === today && t.source !== "simplybook"; } catch { return false; }
+    })) return;
+    const email = (intake.email || "").toLowerCase().trim();
+    const name = (intake.guestName || "").toLowerCase().trim();
+    if (hotelGuestEmails.has(email)) return;
+    if (seen.has(email || name)) return;
+    seen.add(email || name);
+    const treatments = getIntakeTreatmentsForGuest(intake.email, intake.guestName);
+    if (treatments.length === 0) return;
+    spaOnlyGuests.push({
+      reservation: {
+        guestName: intake.guestName || "Guest",
+        guestEmail: intake.email || "",
+        reservationID: null, checkIn: null, checkOut: null, roomName: null, spaOnly: true,
+      },
+      spaBookings: treatments,
+    });
+  });
+
   const allCards = [...arrivalsWithSpa, ...spaOnlyGuests];
   const isLoading = cbLoading || spaLoading;
 
