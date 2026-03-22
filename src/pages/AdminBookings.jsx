@@ -56,6 +56,9 @@ export default function AdminBookings() {
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [cardError, setCardError] = useState('');
 
+  const [lastSyncTime, setLastSyncTime] = useState(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+
   // New Reservation form state
   const [form, setForm] = useState(blankForm);
   const [formLoading, setFormLoading] = useState(false);
@@ -148,6 +151,7 @@ export default function AdminBookings() {
     queryKey: ['cloudbeds-upcoming'],
     queryFn: async () => {
       const res = await base44.functions.invoke('cloudbedsUpcomingReservations', {});
+      setLastSyncTime(new Date());
       return res.data;
     },
     enabled: !!user,
@@ -224,9 +228,20 @@ export default function AdminBookings() {
                   className="pl-10 border-[rgb(235,225,213)]"
                 />
               </div>
-              <button onClick={() => refetchCloudbeds()} className="flex items-center gap-2 px-3 py-2 text-sm text-[rgb(107,85,64)] border border-[rgb(235,225,213)] rounded-md hover:bg-[rgb(235,225,213)]">
-                <RefreshCw className="w-4 h-4" /> Refresh
-              </button>
+              <div className="flex items-center gap-3">
+                {lastSyncTime && (
+                  <span className="text-xs text-[rgb(150,150,150)]">
+                    Synced {lastSyncTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                  </span>
+                )}
+                <button
+                  onClick={async () => { setIsSyncing(true); await refetchCloudbeds(); setIsSyncing(false); }}
+                  disabled={isSyncing}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-[rgb(107,85,64)] border border-[rgb(235,225,213)] rounded-md hover:bg-[rgb(235,225,213)] disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} /> Refresh
+                </button>
+              </div>
             </div>
 
             <div className="bg-white border border-[rgb(235,225,213)] overflow-hidden rounded-lg">
