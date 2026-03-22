@@ -502,6 +502,7 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
           <Field label="Full Card Number"><input type="password" placeholder="•••• •••• •••• ••••" value={form.ccNumber} onChange={e => set("ccNumber", e.target.value)} className={fieldCls} /></Field>
           <Field label="Expiry MM/YY"><input placeholder="MM/YY" value={form.ccExpiry} onChange={e => set("ccExpiry", e.target.value)} className={fieldCls} maxLength={5} /></Field>
           <Field label="CVC"><input type="password" placeholder="•••" value={form.ccCvc} onChange={e => set("ccCvc", e.target.value)} className={fieldCls} maxLength={4} /></Field>
+          <Field label="Billing ZIP"><input placeholder="00000" value={form.ccZip || ""} onChange={e => set("ccZip", e.target.value)} className={fieldCls} maxLength={10} /></Field>
           <div className="sm:col-span-2">
             <Field label="Payment Notes"><textarea placeholder="Deposit auth amount, date, any notes…" value={form.ccNotes} onChange={e => set("ccNotes", e.target.value)} className={fieldCls + " resize-none h-14"} /></Field>
           </div>
