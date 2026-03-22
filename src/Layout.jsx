@@ -1,4 +1,61 @@
 import React, { useState, useEffect } from 'react';
+
+class GuestErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, info) {
+    console.error('[RITUAL] Page error caught by boundary:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          minHeight: '100vh',
+          background: '#F0E8DD',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '24px',
+          fontFamily: 'Georgia, serif',
+          flexDirection: 'column',
+          textAlign: 'center',
+          gap: '16px',
+        }}>
+          <div style={{ fontSize: '40px' }}>🌿</div>
+          <h2 style={{ color: 'rgb(107,85,64)', fontWeight: 300, fontSize: '26px', margin: 0 }}>
+            Something went still
+          </h2>
+          <p style={{ color: 'rgb(107,85,64)', maxWidth: '400px', lineHeight: '1.7', margin: 0, fontSize: '15px' }}>
+            We encountered an unexpected moment of stillness. Please refresh the page or return home.
+          </p>
+          <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+            <button
+              onClick={() => window.location.reload()}
+              style={{ padding: '10px 22px', background: 'rgb(150,170,155)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' }}
+            >
+              Refresh
+            </button>
+            <a
+              href="/"
+              style={{ padding: '10px 22px', background: 'rgb(107,85,64)', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontSize: '14px' }}
+            >
+              Return Home
+            </a>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { Menu, X, Calendar, Leaf } from 'lucide-react';
