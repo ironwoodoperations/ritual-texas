@@ -33,20 +33,26 @@ export default function BookRooms() {
   }, []);
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'white', display: 'flex', flexDirection: 'column', zIndex: 99999 }}>
-      {/* Navigation Tabs */}
-      <div className="flex items-center gap-6 px-6 py-4 border-b border-[rgb(235,225,213)] bg-white flex-shrink-0">
-        <div className="flex items-center gap-2 opacity-60 pointer-events-none">
-          <BedDouble className="w-5 h-5 text-[rgb(107,85,64)]" />
-          <span className="text-sm font-medium text-[rgb(107,85,64)]">Book Rooms</span>
-        </div>
-        <Link 
-          to={createPageUrl('Treatments')}
-          className="flex items-center gap-2 text-[rgb(45,45,45)] hover:text-[rgb(150,170,155)] transition-colors"
-        >
-          <Sparkles className="w-5 h-5" />
-          <span className="text-sm font-medium">View Spa & Treatments</span>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgb(248,246,242)', display: 'flex', flexDirection: 'column', zIndex: 99999 }}>
+      {/* Header — matching site nav style */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(235,225,213)] bg-[rgb(248,246,242)] flex-shrink-0">
+        <Link to={createPageUrl('Home')} className="flex items-center gap-2">
+          <Leaf className="w-5 h-5 text-[rgb(150,170,155)]" />
+          <span className="text-lg tracking-widest font-light text-[rgb(107,85,64)]">RITUAL</span>
         </Link>
+        <div className="flex items-center gap-6">
+          <span className="text-sm font-medium text-[rgb(107,85,64)] border-b border-[rgb(107,85,64)] pb-0.5">Book Your Stay</span>
+          <Link
+            to={createPageUrl('Treatments')}
+            className="flex items-center gap-1.5 text-sm text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors"
+          >
+            <Sparkles className="w-4 h-4" />
+            Spa & Treatments
+          </Link>
+          <Link to={createPageUrl('Hotel')} className="text-sm text-[rgb(45,45,45)] hover:text-[rgb(107,85,64)] transition-colors">
+            Hotel
+          </Link>
+        </div>
       </div>
 
       {/* Iframe Container */}
@@ -56,7 +62,7 @@ export default function BookRooms() {
           <div className="absolute inset-0 flex items-center justify-center bg-[rgb(248,246,242)] z-10">
             <div className="text-center">
               <div className="inline-block w-8 h-8 border-2 border-[rgb(150,170,155)] border-t-transparent rounded-full animate-spin mb-4" />
-              <p className="text-sm text-[rgb(107,85,64)] font-light">Loading secure room booking...</p>
+              <p className="text-sm text-[rgb(107,85,64)] font-light tracking-wide">Loading secure room booking…</p>
             </div>
           </div>
         )}
@@ -71,6 +77,16 @@ export default function BookRooms() {
           referrerPolicy="no-referrer-when-downgrade"
           sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation-by-user-activation"
         />
+      </div>
+
+      {/* Footer contact strip */}
+      <div className="flex items-center justify-center gap-8 px-6 py-3 border-t border-[rgb(235,225,213)] bg-[rgb(248,246,242)] flex-shrink-0">
+        <a href="tel:9038106695" className="flex items-center gap-1.5 text-xs text-[rgb(107,85,64)] hover:opacity-70 transition-opacity">
+          <Phone className="w-3.5 h-3.5" /> (903) 810-6695
+        </a>
+        <a href="mailto:hotel.ritual.texas@gmail.com" className="flex items-center gap-1.5 text-xs text-[rgb(107,85,64)] hover:opacity-70 transition-opacity">
+          <Mail className="w-3.5 h-3.5" /> hotel.ritual.texas@gmail.com
+        </a>
       </div>
     </div>
   );
