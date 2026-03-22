@@ -38,6 +38,12 @@ export default function InvoiceActionsSection({ record, onUpdate }) {
   const [showVoidConfirm, setShowVoidConfirm] = useState(false);
   const [voidInput, setVoidInput] = useState("");
   const [msg, setMsg] = useState(null);
+  const [publicUrl, setPublicUrl] = useState(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("CASH");
+  const [paymentNote, setPaymentNote] = useState("");
+  const [recordingPayment, setRecordingPayment] = useState(false);
 
   useEffect(() => {
     if (!invoiceId) return;
@@ -45,10 +51,43 @@ export default function InvoiceActionsSection({ record, onUpdate }) {
     base44.functions.invoke("squareInvoiceActions", { action: "get", invoiceId })
       .then(res => {
         if (res.data?.invoice?.status) setInvoiceStatus(res.data.invoice.status);
+        if (res.data?.invoice?.public_url) setPublicUrl(res.data.invoice.public_url);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [invoiceId]);
+
+  async function handleRecordPayment() {
+    if (!paymentAmount || parseFloat(paymentAmount) <= 0) return;
+    setRecordingPayment(true);
+    setMsg(null);
+    try {
+      const res = await base44.functions.invoke("squareInvoiceActions", {
+        action: "record_payment",
+        invoiceId,
+        amount: paymentAmount,
+        paymentMethod,
+        note: paymentNote || `${paymentMethod} payment recorded`,
+      });
+      if (res.data?.success) {
+        const newLog = appendLogEntry(record.internalNotes, record.created_date, `Payment of $${paymentAmount} recorded (${paymentMethod})`, "Staff");
+        await base44.entities.HotelTreatmentIntake.update(record.id, { internalNotes: newLog });
+        setMsg({ success: true, text: `$${paymentAmount} payment recorded successfully` });
+        setShowPaymentModal(false);
+        setPaymentAmount(""); setPaymentNote(""); setPaymentMethod("CASH");
+        // Refresh status
+        const statusRes = await base44.functions.invoke("squareInvoiceActions", { action: "get", invoiceId });
+        if (statusRes.data?.invoice?.status) setInvoiceStatus(statusRes.data.invoice.status);
+        onUpdate();
+        setTimeout(() => setMsg(null), 5000);
+      } else {
+        setMsg({ success: false, text: res.data?.error || "Payment recording failed" });
+      }
+    } catch (e) {
+      setMsg({ success: false, text: e.message });
+    }
+    setRecordingPayment(false);
+  }
 
   async function handleResend() {
     setResending(true);
