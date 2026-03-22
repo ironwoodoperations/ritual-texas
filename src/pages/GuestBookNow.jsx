@@ -183,7 +183,7 @@ export default function GuestBookNow() {
     );
 
     try {
-      const res = await base44.functions.invoke('simplybookGetAvailability', { date });
+      const res = await base44.functions.invoke('guestGetAvailability', { date });
       const svcData = res.data?.services?.find(
         (s) => String(s.id) === String(treatmentId) || s.name?.toLowerCase() === item.treatment.name?.toLowerCase()
       );
@@ -902,7 +902,7 @@ export default function GuestBookNow() {
                 </p>
                 {selectedOnline.map((item) => (
                   <p key={item.treatment.id} style={{ fontSize: '13px', color: DESIGN_TOKENS.bodyText, marginBottom: '4px' }}>
-                    {item.treatment.name} • {item.date} @ {item.time}
+                    {item.treatment.name} • {item.date} {item.time ? `@ ${item.time}` : 'Time: TBD'}
                   </p>
                 ))}
                 {selectedCallToBook.map((item) => (
