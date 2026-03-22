@@ -14,6 +14,7 @@ import AdminScheduling from './pages/AdminScheduling';
 import StaffTimeClock from './pages/StaffTimeClock';
 import AdminDocs from './pages/AdminDocs';
 import AdminIntakeDocs from './pages/AdminIntakeDocs';
+import GuestBookNow from './pages/GuestBookNow';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -72,6 +73,7 @@ const AuthenticatedApp = () => {
       <Route path="/StaffTimeClock" element={<LayoutWrapper currentPageName="StaffTimeClock"><StaffTimeClock session={null} standalone={true} /></LayoutWrapper>} />
       <Route path="/AdminDocs" element={<LayoutWrapper currentPageName="AdminDocs"><AdminDocs /></LayoutWrapper>} />
       <Route path="/AdminIntakeDocs" element={<LayoutWrapper currentPageName="AdminIntakeDocs"><AdminIntakeDocs /></LayoutWrapper>} />
+      <Route path="/GuestBookNow" element={<LayoutWrapper currentPageName="GuestBookNow"><GuestBookNow /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
