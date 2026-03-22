@@ -168,8 +168,23 @@ export default function AdminConciergeInbox() {
     onSuccess: () => queryClient.invalidateQueries(['pkg-inquiries-inbox']),
   });
 
-  const newContacts = contactLeads.filter(l => l.status === 'new');
-  const newPackageInquiries = packageInquiries.filter(i => i.status === 'new');
+  const markAllReadMutation = useMutation({
+    mutationFn: async (tab) => {
+      if (tab === 'messages') {
+        await Promise.all(newContacts.map(l => base44.entities.RestaurantContactLeads.update(l.id, { status: 'replied' })));
+      } else {
+        await Promise.all(newPackageInquiries.map(i => base44.entities.PackageInquiry.update(i.id, { status: 'replied' })));
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['contact-leads']);
+      queryClient.invalidateQueries(['pkg-inquiries-inbox']);
+    },
+  });
+
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const newContacts = contactLeads.filter(l => l.status === 'new' && l.created_date >= sevenDaysAgo);
+  const newPackageInquiries = packageInquiries.filter(i => i.status === 'new' && i.created_date >= sevenDaysAgo);
 
   if (!user) {
     return (
