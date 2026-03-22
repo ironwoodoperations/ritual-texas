@@ -378,7 +378,15 @@ export default function GuestBookNow() {
             )}
 
             {roomsError && (
-              <div style={{ backgroundColor: 'rgba(201, 160, 80, 0.1)', border: `1px solid ${DESIGN_TOKENS.accentTerracotta}`, borderRadius: '8px', padding: '16px', marginBottom: '24px', fontSize: '14px', color: DESIGN_TOKENS.accentTerracotta }}>
+              <div style={{ 
+                backgroundColor: 'rgba(201, 160, 80, 0.1)', 
+                border: `1px solid ${DESIGN_TOKENS.accentTerracotta}`, 
+                borderRadius: '8px', 
+                padding: '16px', 
+                marginBottom: '24px', 
+                fontSize: '14px', 
+                color: DESIGN_TOKENS.accentTerracotta 
+              }}>
                 {roomsError}
               </div>
             )}
