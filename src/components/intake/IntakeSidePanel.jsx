@@ -490,6 +490,40 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
             <p className="text-[10px] font-semibold tracking-widest text-[rgb(150,130,110)] uppercase mb-2">Activity Log</p>
             <ActivityLog record={record} onUpdate={onUpdate} />
           </div>
+
+          {/* DEBUG — Treatment Data Inspector */}
+          <details className="mt-4 border border-dashed border-amber-300 rounded-xl p-3 bg-amber-50">
+            <summary className="text-xs font-semibold text-amber-700 cursor-pointer select-none">
+              🔍 Debug: Raw Treatment Data (admin only)
+            </summary>
+            <div className="mt-3 space-y-2">
+              <p className="text-xs font-bold text-amber-800">selectedTreatments ({(record.selectedTreatments || []).length} entries):</p>
+              {(record.selectedTreatments || []).length === 0 ? (
+                <p className="text-xs text-amber-600 italic">No selectedTreatments on this record.</p>
+              ) : (
+                (record.selectedTreatments || []).map((entry, i) => {
+                  let parsed = entry;
+                  if (typeof entry === "string") {
+                    try { parsed = JSON.parse(entry); } catch { parsed = { raw: entry }; }
+                  }
+                  return (
+                    <div key={i} className="bg-white border border-amber-200 rounded-lg p-2 text-xs font-mono text-gray-700 space-y-0.5">
+                      <p><strong>Entry {i + 1}</strong></p>
+                      <p>simplybookServiceId: <span className={parsed.simplybookServiceId ? "text-green-700 font-bold" : "text-red-600 font-bold"}>{String(parsed.simplybookServiceId ?? "MISSING")}</span></p>
+                      <p>serviceName: {String(parsed.serviceName ?? parsed.name ?? "—")}</p>
+                      <p>staffId: <span className={parsed.staffId ? "text-green-700 font-bold" : "text-red-600 font-bold"}>{String(parsed.staffId ?? "MISSING")}</span></p>
+                      <p>staffName: {String(parsed.staffName ?? "—")}</p>
+                      <p>date: <span className={parsed.date ? "text-green-700" : "text-red-600"}>{String(parsed.date ?? "MISSING")}</span></p>
+                      <p>time: <span className={parsed.time ? "text-green-700" : "text-red-600"}>{String(parsed.time ?? "MISSING")}</span></p>
+                      <p>price: {String(parsed.price ?? "—")}</p>
+                      <p>duration: {String(parsed.duration ?? "—")}</p>
+                      <p>source: {String(parsed.source ?? "—")}</p>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </details>
         </div>
       </div>
 
