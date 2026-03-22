@@ -154,20 +154,34 @@ export default function InvoiceActionsSection({ record, onUpdate }) {
       {showVoidConfirm && (
         <div className="fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
-            <h3 className="font-semibold text-[rgb(45,45,45)] mb-2">Void This Invoice?</h3>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-[rgb(45,45,45)]">Void This Invoice?</h3>
+                <p className="text-xs text-[rgb(150,150,150)]">This cannot be undone.</p>
+              </div>
+            </div>
             <p className="text-sm text-[rgb(120,120,120)] mb-4">
-              This will cancel the invoice sent to {record.guestName}. This cannot be undone.
+              This will cancel the invoice sent to <strong>{record.guestName}</strong>. Type <strong>VOID</strong> to confirm.
             </p>
+            <input
+              value={voidInput}
+              onChange={e => setVoidInput(e.target.value)}
+              placeholder="Type VOID to confirm"
+              className="w-full border border-[rgb(220,210,200)] rounded-xl px-3 py-2 text-sm mb-4 focus:outline-none focus:border-red-400"
+            />
             <div className="flex gap-2">
               <button
-                onClick={() => setShowVoidConfirm(false)}
+                onClick={() => { setShowVoidConfirm(false); setVoidInput(""); }}
                 className="flex-1 py-2 rounded-xl border border-[rgb(220,210,200)] text-sm text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleVoid}
-                disabled={voiding}
+                disabled={voiding || voidInput.trim().toUpperCase() !== "VOID"}
                 className="flex-1 py-2 rounded-xl bg-red-600 text-white text-sm font-medium disabled:opacity-40 hover:bg-red-700 transition-colors flex items-center justify-center gap-1.5"
               >
                 {voiding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
