@@ -220,8 +220,9 @@ export default function AdminConciergeInbox() {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex mt-3 border-b border-[rgb(235,225,213)]">
+        {/* Tabs + Mark All Read */}
+        <div className="flex mt-3 border-b border-[rgb(235,225,213)] items-center justify-between">
+          <div className="flex">
           {tabs.map(tab => (
             <button
               key={tab.id}
