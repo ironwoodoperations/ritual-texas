@@ -8,15 +8,79 @@ const labelCls = "block text-[10px] font-semibold tracking-widest text-[rgb(150,
 
 const THERAPISTS = ["Whitney", "Bishop", "Tanita"];
 
-// A single "book online" treatment row — uses DB dropdown
+// A single "book online" treatment row — uses DB dropdown + live SimplyBook availability
 function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName }) {
+  const [availSlots, setAvailSlots] = useState([]);
+  const [availLoading, setAvailLoading] = useState(false);
+  const [availError, setAvailError] = useState(null);
+  const [sbServiceId, setSbServiceId] = useState(entry.simplybookServiceId || null);
+
+  // When treatment + date are both set, fetch live availability from SimplyBook
+  useEffect(() => {
+    const serviceName = entry.serviceName;
+    const date = entry.date;
+
+    if (!serviceName || !date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      setAvailSlots([]);
+      setAvailError(null);
+      return;
+    }
+
+    let cancelled = false;
+    setAvailLoading(true);
+    setAvailError(null);
+
+    base44.functions.invoke("simplybookGetAvailability", { date })
+      .then(res => {
+        if (cancelled) return;
+        const services = res.data?.services || [];
+        const matched =
+          services.find(s => s.name?.toLowerCase() === serviceName.toLowerCase()) ||
+          services.find(s =>
+            s.name?.toLowerCase().includes(serviceName.toLowerCase()) ||
+            serviceName.toLowerCase().includes(s.name?.toLowerCase())
+          );
+
+        if (matched) {
+          if (matched.id && matched.id !== entry.simplybookServiceId) {
+            setSbServiceId(matched.id);
+            onUpdate(index, { ...entry, simplybookServiceId: matched.id });
+          }
+          const slots = matched.slots || [];
+          setAvailSlots(slots);
+          if (!slots.length) setAvailError(`No open slots for ${serviceName} on ${date}`);
+        } else {
+          setAvailSlots([]);
+          setAvailError(`${serviceName} not found in SimplyBook for ${date} — enter time manually`);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAvailSlots([]);
+          setAvailError("Could not load availability — enter time manually");
+        }
+      })
+      .finally(() => { if (!cancelled) setAvailLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [entry.serviceName, entry.date]);
+
   function handleTreatmentChange(id) {
     const t = treatments.find(t => t.id === id);
+    setAvailSlots([]);
+    setAvailError(null);
+    setSbServiceId(null);
     if (t) {
-      onUpdate(index, { ...entry, serviceId: t.id, serviceName: t.name, price: t.price, duration: t.duration_minutes });
+      onUpdate(index, { ...entry, serviceId: t.id, serviceName: t.name, price: t.price, duration: t.duration_minutes, simplybookServiceId: null, time: "" });
     } else {
-      onUpdate(index, { ...entry, serviceId: "", serviceName: "", price: 0, duration: 0 });
+      onUpdate(index, { ...entry, serviceId: "", serviceName: "", price: 0, duration: 0, simplybookServiceId: null, time: "" });
     }
+  }
+
+  function handleDateChange(date) {
+    setAvailSlots([]);
+    setAvailError(null);
+    onUpdate(index, { ...entry, date, time: "" });
   }
 
   return (
@@ -27,6 +91,7 @@ function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName
       <p className="text-[10px] font-bold tracking-widest text-[rgb(150,130,110)] uppercase mb-3">
         Treatment {index + 1} {guestName && `· ${guestName}`}
       </p>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
         <div className="sm:col-span-2">
           <label className={labelCls}>Treatment</label>
@@ -46,14 +111,43 @@ function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName
             />
           )}
         </div>
+
         <div>
           <label className={labelCls}>Date</label>
-          <input type="date" value={entry.date || ""} onChange={e => onUpdate(index, { ...entry, date: e.target.value })} className={fieldCls} />
+          <input type="date" value={entry.date || ""} onChange={e => handleDateChange(e.target.value)} className={fieldCls} />
         </div>
+
         <div>
-          <label className={labelCls}>Preferred Time</label>
-          <input type="time" value={entry.time || ""} onChange={e => onUpdate(index, { ...entry, time: e.target.value })} className={fieldCls} />
+          <label className={labelCls}>
+            Time
+            {availLoading && <Loader2 className="inline w-3 h-3 animate-spin ml-1.5 text-[rgb(150,170,155)]" />}
+            {!availLoading && availSlots.length > 0 && (
+              <span className="ml-1.5 text-[10px] text-[rgb(150,170,155)] font-normal normal-case tracking-normal">
+                {availSlots.length} slot{availSlots.length !== 1 ? "s" : ""} available
+              </span>
+            )}
+          </label>
+          {availSlots.length > 0 ? (
+            <select value={entry.time || ""} onChange={e => onUpdate(index, { ...entry, time: e.target.value })} className={selectCls}>
+              <option value="">Select available time…</option>
+              {availSlots.map(slot => {
+                const [h, m] = slot.split(":").map(Number);
+                const ampm = h >= 12 ? "PM" : "AM";
+                const displayH = h % 12 || 12;
+                const display = `${displayH}:${String(m).padStart(2, "0")} ${ampm}`;
+                return <option key={slot} value={slot}>{display}</option>;
+              })}
+            </select>
+          ) : (
+            <>
+              <input type="time" value={entry.time || ""} onChange={e => onUpdate(index, { ...entry, time: e.target.value })} className={fieldCls} />
+              {availError && !availLoading && entry.date && entry.serviceName && (
+                <p className="text-[10px] text-amber-600 mt-0.5">{availError}</p>
+              )}
+            </>
+          )}
         </div>
+
         <div>
           <label className={labelCls}>Therapist</label>
           <select value={entry.staffName || ""} onChange={e => onUpdate(index, { ...entry, staffName: e.target.value })} className={selectCls}>
@@ -61,21 +155,21 @@ function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName
             {THERAPISTS.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
+
         <div>
           <label className={labelCls}>Price ($)</label>
-          <input
-            type="number"
-            min={0}
-            value={entry.price || ""}
-            onChange={e => onUpdate(index, { ...entry, price: parseFloat(e.target.value) || 0 })}
-            className={fieldCls}
-            placeholder="0"
-          />
+          <input type="number" min={0} value={entry.price || ""} onChange={e => onUpdate(index, { ...entry, price: parseFloat(e.target.value) || 0 })} className={fieldCls} placeholder="0" />
         </div>
       </div>
+
       {entry.serviceName && (
         <div className="mt-3 text-xs text-[rgb(107,85,64)] font-medium bg-[rgb(248,244,240)] rounded-lg px-3 py-1.5">
-          ✓ {entry.serviceName}{entry.date ? ` · ${entry.date}` : ""}{entry.time ? ` at ${entry.time}` : ""}{entry.price ? ` · $${entry.price}` : ""}{entry.staffName ? ` · ${entry.staffName}` : ""}
+          ✓ {entry.serviceName}
+          {entry.date && ` · ${entry.date}`}
+          {entry.time && ` at ${entry.time.slice(0, 5)}`}
+          {entry.price ? ` · $${entry.price}` : ""}
+          {entry.staffName ? ` · ${entry.staffName}` : ""}
+          {sbServiceId && <span className="ml-1.5 text-[rgb(150,170,155)]">· SimplyBook ✓</span>}
         </div>
       )}
     </div>
