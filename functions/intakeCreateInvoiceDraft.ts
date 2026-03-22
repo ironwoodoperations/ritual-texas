@@ -182,7 +182,7 @@ Deno.serve(async (req) => {
     if (!orderId) return Response.json({ error: "Could not create order", detail: orderData }, { status: 500 });
 
     // Create invoice (draft, not published yet)
-    const notes = clean(intake?.internalNotes || intake?.treatmentsRequested || "");
+    const notes = clean(intake?.treatmentsRequested || "");
     const dueDate = checkIn || new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
     const invResp = await fetch(`${baseUrl}/v2/invoices`, {
       method: "POST",
