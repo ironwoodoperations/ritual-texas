@@ -258,6 +258,23 @@ export default function AdminConciergeInbox() {
                           {lead.phone && <a href={`sms:${lead.phone}`} className="text-xs text-[rgb(107,85,64)] hover:underline">{lead.phone}</a>}
                         </div>
                         <p className="text-sm text-[rgb(45,45,45)] leading-relaxed">{lead.message}</p>
+                        {/* Action buttons */}
+                        <div className="flex items-center gap-2 mt-3 flex-wrap">
+                          {(lead.email) && (
+                            <a
+                              href={`mailto:${lead.email}?subject=${encodeURIComponent('Re: Your Message — Hotel RITUAL')}&body=${encodeURIComponent(`Hi ${lead.name},\n\nThank you for reaching out!\n\n[Your reply here]\n\n— Hotel RITUAL\n(903) 810-6695`)}`}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgb(107,85,64)] text-white text-xs hover:opacity-90 transition-opacity"
+                            >
+                              <Mail className="w-3 h-3" /> Reply via Email
+                            </a>
+                          )}
+                          <button
+                            onClick={() => setIntakeModal(lead)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgb(150,170,155)] text-[rgb(80,120,90)] text-xs hover:bg-[rgb(240,245,241)] transition-colors"
+                          >
+                            <Plus className="w-3 h-3" /> Create Intake
+                          </button>
+                        </div>
                       </div>
                     </div>
                     <button
