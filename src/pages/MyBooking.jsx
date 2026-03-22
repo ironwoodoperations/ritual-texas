@@ -163,15 +163,40 @@ export default function MyBooking() {
         )}
 
         {confirmedCode && !isLoading && !booking && (
-          <div className="text-center py-12 bg-[rgb(235,225,213)]">
-            <p className="text-[rgb(107,85,64)]">No booking found with that confirmation code</p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-10 text-center max-w-md mx-auto"
+          >
+            <div className="text-5xl mb-4">🌿</div>
+            <h2 className="text-2xl font-light text-[rgb(107,85,64)] mb-2">No booking found</h2>
+            <p className="text-[rgb(45,45,45)] mb-6">
+              We couldn't find a reservation for <span className="font-medium">{confirmedCode}</span>.
+            </p>
+            <p className="text-sm text-[rgb(150,150,150)] mb-8">
+              Double-check the confirmation code from your booking email, or contact us directly.
+            </p>
+            <div className="flex flex-col gap-3 mb-6">
+              <a 
+                href="tel:9038106695"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[rgb(150,170,155)] text-white text-sm hover:bg-[rgb(130,150,135)] transition-colors"
+              >
+                📞 Call (903) 810-6695
+              </a>
+              <a 
+                href="mailto:hotel.ritual.texas@gmail.com"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-[rgb(235,225,213)] text-[rgb(107,85,64)] text-sm hover:bg-[rgb(248,246,242)] transition-colors"
+              >
+                ✉ Email Us
+              </a>
+            </div>
             <button 
               onClick={() => setConfirmedCode('')}
-              className="mt-4 text-[rgb(150,170,155)] hover:underline"
+              className="text-sm text-[rgb(150,170,155)] hover:text-[rgb(107,85,64)] transition-colors"
             >
-              Try again
+              ← Try a different code
             </button>
-          </div>
+          </motion.div>
         )}
 
         {booking && (

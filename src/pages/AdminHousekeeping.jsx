@@ -56,6 +56,7 @@ export default function AdminHousekeeping() {
   const [newTask, setNewTask] = useState({ locationKey: '', taskType: 'checkout', priority: 'normal', adminNotes: '', taskDate: today() });
   const [newNote, setNewNote] = useState({ scope: 'hotel', roomId: '', note: '', priority: 'normal' });
   const [newSpace, setNewSpace] = useState({ name: '', description: '' });
+  const [autoGenDone, setAutoGenDone] = useState(false);
   const qc = useQueryClient();
 
   const { data: tasks = [] } = useQuery({
@@ -94,6 +95,23 @@ export default function AdminHousekeeping() {
   });
 
   const openingDutiesCompleted = openingDuties.every(t => t.status === 'completed');
+
+  useEffect(() => {
+    if (autoGenDone) return;
+    if (!tasks || tasks.length === 0) return;
+
+    const todayDate = today();
+    const hasCheckoutTasksToday = tasks.some(t => t.taskDate === todayDate && t.taskType === 'checkout');
+
+    if (!hasCheckoutTasksToday) {
+      setAutoGenDone(true);
+      base44.functions.invoke('hk_generate_checkout_tasks', {})
+        .then(() => qc.invalidateQueries(['hk-tasks']))
+        .catch(e => console.warn('Auto-gen checkout tasks failed:', e.message));
+    } else {
+      setAutoGenDone(true);
+    }
+  }, [tasks, autoGenDone]);
 
   const createTaskMutation = useMutation({
     mutationFn: async (data) => {
@@ -201,6 +219,9 @@ export default function AdminHousekeeping() {
             <button onClick={async () => { setGenerating(true); try { await base44.functions.invoke('hk_generate_checkout_tasks', {}); qc.invalidateQueries(['hk-tasks']); } finally { setGenerating(false); } }} disabled={generating} style={{ padding: '8px 14px', background: 'rgba(76,175,80,.1)', border: '1px solid rgba(76,175,80,.3)', borderRadius: '8px', color: '#4CAF50', cursor: 'pointer', fontSize: '13px', fontFamily: 'sans-serif' }}>
               {generating ? '⏳' : '🔄'} Auto-Fill Checkouts
             </button>
+            {autoGenDone && !generating && (
+              <span style={{ padding: '8px 14px', fontSize: '13px', color: '#4CAF50', fontFamily: 'sans-serif' }}>✓ Tasks checked</span>
+            )}
             <button onClick={() => setShowAddNote(true)} style={{ padding: '8px 14px', background: 'rgba(198,168,94,.1)', border: '1px solid rgba(198,168,94,.3)', borderRadius: '8px', color: '#C6A85E', cursor: 'pointer', fontSize: '13px', fontFamily: 'sans-serif' }}>
               + Note
             </button>
