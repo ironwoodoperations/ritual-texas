@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
-import { BedSingle, ChevronDown, ChevronUp, Phone, Mail, Users, LogIn, LogOut, CheckCircle, ArrowRight } from "lucide-react";
+import { BedSingle, ChevronDown, ChevronUp, Phone, Mail, Users, LogIn, LogOut, CheckCircle, ArrowRight, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -90,7 +90,7 @@ function ReservationCard({ booking, actionLabel, actionStatus, onAction }) {
   );
 }
 
-export default function HotelTodayPanel({ arrivalsToday, departuresToday, inHouseTonight }) {
+export default function HotelTodayPanel({ arrivalsToday, departuresToday, inHouseTonight, cloudbedsStatus }) {
   const [activeTab, setActiveTab] = useState(null); // null | "arrivals" | "departures"
   const [localStatuses, setLocalStatuses] = useState({});
   const queryClient = useQueryClient();
@@ -110,6 +110,15 @@ export default function HotelTodayPanel({ arrivalsToday, departuresToday, inHous
 
   return (
     <div className="rounded-xl border border-[rgb(235,225,213)] overflow-hidden">
+      {cloudbedsStatus === 'disconnected' && (
+        <div className="flex items-center justify-between gap-2 px-3 py-2 bg-amber-50 border-b border-amber-200">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+            <span className="text-xs text-amber-700">Cloudbeds disconnected — hotel data may be stale</span>
+          </div>
+          <Link to={createPageUrl("AdminCloudbeds")} className="text-xs text-amber-700 font-semibold underline shrink-0">Reconnect</Link>
+        </div>
+      )}
       {/* Summary row */}
       <div className="flex items-center justify-between px-3 py-2 bg-white">
         <div className="flex items-center gap-2">
