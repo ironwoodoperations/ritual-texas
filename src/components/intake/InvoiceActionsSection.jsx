@@ -44,6 +44,17 @@ export default function InvoiceActionsSection({ record, onUpdate }) {
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [paymentNote, setPaymentNote] = useState("");
   const [recordingPayment, setRecordingPayment] = useState(false);
+  const [user, setUser] = useState(null);
+
+  React.useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const userData = await base44.auth.me();
+        setUser(userData);
+      } catch {}
+    };
+    loadUser();
+  }, []);
   const [showResendConfirm, setShowResendConfirm] = useState(false);
 
   useEffect(() => {
@@ -71,7 +82,8 @@ export default function InvoiceActionsSection({ record, onUpdate }) {
         note: paymentNote || `${paymentMethod} payment recorded`,
       });
       if (res.data?.success) {
-        const newLog = appendLogEntry(record.internalNotes, record.created_date, `Payment of $${paymentAmount} recorded (${paymentMethod})`, "Staff");
+        const authorName = user?.full_name || "Staff";
+        const newLog = appendLogEntry(record.internalNotes, record.created_date, `Payment of $${paymentAmount} recorded (${paymentMethod})`, authorName);
         await base44.entities.HotelTreatmentIntake.update(record.id, { internalNotes: newLog });
         setMsg({ success: true, text: `$${paymentAmount} payment recorded successfully` });
         setShowPaymentModal(false);
@@ -98,7 +110,8 @@ export default function InvoiceActionsSection({ record, onUpdate }) {
       if (res.data?.error) {
         setMsg({ success: false, text: res.data.error });
       } else {
-        const newLog = appendLogEntry(record.internalNotes, record.created_date, `Invoice resent to ${record.email}`, "Staff");
+        const authorName = user?.full_name || "Staff";
+        const newLog = appendLogEntry(record.internalNotes, record.created_date, `Invoice resent to ${record.email}`, authorName);
         await base44.entities.HotelTreatmentIntake.update(record.id, { internalNotes: newLog });
         setMsg({ success: true, text: `Resent to ${record.email}` });
         setTimeout(() => setMsg(null), 4000);
@@ -116,7 +129,8 @@ export default function InvoiceActionsSection({ record, onUpdate }) {
     try {
       const res = await base44.functions.invoke("intakeVoidInvoice", { invoiceId, intakeId: record.id });
       if (res.data?.success) {
-        const newLog = appendLogEntry(record.internalNotes, record.created_date, "Invoice voided", "Staff");
+        const authorName = user?.full_name || "Staff";
+        const newLog = appendLogEntry(record.internalNotes, record.created_date, "Invoice voided", authorName);
         await base44.entities.HotelTreatmentIntake.update(record.id, { squareInvoiceId: null, internalNotes: newLog });
         setMsg({ success: true, text: "Invoice voided" });
         setShowVoidConfirm(false);
