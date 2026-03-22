@@ -85,10 +85,11 @@ export default function IntakeListView({ records, onSelect, sortKey, onSortChang
                   </span>
                 </div>
                 <div className="flex items-center gap-3 mt-0.5 text-xs text-[rgb(120,120,120)] flex-wrap">
-                  {r.phone && <span>{r.phone}</span>}
-                  {r.checkInDate && <span>{r.checkInDate} → {r.checkOutDate}</span>}
-                  {txCount > 0 && <span className="text-[rgb(150,170,155)]">✨ {txCount} tx</span>}
-                </div>
+                   {r.phone && <span>{r.phone}</span>}
+                   {r.roomName && <span className="text-[rgb(150,130,110)]">{r.roomName}</span>}
+                   {r.checkInDate && <span>{r.checkInDate} → {r.checkOutDate}</span>}
+                   {txCount > 0 && <span className="text-[rgb(150,170,155)]">✨ {txCount} tx</span>}
+                 </div>
                 {getLastNote(r) && (
                   <div className="mt-0.5 text-xs text-[rgb(150,150,150)] truncate">{getLastNote(r)}</div>
                 )}

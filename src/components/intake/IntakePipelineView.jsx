@@ -81,8 +81,8 @@ function PipelineCard({ record, onSelect, onArchive, onDragStart }) {
           {record.checkInDate} → {record.checkOutDate || "?"}
         </div>
       )}
-      {record.cloudbedsRoomTypeId && (
-        <div className="text-xs text-[rgb(150,130,110)] truncate mb-1">{record.cloudbedsRoomTypeId}</div>
+      {record.roomName && (
+        <div className="text-xs text-[rgb(150,130,110)] truncate mb-1">{record.roomName}</div>
       )}
       {txCount > 0 && (
         <div className="text-xs text-[rgb(150,170,155)]">✨ {txCount} treatment{txCount > 1 ? "s" : ""}</div>
