@@ -163,6 +163,28 @@ export default function InvoiceActionsSection({ record, onUpdate }) {
         </button>
       )}
 
+      {/* Record Payment */}
+      {!isFinal && (
+        <button
+          onClick={() => setShowPaymentModal(true)}
+          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl border border-[rgb(150,170,155)] bg-[rgb(245,250,246)] text-xs text-[rgb(60,110,70)] hover:bg-[rgb(235,245,237)] transition-colors font-medium"
+        >
+          <DollarSign className="w-3.5 h-3.5" /> Record a Payment
+        </button>
+      )}
+
+      {/* Open Payment Page */}
+      {publicUrl && (
+        <a
+          href={publicUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl border border-[rgb(235,225,213)] text-xs text-[rgb(107,85,64)] hover:bg-[rgb(248,246,242)] transition-colors"
+        >
+          <ExternalLink className="w-3.5 h-3.5" /> Open Guest Payment Page
+        </a>
+      )}
+
       {/* View in Square */}
       <a
         href="https://squareup.com/dashboard/invoices"
