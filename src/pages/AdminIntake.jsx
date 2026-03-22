@@ -174,6 +174,10 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
   const [saving, setSaving] = useState(false);
   const [sendConfirm, setSendConfirm] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const [invoiceResult, setInvoiceResult] = useState(() =>
+    initial?.squareInvoiceId ? { success: true, invoiceId: initial.squareInvoiceId, publicUrl: initial.squareInvoiceUrl } : null
+  );
   // (hasChanges declared above, useEffect below uses it safely)
 
   const [liveRooms, setLiveRooms] = useState([]);
