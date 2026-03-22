@@ -33,8 +33,8 @@ import { motion } from 'framer-motion';
 function buildReplyEmail(inq) {
   const guestName = inq.full_name || inq.guest_name || inq.name || '';
   const pkg = inq.package_title || inq.package_name || '';
-  const checkin = inq.preferred_checkin || '';
-  const checkout = inq.preferred_checkout || '';
+  const checkin = inq.preferred_checkin || inq.check_in_date || inq.checkInDate || inq.check_in || '';
+  const checkout = inq.preferred_checkout || inq.check_out_date || inq.checkOutDate || inq.check_out || '';
   const guests = inq.guests || '';
   const originalMsg = inq.message || '';
 
@@ -58,8 +58,8 @@ function CreateIntakeModal({ inq, onClose, onCreated, onDelete }) {
   const email = inq.email || inq.guest_email || '';
   const phone = inq.phone || inq.guest_phone || '';
   const pkg = inq.package_title || inq.package_name || '';
-  const checkin = inq.preferred_checkin || '';
-  const checkout = inq.preferred_checkout || '';
+  const checkin = inq.preferred_checkin || inq.check_in_date || inq.checkInDate || inq.check_in || '';
+  const checkout = inq.preferred_checkout || inq.check_out_date || inq.checkOutDate || inq.check_out || '';
 
   const defaultNotes = [
     pkg ? `Package Inquiry: ${pkg}` : '',
