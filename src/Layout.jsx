@@ -277,7 +277,9 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Main Content */}
       <main className={!isAdminPage ? 'pt-20' : ''}>
-        {children}
+        <GuestErrorBoundary>
+          {children}
+        </GuestErrorBoundary>
       </main>
 
       {/* Whitney AI Widget */}
