@@ -80,6 +80,7 @@ export default function InvoiceActionsSection({ record, onUpdate }) {
         await base44.entities.HotelTreatmentIntake.update(record.id, { squareInvoiceId: null, internalNotes: newLog });
         setMsg({ success: true, text: "Invoice voided" });
         setShowVoidConfirm(false);
+        setVoidInput("");
         setInvoiceStatus("DELETED");
         onUpdate();
       } else {
