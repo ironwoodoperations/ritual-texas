@@ -90,6 +90,39 @@ Deno.serve(async (req) => {
       return Response.json({ success: true });
     }
 
+    if (action === 'record_payment') {
+      // Record a manual/cash/external payment against the invoice's order
+      const { amount, note, paymentMethod } = body;
+      // First get the invoice to find the order_id
+      const getResp = await fetch(`${baseUrl}/v2/invoices/${invoiceId}`, { headers: sqHeaders });
+      const getInvData = await getResp.json();
+      if (getInvData.errors) return Response.json({ success: false, error: getInvData.errors[0]?.detail });
+      const invoice = getInvData.invoice;
+      const orderId = invoice.order_id;
+      if (!orderId) return Response.json({ success: false, error: 'No order ID found on invoice' });
+
+      // Create a EXTERNAL payment (cash/check/other) against the order
+      const amountCents = Math.round(parseFloat(amount) * 100);
+      const payResp = await fetch(`${baseUrl}/v2/payments`, {
+        method: 'POST',
+        headers: sqHeaders,
+        body: JSON.stringify({
+          idempotency_key: `manual-pay-${invoiceId}-${Date.now()}`,
+          amount_money: { amount: amountCents, currency: 'USD' },
+          source_id: 'EXTERNAL',
+          external_details: {
+            type: paymentMethod || 'OTHER',
+            source: note || 'Manual payment recorded via Hotel RITUAL admin',
+          },
+          order_id: orderId,
+          note: note || 'Manual payment',
+        }),
+      });
+      const payData = await payResp.json();
+      if (payData.errors) return Response.json({ success: false, error: payData.errors[0]?.detail });
+      return Response.json({ success: true, payment: payData.payment });
+    }
+
     if (action === 'update_due_date') {
       // Update invoice due date (field_names patch)
       const { dueDate } = body;
