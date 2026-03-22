@@ -42,13 +42,25 @@ function formatTs(ts) {
 export default function ActivityLog({ record, onUpdate }) {
   const [noteText, setNoteText] = useState("");
   const [saving, setSaving] = useState(false);
+  const [user, setUser] = useState(null);
+
+  React.useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const userData = await base44.auth.me();
+        setUser(userData);
+      } catch {}
+    };
+    loadUser();
+  }, []);
 
   const entries = parseActivityLog(record.internalNotes, record.created_date).slice().reverse();
 
   async function addNote() {
     if (!noteText.trim()) return;
     setSaving(true);
-    const newLog = appendLogEntry(record.internalNotes, record.created_date, noteText.trim(), "Staff");
+    const authorName = user?.full_name || "Staff";
+    const newLog = appendLogEntry(record.internalNotes, record.created_date, noteText.trim(), authorName);
     await base44.entities.HotelTreatmentIntake.update(record.id, { internalNotes: newLog });
     setNoteText("");
     setSaving(false);
