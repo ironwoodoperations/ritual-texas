@@ -87,7 +87,7 @@ const BLANK = {
   therapistFollowUpDate: "", therapistNotes: "",
   howDidYouHearAboutUs: "",
   bookingStatus: "new_inquiry", followUpDate: "", internalNotes: "",
-  ccName: "", ccNumber: "", ccLast4: "", ccExpiry: "", ccCvc: "", ccType: "", ccNotes: "",
+  ccName: "", ccNumber: "", ccLast4: "", ccExpiry: "", ccCvc: "", ccZip: "", ccType: "", ccNotes: "",
   taxes: {},
 };
 
