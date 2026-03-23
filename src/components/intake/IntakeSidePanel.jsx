@@ -169,6 +169,8 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
         else {
           await markCompleted("BookHotel");
           await logEvent("Hotel reservation created in Cloudbeds");
+          await base44.entities.HotelTreatmentIntake.update(record.id, { bookingStatus: "confirmed" });
+          if (onUpdate) await onUpdate();
           setActionMsg({ success: true, text: res.data?.message || "Hotel booked!" });
           setTimeout(() => setActionMsg(null), 5000);
         }
