@@ -316,7 +316,12 @@ export default function GuestBookNow() {
 
   const stayDates = (checkIn && checkOut) ? datesBetween(checkIn, checkOut) : [];
   const numNights = nights(checkIn, checkOut);
+  const roomRate = 198;
+  const roomSubtotal = roomRate * numNights;
   const treatmentTotal = spaBookings.reduce((s, b) => s + (b.price || 0), 0);
+  const hotelTaxRate = 0.15; // 6% state + 7% city + 2% venue
+  const hotelTaxAmount = Math.round(roomSubtotal * hotelTaxRate * 100) / 100;
+  const grandTotal = roomSubtotal + treatmentTotal + hotelTaxAmount;
 
   // ═════════════════════════════════════════════════════════════════════════
   // RENDER
@@ -534,52 +539,85 @@ export default function GuestBookNow() {
         )}
 
         {/* ═══════════ STEP 5 — REVIEW ═══════════ */}
-        {step === 5 && (
+        {step === 5 && (() => {
+          // Group treatments by guest
+          const byGuest = {};
+          spaBookings.forEach(b => {
+            const g = b.guestName || 'Guest';
+            if (!byGuest[g]) byGuest[g] = [];
+            byGuest[g].push(b);
+          });
+
+          return (
           <div style={card}>
             <h2 style={h2Style}>Review Your Booking</h2>
 
-            {/* Dates + Room */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '22px', paddingBottom: '18px', borderBottom: `1px solid ${T.border}` }}>
-              <ReviewRow label="Dates">
-                {fmtDate(checkIn)} — {fmtDate(checkOut)}
-                <br />
-                <span style={{ fontSize: '12px', color: T.muted }}>{numNights} night{numNights > 1 ? 's' : ''}</span>
-              </ReviewRow>
-              <ReviewRow label="Room">
-                {selectedRoom?.name}
-                <br />
-                <span style={{ fontSize: '12px', color: T.muted }}>
-                  {guests} guest{guests > 1 ? 's' : ''}
-                  {selectedRoom?.price ? ` · $${selectedRoom.price}/night` : ''}
-                </span>
-              </ReviewRow>
+            {/* Room */}
+            <div style={{ marginBottom: '22px', paddingBottom: '18px', borderBottom: `1px solid ${T.border}` }}>
+              <p style={{ ...labelStyle, marginBottom: '10px' }}>Room</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
+                <span style={{ fontSize: '15px', color: T.body, fontWeight: 500 }}>{selectedRoom?.name}</span>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: T.primary }}>${roomSubtotal.toFixed(2)}</span>
+              </div>
+              <span style={{ fontSize: '12px', color: T.muted }}>
+                {fmtDate(checkIn)} — {fmtDate(checkOut)} · {numNights} night{numNights > 1 ? 's' : ''} × ${roomRate}/night
+              </span>
             </div>
 
-            {/* Treatments */}
+            {/* Treatments grouped by guest */}
             {spaBookings.length > 0 && (
               <div style={{ marginBottom: '22px', paddingBottom: '18px', borderBottom: `1px solid ${T.border}` }}>
                 <p style={{ ...labelStyle, marginBottom: '10px' }}>Spa Treatments</p>
-                {spaBookings.map((b, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <div>
-                      <span style={{ fontSize: '14px', color: T.body, fontWeight: 500 }}>{b.serviceName}</span>
-                      <br />
-                      <span style={{ fontSize: '12px', color: T.muted }}>
-                        {b.guestName ? `for ${b.guestName} · ` : ''}{fmtDate(b.date)} at {fmtTime(b.startTime)}
-                        {b.providerName ? ` · ${b.providerName}` : ''}
-                      </span>
-                    </div>
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: T.primary }}>${b.price}</span>
+                {Object.entries(byGuest).map(([guest, bookings]) => (
+                  <div key={guest} style={{ marginBottom: '12px' }}>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: T.primary, marginBottom: '6px' }}>{guest}</p>
+                    {bookings.map((b, i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', paddingLeft: '10px' }}>
+                        <div>
+                          <span style={{ fontSize: '14px', color: T.body }}>{b.serviceName}</span>
+                          <br />
+                          <span style={{ fontSize: '12px', color: T.muted }}>
+                            {fmtDate(b.date)} at {fmtTime(b.startTime)}{b.providerName ? ` with ${b.providerName}` : ''}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '14px', fontWeight: 600, color: T.primary }}>${b.price}</span>
+                      </div>
+                    ))}
                   </div>
                 ))}
-                {spaBookings.length > 1 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '8px', borderTop: `1px solid ${T.border}`, marginTop: '8px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: T.muted }}>Treatment Total</span>
-                    <span style={{ fontSize: '15px', fontWeight: 700, color: T.primary }}>${treatmentTotal}</span>
-                  </div>
-                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '8px', borderTop: `1px solid ${T.border}`, marginTop: '4px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: T.muted }}>Treatment Subtotal</span>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: T.primary }}>${treatmentTotal.toFixed(2)}</span>
+                </div>
               </div>
             )}
+
+            {/* Hotel Taxes */}
+            <div style={{ marginBottom: '22px', paddingBottom: '18px', borderBottom: `1px solid ${T.border}` }}>
+              <p style={{ ...labelStyle, marginBottom: '10px' }}>Hotel Occupancy Taxes</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', paddingLeft: '10px' }}>
+                <span style={{ fontSize: '13px', color: T.muted }}>State of Texas (6%)</span>
+                <span style={{ fontSize: '13px', color: T.body }}>${(roomSubtotal * 0.06).toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', paddingLeft: '10px' }}>
+                <span style={{ fontSize: '13px', color: T.muted }}>City of Jacksonville (7%)</span>
+                <span style={{ fontSize: '13px', color: T.body }}>${(roomSubtotal * 0.07).toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', paddingLeft: '10px' }}>
+                <span style={{ fontSize: '13px', color: T.muted }}>Jacksonville Venue Tax (2%)</span>
+                <span style={{ fontSize: '13px', color: T.body }}>${(roomSubtotal * 0.02).toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '8px', borderTop: `1px solid ${T.border}`, marginTop: '6px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: T.muted }}>Tax Subtotal (on room only)</span>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: T.primary }}>${hotelTaxAmount.toFixed(2)}</span>
+              </div>
+            </div>
+
+            {/* Grand Total */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '24px' }}>
+              <span style={{ fontSize: '16px', fontWeight: 700, color: T.primary }}>Total</span>
+              <span style={{ fontSize: '22px', fontWeight: 700, color: T.primary }}>${grandTotal.toFixed(2)}</span>
+            </div>
 
             {/* Guest Info */}
             <ReviewRow label="Guest Info">
@@ -607,7 +645,8 @@ export default function GuestBookNow() {
               </PrimaryBtn>
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* ═══════════ STEP 6 — CONFIRMATION ═══════════ */}
         {step === 6 && result && (
