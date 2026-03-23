@@ -154,7 +154,9 @@ async function bookSimplyBookTreatment(
 
   // 5. Create the booking
   const durationMinutes = Number(svc.duration || 60);
-  const endTime = addMinutesToTime(time, durationMinutes);
+  // Strip seconds — SimplyBook expects HH:MM, not HH:MM:SS
+  const bookTime = time.substring(0, 5);
+  const endTime = addMinutesToTime(bookTime, durationMinutes).substring(0, 5);
 
   const additional = {
     predefined: {
@@ -168,14 +170,18 @@ async function bookSimplyBookTreatment(
     Number(resolvedProviderId),
     Number(clientId),
     date,
-    time,
+    bookTime,
     date,
     endTime,
     0,
     additional,
   ];
 
+  console.log("SimplyBook booking payload:", JSON.stringify({ serviceId, providerId: resolvedProviderId, date, startTime: bookTime, clientId }));
+
   const bookingResult = await sbRPC(ADMIN_URL, "book", bookPayload, adminHeaders);
+
+  console.log("SimplyBook booking response:", JSON.stringify(bookingResult));
 
   // 6. Extract booking ID
   const bookingObj = Array.isArray(bookingResult?.bookings) ? bookingResult.bookings[0] : bookingResult;
