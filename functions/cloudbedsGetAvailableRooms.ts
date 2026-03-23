@@ -110,6 +110,12 @@ Deno.serve(async (req) => {
     const dataArr = result.json?.data || [];
     const allRooms = dataArr.flatMap(p => p.propertyRooms || []);
 
+    // Log raw rate data for the first room
+    if (allRooms.length > 0) {
+      const room = allRooms[0];
+      console.log('RAW RATE DATA:', JSON.stringify(room.rates || room.ratePlan || room, null, 2));
+    }
+
     // Deduplicate by roomTypeID, pick best price
     const roomMap = {};
     for (const rt of allRooms) {
