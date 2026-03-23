@@ -62,28 +62,27 @@ Deno.serve(async (req) => {
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return Response.json({ error: "date required (YYYY-MM-DD)" }, { status: 400 });
     if (!time) return Response.json({ error: "time required (HH:MM or HH:MM:SS)" }, { status: 400 });
 
-    // Credentials
+    // Credentials — match simplybookCallback.ts exactly
     const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
     const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
-    const userLogin = Deno.env.get("SIMPLYBOOK_USER_LOGIN") || "";
-    const userPass = Deno.env.get("SIMPLYBOOK_USER_PASSWORD") || "";
-    const secretKey = Deno.env.get("SIMPLYBOOK_SECRET_KEY") || "";
+    const adminLogin = Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
+    const adminPassword = Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
 
     if (!company || !apiKey) {
       return Response.json({ error: "SimplyBook credentials not configured" }, { status: 500 });
     }
-    if (!userLogin || !userPass || !secretKey) {
-      return Response.json({ error: "SimplyBook admin credentials not configured (required for booking)" }, { status: 500 });
+    if (!adminLogin || !adminPassword) {
+      return Response.json({ error: "SimplyBook admin credentials not configured (SIMPLYBOOK_ADMIN_LOGIN / SIMPLYBOOK_ADMIN_PASSWORD)" }, { status: 500 });
     }
 
     const LOGIN_URL = "https://user-api.simplybook.me/login";
     const BASE_URL = "https://user-api.simplybook.me";
     const ADMIN_URL = "https://user-api.simplybook.me/admin/";
 
-    // Get both tokens in parallel
+    // Get both tokens — getUserToken with 3 params matching simplybookCallback.ts
     const [publicToken, adminToken] = await Promise.all([
       sbRPC(LOGIN_URL, "getToken", [company, apiKey]).catch(() => null),
-      sbRPC(LOGIN_URL, "getUserToken", [company, userLogin, userPass, secretKey]),
+      sbRPC(LOGIN_URL, "getUserToken", [company, adminLogin, adminPassword]),
     ]);
 
     if (!adminToken || typeof adminToken !== "string") {
