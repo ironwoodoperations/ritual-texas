@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
@@ -731,20 +731,6 @@ export default function AdminIntake() {
   const [editingRecord, setEditingRecord] = useState(null);
   const [viewMode, setViewMode] = useState("pipeline"); // "pipeline" | "list"
   const [sortKey, setSortKey] = useState("newest");
-  const dropdownFilterChange = useRef(false);
-
-  // Auto-switch to list view only for explicit dropdown changes to non-pipeline filters
-  useEffect(() => {
-    if (!dropdownFilterChange.current) return;
-    dropdownFilterChange.current = false;
-    const PIPELINE_FILTERS = [
-      "active", "all", "new_inquiry", "pending", "confirmed",
-      "confirmed_month", "arriving_week", "overdue_followup"
-    ];
-    if (!PIPELINE_FILTERS.includes(statusFilter)) {
-      setViewMode("list");
-    }
-  }, [statusFilter]);
   const [user, setUser] = useState(null);
 
   const load = useCallback(async () => {
@@ -919,7 +905,14 @@ export default function AdminIntake() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(150,150,150)]" />
             <input placeholder="Search by name, phone, email…" value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-9 pr-4 py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm bg-white focus:outline-none" />
           </div>
-          <select value={statusFilter} onChange={e => { dropdownFilterChange.current = true; setStatusFilter(e.target.value); }} className="px-3 py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm bg-white">
+          <select value={statusFilter} onChange={e => {
+            const val = e.target.value;
+            const PIPELINE_FILTERS = ["active", "all", "new_inquiry", "pending", "confirmed", "confirmed_month", "arriving_week", "overdue_followup"];
+            if (!PIPELINE_FILTERS.includes(val)) {
+              setViewMode("list");
+            }
+            setStatusFilter(val);
+          }} className="px-3 py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm bg-white">
             <option value="active">Active</option>
             <option value="all">All</option>
             <option value="new_inquiry">New Inquiry</option>
