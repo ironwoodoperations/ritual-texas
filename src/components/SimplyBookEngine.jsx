@@ -136,8 +136,13 @@ export default function SimplyBookEngine({
     setAvailabilityMap({});
     setBookingError(null);
 
-    // If service has only one provider, auto-select and skip provider step
-    if (svc.providers.length === 1) {
+    // If service has 0 or 1 providers, skip provider step
+    if (!svc.providers || svc.providers.length === 0) {
+      // No specific providers mapped — use "any available"
+      setSelectedProvider(null);
+      fetchAvailability(svc, undefined);
+      setStep(STEPS.DATE);
+    } else if (svc.providers.length === 1) {
       setSelectedProvider(svc.providers[0]);
       fetchAvailability(svc, svc.providers[0].id);
       setStep(STEPS.DATE);
