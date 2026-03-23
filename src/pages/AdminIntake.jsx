@@ -905,14 +905,7 @@ export default function AdminIntake() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(150,150,150)]" />
             <input placeholder="Search by name, phone, email…" value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-9 pr-4 py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm bg-white focus:outline-none" />
           </div>
-          <select value={statusFilter} onChange={e => {
-            const val = e.target.value;
-            const PIPELINE_FILTERS = ["active", "all", "new_inquiry", "pending", "confirmed", "confirmed_month", "arriving_week", "overdue_followup"];
-            if (!PIPELINE_FILTERS.includes(val)) {
-              setViewMode("list");
-            }
-            setStatusFilter(val);
-          }} className="px-3 py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm bg-white">
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="px-3 py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm bg-white">
             <option value="active">Active</option>
             <option value="all">All</option>
             <option value="new_inquiry">New Inquiry</option>
@@ -940,8 +933,6 @@ export default function AdminIntake() {
             records={filtered}
             onSelect={r => { setSelectedRecord(r); setEditingRecord(null); }}
             onUpdate={load}
-            activeFilter={statusFilter}
-            onFilterChange={filter => { setStatusFilter(filter); }}
           />
         ) : (
           <IntakeListView

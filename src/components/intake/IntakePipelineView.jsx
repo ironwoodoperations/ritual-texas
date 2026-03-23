@@ -119,7 +119,7 @@ function PipelineCard({ record, onSelect, onArchive, onDragStart }) {
   );
 }
 
-export default function IntakePipelineView({ records, onSelect, onUpdate, activeFilter, onFilterChange }) {
+export default function IntakePipelineView({ records, onSelect, onUpdate }) {
   const [draggingId, setDraggingId] = useState(null);
   const [overCol, setOverCol] = useState(null);
   const [archivedExpanded, setArchivedExpanded] = useState(false);
@@ -144,29 +144,6 @@ export default function IntakePipelineView({ records, onSelect, onUpdate, active
 
   return (
     <>
-    {onFilterChange && (
-      <div className="flex items-center gap-2 mb-3 flex-wrap">
-        {[
-          { key: "active", label: "Active" },
-          { key: "all",    label: "All" },
-          { key: "new_inquiry", label: "New Inquiry" },
-          { key: "pending",     label: "Pending" },
-          { key: "confirmed",   label: "Confirmed" },
-        ].map(f => (
-          <button
-            key={f.key}
-            onClick={() => onFilterChange(f.key)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              activeFilter === f.key
-                ? "bg-[rgb(107,85,64)] text-white"
-                : "bg-white border border-[rgb(235,225,213)] text-[rgb(120,120,120)] hover:border-[rgb(198,182,165)]"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
-    )}
     <div className="overflow-x-auto pb-4">
       <div className="flex gap-4 min-w-[640px]">
         {COLUMNS.map(col => {
