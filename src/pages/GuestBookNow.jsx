@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import SimplyBookEngine from '@/components/SimplyBookEngine';
 
@@ -228,6 +229,7 @@ export default function GuestBookNow() {
   const [submitError, setSubmitError] = useState(null);
   const [result, setResult] = useState(null);
 
+  // Scroll to top on every step change
   // Scroll top on mount and on step change
   useEffect(() => { window.scrollTo(0, 0); }, []);
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [step]);
@@ -320,7 +322,7 @@ export default function GuestBookNow() {
 
   const stayDates = (checkIn && checkOut) ? datesBetween(checkIn, checkOut) : [];
   const numNights = nights(checkIn, checkOut);
-  const roomRate = 198;
+  const roomRate = selectedRoom?.price_per_night || selectedRoom?.price || selectedRoom?.pricePerNight || selectedRoom?.rate || 0;
   const roomSubtotal = roomRate * numNights;
   const treatmentTotal = spaBookings.reduce((s, b) => s + (b.price || 0), 0);
   const hotelTaxRate = 0.15; // 6% state + 7% city + 2% venue
@@ -429,6 +431,7 @@ export default function GuestBookNow() {
               <div style={{ display: 'grid', gap: '14px', marginBottom: '20px' }}>
                 {rooms.map(room => {
                   const sel = selectedRoom?.roomTypeID === room.roomTypeID;
+                  const price = room.price_per_night || room.price || room.pricePerNight || room.rate || null;
                   return (
                     <div
                       key={room.roomTypeID}
@@ -450,7 +453,7 @@ export default function GuestBookNow() {
                         <p style={{ fontSize: '12px', color: T.muted, marginBottom: '10px' }}>Up to {room.maxOccupancy} guests</p>
                       )}
                       <p style={{ fontSize: '18px', fontWeight: 700, color: T.primary }}>
-                        $198 / night
+                        {price ? `$${price} / night` : 'Contact for pricing'}
                       </p>
                     </div>
                   );
@@ -645,7 +648,9 @@ export default function GuestBookNow() {
             <div style={{ display: 'flex', gap: '12px' }}>
               <SecondaryBtn onClick={() => setStep(4)} disabled={submitting}>Back</SecondaryBtn>
               <PrimaryBtn onClick={handleSubmit} disabled={submitting}>
-                {submitting ? 'Processing...' : 'Complete Booking'}
+                {submitting
+                  ? <><Loader2 className="animate-spin w-4 h-4 mr-2 inline" /> Processing your booking...</>
+                  : 'Complete Booking'}
               </PrimaryBtn>
             </div>
           </div>

@@ -258,6 +258,63 @@ function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName
 
 // A single "call to book" treatment row — needs verification/confirmation
 function CtbRow({ index, entry, treatments, onUpdate, onRemove, guestName }) {
+  const [slots, setSlots] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [slotsFailed, setSlotsFailed] = useState(false);
+
+  // Fetch available time slots when treatment + therapist + date are all selected
+  useEffect(() => {
+    const treatmentName = entry.name || "";
+    const staffName = entry.staffName || "";
+    const date = entry.date || "";
+    if (!treatmentName || !staffName || !date) {
+      setSlots([]);
+      setSlotsFailed(false);
+      return;
+    }
+
+    let cancelled = false;
+    async function fetchSlots() {
+      setSlotsLoading(true);
+      setSlots([]);
+      setSlotsFailed(false);
+      try {
+        const res = await base44.functions.invoke("simplybookGetAvailability", { date });
+        if (cancelled) return;
+        const services = res?.data?.services || [];
+        // Match service by name (case-insensitive partial match)
+        const matchedSvc = services.find(s =>
+          s.name?.toLowerCase() === treatmentName.toLowerCase()
+        ) || services.find(s =>
+          s.name?.toLowerCase().includes(treatmentName.toLowerCase()) ||
+          treatmentName.toLowerCase().includes(s.name?.toLowerCase())
+        );
+        if (!matchedSvc) { setSlotsFailed(true); setSlotsLoading(false); return; }
+        // Match provider by name
+        const matchedProvider = matchedSvc.providers?.find(p =>
+          p.name?.toLowerCase() === staffName.toLowerCase()
+        ) || matchedSvc.providers?.find(p =>
+          p.name?.toLowerCase().includes(staffName.toLowerCase()) ||
+          staffName.toLowerCase().includes(p.name?.toLowerCase())
+        );
+        const foundSlots = matchedProvider?.slots || [];
+        if (foundSlots.length > 0) {
+          setSlots(foundSlots);
+          setSlotsFailed(false);
+        } else {
+          setSlots([]);
+          setSlotsFailed(true);
+        }
+      } catch {
+        if (!cancelled) { setSlots([]); setSlotsFailed(true); }
+      } finally {
+        if (!cancelled) setSlotsLoading(false);
+      }
+    }
+    fetchSlots();
+    return () => { cancelled = true; };
+  }, [entry.name, entry.staffName, entry.date]);
+
   return (
     <div className="relative border border-[rgb(220,210,200)] rounded-xl p-4 bg-[rgb(252,248,252)]">
       <button type="button" onClick={() => onRemove(index)} className="absolute top-3 right-3 text-[rgb(190,170,150)] hover:text-red-400 transition-colors">
@@ -272,7 +329,7 @@ function CtbRow({ index, entry, treatments, onUpdate, onRemove, guestName }) {
           {treatments.length > 0 ? (
             <select value={entry.id || ""} onChange={e => {
               const t = treatments.find(t => t.id === e.target.value);
-              if (t) onUpdate(index, { ...entry, id: t.id, name: t.name, price: t.price, duration: t.duration_minutes });
+              if (t) onUpdate(index, { ...entry, id: t.id, name: t.name, price: t.price, duration: t.duration_minutes, time: "" });
             }} className={selectCls}>
               <option value="">Select treatment…</option>
               {treatments.map(t => (
@@ -283,22 +340,43 @@ function CtbRow({ index, entry, treatments, onUpdate, onRemove, guestName }) {
             <input
               placeholder="Treatment name…"
               value={entry.name || ""}
-              onChange={e => onUpdate(index, { ...entry, name: e.target.value, id: "manual" })}
+              onChange={e => onUpdate(index, { ...entry, name: e.target.value, id: "manual", time: "" })}
               className={fieldCls}
             />
           )}
         </div>
         <div>
           <label className={labelCls}>Requested Date</label>
-          <input type="date" value={entry.date || ""} onChange={e => onUpdate(index, { ...entry, date: e.target.value })} className={fieldCls} />
+          <input type="date" value={entry.date || ""} onChange={e => onUpdate(index, { ...entry, date: e.target.value, time: "" })} className={fieldCls} />
         </div>
         <div>
-          <label className={labelCls}>Requested Time</label>
-          <input type="time" value={entry.time || ""} onChange={e => onUpdate(index, { ...entry, time: e.target.value })} className={fieldCls} />
+          <label className={labelCls}>
+            Requested Time
+            {slotsLoading && <Loader2 className="inline w-3 h-3 animate-spin ml-1.5 text-[rgb(150,170,155)]" />}
+          </label>
+          {slotsLoading ? (
+            <p className="text-xs text-[rgb(150,170,155)] flex items-center gap-1.5 py-2">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading times…
+            </p>
+          ) : slots.length > 0 ? (
+            <select value={entry.time || ""} onChange={e => onUpdate(index, { ...entry, time: e.target.value })} className={selectCls}>
+              <option value="">Select time…</option>
+              {slots.map(slot => (
+                <option key={slot} value={slot}>{fmtSlot(slot)}</option>
+              ))}
+            </select>
+          ) : (
+            <>
+              <input type="time" value={entry.time || ""} onChange={e => onUpdate(index, { ...entry, time: e.target.value })} className={fieldCls} />
+              {slotsFailed && entry.name && entry.staffName && entry.date && (
+                <p className="text-[10px] text-yellow-600 mt-1">No slots found — enter time manually</p>
+              )}
+            </>
+          )}
         </div>
         <div>
           <label className={labelCls}>Therapist</label>
-          <select value={entry.staffName || ""} onChange={e => onUpdate(index, { ...entry, staffName: e.target.value })} className={selectCls}>
+          <select value={entry.staffName || ""} onChange={e => onUpdate(index, { ...entry, staffName: e.target.value, time: "" })} className={selectCls}>
             <option value="">Select therapist…</option>
             {THERAPISTS.map(t => <option key={t} value={t}>{t}</option>)}
           </select>

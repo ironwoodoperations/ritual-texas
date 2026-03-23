@@ -234,6 +234,17 @@ export default function SimplyBookEngine({
     return dateData.allSlots || [];
   }, [selectedDate, selectedProvider, availabilityMap]);
 
+  // Check if a time slot conflicts with an already-selected booking
+  const isSlotConflict = useCallback((slot) => {
+    if (!selectedDate || !selectedProvider?.id) return false;
+    const slotHHMM = String(slot).substring(0, 5);
+    return completedBookings.some(
+      b => b.providerId === selectedProvider.id &&
+           b.date === selectedDate &&
+           String(b.startTime).substring(0, 5) === slotHHMM
+    );
+  }, [selectedDate, selectedProvider, completedBookings]);
+
   // ── Styles ──────────────────────────────────────────────────────────────
 
   const cardStyle = {
@@ -615,20 +626,31 @@ export default function SimplyBookEngine({
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             {timeSlotsForDate.map(slot => {
               const isSelected = selectedTime === slot;
+              const conflict = isSlotConflict(slot);
               return (
                 <button
                   key={slot}
-                  onClick={() => handleSelectTime(slot)}
+                  onClick={() => {
+                    if (conflict) {
+                      setBookingError('This therapist is already booked at this time. Please choose a different time.');
+                      return;
+                    }
+                    handleSelectTime(slot);
+                  }}
+                  disabled={conflict}
                   style={{
                     ...pillBtnBase,
-                    backgroundColor: isSelected ? colors.accent : colors.card,
-                    color: isSelected ? '#fff' : colors.primary,
-                    border: isSelected ? `2px solid ${colors.accent}` : `1px solid rgba(59,72,49,.15)`,
+                    backgroundColor: conflict ? 'rgba(0,0,0,.04)' : isSelected ? colors.accent : colors.card,
+                    color: conflict ? '#bbb' : isSelected ? '#fff' : colors.primary,
+                    border: conflict ? '1px solid rgba(0,0,0,.06)' : isSelected ? `2px solid ${colors.accent}` : `1px solid rgba(59,72,49,.15)`,
                     fontWeight: isSelected ? 700 : 500,
                     transform: isSelected ? 'scale(1.05)' : 'none',
+                    cursor: conflict ? 'not-allowed' : 'pointer',
+                    opacity: conflict ? 0.5 : 1,
+                    textDecoration: conflict ? 'line-through' : 'none',
                   }}
-                  onMouseOver={e => { if (!isSelected) e.currentTarget.style.borderColor = colors.accent; }}
-                  onMouseOut={e => { if (!isSelected) e.currentTarget.style.borderColor = 'rgba(59,72,49,.15)'; }}
+                  onMouseOver={e => { if (!isSelected && !conflict) e.currentTarget.style.borderColor = colors.accent; }}
+                  onMouseOut={e => { if (!isSelected && !conflict) e.currentTarget.style.borderColor = 'rgba(59,72,49,.15)'; }}
                 >
                   {formatTime(slot)}
                 </button>
