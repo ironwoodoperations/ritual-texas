@@ -374,7 +374,7 @@ export default function Home() {
             Ready to Slow Down?
           </h2>
           <Link 
-            to={createPageUrl('BookRooms')}
+            to={createPageUrl('GuestBookNow')}
             className="inline-flex items-center gap-3 px-8 py-4 bg-white text-[rgb(107,85,64)] tracking-widest text-sm hover:bg-[rgb(235,225,213)] transition-all"
           >
             RESERVE YOUR ESCAPE

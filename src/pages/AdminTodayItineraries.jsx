@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Leaf, Printer, RefreshCw, Sparkles, Mail, MessageCircle, Check, ChevronDown, X } from 'lucide-react';
+import { ArrowLeft, Leaf, Printer, RefreshCw, Sparkles, Mail, MessageCircle, Check, ChevronDown, X, LogIn, LogOut, CreditCard, Loader2 } from 'lucide-react';
 import PageHelpBanner from '@/components/PageHelpBanner';
 
 const ITINERARY_HELP = `Print-ready guest briefings for every arrival and spa guest today — pulled live from Cloudbeds and SimplyBook.
@@ -58,6 +58,38 @@ function GuestCard({ reservation, spaBookings }) {
   const [sent, setSent] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [expanded, setExpanded] = useState(false);
+  const [actionLoading, setActionLoading] = useState(null);
+  const [actionResult, setActionResult] = useState(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentSource, setPaymentSource] = useState('cloudbeds');
+
+  async function handleGuestAction(action) {
+    if (!reservation.reservationID) return;
+    setActionLoading(action);
+    setActionResult(null);
+    try {
+      const payload = { action, reservationID: reservation.reservationID };
+      if (action === 'payment') {
+        if (!paymentAmount) { setActionLoading(null); return; }
+        payload.amount = paymentAmount;
+        payload.description = paymentSource === 'square'
+          ? 'Square – Direct booking payment'
+          : 'Cloudbeds / OTA – collected at source';
+      }
+      const res = await base44.functions.invoke('cloudbedsGuestActions', payload);
+      if (res.data?.success) {
+        setActionResult({ ok: true, msg: action === 'checkin' ? 'Checked in ✓' : action === 'checkout' ? 'Checked out ✓' : `Payment of $${paymentAmount} recorded ✓` });
+        if (action === 'payment') { setShowPaymentModal(false); setPaymentAmount(''); }
+      } else {
+        setActionResult({ ok: false, msg: res.data?.error || 'Action failed. Check Cloudbeds.' });
+      }
+    } catch (e) {
+      setActionResult({ ok: false, msg: e.message || 'Unexpected error' });
+    } finally {
+      setActionLoading(null);
+    }
+  }
 
   const handleEmail = () => {
     if (!emailAddr) { setEmailError('Enter an email address'); return; }
@@ -217,6 +249,99 @@ function GuestCard({ reservation, spaBookings }) {
           Open Text Message
         </a>
       </div>
+
+      {/* Guest Actions — only for hotel guests with a reservationID */}
+      {reservation.reservationID && (
+        <div className="mt-4 pt-4 border-t border-[rgb(235,225,213)] flex flex-wrap gap-2 no-print">
+          <button
+            onClick={() => handleGuestAction('checkin')}
+            disabled={!!actionLoading}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-[rgb(150,170,155)] text-white hover:bg-[rgb(130,150,135)] disabled:opacity-50 transition-colors"
+          >
+            {actionLoading === 'checkin' ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
+            Check In
+          </button>
+          <button
+            onClick={() => handleGuestAction('checkout')}
+            disabled={!!actionLoading}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border border-[rgb(235,225,213)] text-[rgb(107,85,64)] hover:bg-[rgb(248,246,242)] disabled:opacity-50 transition-colors"
+          >
+            {actionLoading === 'checkout' ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
+            Check Out
+          </button>
+          <button
+            onClick={() => setShowPaymentModal(true)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border border-[rgb(235,225,213)] text-[rgb(107,85,64)] hover:bg-[rgb(248,246,242)] transition-colors"
+          >
+            <CreditCard className="w-4 h-4" />
+            Payment
+          </button>
+          {actionResult && (
+            <span className={`text-sm px-3 py-2 rounded-xl ${actionResult.ok ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}`}>
+              {actionResult.msg}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Payment Modal */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 no-print">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl space-y-4">
+            <h3 className="text-lg font-light text-[rgb(107,85,64)]">Record Payment</h3>
+            <p className="text-sm text-[rgb(45,45,45)]">Guest: <strong>{reservation.guestName}</strong></p>
+            <div>
+              <label className="text-xs uppercase tracking-wide text-[rgb(150,150,150)] mb-2 block">Payment Source</label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPaymentSource('cloudbeds')}
+                  className={`flex-1 py-2.5 text-sm rounded-xl font-medium transition-all ${paymentSource === 'cloudbeds' ? 'bg-[rgb(107,85,64)] text-white' : 'border border-[rgb(235,225,213)] text-[rgb(107,85,64)]'}`}
+                >
+                  🏨 Cloudbeds / OTA
+                </button>
+                <button
+                  onClick={() => setPaymentSource('square')}
+                  className={`flex-1 py-2.5 text-sm rounded-xl font-medium transition-all ${paymentSource === 'square' ? 'bg-[rgb(107,85,64)] text-white' : 'border border-[rgb(235,225,213)] text-[rgb(107,85,64)]'}`}
+                >
+                  ◼ Square
+                </button>
+              </div>
+              <p className="text-xs text-[rgb(150,150,150)] mt-2">
+                {paymentSource === 'cloudbeds'
+                  ? 'Guest booked via Expedia, Booking.com, or another OTA — payment collected through Cloudbeds.'
+                  : 'Guest booked directly on ritualtexas.com — payment taken via Square.'}
+              </p>
+            </div>
+            <div>
+              <label className="text-xs uppercase tracking-wide text-[rgb(150,150,150)] mb-1 block">Amount ($)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={paymentAmount}
+                onChange={e => setPaymentAmount(e.target.value)}
+                placeholder="0.00"
+                className="w-full px-3 py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm focus:outline-none"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => { setShowPaymentModal(false); setPaymentAmount(''); }}
+                className="px-4 py-2 text-sm border border-[rgb(235,225,213)] rounded-xl text-[rgb(107,85,64)]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleGuestAction('payment')}
+                disabled={!paymentAmount || !!actionLoading}
+                className="px-4 py-2 text-sm bg-[rgb(107,85,64)] text-white rounded-xl hover:bg-[rgb(85,65,45)] disabled:opacity-50 flex items-center gap-2"
+              >
+                {actionLoading === 'payment' ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                Post Payment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <div className="pt-4 mt-4 border-t border-[rgb(235,225,213)] text-center text-xs text-[rgb(150,150,150)]">

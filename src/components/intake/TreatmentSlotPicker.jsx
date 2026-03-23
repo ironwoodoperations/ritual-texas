@@ -16,7 +16,7 @@ function fmtSlot(slot) {
 }
 
 // A single "book online" treatment row — local state, date-first, fully chained from SimplyBook
-function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName, allGuestNames = [] }) {
+function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName, allGuestNames = [], allEntries = [] }) {
   const [date, setDate] = useState(entry.date || "");
   const [availabilityData, setAvailabilityData] = useState(null);
   const [loadingAvailability, setLoadingAvailability] = useState(false);
@@ -119,6 +119,16 @@ function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName
   const canAdd = date && selectedServiceId && selectedProviderId && selectedTime;
   const canFallbackAdd = date && fallbackTreatmentId && fallbackManualTime;
 
+  // Same-therapist conflict detection
+  const conflictWarning = (() => {
+    const staffName = selectedProvider?.name;
+    if (!staffName || !date || !selectedTime) return null;
+    const conflict = allEntries.find((e, i) =>
+      i !== index && e.staffName === staffName && e.date === date && e.time === selectedTime
+    );
+    return conflict ? `${staffName} already has a booking at this time` : null;
+  })();
+
   // Show saved state when entry already has data
   const isSaved = entry.serviceName && entry.date && entry.time;
 
@@ -213,6 +223,10 @@ function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName
                     ))}
                   </select>
                 </div>
+              )}
+
+              {conflictWarning && (
+                <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">⚠️ {conflictWarning}</p>
               )}
 
               <button
@@ -458,7 +472,7 @@ export default function TreatmentSlotPicker({ sbEntries, ctbEntries, bookOnlineT
         </div>
         <div className="space-y-3">
           {sbEntries.map((entry, i) => (
-            <BookOnlineRow key={i} index={i} entry={entry} treatments={bookOnlineTreatments} onUpdate={updateSb} onRemove={removeSb} guestName={entry.guestName || primaryGuestName} allGuestNames={allGuestNames} />
+            <BookOnlineRow key={i} index={i} entry={entry} treatments={bookOnlineTreatments} onUpdate={updateSb} onRemove={removeSb} guestName={entry.guestName || primaryGuestName} allGuestNames={allGuestNames} allEntries={sbEntries} />
           ))}
           {sbEntries.length === 0 && (
             <p className="text-xs text-[rgb(180,165,150)] italic">No treatments added yet.</p>
