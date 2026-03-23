@@ -534,12 +534,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── Success: save invoice ID and return public URL ────────────────────
+    // ── Success: save invoice ID, reservation ID, and mark all actions done ─
     try {
-      await base44.asServiceRole.entities.HotelTreatmentIntake.update(intakeId, {
+      const finalUpdate: Record<string, any> = {
         squareInvoiceId: invResult.invoiceId,
-        bookingStatus: "pending",
-      });
+        bookingStatus: "confirmed",
+        onlineBookingCompleted: true,
+        quoteSent: true,
+        hotelBooked: true,
+        treatmentsBooked: true,
+        crmSynced: false,
+      };
+      if (cbResult.ok && cbResult.reservationId) {
+        finalUpdate.cloudbedsReservationId = cbResult.reservationId;
+      }
+      await base44.asServiceRole.entities.HotelTreatmentIntake.update(intakeId, finalUpdate);
     } catch {
       // Non-fatal
     }
