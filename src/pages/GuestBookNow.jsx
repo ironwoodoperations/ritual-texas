@@ -275,13 +275,16 @@ export default function GuestBookNow() {
         roomRequested: selectedRoom?.name,
         roomPricePerNight: selectedRoom?.price,
         selectedTreatments: spaBookings.map(b => JSON.stringify({
+          serviceId: b.serviceId,
           id: b.serviceId,
           name: b.serviceName,
           serviceName: b.serviceName,
           price: b.price,
           duration: b.duration,
           date: b.date,
+          startTime: b.startTime,
           time: b.startTime,
+          providerId: b.providerId,
           staffId: b.providerId,
           staffName: b.providerName,
           guestName: b.guestName,
@@ -446,7 +449,7 @@ export default function GuestBookNow() {
                         <p style={{ fontSize: '12px', color: T.muted, marginBottom: '10px' }}>Up to {room.maxOccupancy} guests</p>
                       )}
                       <p style={{ fontSize: '18px', fontWeight: 700, color: T.primary }}>
-                        {room.price ? `$${room.price}/night` : 'Contact for pricing'}
+                        $198 / night
                       </p>
                     </div>
                   );

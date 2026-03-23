@@ -253,17 +253,21 @@ Deno.serve(async (req) => {
     // Step 3: Book SimplyBook treatments (only those NOT already booked)
     if (needsBooking.length > 0) {
       for (const t of needsBooking) {
-        const label = `${t.serviceName || t.serviceId} on ${t.date} at ${t.startTime}`;
+        const svcId = String(t.serviceId || t.id || "");
+        const provId = String(t.providerId || t.staffId || "");
+        const bookTime = t.startTime || t.time || "";
+        const tGuestName = t.guestName || guestName;
+        const label = `${t.serviceName || t.name || svcId} for ${tGuestName} on ${t.date} at ${bookTime}`;
         try {
-          notes += `\n[SimplyBook] Attempting booking: ${label}`;
+          notes += `\n[SimplyBook] Booking SimplyBook treatment: ${label}`;
           const res = await base44.asServiceRole.functions.invoke("guestCreateBooking", {
-            guestName: t.guestName || guestName,
+            guestName: tGuestName,
             guestEmail: email,
             guestPhone: phone,
-            serviceId: String(t.serviceId),
-            providerId: t.providerId ? String(t.providerId) : "",
+            serviceId: svcId,
+            providerId: provId,
             date: t.date,
-            time: t.startTime,
+            time: bookTime,
           });
           const d = res?.data || res;
           if (d?.success && d?.booking?.bookingId) {
