@@ -141,11 +141,10 @@ Deno.serve(async (req) => {
     let clientId: number | null = null;
     try {
       const addClientResult = await sbRPC(ADMIN_URL, "addClient", [clientPayload, false], adminHeaders);
-      console.log("addClient response:", JSON.stringify(addClientResult));
+      console.log("addClient full response:", JSON.stringify(addClientResult));
       clientId = addClientResult?.id
         || addClientResult?.client_id
         || addClientResult?.data?.id
-        || addClientResult?.result?.id
         || (typeof addClientResult === "number" ? addClientResult : null);
       if (clientId) clientId = Number(clientId);
     } catch (e: any) {
@@ -154,10 +153,6 @@ Deno.serve(async (req) => {
 
     if (!clientId) {
       return Response.json({ error: "No client ID returned from SimplyBook. Check logs for full addClient response." }, { status: 500 });
-    }
-
-    if (!clientId) {
-      return Response.json({ error: "No client ID returned from SimplyBook" }, { status: 500 });
     }
 
     // Book the appointment
