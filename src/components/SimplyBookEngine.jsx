@@ -444,11 +444,11 @@ export default function SimplyBookEngine({
             <button onClick={handleFinish} style={primaryBtn}>
               Continue with {completedBookings.length} Treatment{completedBookings.length > 1 ? 's' : ''}
             </button>
-          ) : (
+          ) : onSkip ? (
             <button onClick={handleSkip} style={secondaryBtn}>
               Skip Treatments
             </button>
-          )}
+          ) : null}
         </div>
       </div>
     );
