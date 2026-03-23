@@ -69,32 +69,57 @@ async function bookSimplyBookTreatment(
 ): Promise<{ ok: boolean; bookingId?: string; error?: string }> {
   const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
   const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
-  const userLogin = Deno.env.get("SIMPLYBOOK_USER_LOGIN") || "";
-  const userPass = Deno.env.get("SIMPLYBOOK_USER_PASSWORD") || "";
+  const userLogin = Deno.env.get("SIMPLYBOOK_USER_LOGIN") || Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
+  const userPass = Deno.env.get("SIMPLYBOOK_USER_PASSWORD") || Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
   const secretKey = Deno.env.get("SIMPLYBOOK_SECRET_KEY") || "";
 
-  if (!company || !apiKey) {
-    return { ok: false, error: "SimplyBook credentials not configured" };
+  if (!company) {
+    return { ok: false, error: "SimplyBook credentials not configured (no company)" };
   }
-  if (!userLogin || !userPass || !secretKey) {
-    return { ok: false, error: "SimplyBook admin credentials not configured" };
+  if (!userLogin || !userPass) {
+    return { ok: false, error: "SimplyBook admin credentials not configured (no login/password)" };
   }
 
   const LOGIN_URL = "https://user-api.simplybook.me/login";
   const BASE_URL = "https://user-api.simplybook.me";
   const ADMIN_URL = "https://user-api.simplybook.me/admin/";
 
-  // 1. Authenticate — get both tokens
-  const [publicToken, adminToken] = await Promise.all([
-    sbRPC(LOGIN_URL, "getToken", [company, apiKey]).catch(() => null),
-    sbRPC(LOGIN_URL, "getUserToken", [company, userLogin, userPass, secretKey]),
-  ]);
+  // 1. Authenticate — try getUserToken with secretKey (4 params), fall back to 3 params
+  let adminToken: string | null = null;
 
-  if (!adminToken || typeof adminToken !== "string") {
-    return { ok: false, error: "SimplyBook admin auth failed" };
+  if (secretKey) {
+    try {
+      const result = await sbRPC(LOGIN_URL, "getUserToken", [company, userLogin, userPass, secretKey]);
+      if (result && typeof result === "string") adminToken = result;
+    } catch (e: any) {
+      console.log("[SimplyBook] getUserToken with secretKey failed:", e.message);
+    }
   }
 
-  const readToken = (typeof publicToken === "string" && publicToken) ? publicToken : adminToken;
+  if (!adminToken) {
+    try {
+      const result = await sbRPC(LOGIN_URL, "getUserToken", [company, userLogin, userPass]);
+      if (result && typeof result === "string") adminToken = result;
+    } catch (e: any) {
+      console.log("[SimplyBook] getUserToken without secretKey failed:", e.message);
+    }
+  }
+
+  if (!adminToken) {
+    return { ok: false, error: "SimplyBook admin auth failed — check SIMPLYBOOK_ADMIN_LOGIN / SIMPLYBOOK_ADMIN_PASSWORD" };
+  }
+
+  // Get a read token via apiKey if available, otherwise reuse admin token
+  let readToken = adminToken;
+  if (apiKey) {
+    try {
+      const result = await sbRPC(LOGIN_URL, "getToken", [company, apiKey]);
+      if (result && typeof result === "string") readToken = result;
+    } catch {
+      // fall back to admin token
+    }
+  }
+
   const readHeaders = { "X-Company-Login": company, "X-Token": readToken, "X-User-Token": readToken };
   const adminHeaders = { "X-Company-Login": company, "X-Token": adminToken, "X-User-Token": adminToken };
 
@@ -433,7 +458,8 @@ Deno.serve(async (req) => {
       for (const t of needsBooking) {
         const svcId = String(t.serviceId || t.id || "");
         const provId = String(t.providerId || t.staffId || "");
-        const bookTime = t.startTime || t.time || "";
+        const rawTime = t.startTime || t.time || "";
+        const bookTime = rawTime.substring(0, 5); // strip seconds: "09:00:00" → "09:00"
         const tGuestName = t.guestName || guestName;
         const label = `${t.serviceName || t.name || svcId} for ${tGuestName} on ${t.date} at ${bookTime}`;
         try {
