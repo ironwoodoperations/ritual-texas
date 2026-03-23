@@ -144,7 +144,8 @@ Deno.serve(async (req) => {
         addClientResult?.id ||
         addClientResult?.client_id ||
         addClientResult?.data?.id ||
-        (typeof addClientResult === "number" ? addClientResult : null);
+        (typeof addClientResult === "number" ? addClientResult : null) ||
+        (typeof addClientResult === "string" && !isNaN(Number(addClientResult)) ? Number(addClientResult) : null);
       if (clientId) clientId = Number(clientId);
     } catch (e: any) {
       return Response.json({ error: `Failed to create client: ${e.message}` }, { status: 500 });

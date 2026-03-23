@@ -160,7 +160,8 @@ async function bookSimplyBookTreatment(
     || addClientResult?.client_id
     || addClientResult?.data?.id
     || addClientResult?.result?.id
-    || (typeof addClientResult === "number" ? addClientResult : null);
+    || (typeof addClientResult === "number" ? addClientResult : null)
+    || (typeof addClientResult === "string" && !isNaN(Number(addClientResult)) ? Number(addClientResult) : null);
   if (clientId) clientId = Number(clientId);
 
   if (!clientId) {
