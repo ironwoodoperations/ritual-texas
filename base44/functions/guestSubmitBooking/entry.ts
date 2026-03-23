@@ -265,11 +265,11 @@ async function createAndPublishInvoice(
         phone: payload.phone,
         checkInDate: payload.checkInDate,
         checkOutDate: payload.checkOutDate,
-        roomRequested: payload.roomRequested,
+        roomRequested: payload.roomRequested || "",
         selectedTreatments: payload.selectedTreatments || [],
         callToBookTreatments: payload.callToBookTreatments || [],
         treatmentsRequested: payload.specialRequests || "",
-        taxes: {
+        taxes: payload.bookingType === 'spa_only' ? {} : {
           hotel_state: true,
           hotel_city: true,
           hotel_venue: true,
@@ -330,10 +330,18 @@ Deno.serve(async (req) => {
     const checkIn   = clean(payload.checkInDate);
     const checkOut  = clean(payload.checkOutDate);
     const roomTypeId = clean(payload.cloudbedsRoomTypeId);
+    const bookingType = clean(payload.bookingType) || "hotel_and_spa";
 
-    if (!guestName || !email || !checkIn || !checkOut || !roomTypeId) {
+    if (!guestName || !email || !checkIn || !checkOut) {
       return Response.json(
-        { success: false, error: "Missing required fields (name, email, dates, room)." },
+        { success: false, error: "Missing required fields (name, email, dates)." },
+        { status: 400 },
+      );
+    }
+
+    if (bookingType !== 'spa_only' && !roomTypeId) {
+      return Response.json(
+        { success: false, error: "Room selection required for hotel bookings." },
         { status: 400 },
       );
     }
@@ -355,30 +363,34 @@ Deno.serve(async (req) => {
     const hasCallToBook = Array.isArray(payload.callToBookTreatments) && payload.callToBookTreatments.length > 0;
 
     // ── Step 1: Create HotelTreatmentIntake record ────────────────────────
-    const intakePayload = {
+    const intakePayload: Record<string, any> = {
       guestName,
       email,
       phone,
       checkInDate: checkIn,
       checkOutDate: checkOut,
       numberOfGuests: payload.numberOfGuests || 1,
-      cloudbedsRoomTypeId: roomTypeId,
-      roomRequested: payload.roomRequested || "",
-      roomName: payload.roomRequested || "",
+      cloudbedsRoomTypeId: bookingType !== 'spa_only' ? roomTypeId : "",
+      roomRequested: bookingType !== 'spa_only' ? (payload.roomRequested || "") : "",
+      roomName: bookingType !== 'spa_only' ? (payload.roomRequested || "") : "",
       selectedTreatments: payload.selectedTreatments || [],
       callToBookTreatments: payload.callToBookTreatments || [],
       treatmentsRequested: payload.specialRequests || "",
       hotelNotes: payload.specialRequests || "",
       howDidYouHearAboutUs: payload.howDidYouHearAboutUs || "",
       bookingStatus: hasCallToBook ? "new_inquiry" : "pending",
-      internalNotes: `[Guest Online Booking — ${new Date().toISOString()}]\nSource: GuestBookNow page`,
-      taxes: {
+      internalNotes: `[Guest Online Booking (${bookingType}) — ${new Date().toISOString()}]\nSource: GuestBookNow page`,
+      preferredContactMethod: "email",
+    };
+
+    // Only include hotel taxes for hotel bookings
+    if (bookingType !== 'spa_only') {
+      intakePayload.taxes = {
         hotel_state: true,
         hotel_city: true,
         hotel_venue: true,
-      },
-      preferredContactMethod: "email",
-    };
+      };
+    }
 
     let intake: any;
     try {
@@ -432,23 +444,27 @@ Deno.serve(async (req) => {
 
     // ── Path A: Full Booking Sequence ─────────────────────────────────────
 
-    // Step 2: Book room in Cloudbeds
-    const cbResult = await bookRoom(base44, {
-      guestName,
-      email,
-      phone,
-      checkInDate: checkIn,
-      checkOutDate: checkOut,
-      numberOfGuests: payload.numberOfGuests,
-      cloudbedsRoomTypeId: roomTypeId,
-      roomRequested: payload.roomRequested,
-      specialRequests: payload.specialRequests,
-    });
+    // Step 2: Book room in Cloudbeds (skip for spa_only)
+    let cbResult: { ok: boolean; reservationId?: string; error?: string } = { ok: false, error: "Skipped (spa_only)" };
 
-    if (cbResult.ok) {
-      notes += `\n[Cloudbeds reservation created: ${cbResult.reservationId}]`;
-    } else {
-      notes += `\n[Cloudbeds booking failed: ${cbResult.error}]`;
+    if (bookingType !== 'spa_only') {
+      cbResult = await bookRoom(base44, {
+        guestName,
+        email,
+        phone,
+        checkInDate: checkIn,
+        checkOutDate: checkOut,
+        numberOfGuests: payload.numberOfGuests,
+        cloudbedsRoomTypeId: roomTypeId,
+        roomRequested: payload.roomRequested,
+        specialRequests: payload.specialRequests,
+      });
+
+      if (cbResult.ok) {
+        notes += `\n[Cloudbeds reservation created: ${cbResult.reservationId}]`;
+      } else {
+        notes += `\n[Cloudbeds booking failed: ${cbResult.error}]`;
+      }
     }
 
     // Step 3: Book SimplyBook treatments directly (inline — no function invoke)
@@ -503,17 +519,25 @@ Deno.serve(async (req) => {
     }
 
     // Step 4: Create and publish Square invoice
-    const invResult = await createAndPublishInvoice(base44, intakeId, {
+    const invoicePayload: Record<string, any> = {
       guestName,
       email,
       phone,
       checkInDate: checkIn,
       checkOutDate: checkOut,
-      roomRequested: payload.roomRequested,
       selectedTreatments: payload.selectedTreatments,
       callToBookTreatments: payload.callToBookTreatments,
       specialRequests: payload.specialRequests,
-    });
+    };
+
+    if (bookingType !== 'spa_only') {
+      invoicePayload.roomRequested = payload.roomRequested;
+    } else {
+      invoicePayload.roomRequested = "";
+    }
+    invoicePayload.bookingType = bookingType;
+
+    const invResult = await createAndPublishInvoice(base44, intakeId, invoicePayload);
 
     if (!invResult.ok) {
       // Soft fail: flag for staff to send manually
@@ -541,8 +565,8 @@ Deno.serve(async (req) => {
         bookingStatus: "confirmed",
         onlineBookingCompleted: true,
         quoteSent: true,
-        hotelBooked: true,
-        treatmentsBooked: true,
+        hotelBooked: bookingType !== 'spa_only',
+        treatmentsBooked: bookingType !== 'hotel_only',
         crmSynced: false,
       };
       if (cbResult.ok && cbResult.reservationId) {
@@ -556,9 +580,13 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       type: "booking",
+      bookingType,
       intakeId,
+      confirmationCode: bookingType === 'spa_only' ? null : (cbResult?.reservationId || null),
       publicUrl: invResult.publicUrl,
-      message: "Booking created. Redirecting to payment...",
+      message: bookingType === 'spa_only'
+        ? "Spa booking created. Redirecting to payment..."
+        : "Booking created. Redirecting to payment...",
     });
   } catch (e: any) {
     console.error("[guestSubmitBooking] Unexpected error:", e);
