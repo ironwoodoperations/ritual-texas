@@ -1,6 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 function clean(s) { return String(s ?? "").trim(); }
+function toStandardTime(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+}
 function emailNorm(s) { return clean(s).toLowerCase(); }
 
 function nightsBetween(checkIn, checkOut) {
@@ -105,7 +112,7 @@ Deno.serve(async (req) => {
       let label = name;
       if (guestLabel) label += ` for ${guestLabel}`;
       if (date) label += ` — ${date}`;
-      if (time) label += ` at ${time}`;
+      if (time) label += ` at ${toStandardTime(time)}`;
       if (staffName) label += ` with ${staffName}`;
       lineItems.push({
         name: label,
@@ -133,7 +140,7 @@ Deno.serve(async (req) => {
       let label = name;
       if (guestLabel) label += ` for ${guestLabel}`;
       if (date) label += ` — ${date}`;
-      if (time) label += ` at ${time}`;
+      if (time) label += ` at ${toStandardTime(time)}`;
       if (staffName) label += ` with ${staffName}`;
       label += " (call-to-book)";
       lineItems.push({

@@ -3,6 +3,13 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function clean(s: any): string { return String(s ?? "").trim(); }
+function toStandardTime(t: string): string {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+}
 
 function nightsBetween(checkIn: string, checkOut: string): number {
   const a = new Date(checkIn + "T00:00:00");
@@ -452,7 +459,7 @@ Deno.serve(async (req) => {
         const rawTime = t.startTime || t.time || "";
         const bookTime = rawTime.substring(0, 5); // strip seconds: "09:00:00" → "09:00"
         const tGuestName = t.guestName || guestName;
-        const label = `${t.serviceName || t.name || svcId} for ${tGuestName} on ${t.date} at ${bookTime}`;
+        const label = `${t.serviceName || t.name || svcId} for ${tGuestName} on ${t.date} at ${toStandardTime(bookTime)}`;
         try {
           console.log(`[SimplyBook] Booking SimplyBook treatment: ${label}`);
           notes += `\n[SimplyBook] Booking SimplyBook treatment: ${label}`;
