@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import SimplyBookEngine from '@/components/SimplyBookEngine';
 
@@ -228,8 +229,8 @@ export default function GuestBookNow() {
   const [submitError, setSubmitError] = useState(null);
   const [result, setResult] = useState(null);
 
-  // Scroll top on mount
-  useEffect(() => { window.scrollTo(0, 0); }, []);
+  // Scroll to top on every step change
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [step]);
 
   // ── Step 1 → 2: fetch rooms ─────────────────────────────────────────────
   async function goToRooms() {
@@ -644,7 +645,9 @@ export default function GuestBookNow() {
             <div style={{ display: 'flex', gap: '12px' }}>
               <SecondaryBtn onClick={() => setStep(4)} disabled={submitting}>Back</SecondaryBtn>
               <PrimaryBtn onClick={handleSubmit} disabled={submitting}>
-                {submitting ? 'Processing...' : 'Complete Booking'}
+                {submitting
+                  ? <><Loader2 className="animate-spin w-4 h-4 mr-2 inline" /> Processing your booking...</>
+                  : 'Complete Booking'}
               </PrimaryBtn>
             </div>
           </div>
