@@ -274,7 +274,7 @@ export default function GuestBookNow() {
         numberOfGuests: guests,
         cloudbedsRoomTypeId: selectedRoom?.roomTypeID,
         roomRequested: selectedRoom?.name,
-        roomPricePerNight: selectedRoom?.price,
+        roomPricePerNight: selectedRoom?.price_per_night || selectedRoom?.price || selectedRoom?.pricePerNight || selectedRoom?.rate || 198,
         selectedTreatments: spaBookings.map(b => JSON.stringify({
           serviceId: b.serviceId,
           id: b.serviceId,
@@ -320,7 +320,7 @@ export default function GuestBookNow() {
 
   const stayDates = (checkIn && checkOut) ? datesBetween(checkIn, checkOut) : [];
   const numNights = nights(checkIn, checkOut);
-  const roomRate = selectedRoom?.price_per_night || selectedRoom?.price || selectedRoom?.pricePerNight || selectedRoom?.rate || 0;
+  const roomRate = selectedRoom?.price_per_night || selectedRoom?.price || selectedRoom?.pricePerNight || selectedRoom?.rate || 198;
   const roomSubtotal = roomRate * numNights;
   const treatmentTotal = spaBookings.reduce((s, b) => s + (b.price || 0), 0);
   const hotelTaxRate = 0.15; // 6% state + 7% city + 2% venue
@@ -429,7 +429,7 @@ export default function GuestBookNow() {
               <div style={{ display: 'grid', gap: '14px', marginBottom: '20px' }}>
                 {rooms.map(room => {
                   const sel = selectedRoom?.roomTypeID === room.roomTypeID;
-                  const price = room.price_per_night || room.price || room.pricePerNight || room.rate || null;
+                  const price = room.price_per_night || room.price || room.pricePerNight || room.rate || 198;
                   return (
                     <div
                       key={room.roomTypeID}
@@ -451,7 +451,7 @@ export default function GuestBookNow() {
                         <p style={{ fontSize: '12px', color: T.muted, marginBottom: '10px' }}>Up to {room.maxOccupancy} guests</p>
                       )}
                       <p style={{ fontSize: '18px', fontWeight: 700, color: T.primary }}>
-                        {price ? `$${price} / night` : 'Contact for pricing'}
+                        ${price} / night
                       </p>
                     </div>
                   );
