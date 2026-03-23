@@ -20,20 +20,21 @@ import { appendLogEntry } from "@/components/intake/ActivityLog";
 
 const INTAKE_HELP = `Hotel + Treatment intake forms — your central booking pipeline.
 
-STATUS FLOW: New Inquiry → Pending → Confirmed → Archived
+STATUS FLOW: New Inquiry → Pending → Confirmed → Booked/Reserved → (Lost / Do Not Contact / Archived)
 
-1. View Active Intakes: Default filter shows all active (non-archived) records. Expand a card to see full details.
-2. Create New Intake: Click "+ New Intake". Fill in guest info, check-in/out dates, treatments, therapist, and card on file.
-3. Live Room Availability: Enter check-in/out dates and the form auto-checks Cloudbeds for available rooms.
-4. Treatments: SimplyBook treatments show date/time/provider. Call-to-book treatments are tracked separately.
-5. Actions (click any record):
-   • View & Send Quote: Previews a Square invoice with all line items and taxes, then sends to guest email.
-   • Book in Cloudbeds: Creates the hotel reservation directly in Cloudbeds.
-   • Open SimplyBook: Opens SimplyBook admin to manually confirm spa bookings.
+1. Pipeline Card View: Records display as cards grouped by status column. Drag cards between columns to update status. Use the List View toggle (top right) for a compact sortable table — auto-switches when there are many records.
+2. Side Panel: Click any record to open the detail panel. Contains full guest info, treatments, therapist notes, and four action buttons:
+   • Book Hotel: Creates the Cloudbeds reservation directly from this record.
+   • Book SimplyBook: Opens SimplyBook admin to confirm spa appointments manually.
+   • Send Quote: Generates and sends a Square invoice to the guest's email.
    • Add to CRM: Syncs guest to the Master CRM.
-6. Therapist Pipeline: Track outreach status (Not Contacted → Contacted → Approved) per intake.
-7. Activity Log: Every record has a chronological log. Add notes for the team with the text box.
-8. Archive: Removes from active view but keeps the record.`;
+3. Create New Intake: Click "+ New Intake". Fill in guest info, check-in/out dates, treatments, therapist, and card on file.
+4. Live Room Availability: Enter check-in/out dates and the form auto-checks Cloudbeds for available rooms.
+5. Treatments: SimplyBook treatments show date/time/provider. Call-to-book treatments are tracked separately.
+6. GuestBookNow Auto-Arrivals: Bookings from the public GuestBookNow page arrive pre-confirmed with hotel and spa fields already populated — no manual entry needed.
+7. Therapist Pipeline: Track outreach status (Not Contacted → Contacted → Approved) per intake.
+8. Activity Log: Every record has a chronological log. Add notes for the team with the text box.
+9. Archive: Removes from active view but keeps the record.`;
 
 const STATUS_COLORS = {
   new_inquiry: "bg-blue-100 text-blue-700",

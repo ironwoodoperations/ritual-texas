@@ -28,7 +28,7 @@ THE DAY IN 60 SECONDS PANEL
 Scan every morning at open and again at 3 PM:
 • CONCIERGE INBOX: Unread guest inquiries. Target: 2-hour response time.
 • HOTEL TODAY: Three live numbers from Cloudbeds — arrivals, departures, in-house.
-• SPA TODAY: Appointments today + gap count. Gaps = revenue opportunity.
+• SPA TODAY: Appointments today + gap count. Gaps = revenue opportunity. The count syncs live from SimplyBook.me and includes a manual refresh button (↻) — click it if the number looks off.
 • HOUSEKEEPING: Open tasks + flagged issues. Resolve before checking guests out.
 • RESTAURANT LEADS: Pending reservations and event inquiries needing confirmation.
 • INTAKE FOLLOW-UPS: Warm leads not yet converted to bookings.

@@ -17,10 +17,13 @@ CLOUDBEDS (UPCOMING) TAB
 • Search by guest name, email, or confirmation ID.
 • Click Refresh to pull the latest data if something looks stale.
 
+FILTER TABS
+• Upcoming, Past, Cancelled, and All tabs appear above the reservation list. Use Past and Cancelled to look up historical stays or resolve guest disputes.
+
 ACTIONS PER RESERVATION
 • Check In — marks the guest as checked in inside Cloudbeds (use on arrival day).
 • Check Out — marks the guest as departed. Do this after key return.
-• Payment — records a cash or card payment against the reservation balance in Cloudbeds.
+• Payment — records a payment against the reservation. Two sources: Cloudbeds/OTA (folio-based or OTA-collected) or Square (card payment processed via Square). Always select the correct source before posting.
 
 NEW RESERVATION TAB
 • Creates a reservation directly in Cloudbeds without logging into Cloudbeds separately.
@@ -31,7 +34,7 @@ CONNECT CLOUDBEDS (top right button)
 • Use only if the connection drops. Normally the token auto-refreshes.
 • If hotel data is missing, try Admin → Cloudbeds Integration → Refresh Token first.
 
-Pro Tip: Payments taken here are recorded in Cloudbeds only. If using Square for card processing, post in Square separately and record here as "cash" for reconciliation.`;
+Pro Tip: When posting a payment, always select the correct source — Cloudbeds/OTA for folio charges and OTA-collected amounts, or Square for card payments processed through the Square terminal.`;
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';

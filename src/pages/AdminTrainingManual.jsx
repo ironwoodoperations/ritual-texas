@@ -124,12 +124,17 @@ Operational view of all spa bookings, pulled live from SimplyBook.me.
 5. Provider Filter: Filter by therapist to see their individual schedule. Use for staffing decisions.
 
 INTAKE FORMS (Admin Intake)
-Website inquiry forms become Intake Forms — your primary lead management tool.
-1. View Inquiries: Sorted by newest first. Badges: New Inquiry, Pending, Confirmed, Cancelled.
-2. Review: Click any entry — full details: name, email, phone, preferred dates, treatments of interest, wellness intention.
-3. Convert to Booking: Once confirmed, click "Create Intake" to push to AdminBookings.
-4. Follow-Up Tracking: Dashboard shows the follow-up count. Target: respond to New Inquiries within 2 hours.
-5. Internal Notes: Staff-only notes to track conversation history and quotes given.`,
+Your primary lead management and booking pipeline tool for all hotel and spa inquiries.
+1. Pipeline Card View: Records are shown as cards grouped by status — New Inquiry, Pending, Confirmed, Booked/Reserved. Drag cards between columns to update status. Switch to List View for a compact sortable table.
+2. Side Panel: Click any record to open the full detail side panel without leaving the list. The side panel contains all guest info, treatments, therapist notes, and four primary action buttons:
+   • Book Hotel: Creates the Cloudbeds reservation directly from the intake record.
+   • Book SimplyBook: Opens SimplyBook admin to confirm the spa appointments manually.
+   • Send Quote: Generates and sends a Square invoice to the guest's email.
+   • Add to CRM: Syncs the guest into the Master CRM.
+3. Status Flow: New Inquiry → Pending → Confirmed → Booked/Reserved. Use Lost and Do Not Contact statuses to close records cleanly without deleting them.
+4. Activity Log: Every record has a chronological log. Add internal notes visible only to staff. Timestamps and author names are recorded automatically.
+5. GuestBookNow Auto-Arrivals: Bookings submitted through the GuestBookNow public booking page arrive in the intake pipeline as pre-confirmed records with hotel and spa selections already filled in. No manual data entry needed.
+6. Follow-Up Tracking: Dashboard shows the follow-up count. Target: respond to New Inquiries within 2 hours.`,
   },
   {
     id: "ch4",
