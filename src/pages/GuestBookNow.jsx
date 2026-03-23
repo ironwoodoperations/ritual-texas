@@ -218,8 +218,8 @@ export default function GuestBookNow() {
   // Step 1 — Dates & Guest Names
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
-  const [guests, setGuests] = useState(2);
-  const [guestNames, setGuestNames] = useState(['', '']);
+  const [guests, setGuests] = useState(1);
+  const [guestNames, setGuestNames] = useState(['']);
 
   // Step 2 — Room
   const [rooms, setRooms] = useState([]);
@@ -257,7 +257,7 @@ export default function GuestBookNow() {
   const activeStepLabels = bookingType === 'hotel_only'
     ? ['Dates', 'Room', 'Your Info', 'Review']
     : bookingType === 'spa_only'
-    ? ['Info', 'Treatments', 'Your Info', 'Review']
+    ? ['Dates', 'Treatments', 'Your Info', 'Review']
     : STEP_LABELS;
 
   const stepBarPos = activeSteps.indexOf(step) + 1; // 1-indexed position for StepBar
@@ -323,8 +323,8 @@ export default function GuestBookNow() {
         email,
         phone,
         bookingType,
-        checkInDate: bookingType !== 'spa_only' ? checkIn : '',
-        checkOutDate: bookingType !== 'spa_only' ? checkOut : '',
+        checkInDate: checkIn,
+        checkOutDate: checkOut,
         numberOfGuests: guests,
         cloudbedsRoomTypeId: bookingType !== 'spa_only' ? selectedRoom?.roomTypeID : '',
         roomRequested: bookingType !== 'spa_only' ? selectedRoom?.name : '',
@@ -381,9 +381,7 @@ export default function GuestBookNow() {
   }
 
   // ── Validation helpers ──────────────────────────────────────────────────
-  const step1Valid = bookingType === 'spa_only'
-    ? guestNames.every(n => n.trim())
-    : checkIn && checkOut && checkOut > checkIn && guestNames.every(n => n.trim());
+  const step1Valid = checkIn && checkOut && checkOut > checkIn && guestNames.every(n => n.trim());
   const step2Valid = !!selectedRoom;
   const step4Valid = guestName.trim() && email.trim() && phone.trim();
 
@@ -455,38 +453,36 @@ export default function GuestBookNow() {
               })}
             </div>
 
-            {/* Date & Guest fields — hidden when spa_only */}
-            {bookingType !== 'spa_only' && (
-              <>
-                <h2 style={h2Style}>When would you like to visit?</h2>
+            <h2 style={h2Style}>When would you like to visit?</h2>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-                  <div>
-                    <label style={labelStyle}>Check-In</label>
-                    <input type="date" value={checkIn} min={today} onChange={e => setCheckIn(e.target.value)} style={inputStyle} />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Check-Out</label>
-                    <input type="date" value={checkOut} min={checkIn || today} onChange={e => setCheckOut(e.target.value)} style={inputStyle} />
-                  </div>
-                </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+              <div>
+                <label style={labelStyle}>Check-In</label>
+                <input type="date" value={checkIn} min={today} onChange={e => setCheckIn(e.target.value)} style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>Check-Out</label>
+                <input type="date" value={checkOut} min={checkIn || today} onChange={e => setCheckOut(e.target.value)} style={inputStyle} />
+              </div>
+            </div>
 
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={labelStyle}>Number of Guests</label>
-                  <select value={guests} onChange={e => {
-                    const n = +e.target.value;
-                    setGuests(n);
-                    setGuestNames(prev => {
-                      const next = [...prev];
-                      while (next.length < n) next.push('');
-                      return next.slice(0, n);
-                    });
-                  }} style={inputStyle}>
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n} guest{n > 1 ? 's' : ''}</option>)}
-                  </select>
-                </div>
-              </>
-            )}
+            <div style={{ marginBottom: '24px' }}>
+              <label style={labelStyle}>Number of Guests</label>
+              <select value={guests} onChange={e => {
+                const n = +e.target.value;
+                setGuests(n);
+                setGuestNames(prev => {
+                  const next = [...prev];
+                  while (next.length < n) next.push('');
+                  return next.slice(0, n);
+                });
+              }} style={inputStyle}>
+                <option value="1">1 guest</option>
+                <option value="2">2 guests</option>
+                <option value="3">3 guests</option>
+                <option value="4">4 guests</option>
+              </select>
+            </div>
 
             {/* Guest name fields */}
             <div style={{ display: 'grid', gap: '14px', marginBottom: '24px' }}>
@@ -508,7 +504,7 @@ export default function GuestBookNow() {
               ))}
             </div>
 
-            {bookingType !== 'spa_only' && checkIn && checkOut && checkOut <= checkIn && (
+            {checkIn && checkOut && checkOut <= checkIn && (
               <p style={{ color: 'rgb(180,100,80)', fontSize: '13px', marginBottom: '16px' }}>Check-out date must be after check-in.</p>
             )}
 
@@ -605,9 +601,11 @@ export default function GuestBookNow() {
         {/* ═══════════ STEP 3 — TREATMENTS (SimplyBookEngine) ═══════════ */}
         {step === 3 && (
           <div style={{ marginBottom: '28px' }}>
-            <p style={{ fontSize: '13px', color: T.muted, marginBottom: '20px', fontStyle: 'italic' }}>
-              Spa treatments are optional — you can skip this step and add them later.
-            </p>
+            {bookingType !== 'spa_only' && (
+              <p style={{ fontSize: '13px', color: T.muted, marginBottom: '20px', fontStyle: 'italic' }}>
+                Spa treatments are optional — you can skip this step and add them later.
+              </p>
+            )}
 
             <SimplyBookEngine
               stayDates={stayDates}
@@ -619,10 +617,10 @@ export default function GuestBookNow() {
                 setSpaBookings(allSelections);
                 goNext(3);
               }}
-              onSkip={() => {
+              onSkip={bookingType !== 'spa_only' ? () => {
                 setSpaBookings([]);
                 goNext(3);
-              }}
+              } : undefined}
               brandColors={{
                 primary: T.primary,
                 accent: T.accent,
