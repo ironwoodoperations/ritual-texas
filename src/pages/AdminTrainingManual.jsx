@@ -57,7 +57,7 @@ THE DAY IN 60 SECONDS PANEL
 Real-time snapshot of everything happening today. Scan every morning at open and again at 3 PM:
 • CONCIERGE INBOX: Unread guest inquiries. Highlighted border = respond immediately. Target: 2-hour response time.
 • HOTEL TODAY (Arrivals / Departures / In-House): Three live numbers from Cloudbeds.
-• SPA TODAY: Appointments today + gap count. Gaps = revenue opportunity.
+• SPA TODAY: Appointments today + gap count. Gaps = revenue opportunity. The count syncs live from SimplyBook.me each time the dashboard loads. A manual refresh button (↻) appears next to the count — if the number looks off, click it before troubleshooting.
 • HOUSEKEEPING: Open tasks + flagged issues. Resolve before checking guests out of those rooms.
 • TOAST (Restaurant): Today's net restaurant sales from Toast POS.
 • RESTAURANT LEADS: Pending reservations and event inquiries needing confirmation.
@@ -177,24 +177,42 @@ Every contact form, package inquiry, and guest message flows here.
     id: "ch6",
     title: "Chapter 6: Bookings & Reservations",
     color: "rgb(107,85,64)",
-    content: `ADMIN BOOKINGS — CLOUDBEDS TAB
+    content: `GUESTBOOKNOW — PUBLIC BOOKING FLOW (/GuestBookNow)
+The public-facing booking page where guests self-book online. Supports three booking types:
+• Hotel Stay & Spa Treatments: Guests select dates, choose a room, schedule spa treatments, and enter contact info. Full end-to-end booking in one flow.
+• Hotel Stay Only: Room booking with no spa component.
+• Spa Treatments Only: Day-spa visit — no overnight room required.
+
+Room Ordering: Rooms appear in a fixed order — Suite 1, Suite 2, Suite 3, Suite 5, Carriage House. Suite 4 and Suite 6 are gated and only shown to guests who select 3 or more guests — they will not appear for parties of 1 or 2.
+
+Spa Treatments: Guests pick a treatment, optionally choose a therapist (or "No Preference"), then select an available date and time slot from their stay window. Multiple treatments can be added for different guests. Selections appear in a running summary before checkout.
+
+Auto-Completion: On submit, the system automatically creates the Cloudbeds hotel reservation, books the SimplyBook spa appointments, and generates a Square invoice — all in one step. The intake record arrives in Admin Intake pre-confirmed with all fields populated. No manual data entry required.
+
+ADMIN BOOKINGS — CLOUDBEDS TAB
 1. View Upcoming Reservations: All reservations live from Cloudbeds, sorted by check-in date.
-2. Check Availability: Enter date range → "Check Available Rooms" queries Cloudbeds in real time.
-3. Guest Actions: Check in early, check out, add a note, modify dates — all push back to Cloudbeds instantly.
-4. Process Payment: Charge card-on-file through Cloudbeds payment system from here.
-5. Troubleshoot Token: If Cloudbeds warning banner appears → AdminCloudbeds → click "Refresh Token". If fails, click "Reconnect Cloudbeds".
+2. Filter Tabs: Use the Upcoming, Past, Cancelled, and All filter tabs to navigate reservation history. Past and Cancelled filters are useful for resolving guest disputes or looking up historical stays.
+3. Guest Actions per Reservation:
+   • Check In — marks the guest as checked in inside Cloudbeds. Use on arrival day.
+   • Check Out — marks the guest as departed. Do this after key return.
+   • Payment — records a payment against the reservation. Two sources: Cloudbeds/OTA (for folio-based payments and OTA-collected amounts) or Square (for card payments processed through Square). Select the correct source before posting.
+4. Troubleshoot Token: If Cloudbeds warning banner appears → AdminCloudbeds → click "Refresh Token". If fails, click "Reconnect Cloudbeds".
 
 ADMIN BOOKINGS — CREATE RESERVATION TAB
 1. Manual Reservation: Select dates, choose room from live availability, enter guest details (name, email, phone), submit.
 2. Instant Sync: On success, Cloudbeds reservation ID returned. Booking appears in Cloudbeds PMS immediately.
-3. Payment: Cash (recorded in Cloudbeds) or Card (processed via Cloudbeds gateway). For Square payments, record on folio afterward.
+3. Payment: Two sources — Cloudbeds/OTA (folio payment or OTA-collected) or Square (card payment processed via Square). Always select the correct source.
 
 TODAY'S ITINERARIES (Admin Today Itineraries)
 1. Open at 8 AM: All today's check-ins load automatically. Each arriving guest has a full details card.
 2. Guest Card: Name, room, dates, spa appointments, arrival window, wellness intention, special requests.
 3. SMS Welcome Text: Pre-built message per guest. Copy and text 2-3 hours before expected arrival.
-4. Print for Front Desk: Use browser print (Ctrl+P) for a clean printed version.
-5. Real-Time Updates: Refresh the page if spa appointments change same-day — re-reads SimplyBook live.`,
+4. Action Buttons per Guest: Three buttons appear on each card:
+   • Check In — marks arrival in Cloudbeds directly from the itinerary.
+   • Check Out — marks departure in Cloudbeds.
+   • Payment — opens the payment dialog with two source options: Cloudbeds/OTA or Square. Select the correct one before posting.
+5. Print for Front Desk: Use browser print (Ctrl+P) for a clean printed version.
+6. Real-Time Updates: Refresh the page if spa appointments change same-day — re-reads SimplyBook live.`,
   },
   {
     id: "ch7",
@@ -288,12 +306,12 @@ LOMAN (loman.ai) — AI phone answering and voice concierge
 • Review Loman call transcripts weekly to identify common questions. If guests frequently ask something Loman answers poorly, add it to the Knowledge Base.
 • Loman's effectiveness = Knowledge Base quality. A well-maintained KB equals a well-performing phone system.
 
-OPTIMUM (optimum.net) — Business phone service provider
-• Optimum is Ritual's business phone and internet provider for the property.
-• Use the Optimum portal to manage phone lines, view bills, configure call forwarding, and adjust service settings.
-• Go to optimum.net and log in with the business account credentials to access phone settings.
-• If a phone line is down or call forwarding is not working, start here before calling support.
-• This is NOT a restaurant inventory tool — it is purely for phone and internet service management.`,
+OPTIMUM (optimum.net) — Business phone and internet service provider
+• Optimum is Ritual's business phone and internet service provider for the physical property — this is NOT a restaurant management or inventory tool.
+• Use the Optimum portal to manage phone lines, view monthly bills, configure call forwarding, and adjust internet or voice service settings.
+• Go to optimum.net and log in with the business account credentials to access your account and service settings.
+• If a phone line is down, call forwarding is not working, or internet is having issues at the property, start here before calling support.
+• Note for new managers: Optimum has no connection to restaurant food costing, recipe management, or POS systems. Those functions are handled by Toast.`,
   },
   {
     id: "ch10",
