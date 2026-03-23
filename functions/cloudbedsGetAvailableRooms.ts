@@ -110,19 +110,44 @@ Deno.serve(async (req) => {
     const dataArr = result.json?.data || [];
     const allRooms = dataArr.flatMap(p => p.propertyRooms || []);
 
+    // Log raw rate data for the first room
+    if (allRooms.length > 0) {
+      const room = allRooms[0];
+      console.log('RAW RATE DATA:', JSON.stringify({
+        ratePlan: room.ratePlan,
+        rates: room.rates,
+        totalRate: room.totalRate,
+        baseRate: room.baseRate,
+        ratePlans: room.ratePlans,
+        roomTypeName: room.roomTypeName,
+      }, null, 2));
+    }
+
+    // Extract price from a room object, trying multiple Cloudbeds API paths
+    function extractPrice(rt) {
+      const candidates = [
+        rt.ratePlan?.roomRate,
+        ...(rt.rates || []).map(r => r.rate),
+        rt.totalRate,
+        rt.baseRate,
+      ];
+      // Also check ratePlans array (legacy path)
+      for (const rp of (rt.ratePlans || [])) {
+        const t = rp.totalRate ?? rp.roomRates?.[0]?.totalRate;
+        candidates.push(t?.amount ?? t);
+      }
+      for (const c of candidates) {
+        const val = parseFloat(c);
+        if (val > 0) return val;
+      }
+      return null;
+    }
+
     // Deduplicate by roomTypeID, pick best price
     const roomMap = {};
     for (const rt of allRooms) {
       const id = String(rt.roomTypeID);
-      // Try to find a price from ratePlans
-      const ratePlans = rt.ratePlans || [];
-      let price = null;
-      for (const rp of ratePlans) {
-        // totalRate may be at rp level or inside roomRates
-        const t = rp.totalRate ?? rp.roomRates?.[0]?.totalRate;
-        const val = parseFloat(t?.amount ?? t ?? 0);
-        if (val > 0 && (price === null || val < price)) price = val;
-      }
+      const price = extractPrice(rt);
       if (!roomMap[id] || (price !== null && roomMap[id].price === null)) {
         roomMap[id] = {
           roomTypeID: id,

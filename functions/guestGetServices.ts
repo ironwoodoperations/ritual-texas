@@ -68,9 +68,15 @@ Deno.serve(async (req) => {
       .filter(([, svc]: any) => svc.is_active && svc.is_public)
       .map(([svcId, svc]: any) => {
         // Map providers for this service
-        const providerIds = Array.isArray(svc.unit_map) && svc.unit_map.length > 0
-          ? svc.unit_map.map(String)
-          : Object.keys(providers);
+        // unit_map can be an array [1,2,3], an object {"1":"1","2":"2"}, or empty/null
+        let providerIds: string[];
+        if (Array.isArray(svc.unit_map) && svc.unit_map.length > 0) {
+          providerIds = svc.unit_map.map(String);
+        } else if (svc.unit_map && typeof svc.unit_map === 'object' && Object.keys(svc.unit_map).length > 0) {
+          providerIds = Object.keys(svc.unit_map).map(String);
+        } else {
+          providerIds = [];
+        }
 
         const serviceProviders = providerIds
           .filter((pid: string) => providers[pid])
