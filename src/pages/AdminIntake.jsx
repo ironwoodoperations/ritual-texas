@@ -552,6 +552,43 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
         </div>
       </Section>
 
+      <Section title="Discount">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-5">
+          <Field label="Discount Type">
+            <select value={form.discountType || "none"} onChange={e => set("discountType", e.target.value)} className={selectCls}>
+              <option value="none">No Discount</option>
+              <option value="percent">Percentage Off (%)</option>
+              <option value="dollar">Fixed Dollar Amount ($)</option>
+            </select>
+          </Field>
+          {(form.discountType === "percent" || form.discountType === "dollar") && (
+            <Field label={form.discountType === "percent" ? "Discount %" : "Discount $"}>
+              <input
+                type="number"
+                min="0"
+                step={form.discountType === "percent" ? "0.5" : "1"}
+                max={form.discountType === "percent" ? "100" : undefined}
+                placeholder={form.discountType === "percent" ? "e.g. 10" : "e.g. 50"}
+                value={form.discountValue || ""}
+                onChange={e => set("discountValue", parseFloat(e.target.value) || 0)}
+                className={fieldCls}
+              />
+            </Field>
+          )}
+          {(form.discountType === "percent" || form.discountType === "dollar") && (
+            <Field label="Discount Label (optional)">
+              <input
+                type="text"
+                placeholder="e.g. Loyalty Discount, Package Deal"
+                value={form.discountLabel || ""}
+                onChange={e => set("discountLabel", e.target.value)}
+                className={fieldCls}
+              />
+            </Field>
+          )}
+        </div>
+      </Section>
+
       {/* Square Invoice Section — only for existing saved records */}
       {initial?.id && (
         <Section title="Square Invoice">

@@ -54,6 +54,27 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Discount line item (negative amount)
+    const discountType = intake?.discountType || "none";
+    const discountValue = Number(intake?.discountValue || 0);
+    if (discountType !== "none" && discountValue > 0) {
+      const subtotalCents = lineItems.reduce((sum, li) => sum + (li.base_price_money.amount * Number(li.quantity)), 0);
+      let discountCents = 0;
+      if (discountType === "percent") {
+        discountCents = Math.round(subtotalCents * (discountValue / 100));
+      } else if (discountType === "dollar") {
+        discountCents = Math.round(discountValue * 100);
+      }
+      if (discountCents > 0) {
+        const label = (intake?.discountLabel || "").trim() || (discountType === "percent" ? `Discount (${discountValue}%)` : `Discount (-$${discountValue.toFixed(2)})`);
+        lineItems.push({
+          name: label,
+          quantity: "1",
+          base_price_money: { amount: -discountCents, currency: "USD" },
+        });
+      }
+    }
+
     if (lineItems.length === 0) {
       return Response.json({ error: 'No billable items — add hotel dates or treatments first' }, { status: 400 });
     }

@@ -150,6 +150,27 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Discount line item (negative amount)
+    const discountType = intake?.discountType || "none";
+    const discountValue = Number(intake?.discountValue || 0);
+    if (discountType !== "none" && discountValue > 0) {
+      const subtotalForDiscount = lineItems.reduce((sum, li) => sum + (li.base_price_money.amount * Number(li.quantity)), 0);
+      let discountAmountCents = 0;
+      if (discountType === "percent") {
+        discountAmountCents = Math.round(subtotalForDiscount * (discountValue / 100));
+      } else if (discountType === "dollar") {
+        discountAmountCents = Math.round(discountValue * 100);
+      }
+      if (discountAmountCents > 0) {
+        const discountLabel = (intake?.discountLabel || "").trim() || (discountType === "percent" ? `Discount (${discountValue}%)` : `Discount (-$${discountValue.toFixed(2)})`);
+        lineItems.push({
+          name: discountLabel,
+          quantity: "1",
+          base_price_money: { amount: -discountAmountCents, currency: "USD" },
+        });
+      }
+    }
+
     // Hotel occupancy taxes — applied to room cost only (not treatments)
     const HOTEL_TAXES = [
       { key: 'hotel_state',  label: 'State of Texas Hotel Occupancy Tax (6%)',         rate: 6.00 },
