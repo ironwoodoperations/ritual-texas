@@ -90,6 +90,7 @@ const BLANK = {
   bookingStatus: "new_inquiry", followUpDate: "", internalNotes: "",
   ccName: "", ccNumber: "", ccLast4: "", ccExpiry: "", ccCvc: "", ccZip: "", ccType: "", ccNotes: "",
   taxes: {},
+  discountType: "none", discountValue: 0, discountLabel: "",
 };
 
 const fieldCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transparent py-2 text-sm text-[rgb(45,45,45)] focus:outline-none focus:border-[rgb(107,85,64)] placeholder-[rgb(190,180,170)] transition-colors";
