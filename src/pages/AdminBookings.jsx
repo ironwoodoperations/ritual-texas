@@ -58,6 +58,7 @@ export default function AdminBookings() {
 
   const [lastSyncTime, setLastSyncTime] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [cbStatusFilter, setCbStatusFilter] = useState('upcoming');
 
   // New Reservation form state
   const [form, setForm] = useState(blankForm);
@@ -158,10 +159,15 @@ export default function AdminBookings() {
     retry: false,
   });
 
+  const todayCb = new Date().toISOString().slice(0, 10);
   const cloudbedsReservations = (cloudbedsData?.reservations || [])
     .filter(r => {
       const q = search.toLowerCase();
-      return !q || r.guestName?.toLowerCase().includes(q) || r.guestEmail?.toLowerCase().includes(q) || r.reservationID?.includes(q);
+      if (q && !(r.guestName?.toLowerCase().includes(q) || r.guestEmail?.toLowerCase().includes(q) || r.reservationID?.includes(q))) return false;
+      if (cbStatusFilter === 'upcoming') return r.checkIn >= todayCb;
+      if (cbStatusFilter === 'past') return r.checkOut < todayCb;
+      if (cbStatusFilter === 'cancelled') return (r.status || '').toLowerCase() === 'cancelled';
+      return true; // 'all'
     })
     .sort((a, b) => new Date(a.checkIn) - new Date(b.checkIn));
 
@@ -242,6 +248,23 @@ export default function AdminBookings() {
                   <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} /> Refresh
                 </button>
               </div>
+            </div>
+
+            <div className="flex gap-2 mb-4">
+              {[
+                { key: 'upcoming', label: 'Upcoming' },
+                { key: 'past', label: 'Past' },
+                { key: 'cancelled', label: 'Cancelled' },
+                { key: 'all', label: 'All' },
+              ].map(f => (
+                <button
+                  key={f.key}
+                  onClick={() => setCbStatusFilter(f.key)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${cbStatusFilter === f.key ? 'bg-[rgb(107,85,64)] text-white' : 'border border-[rgb(235,225,213)] text-[rgb(107,85,64)] hover:bg-[rgb(248,246,242)]'}`}
+                >
+                  {f.label}
+                </button>
+              ))}
             </div>
 
             <div className="bg-white border border-[rgb(235,225,213)] overflow-hidden rounded-lg">

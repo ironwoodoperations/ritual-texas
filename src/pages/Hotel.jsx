@@ -139,7 +139,7 @@ export default function Hotel() {
           <p className="text-xs tracking-[0.3em] text-[rgb(198,182,165)] mb-4 uppercase">Ready to restore?</p>
           <h2 className="text-3xl md:text-4xl font-light text-white mb-8">Your stay at RITUAL awaits.</h2>
           <Link
-            to={createPageUrl('BookRooms')}
+            to={createPageUrl('GuestBookNow')}
             className="inline-block px-10 py-4 bg-[rgb(150,170,155)] text-white text-sm tracking-widest hover:bg-[rgb(130,150,135)] transition-colors"
           >
             BOOK YOUR STAY

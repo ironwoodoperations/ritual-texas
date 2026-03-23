@@ -731,6 +731,14 @@ export default function AdminIntake() {
   const [editingRecord, setEditingRecord] = useState(null);
   const [viewMode, setViewMode] = useState("pipeline"); // "pipeline" | "list"
   const [sortKey, setSortKey] = useState("newest");
+
+  // Auto-switch to list view for non-pipeline filters
+  useEffect(() => {
+    const PIPELINE_FILTERS = ["active", "all", "new_inquiry", "pending", "confirmed"];
+    if (!PIPELINE_FILTERS.includes(statusFilter)) {
+      setViewMode("list");
+    }
+  }, [statusFilter]);
   const [user, setUser] = useState(null);
 
   const load = useCallback(async () => {

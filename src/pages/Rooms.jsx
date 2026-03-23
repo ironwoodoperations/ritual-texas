@@ -51,12 +51,7 @@ export default function Rooms() {
     : 0;
 
   const buildBookingUrl = (suite) => {
-    const params = new URLSearchParams();
-    if (suite) params.append('room', suite.slug || suite.name);
-    if (checkInDate) params.append('checkin', format(new Date(checkInDate), 'yyyy-MM-dd'));
-    if (checkOutDate) params.append('checkout', format(new Date(checkOutDate), 'yyyy-MM-dd'));
-    if (guests) params.append('guests', guests.toString());
-    return createPageUrl('BookRooms') + (params.toString() ? '?' + params.toString() : '');
+    return createPageUrl('GuestBookNow');
   };
 
   const connectingPairs = [
