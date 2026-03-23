@@ -201,10 +201,11 @@ export default function GuestBookNow() {
   // Navigation
   const [step, setStep] = useState(1);
 
-  // Step 1 — Dates
+  // Step 1 — Dates & Guest Names
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(2);
+  const [guestNames, setGuestNames] = useState(['', '']);
 
   // Step 2 — Room
   const [rooms, setRooms] = useState([]);
@@ -283,7 +284,7 @@ export default function GuestBookNow() {
           time: b.startTime,
           staffId: b.providerId,
           staffName: b.providerName,
-          guestName,
+          guestName: b.guestName,
         })),
         callToBookTreatments: [],
         specialRequests,
@@ -309,7 +310,7 @@ export default function GuestBookNow() {
   }
 
   // ── Validation helpers ──────────────────────────────────────────────────
-  const step1Valid = checkIn && checkOut && checkOut > checkIn;
+  const step1Valid = checkIn && checkOut && checkOut > checkIn && guestNames.every(n => n.trim());
   const step2Valid = !!selectedRoom;
   const step4Valid = guestName.trim() && email.trim() && phone.trim();
 
@@ -353,9 +354,37 @@ export default function GuestBookNow() {
 
             <div style={{ marginBottom: '24px' }}>
               <label style={labelStyle}>Number of Guests</label>
-              <select value={guests} onChange={e => setGuests(+e.target.value)} style={inputStyle}>
+              <select value={guests} onChange={e => {
+                const n = +e.target.value;
+                setGuests(n);
+                setGuestNames(prev => {
+                  const next = [...prev];
+                  while (next.length < n) next.push('');
+                  return next.slice(0, n);
+                });
+              }} style={inputStyle}>
                 {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n} guest{n > 1 ? 's' : ''}</option>)}
               </select>
+            </div>
+
+            {/* Guest name fields */}
+            <div style={{ display: 'grid', gap: '14px', marginBottom: '24px' }}>
+              {guestNames.map((name, i) => (
+                <div key={i}>
+                  <label style={labelStyle}>Guest {i + 1} Name *</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={e => {
+                      const next = [...guestNames];
+                      next[i] = e.target.value;
+                      setGuestNames(next);
+                    }}
+                    placeholder={i === 0 ? 'Jane Doe' : `Guest ${i + 1}`}
+                    style={inputStyle}
+                  />
+                </div>
+              ))}
             </div>
 
             {checkIn && checkOut && checkOut <= checkIn && (
@@ -436,6 +465,7 @@ export default function GuestBookNow() {
 
             <SimplyBookEngine
               stayDates={stayDates}
+              guestNames={guestNames.filter(n => n.trim())}
               onBookingSelected={(selection) => {
                 setSpaBookings(prev => [...prev, selection]);
               }}
@@ -468,7 +498,7 @@ export default function GuestBookNow() {
 
             <div style={{ marginBottom: '18px' }}>
               <label style={labelStyle}>Full Name *</label>
-              <input type="text" value={guestName} onChange={e => setGuestName(e.target.value)} placeholder="Jane Doe" style={inputStyle} />
+              <input type="text" value={guestName || guestNames[0] || ''} onChange={e => setGuestName(e.target.value)} onFocus={e => { if (!guestName && guestNames[0]) setGuestName(guestNames[0]); }} placeholder="Jane Doe" style={inputStyle} />
             </div>
 
             <div style={{ marginBottom: '18px' }}>
@@ -535,7 +565,7 @@ export default function GuestBookNow() {
                       <span style={{ fontSize: '14px', color: T.body, fontWeight: 500 }}>{b.serviceName}</span>
                       <br />
                       <span style={{ fontSize: '12px', color: T.muted }}>
-                        {fmtDate(b.date)} at {fmtTime(b.startTime)}
+                        {b.guestName ? `for ${b.guestName} · ` : ''}{fmtDate(b.date)} at {fmtTime(b.startTime)}
                         {b.providerName ? ` · ${b.providerName}` : ''}
                       </span>
                     </div>

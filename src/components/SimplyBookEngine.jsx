@@ -41,6 +41,7 @@ const STEPS = {
 
 export default function SimplyBookEngine({
   stayDates = [],
+  guestNames = [],
   onBookingSelected,
   onBookingComplete,
   onSkip,
@@ -61,6 +62,7 @@ export default function SimplyBookEngine({
   const [error, setError] = useState(null);
 
   // Selections
+  const [selectedGuest, setSelectedGuest] = useState(guestNames.length > 0 ? guestNames[0] : '');
   const [selectedService, setSelectedService] = useState(null);
   const [selectedProvider, setSelectedProvider] = useState(null); // null = "any"
   const [selectedDate, setSelectedDate] = useState(null);
@@ -182,6 +184,7 @@ export default function SimplyBookEngine({
       providerName: selectedProvider?.name || null,
       date: selectedDate,
       startTime: selectedTime,
+      guestName: selectedGuest || null,
     };
 
     setCompletedBookings(prev => [...prev, selection]);
@@ -195,6 +198,7 @@ export default function SimplyBookEngine({
 
   function handleAddAnother() {
     setAddingAnother(true);
+    setSelectedGuest(guestNames.length > 0 ? guestNames[0] : '');
     setSelectedService(null);
     setSelectedProvider(null);
     setSelectedDate(null);
@@ -347,7 +351,7 @@ export default function SimplyBookEngine({
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: i < completedBookings.length - 1 ? '1px solid rgba(59,72,49,.08)' : 'none' }}>
                 <div>
                   <p style={{ fontSize: '14px', fontWeight: 600, color: colors.primary }}>{b.serviceName}</p>
-                  <p style={{ fontSize: '12px', color: '#8B7355' }}>{formatDate(b.date)} at {formatTime(b.startTime)}{b.providerName ? ` with ${b.providerName}` : ''}</p>
+                  <p style={{ fontSize: '12px', color: '#8B7355' }}>{b.guestName ? `for ${b.guestName} · ` : ''}{formatDate(b.date)} at {formatTime(b.startTime)}{b.providerName ? ` with ${b.providerName}` : ''}</p>
                 </div>
                 <span style={{ fontSize: '14px', fontWeight: 600, color: colors.primary }}>${b.price}</span>
               </div>
@@ -360,6 +364,35 @@ export default function SimplyBookEngine({
             {completedBookings.length > 0 ? 'Add Another Treatment' : 'Select a Treatment'}
           </h2>
           <p style={subheadStyle}>Choose from our signature spa experiences.</p>
+
+          {/* Guest selector */}
+          {guestNames.length > 0 && (
+            <div style={{ marginBottom: '20px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#8B7355', marginBottom: '8px' }}>
+                Who is this treatment for?
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {guestNames.map(name => {
+                  const active = selectedGuest === name;
+                  return (
+                    <button
+                      key={name}
+                      onClick={() => setSelectedGuest(name)}
+                      style={{
+                        ...pillBtnBase,
+                        backgroundColor: active ? colors.primary : colors.card,
+                        color: active ? '#fff' : colors.primary,
+                        border: active ? `2px solid ${colors.primary}` : `1px solid rgba(59,72,49,.15)`,
+                        fontWeight: active ? 700 : 500,
+                      }}
+                    >
+                      {name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {services.map(svc => (
@@ -660,10 +693,11 @@ export default function SimplyBookEngine({
         </div>
 
         {/* Guest info summary */}
-        <div style={{ fontSize: '13px', color: '#8B7355', marginBottom: '20px' }}>
-          Booking for <strong style={{ color: colors.primary }}>{guestName}</strong>
-          {guestEmail && <> · {guestEmail}</>}
-        </div>
+        {selectedGuest && (
+          <div style={{ fontSize: '13px', color: '#8B7355', marginBottom: '20px' }}>
+            Treatment for <strong style={{ color: colors.primary }}>{selectedGuest}</strong>
+          </div>
+        )}
 
         <button
           onClick={handleConfirmBooking}
@@ -690,7 +724,7 @@ export default function SimplyBookEngine({
             </div>
             <h2 style={{ ...headingStyle, marginBottom: '8px' }}>Treatment Selected!</h2>
             <p style={{ fontSize: '13px', color: '#8B7355' }}>
-              {lastBooking?.serviceName} on {formatDate(lastBooking?.date)} at {formatTime(lastBooking?.startTime)}
+              {lastBooking?.serviceName}{lastBooking?.guestName ? ` for ${lastBooking.guestName}` : ''} on {formatDate(lastBooking?.date)} at {formatTime(lastBooking?.startTime)}
               {lastBooking?.providerName ? ` with ${lastBooking.providerName}` : ''}
             </p>
           </div>
@@ -703,7 +737,7 @@ export default function SimplyBookEngine({
               </p>
               {completedBookings.map((b, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '13px' }}>
-                  <span style={{ color: colors.primary }}>{b.serviceName} · {formatDate(b.date)} {formatTime(b.startTime)}</span>
+                  <span style={{ color: colors.primary }}>{b.serviceName}{b.guestName ? ` (${b.guestName})` : ''} · {formatDate(b.date)} {formatTime(b.startTime)}</span>
                   <span style={{ fontWeight: 600, color: colors.primary }}>${b.price}</span>
                 </div>
               ))}
