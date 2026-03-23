@@ -155,14 +155,16 @@ async function bookSimplyBookTreatment(
 
   let clientId: number | null = null;
   const addClientResult = await sbRPC(ADMIN_URL, "addClient", [clientPayload, false], adminHeaders);
-  if (typeof addClientResult === "number") {
-    clientId = addClientResult;
-  } else if (addClientResult && typeof addClientResult === "object") {
-    clientId = Number(addClientResult.id || addClientResult.client_id || 0) || null;
-  }
+  console.log("addClient response:", JSON.stringify(addClientResult));
+  clientId = addClientResult?.id
+    || addClientResult?.client_id
+    || addClientResult?.data?.id
+    || addClientResult?.result?.id
+    || (typeof addClientResult === "number" ? addClientResult : null);
+  if (clientId) clientId = Number(clientId);
 
   if (!clientId) {
-    return { ok: false, error: "No client ID returned from SimplyBook" };
+    return { ok: false, error: "No client ID returned from SimplyBook. Check logs for full addClient response." };
   }
 
   // 5. Create the booking
