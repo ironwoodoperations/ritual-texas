@@ -93,9 +93,10 @@ const inputStyle = {
   outline: 'none',
 };
 
-function PrimaryBtn({ children, disabled, onClick, style: extra }) {
+function PrimaryBtn({ children, disabled, onClick, style: extra, id }) {
   return (
     <button
+      id={id}
       onClick={onClick}
       disabled={disabled}
       style={{
@@ -433,7 +434,7 @@ export default function GuestBookNow() {
                   return (
                     <div
                       key={room.roomTypeID}
-                      onClick={() => setSelectedRoom(room)}
+                      onClick={() => { setSelectedRoom(room); setTimeout(() => document.getElementById('room-continue-btn')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100); }}
                       style={{
                         ...card,
                         marginBottom: 0,
@@ -461,7 +462,7 @@ export default function GuestBookNow() {
 
             <div style={{ display: 'flex', gap: '12px' }}>
               <SecondaryBtn onClick={() => setStep(1)}>Back</SecondaryBtn>
-              <PrimaryBtn disabled={!step2Valid} onClick={() => setStep(3)}>Continue to Treatments</PrimaryBtn>
+              <PrimaryBtn id="room-continue-btn" disabled={!step2Valid} onClick={() => setStep(3)}>Continue to Treatments</PrimaryBtn>
             </div>
           </div>
         )}
@@ -654,6 +655,32 @@ export default function GuestBookNow() {
           </div>
           );
         })()}
+
+        {/* Processing overlay */}
+        {submitting && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            backgroundColor: 'rgba(248,246,242,.85)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <div style={{
+              ...card,
+              textAlign: 'center',
+              padding: '48px 40px',
+              maxWidth: '380px',
+              width: '90%',
+              margin: 0,
+            }}>
+              <Loader2 className="animate-spin" style={{ width: 36, height: 36, color: T.primary, margin: '0 auto 20px' }} />
+              <p style={{ fontFamily: T.heading, fontSize: '20px', color: T.primary, fontWeight: 400, marginBottom: '10px' }}>
+                Processing your booking...
+              </p>
+              <p style={{ fontSize: '13px', color: T.muted, lineHeight: 1.5 }}>
+                This may take up to 60 seconds.<br />Please don't close this window.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* ═══════════ STEP 6 — CONFIRMATION ═══════════ */}
         {step === 6 && result && (
