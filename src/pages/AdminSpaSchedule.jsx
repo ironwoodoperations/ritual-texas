@@ -54,6 +54,8 @@ export default function AdminSpaSchedule() {
 
   const load = async () => {
     setLoading(true);
+    // Sync from SimplyBook first
+    await base44.functions.invoke('syncSimplybookToday', {}).catch(() => {});
     try {
       const resp = await base44.functions.invoke('adminSpaBookingsLookup', {
         startISO: new Date(`${date}T00:00:00`).toISOString(),

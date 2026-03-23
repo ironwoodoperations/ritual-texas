@@ -22,6 +22,14 @@ const T = {
 
 const STEP_LABELS = ['Dates', 'Room', 'Treatments', 'Your Info', 'Review'];
 
+const BOOKING_TYPES = [
+  { key: 'hotel_and_spa', icon: '🏨', label: 'Hotel Stay & Spa Treatments', subtitle: 'Book your room and schedule spa treatments' },
+  { key: 'hotel_only', icon: '🛏', label: 'Hotel Stay Only', subtitle: 'Room booking — no spa treatments' },
+  { key: 'spa_only', icon: '✨', label: 'Spa Treatments Only', subtitle: 'Day spa visit — no overnight stay' },
+];
+
+const ROOM_ORDER = ['Suite 1', 'Suite 2', 'Suite 3', 'Suite 5', 'Carriage House'];
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function todayStr() {
@@ -145,10 +153,11 @@ function SecondaryBtn({ children, disabled, onClick, style: extra }) {
 
 // ── Step progress bar ───────────────────────────────────────────────────────
 
-function StepBar({ current }) {
+function StepBar({ current, labels }) {
+  const displayLabels = labels || STEP_LABELS;
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', marginBottom: '36px', flexWrap: 'wrap' }}>
-      {STEP_LABELS.map((label, i) => {
+      {displayLabels.map((label, i) => {
         const n = i + 1;
         const done = n < current;
         const active = n === current;
@@ -174,7 +183,7 @@ function StepBar({ current }) {
                 {label}
               </span>
             </div>
-            {i < 4 && <div style={{ width: '20px', height: '2px', backgroundColor: done ? T.accent : T.border }} />}
+            {i < displayLabels.length - 1 && <div style={{ width: '20px', height: '2px', backgroundColor: done ? T.accent : T.border }} />}
           </React.Fragment>
         );
       })}
@@ -200,7 +209,10 @@ function ReviewRow({ label, children }) {
 export default function GuestBookNow() {
   const today = todayStr();
 
-  // Navigation
+  // Booking type
+  const [bookingType, setBookingType] = useState('hotel_and_spa'); // 'hotel_and_spa' | 'hotel_only' | 'spa_only'
+
+  // Navigation — uses "logical step" which maps to actual steps via activeSteps
   const [step, setStep] = useState(1);
 
   // Step 1 — Dates & Guest Names
@@ -231,13 +243,49 @@ export default function GuestBookNow() {
   const [submitError, setSubmitError] = useState(null);
   const [result, setResult] = useState(null);
 
+  // Step flow based on booking type
+  // All steps: 1=Dates, 2=Room, 3=Treatments, 4=Info, 5=Review, 6=Confirmation
+  // hotel_and_spa: 1 → 2 → 3 → 4 → 5
+  // hotel_only:    1 → 2 → 4 → 5  (skip treatments)
+  // spa_only:      1 → 3 → 4 → 5  (skip room)
+  const activeSteps = bookingType === 'hotel_only'
+    ? [1, 2, 4, 5]
+    : bookingType === 'spa_only'
+    ? [1, 3, 4, 5]
+    : [1, 2, 3, 4, 5];
+
+  const activeStepLabels = bookingType === 'hotel_only'
+    ? ['Dates', 'Room', 'Your Info', 'Review']
+    : bookingType === 'spa_only'
+    ? ['Info', 'Treatments', 'Your Info', 'Review']
+    : STEP_LABELS;
+
+  const stepBarPos = activeSteps.indexOf(step) + 1; // 1-indexed position for StepBar
+
+  function goNext(fromStep) {
+    const idx = activeSteps.indexOf(fromStep);
+    if (idx < activeSteps.length - 1) setStep(activeSteps[idx + 1]);
+  }
+
+  function goBack(fromStep) {
+    const idx = activeSteps.indexOf(fromStep);
+    if (idx > 0) setStep(activeSteps[idx - 1]);
+  }
+
   // Scroll to top on every step change
   // Scroll top on mount and on step change
   useEffect(() => { window.scrollTo(0, 0); }, []);
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [step]);
 
-  // ── Step 1 → 2: fetch rooms ─────────────────────────────────────────────
-  async function goToRooms() {
+  // ── Step 1 → next: navigate based on booking type ──────────────────────
+  async function handleStep1Continue() {
+    if (bookingType === 'spa_only') {
+      // Clear room selection, go to treatments
+      setSelectedRoom(null);
+      goNext(1);
+      return;
+    }
+    // Hotel flow — fetch rooms
     if (!checkIn || !checkOut || checkOut <= checkIn) return;
     setRoomsLoading(true);
     setRoomsError(null);
@@ -274,13 +322,14 @@ export default function GuestBookNow() {
         guestName,
         email,
         phone,
-        checkInDate: checkIn,
-        checkOutDate: checkOut,
+        bookingType,
+        checkInDate: bookingType !== 'spa_only' ? checkIn : '',
+        checkOutDate: bookingType !== 'spa_only' ? checkOut : '',
         numberOfGuests: guests,
-        cloudbedsRoomTypeId: selectedRoom?.roomTypeID,
-        roomRequested: selectedRoom?.name,
-        roomPricePerNight: 198,
-        selectedTreatments: spaBookings.map(b => JSON.stringify({
+        cloudbedsRoomTypeId: bookingType !== 'spa_only' ? selectedRoom?.roomTypeID : '',
+        roomRequested: bookingType !== 'spa_only' ? selectedRoom?.name : '',
+        roomPricePerNight: bookingType !== 'spa_only' ? 198 : 0,
+        selectedTreatments: bookingType !== 'hotel_only' ? spaBookings.map(b => JSON.stringify({
           serviceId: b.serviceId,
           id: b.serviceId,
           name: b.serviceName,
@@ -294,7 +343,7 @@ export default function GuestBookNow() {
           staffId: b.providerId,
           staffName: b.providerName,
           guestName: b.guestName,
-        })),
+        })) : [],
         callToBookTreatments: [],
         specialRequests,
         howDidYouHearAboutUs: howHeard,
@@ -332,15 +381,19 @@ export default function GuestBookNow() {
   }
 
   // ── Validation helpers ──────────────────────────────────────────────────
-  const step1Valid = checkIn && checkOut && checkOut > checkIn && guestNames.every(n => n.trim());
+  const step1Valid = bookingType === 'spa_only'
+    ? guestNames.every(n => n.trim())
+    : checkIn && checkOut && checkOut > checkIn && guestNames.every(n => n.trim());
   const step2Valid = !!selectedRoom;
   const step4Valid = guestName.trim() && email.trim() && phone.trim();
 
   const stayDates = (checkIn && checkOut) ? datesBetween(checkIn, checkOut) : [];
   const numNights = nights(checkIn, checkOut);
   const roomRate = 198;
-  const roomSubtotal = roomRate * numNights;
-  const treatmentTotal = spaBookings.reduce((s, b) => s + (b.price || 0), 0);
+  const effectiveRoomSubtotal = bookingType === 'spa_only' ? 0 : roomRate * numNights;
+  const roomSubtotal = effectiveRoomSubtotal;
+  const effectiveTreatments = bookingType === 'hotel_only' ? [] : spaBookings;
+  const treatmentTotal = effectiveTreatments.reduce((s, b) => s + (b.price || 0), 0);
   const hotelTaxRate = 0.15; // 6% state + 7% city + 2% venue
   const hotelTaxAmount = Math.round(roomSubtotal * hotelTaxRate * 100) / 100;
   const grandTotal = roomSubtotal + treatmentTotal + hotelTaxAmount;
@@ -358,41 +411,82 @@ export default function GuestBookNow() {
           Book Your Retreat
         </h1>
         <p style={{ color: T.muted, fontSize: '14px', marginBottom: '36px' }}>
-          Complete the following steps to reserve your room and spa treatments.
+          {bookingType === 'hotel_only' ? 'Complete the following steps to reserve your room.'
+            : bookingType === 'spa_only' ? 'Complete the following steps to book your spa treatments.'
+            : 'Complete the following steps to reserve your room and spa treatments.'}
         </p>
 
-        {step <= 5 && <StepBar current={step} />}
+        {step <= 5 && <StepBar current={stepBarPos} labels={activeStepLabels} />}
 
         {/* ═══════════ STEP 1 — DATES ═══════════ */}
         {step === 1 && (
           <div style={card}>
-            <h2 style={h2Style}>When would you like to visit?</h2>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-              <div>
-                <label style={labelStyle}>Check-In</label>
-                <input type="date" value={checkIn} min={today} onChange={e => setCheckIn(e.target.value)} style={inputStyle} />
-              </div>
-              <div>
-                <label style={labelStyle}>Check-Out</label>
-                <input type="date" value={checkOut} min={checkIn || today} onChange={e => setCheckOut(e.target.value)} style={inputStyle} />
-              </div>
+            {/* Booking Type Selection */}
+            <h2 style={h2Style}>What would you like to book?</h2>
+            <div style={{ display: 'grid', gap: '12px', marginBottom: '28px' }}>
+              {BOOKING_TYPES.map(bt => {
+                const sel = bookingType === bt.key;
+                return (
+                  <div
+                    key={bt.key}
+                    onClick={() => setBookingType(bt.key)}
+                    style={{
+                      padding: '16px 20px',
+                      borderRadius: '12px',
+                      border: sel ? `2px solid ${T.primary}` : `1px solid ${T.border}`,
+                      backgroundColor: sel ? 'rgba(150,170,155,.06)' : T.card,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      transition: 'all .15s',
+                    }}
+                  >
+                    <span style={{ fontSize: '26px' }}>{bt.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: '15px', fontWeight: 600, color: T.primary, marginBottom: '2px' }}>{bt.label}</p>
+                      <p style={{ fontSize: '12px', color: T.muted }}>{bt.subtitle}</p>
+                    </div>
+                    {sel && (
+                      <span style={{ color: T.accent, fontSize: '20px', fontWeight: 700 }}>✓</span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
-            <div style={{ marginBottom: '24px' }}>
-              <label style={labelStyle}>Number of Guests</label>
-              <select value={guests} onChange={e => {
-                const n = +e.target.value;
-                setGuests(n);
-                setGuestNames(prev => {
-                  const next = [...prev];
-                  while (next.length < n) next.push('');
-                  return next.slice(0, n);
-                });
-              }} style={inputStyle}>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n} guest{n > 1 ? 's' : ''}</option>)}
-              </select>
-            </div>
+            {/* Date & Guest fields — hidden when spa_only */}
+            {bookingType !== 'spa_only' && (
+              <>
+                <h2 style={h2Style}>When would you like to visit?</h2>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                  <div>
+                    <label style={labelStyle}>Check-In</label>
+                    <input type="date" value={checkIn} min={today} onChange={e => setCheckIn(e.target.value)} style={inputStyle} />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Check-Out</label>
+                    <input type="date" value={checkOut} min={checkIn || today} onChange={e => setCheckOut(e.target.value)} style={inputStyle} />
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={labelStyle}>Number of Guests</label>
+                  <select value={guests} onChange={e => {
+                    const n = +e.target.value;
+                    setGuests(n);
+                    setGuestNames(prev => {
+                      const next = [...prev];
+                      while (next.length < n) next.push('');
+                      return next.slice(0, n);
+                    });
+                  }} style={inputStyle}>
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n} guest{n > 1 ? 's' : ''}</option>)}
+                  </select>
+                </div>
+              </>
+            )}
 
             {/* Guest name fields */}
             <div style={{ display: 'grid', gap: '14px', marginBottom: '24px' }}>
@@ -414,11 +508,13 @@ export default function GuestBookNow() {
               ))}
             </div>
 
-            {checkIn && checkOut && checkOut <= checkIn && (
+            {bookingType !== 'spa_only' && checkIn && checkOut && checkOut <= checkIn && (
               <p style={{ color: 'rgb(180,100,80)', fontSize: '13px', marginBottom: '16px' }}>Check-out date must be after check-in.</p>
             )}
 
-            <PrimaryBtn disabled={!step1Valid} onClick={goToRooms}>Continue to Rooms</PrimaryBtn>
+            <PrimaryBtn disabled={!step1Valid} onClick={handleStep1Continue}>
+              {bookingType === 'spa_only' ? 'Continue to Treatments' : 'Continue to Rooms'}
+            </PrimaryBtn>
           </div>
         )}
 
@@ -443,43 +539,65 @@ export default function GuestBookNow() {
               <p style={{ color: T.muted, fontSize: '14px', textAlign: 'center', padding: '40px' }}>No rooms available.</p>
             )}
 
-            {!roomsLoading && rooms.length > 0 && (
-              <div style={{ display: 'grid', gap: '14px', marginBottom: '20px' }}>
-                {rooms.map(room => {
-                  const sel = selectedRoom?.roomTypeID === room.roomTypeID;
-                  const price = 198;
-                  return (
-                    <div
-                      key={room.roomTypeID}
-                      onClick={() => { setSelectedRoom(room); setTimeout(() => document.getElementById('room-continue-btn')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150); }}
-                      style={{
-                        ...card,
-                        marginBottom: 0,
-                        cursor: 'pointer',
-                        borderColor: sel ? T.primary : 'rgba(107,85,64,.10)',
-                        borderWidth: sel ? '2px' : '1px',
-                        backgroundColor: sel ? 'rgba(150,170,155,.06)' : T.card,
-                        transition: 'all .15s',
-                      }}
-                    >
-                      <h3 style={{ fontFamily: T.heading, fontSize: '19px', color: T.primary, fontWeight: 400, marginBottom: '6px' }}>
-                        {room.name}
-                      </h3>
-                      {room.maxOccupancy && (
-                        <p style={{ fontSize: '12px', color: T.muted, marginBottom: '10px' }}>Up to {room.maxOccupancy} guests</p>
-                      )}
-                      <p style={{ fontSize: '18px', fontWeight: 700, color: T.primary }}>
-                        ${price} / night
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            {!roomsLoading && rooms.length > 0 && (() => {
+              const sortedRooms = [...rooms].sort((a, b) => {
+                const ai = ROOM_ORDER.findIndex(n => a.name?.includes(n) || a.name === n);
+                const bi = ROOM_ORDER.findIndex(n => b.name?.includes(n) || b.name === n);
+                return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+              });
+              const guestCount = Number(guests || 1);
+              const visibleRooms = sortedRooms.filter(room => {
+                const name = room.name || '';
+                if (name.includes('Suite 4') || name.includes('Suite 6')) return guestCount >= 3;
+                return true;
+              });
+              return (
+                <>
+                  <div style={{ display: 'grid', gap: '14px', marginBottom: '20px' }}>
+                    {visibleRooms.map(room => {
+                      const sel = selectedRoom?.roomTypeID === room.roomTypeID;
+                      const price = 198;
+                      return (
+                        <div
+                          key={room.roomTypeID}
+                          onClick={() => { setSelectedRoom(room); setTimeout(() => document.getElementById('room-continue-btn')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150); }}
+                          style={{
+                            ...card,
+                            marginBottom: 0,
+                            cursor: 'pointer',
+                            borderColor: sel ? T.primary : 'rgba(107,85,64,.10)',
+                            borderWidth: sel ? '2px' : '1px',
+                            backgroundColor: sel ? 'rgba(150,170,155,.06)' : T.card,
+                            transition: 'all .15s',
+                          }}
+                        >
+                          <h3 style={{ fontFamily: T.heading, fontSize: '19px', color: T.primary, fontWeight: 400, marginBottom: '6px' }}>
+                            {room.name}
+                          </h3>
+                          {room.maxOccupancy && (
+                            <p style={{ fontSize: '12px', color: T.muted, marginBottom: '10px' }}>Up to {room.maxOccupancy} guests</p>
+                          )}
+                          <p style={{ fontSize: '18px', fontWeight: 700, color: T.primary }}>
+                            ${price} / night
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {guestCount < 3 && (
+                    <p style={{ fontSize: '12px', textAlign: 'center', color: 'rgb(150,150,150)', marginTop: '12px', marginBottom: '16px' }}>
+                      Traveling with 3 or more guests? Additional suites are available.
+                    </p>
+                  )}
+                </>
+              );
+            })()}
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <SecondaryBtn onClick={() => setStep(1)}>Back</SecondaryBtn>
-              <PrimaryBtn id="room-continue-btn" disabled={!step2Valid} onClick={() => setStep(3)}>Continue to Treatments</PrimaryBtn>
+              <SecondaryBtn onClick={() => goBack(2)}>Back</SecondaryBtn>
+              <PrimaryBtn id="room-continue-btn" disabled={!step2Valid} onClick={() => goNext(2)}>
+                {bookingType === 'hotel_only' ? 'Continue to Your Info' : 'Continue to Treatments'}
+              </PrimaryBtn>
             </div>
           </div>
         )}
@@ -499,11 +617,11 @@ export default function GuestBookNow() {
               }}
               onBookingComplete={(allSelections) => {
                 setSpaBookings(allSelections);
-                setStep(4);
+                goNext(3);
               }}
               onSkip={() => {
                 setSpaBookings([]);
-                setStep(4);
+                goNext(3);
               }}
               brandColors={{
                 primary: T.primary,
@@ -514,7 +632,9 @@ export default function GuestBookNow() {
             />
 
             <div style={{ marginTop: '16px' }}>
-              <SecondaryBtn onClick={() => setStep(2)}>Back to Rooms</SecondaryBtn>
+              <SecondaryBtn onClick={() => goBack(3)}>
+                {bookingType === 'spa_only' ? 'Back' : 'Back to Rooms'}
+              </SecondaryBtn>
             </div>
           </div>
         )}
@@ -555,8 +675,8 @@ export default function GuestBookNow() {
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <SecondaryBtn onClick={() => setStep(3)}>Back</SecondaryBtn>
-              <PrimaryBtn disabled={!step4Valid} onClick={() => setStep(5)}>Review &amp; Book</PrimaryBtn>
+              <SecondaryBtn onClick={() => goBack(4)}>Back</SecondaryBtn>
+              <PrimaryBtn disabled={!step4Valid} onClick={() => goNext(4)}>Review &amp; Book</PrimaryBtn>
             </div>
           </div>
         )}
@@ -565,7 +685,7 @@ export default function GuestBookNow() {
         {step === 5 && (() => {
           // Group treatments by guest
           const byGuest = {};
-          spaBookings.forEach(b => {
+          effectiveTreatments.forEach(b => {
             const g = b.guestName || 'Guest';
             if (!byGuest[g]) byGuest[g] = [];
             byGuest[g].push(b);
@@ -575,20 +695,22 @@ export default function GuestBookNow() {
           <div style={card}>
             <h2 style={h2Style}>Review Your Booking</h2>
 
-            {/* Room */}
-            <div style={{ marginBottom: '22px', paddingBottom: '18px', borderBottom: `1px solid ${T.border}` }}>
-              <p style={{ ...labelStyle, marginBottom: '10px' }}>Room</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
-                <span style={{ fontSize: '15px', color: T.body, fontWeight: 500 }}>{selectedRoom?.name}</span>
-                <span style={{ fontSize: '14px', fontWeight: 600, color: T.primary }}>${roomSubtotal.toFixed(2)}</span>
+            {/* Room — only for hotel bookings */}
+            {bookingType !== 'spa_only' && selectedRoom && (
+              <div style={{ marginBottom: '22px', paddingBottom: '18px', borderBottom: `1px solid ${T.border}` }}>
+                <p style={{ ...labelStyle, marginBottom: '10px' }}>Room</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '15px', color: T.body, fontWeight: 500 }}>{selectedRoom?.name}</span>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: T.primary }}>${roomSubtotal.toFixed(2)}</span>
+                </div>
+                <span style={{ fontSize: '12px', color: T.muted }}>
+                  {fmtDate(checkIn)} — {fmtDate(checkOut)} · {numNights} night{numNights > 1 ? 's' : ''} × ${roomRate}/night
+                </span>
               </div>
-              <span style={{ fontSize: '12px', color: T.muted }}>
-                {fmtDate(checkIn)} — {fmtDate(checkOut)} · {numNights} night{numNights > 1 ? 's' : ''} × ${roomRate}/night
-              </span>
-            </div>
+            )}
 
             {/* Treatments grouped by guest */}
-            {spaBookings.length > 0 && (
+            {effectiveTreatments.length > 0 && (
               <div style={{ marginBottom: '22px', paddingBottom: '18px', borderBottom: `1px solid ${T.border}` }}>
                 <p style={{ ...labelStyle, marginBottom: '10px' }}>Spa Treatments</p>
                 {Object.entries(byGuest).map(([guest, bookings]) => (
@@ -615,32 +737,36 @@ export default function GuestBookNow() {
               </div>
             )}
 
-            {/* Hotel Taxes */}
-            <div style={{ marginBottom: '22px', paddingBottom: '18px', borderBottom: `1px solid ${T.border}` }}>
-              <p style={{ ...labelStyle, marginBottom: '10px' }}>Hotel Occupancy Taxes</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', paddingLeft: '10px' }}>
-                <span style={{ fontSize: '13px', color: T.muted }}>State of Texas (6%)</span>
-                <span style={{ fontSize: '13px', color: T.body }}>${(roomSubtotal * 0.06).toFixed(2)}</span>
+            {/* Hotel Taxes — only for hotel bookings */}
+            {bookingType !== 'spa_only' && roomSubtotal > 0 && (
+              <div style={{ marginBottom: '22px', paddingBottom: '18px', borderBottom: `1px solid ${T.border}` }}>
+                <p style={{ ...labelStyle, marginBottom: '10px' }}>Hotel Occupancy Taxes</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', paddingLeft: '10px' }}>
+                  <span style={{ fontSize: '13px', color: T.muted }}>State of Texas (6%)</span>
+                  <span style={{ fontSize: '13px', color: T.body }}>${(roomSubtotal * 0.06).toFixed(2)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', paddingLeft: '10px' }}>
+                  <span style={{ fontSize: '13px', color: T.muted }}>City of Jacksonville (7%)</span>
+                  <span style={{ fontSize: '13px', color: T.body }}>${(roomSubtotal * 0.07).toFixed(2)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', paddingLeft: '10px' }}>
+                  <span style={{ fontSize: '13px', color: T.muted }}>Jacksonville Venue Tax (2%)</span>
+                  <span style={{ fontSize: '13px', color: T.body }}>${(roomSubtotal * 0.02).toFixed(2)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '8px', borderTop: `1px solid ${T.border}`, marginTop: '6px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: T.muted }}>Tax Subtotal (on room only)</span>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: T.primary }}>${hotelTaxAmount.toFixed(2)}</span>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', paddingLeft: '10px' }}>
-                <span style={{ fontSize: '13px', color: T.muted }}>City of Jacksonville (7%)</span>
-                <span style={{ fontSize: '13px', color: T.body }}>${(roomSubtotal * 0.07).toFixed(2)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', paddingLeft: '10px' }}>
-                <span style={{ fontSize: '13px', color: T.muted }}>Jacksonville Venue Tax (2%)</span>
-                <span style={{ fontSize: '13px', color: T.body }}>${(roomSubtotal * 0.02).toFixed(2)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '8px', borderTop: `1px solid ${T.border}`, marginTop: '6px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: T.muted }}>Tax Subtotal (on room only)</span>
-                <span style={{ fontSize: '14px', fontWeight: 600, color: T.primary }}>${hotelTaxAmount.toFixed(2)}</span>
-              </div>
-            </div>
+            )}
 
             {/* Grand Total */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '24px' }}>
-              <span style={{ fontSize: '16px', fontWeight: 700, color: T.primary }}>Total</span>
-              <span style={{ fontSize: '22px', fontWeight: 700, color: T.primary }}>${grandTotal.toFixed(2)}</span>
-            </div>
+            {grandTotal > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '24px' }}>
+                <span style={{ fontSize: '16px', fontWeight: 700, color: T.primary }}>Total</span>
+                <span style={{ fontSize: '22px', fontWeight: 700, color: T.primary }}>${grandTotal.toFixed(2)}</span>
+              </div>
+            )}
 
             {/* Guest Info */}
             <ReviewRow label="Guest Info">
@@ -662,7 +788,7 @@ export default function GuestBookNow() {
             )}
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <SecondaryBtn onClick={() => setStep(4)} disabled={submitting}>Back</SecondaryBtn>
+              <SecondaryBtn onClick={() => goBack(5)} disabled={submitting}>Back</SecondaryBtn>
               <PrimaryBtn onClick={handleSubmit} disabled={submitting}>
                 {submitting
                   ? <><Loader2 className="animate-spin w-4 h-4 mr-2 inline" /> Processing your booking...</>

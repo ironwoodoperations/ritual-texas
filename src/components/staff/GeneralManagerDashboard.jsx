@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { format } from "date-fns";
 import {
   MessageSquare, ClipboardList, Sparkles, Brush, Printer,
-  FileText, Users, BedDouble,
+  FileText, Users, BedDouble, RefreshCw,
 } from "lucide-react";
 import HotelTodayPanel from "@/components/dashboard/HotelTodayPanel";
 import RestaurantWeekPanel from "@/components/dashboard/RestaurantWeekPanel";
@@ -47,8 +47,20 @@ function minutesBetween(a, b) {
 }
 
 export default function GeneralManagerDashboard() {
+  const queryClient = useQueryClient();
   const todayStr = useMemo(() => todayStrLocal(), []);
   const today = useMemo(() => new Date(), []);
+
+  // Sync SimplyBook → SpaBooking on mount
+  async function syncSpaToday() {
+    try {
+      await base44.functions.invoke("syncSimplybookToday", {});
+      queryClient.invalidateQueries({ queryKey: ["gm-spa-bookings"] });
+    } catch (e) {
+      console.error("Spa sync failed:", e);
+    }
+  }
+  useEffect(() => { syncSpaToday(); }, []);
 
   // ── Hotel ──
   const { data: hotelBookings = [] } = useQuery({
@@ -180,7 +192,16 @@ export default function GeneralManagerDashboard() {
               <Sparkles className="w-4 h-4 text-[rgb(150,170,155)]" />
               <span className="text-sm font-medium text-[rgb(45,45,45)]">Spa Today</span>
             </div>
-            <span className="text-xs text-[rgb(120,120,120)]">{todaySpa.length} appts · {spaGapCount} gap{spaGapCount === 1 ? "" : "s"}</span>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-[rgb(120,120,120)]">{todaySpa.length} appts · {spaGapCount} gap{spaGapCount === 1 ? "" : "s"}</span>
+              <button
+                onClick={e => { e.preventDefault(); syncSpaToday(); }}
+                title="Sync from SimplyBook"
+                className="p-1 rounded hover:bg-[rgb(235,225,213)] transition-colors"
+              >
+                <RefreshCw className="w-3 h-3 text-[rgb(150,150,150)]" />
+              </button>
+            </div>
           </Link>
 
           <Link to={createPageUrl("AdminHousekeeping")} className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
