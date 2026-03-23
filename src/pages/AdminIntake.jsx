@@ -841,6 +841,11 @@ export default function AdminIntake() {
 
   const filtered = applySort(records.filter(applyFilter));
 
+  // Auto-switch view based on result count when filters change
+  useEffect(() => {
+    setViewMode(filtered.length > 3 ? "list" : "pipeline");
+  }, [search, statusFilter, records]);
+
   return (
     <div className="min-h-screen bg-[rgb(248,246,242)]">
       <header className="bg-white border-b border-[rgb(235,225,213)] px-6 py-4 sticky top-0 z-40">
