@@ -227,6 +227,7 @@ export default function GuestBookNow() {
 
   // Step 5 — Submit
   const [submitting, setSubmitting] = useState(false);
+  const [showProcessingModal, setShowProcessingModal] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [result, setResult] = useState(null);
 
@@ -263,6 +264,7 @@ export default function GuestBookNow() {
   async function handleSubmit() {
     if (!guestName || !email || !phone) return;
     setSubmitting(true);
+    setShowProcessingModal(true);
     setSubmitError(null);
 
     try {
@@ -275,7 +277,7 @@ export default function GuestBookNow() {
         numberOfGuests: guests,
         cloudbedsRoomTypeId: selectedRoom?.roomTypeID,
         roomRequested: selectedRoom?.name,
-        roomPricePerNight: selectedRoom?.price_per_night || selectedRoom?.price || selectedRoom?.pricePerNight || selectedRoom?.rate || 198,
+        roomPricePerNight: 198,
         selectedTreatments: spaBookings.map(b => JSON.stringify({
           serviceId: b.serviceId,
           id: b.serviceId,
@@ -311,6 +313,7 @@ export default function GuestBookNow() {
       setSubmitError('An error occurred. Please call us at (903) 810-6695.');
     } finally {
       setSubmitting(false);
+      setShowProcessingModal(false);
     }
   }
 
@@ -321,7 +324,7 @@ export default function GuestBookNow() {
 
   const stayDates = (checkIn && checkOut) ? datesBetween(checkIn, checkOut) : [];
   const numNights = nights(checkIn, checkOut);
-  const roomRate = selectedRoom?.price_per_night || selectedRoom?.price || selectedRoom?.pricePerNight || selectedRoom?.rate || 198;
+  const roomRate = 198;
   const roomSubtotal = roomRate * numNights;
   const treatmentTotal = spaBookings.reduce((s, b) => s + (b.price || 0), 0);
   const hotelTaxRate = 0.15; // 6% state + 7% city + 2% venue
@@ -430,11 +433,11 @@ export default function GuestBookNow() {
               <div style={{ display: 'grid', gap: '14px', marginBottom: '20px' }}>
                 {rooms.map(room => {
                   const sel = selectedRoom?.roomTypeID === room.roomTypeID;
-                  const price = room.price_per_night || room.price || room.pricePerNight || room.rate || 198;
+                  const price = 198;
                   return (
                     <div
                       key={room.roomTypeID}
-                      onClick={() => { setSelectedRoom(room); setTimeout(() => document.getElementById('room-continue-btn')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100); }}
+                      onClick={() => { setSelectedRoom(room); setTimeout(() => document.getElementById('room-continue-btn')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150); }}
                       style={{
                         ...card,
                         marginBottom: 0,
@@ -657,26 +660,27 @@ export default function GuestBookNow() {
         })()}
 
         {/* Processing overlay */}
-        {submitting && (
+        {showProcessingModal && (
           <div style={{
             position: 'fixed', inset: 0, zIndex: 9999,
-            backgroundColor: 'rgba(248,246,242,.85)',
+            backgroundColor: 'rgba(0,0,0,.45)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <div style={{
-              ...card,
+              backgroundColor: '#fff',
+              borderRadius: T.cardRadius,
+              boxShadow: '0 8px 32px rgba(0,0,0,.18)',
               textAlign: 'center',
               padding: '48px 40px',
               maxWidth: '380px',
               width: '90%',
-              margin: 0,
             }}>
               <Loader2 className="animate-spin" style={{ width: 36, height: 36, color: T.primary, margin: '0 auto 20px' }} />
               <p style={{ fontFamily: T.heading, fontSize: '20px', color: T.primary, fontWeight: 400, marginBottom: '10px' }}>
                 Processing your booking...
               </p>
               <p style={{ fontSize: '13px', color: T.muted, lineHeight: 1.5 }}>
-                This may take up to 60 seconds.<br />Please don't close this window.
+                This can take up to 60 seconds.<br />Please don't close this window.
               </p>
             </div>
           </div>

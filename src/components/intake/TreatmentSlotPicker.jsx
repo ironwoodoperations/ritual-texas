@@ -16,7 +16,7 @@ function fmtSlot(slot) {
 }
 
 // A single "book online" treatment row — local state, date-first, fully chained from SimplyBook
-function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName }) {
+function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName, allGuestNames = [] }) {
   const [date, setDate] = useState(entry.date || "");
   const [availabilityData, setAvailabilityData] = useState(null);
   const [loadingAvailability, setLoadingAvailability] = useState(false);
@@ -128,8 +128,18 @@ function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName
         <X className="w-4 h-4" />
       </button>
       <p className="text-[10px] font-bold tracking-widest text-[rgb(150,130,110)] uppercase mb-3">
-        Treatment {index + 1}{guestName ? ` · ${guestName}` : ""}
+        Treatment {index + 1}
       </p>
+
+      {allGuestNames.length > 0 && (
+        <div className="mb-3">
+          <label className={labelCls}>Guest</label>
+          <select value={guestName || ""} onChange={e => onUpdate(index, { ...entry, guestName: e.target.value })} className={selectCls}>
+            <option value="">Select guest…</option>
+            {allGuestNames.map((name, i) => <option key={i} value={name}>{name}</option>)}
+          </select>
+        </div>
+      )}
 
       {/* If already saved, show summary with option to clear */}
       {isSaved && !date ? (
@@ -257,7 +267,7 @@ function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName
 }
 
 // A single "call to book" treatment row — needs verification/confirmation
-function CtbRow({ index, entry, treatments, onUpdate, onRemove, guestName }) {
+function CtbRow({ index, entry, treatments, onUpdate, onRemove, guestName, allGuestNames = [] }) {
   const [slots, setSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [slotsFailed, setSlotsFailed] = useState(false);
@@ -321,8 +331,19 @@ function CtbRow({ index, entry, treatments, onUpdate, onRemove, guestName }) {
         <X className="w-4 h-4" />
       </button>
       <p className="text-[10px] font-bold tracking-widest text-[rgb(150,130,110)] uppercase mb-3">
-        Confirmation Needed — Treatment {index + 1} {guestName && `· ${guestName}`}
+        Confirmation Needed — Treatment {index + 1}
       </p>
+
+      {allGuestNames.length > 0 && (
+        <div className="mb-3">
+          <label className={labelCls}>Guest</label>
+          <select value={guestName || ""} onChange={e => onUpdate(index, { ...entry, guestName: e.target.value })} className={selectCls}>
+            <option value="">Select guest…</option>
+            {allGuestNames.map((name, i) => <option key={i} value={name}>{name}</option>)}
+          </select>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
         <div className="sm:col-span-2">
           <label className={labelCls}>Treatment</label>
@@ -395,7 +416,8 @@ function CtbRow({ index, entry, treatments, onUpdate, onRemove, guestName }) {
   );
 }
 
-export default function TreatmentSlotPicker({ sbEntries, ctbEntries, bookOnlineTreatments = [], callToBookTreatments = [], onSbChange, onCtbChange, primaryGuestName }) {
+export default function TreatmentSlotPicker({ sbEntries, ctbEntries, bookOnlineTreatments = [], callToBookTreatments = [], onSbChange, onCtbChange, primaryGuestName, guestNames = [] }) {
+  const allGuestNames = guestNames.length > 0 ? guestNames : (primaryGuestName ? [primaryGuestName] : []);
   function addSb() {
     if (sbEntries.length >= 10) return;
     onSbChange([...sbEntries, { serviceId: "", serviceName: "", price: 0, duration: 0, date: "", time: "", staffName: "", guestName: primaryGuestName }]);
@@ -436,7 +458,7 @@ export default function TreatmentSlotPicker({ sbEntries, ctbEntries, bookOnlineT
         </div>
         <div className="space-y-3">
           {sbEntries.map((entry, i) => (
-            <BookOnlineRow key={i} index={i} entry={entry} treatments={bookOnlineTreatments} onUpdate={updateSb} onRemove={removeSb} guestName={entry.guestName || primaryGuestName} />
+            <BookOnlineRow key={i} index={i} entry={entry} treatments={bookOnlineTreatments} onUpdate={updateSb} onRemove={removeSb} guestName={entry.guestName || primaryGuestName} allGuestNames={allGuestNames} />
           ))}
           {sbEntries.length === 0 && (
             <p className="text-xs text-[rgb(180,165,150)] italic">No treatments added yet.</p>
@@ -462,7 +484,7 @@ export default function TreatmentSlotPicker({ sbEntries, ctbEntries, bookOnlineT
         </div>
         <div className="space-y-3">
           {ctbEntries.map((entry, i) => (
-            <CtbRow key={i} index={i} entry={entry} treatments={callToBookTreatments} onUpdate={updateCtb} onRemove={removeCtb} guestName={entry.guestName || primaryGuestName} />
+            <CtbRow key={i} index={i} entry={entry} treatments={callToBookTreatments} onUpdate={updateCtb} onRemove={removeCtb} guestName={entry.guestName || primaryGuestName} allGuestNames={allGuestNames} />
           ))}
           {ctbEntries.length === 0 && (
             <p className="text-xs text-[rgb(180,165,150)] italic">No call-to-book treatments added yet.</p>
