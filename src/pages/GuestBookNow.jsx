@@ -230,6 +230,8 @@ export default function GuestBookNow() {
   const [result, setResult] = useState(null);
 
   // Scroll to top on every step change
+  // Scroll top on mount and on step change
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [step]);
 
   // ── Step 1 → 2: fetch rooms ─────────────────────────────────────────────
