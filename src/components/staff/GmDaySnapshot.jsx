@@ -1,6 +1,6 @@
 // GM Day in 60 Seconds — reuses the same DayIn60 data as AdminDashboard
-import React, { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useMemo, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { BedDouble, Sparkles, Brush, ClipboardList, ExternalLink, MessageSquare } from "lucide-react";
@@ -20,7 +20,15 @@ function parseIsoMaybe(iso) {
 }
 
 export default function GmDaySnapshot() {
+  const queryClient = useQueryClient();
   const today = todayStr();
+
+  // Sync SimplyBook → SpaBooking on mount
+  useEffect(() => {
+    base44.functions.invoke("syncSimplybookToday", {})
+      .then(() => queryClient.invalidateQueries({ queryKey: ["gm-spa"] }))
+      .catch(e => console.error("Spa sync failed:", e));
+  }, []);
 
   const { data: bookings = [] } = useQuery({
     queryKey: ["gm-bookings"],

@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { format } from "date-fns";
 import {
   Users, Sparkles, ArrowRight, Bell, UtensilsCrossed, ChefHat,
   BedDouble, ClipboardList, FileText, Image, LogOut, Leaf,
   CalendarDays, BookOpen, Brush, AlertTriangle, BedSingle, FolderOpen,
-  MessageSquare, Activity, BadgeDollarSign, Timer, Archive, Printer, Upload, Settings,
+  MessageSquare, Activity, BadgeDollarSign, Timer, Archive, Printer, Upload, Settings, RefreshCw,
 } from "lucide-react";
 import HotelTodayPanel from "@/components/dashboard/HotelTodayPanel";
 import RestaurantWeekPanel from "@/components/dashboard/RestaurantWeekPanel";
@@ -122,7 +122,7 @@ function IntakePanel({ intakeForms, intakeNewInquiries }) {
 }
 
 // ─── Day in 60 Seconds Panel ─────────────────────────────────────────────────
-function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa, spaGapCount, hkNeedsCount, hkIssues, toastToday, restaurantLeadsCount, intakeFollowUpCount, conciergeRequests, hotelBookings, cloudbedsStatus }) {
+function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa, spaGapCount, hkNeedsCount, hkIssues, toastToday, restaurantLeadsCount, intakeFollowUpCount, conciergeRequests, hotelBookings, cloudbedsStatus, onSyncSpa }) {
   return (
     <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-4">
       <div className="flex items-center justify-between gap-3 mb-3">
@@ -152,7 +152,16 @@ function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa
             <Sparkles className="w-4 h-4 text-[rgb(150,170,155)]" />
             <span className="text-sm font-medium text-[rgb(45,45,45)]">Spa Today</span>
           </div>
-          <span className="text-xs text-[rgb(120,120,120)]">{todaySpa.length} appts · {spaGapCount} gap{spaGapCount === 1 ? "" : "s"}</span>
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-[rgb(120,120,120)]">{todaySpa.length} appts · {spaGapCount} gap{spaGapCount === 1 ? "" : "s"}</span>
+            <button
+              onClick={e => { e.preventDefault(); onSyncSpa?.(); }}
+              title="Sync from SimplyBook"
+              className="p-1 rounded hover:bg-[rgb(235,225,213)] transition-colors"
+            >
+              <RefreshCw className="w-3 h-3 text-[rgb(150,150,150)]" />
+            </button>
+          </div>
         </Link>
         <Link to={createPageUrl("AdminHousekeeping")} className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
           <div className="flex items-center gap-2">
@@ -208,8 +217,20 @@ export default function AdminDashboard() {
     loadUser();
   }, []);
 
+  const queryClient = useQueryClient();
   const today = useMemo(() => new Date(), []);
   const todayStr = useMemo(() => todayStrLocal(), []);
+
+  // Sync SimplyBook → SpaBooking on mount
+  async function syncSpaToday() {
+    try {
+      await base44.functions.invoke("syncSimplybookToday", {});
+      queryClient.invalidateQueries({ queryKey: ["spa-bookings-dash"] });
+    } catch (e) {
+      console.error("Spa sync failed:", e);
+    }
+  }
+  useEffect(() => { syncSpaToday(); }, []);
 
   // ── Restaurant leads ──
   const { data: restaurantReservations = [] } = useQuery({
@@ -522,6 +543,7 @@ export default function AdminDashboard() {
             intakeFollowUpCount={intakeFollowUpCount}
             conciergeRequests={conciergeRequests}
             cloudbedsStatus={cloudbedsStatus}
+            onSyncSpa={syncSpaToday}
           />
         </div>
 
