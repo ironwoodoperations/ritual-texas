@@ -17,7 +17,178 @@ function parseTreatment(raw: any): Record<string, any> {
   return raw || {};
 }
 
-// ── Orchestration sub-steps (each wraps an admin-only function) ──────────────
+function normalizeTime(raw: string): string {
+  const t = clean(raw);
+  if (!t) return "";
+  if (/^\d{2}:\d{2}:\d{2}$/.test(t)) return t;
+  if (/^\d{2}:\d{2}$/.test(t)) return `${t}:00`;
+  return t;
+}
+
+function addMinutesToTime(hms: string, add: number): string {
+  const [h, m] = normalizeTime(hms).split(":").map(n => parseInt(n || "0", 10));
+  const total = h * 60 + m + add;
+  const mins = ((total % 1440) + 1440) % 1440;
+  return `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}:00`;
+}
+
+// ── SimplyBook JSON-RPC helper ──────────────────────────────────────────────
+
+async function sbRPC(url: string, method: string, params: any[], headers: Record<string, string> = {}) {
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...headers },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+  });
+  const text = await resp.text();
+  let json: any = {};
+  try {
+    json = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(`SimplyBook non-JSON response for "${method}": ${text.slice(0, 300)}`);
+  }
+  if (!resp.ok) {
+    throw new Error(`SimplyBook HTTP ${resp.status} for "${method}": ${text.slice(0, 300)}`);
+  }
+  if (json?.error) {
+    throw new Error(`SimplyBook RPC error for "${method}": ${JSON.stringify(json.error)}`);
+  }
+  return json?.result ?? null;
+}
+
+// ── SimplyBook inline booking ───────────────────────────────────────────────
+
+async function bookSimplyBookTreatment(
+  treatmentGuestName: string,
+  guestEmail: string,
+  guestPhone: string,
+  serviceId: string,
+  providerId: string,
+  date: string,
+  startTime: string,
+): Promise<{ ok: boolean; bookingId?: string; error?: string }> {
+  const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
+  const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
+  const userLogin = Deno.env.get("SIMPLYBOOK_USER_LOGIN") || "";
+  const userPass = Deno.env.get("SIMPLYBOOK_USER_PASSWORD") || "";
+  const secretKey = Deno.env.get("SIMPLYBOOK_SECRET_KEY") || "";
+
+  if (!company || !apiKey) {
+    return { ok: false, error: "SimplyBook credentials not configured" };
+  }
+  if (!userLogin || !userPass || !secretKey) {
+    return { ok: false, error: "SimplyBook admin credentials not configured" };
+  }
+
+  const LOGIN_URL = "https://user-api.simplybook.me/login";
+  const BASE_URL = "https://user-api.simplybook.me";
+  const ADMIN_URL = "https://user-api.simplybook.me/admin/";
+
+  // 1. Authenticate — get both tokens
+  const [publicToken, adminToken] = await Promise.all([
+    sbRPC(LOGIN_URL, "getToken", [company, apiKey]).catch(() => null),
+    sbRPC(LOGIN_URL, "getUserToken", [company, userLogin, userPass, secretKey]),
+  ]);
+
+  if (!adminToken || typeof adminToken !== "string") {
+    return { ok: false, error: "SimplyBook admin auth failed" };
+  }
+
+  const readToken = (typeof publicToken === "string" && publicToken) ? publicToken : adminToken;
+  const readHeaders = { "X-Company-Login": company, "X-Token": readToken, "X-User-Token": readToken };
+  const adminHeaders = { "X-Company-Login": company, "X-Token": adminToken, "X-User-Token": adminToken };
+
+  // 2. Verify service exists
+  const servicesRaw = await sbRPC(BASE_URL, "getEventList", [], readHeaders);
+  const svc = servicesRaw?.[serviceId];
+  if (!svc) {
+    return { ok: false, error: `Service ${serviceId} not found in SimplyBook` };
+  }
+
+  // 3. Resolve provider — if empty, pick first available for the slot
+  const time = normalizeTime(startTime);
+  let resolvedProviderId = providerId || null;
+
+  if (!resolvedProviderId) {
+    const unitIds = Array.isArray(svc.unit_map) && svc.unit_map.length > 0
+      ? svc.unit_map.map(String)
+      : Object.keys(await sbRPC(BASE_URL, "getUnitList", [], readHeaders) || {});
+
+    for (const uid of unitIds) {
+      try {
+        const matrix = await sbRPC(BASE_URL, "getStartTimeMatrix", [date, date, serviceId, uid, 1], readHeaders);
+        if (matrix?.[date]) {
+          const slots = Array.isArray(matrix[date]) ? matrix[date] : Object.keys(matrix[date]);
+          const normalizedSlots = slots.map((s: any) => normalizeTime(String(s)));
+          if (normalizedSlots.includes(time)) {
+            resolvedProviderId = uid;
+            break;
+          }
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    if (!resolvedProviderId) {
+      return { ok: false, error: "That time slot is no longer available" };
+    }
+  }
+
+  // 4. Create client in SimplyBook
+  const clientPayload: any = { name: treatmentGuestName };
+  if (guestEmail) clientPayload.email = guestEmail;
+  if (guestPhone) clientPayload.phone = guestPhone;
+
+  let clientId: number | null = null;
+  const addClientResult = await sbRPC(ADMIN_URL, "addClient", [clientPayload, false], adminHeaders);
+  if (typeof addClientResult === "number") {
+    clientId = addClientResult;
+  } else if (addClientResult && typeof addClientResult === "object") {
+    clientId = Number(addClientResult.id || addClientResult.client_id || 0) || null;
+  }
+
+  if (!clientId) {
+    return { ok: false, error: "No client ID returned from SimplyBook" };
+  }
+
+  // 5. Create the booking
+  const durationMinutes = Number(svc.duration || 60);
+  const endTime = addMinutesToTime(time, durationMinutes);
+
+  const additional = {
+    predefined: {
+      client: { name: treatmentGuestName, email: guestEmail, phone: guestPhone },
+      fields: {},
+    },
+  };
+
+  const bookPayload = [
+    Number(serviceId),
+    Number(resolvedProviderId),
+    Number(clientId),
+    date,
+    time,
+    date,
+    endTime,
+    0,
+    additional,
+  ];
+
+  const bookingResult = await sbRPC(ADMIN_URL, "book", bookPayload, adminHeaders);
+
+  // 6. Extract booking ID
+  const bookingObj = Array.isArray(bookingResult?.bookings) ? bookingResult.bookings[0] : bookingResult;
+  const bookingId = String(bookingObj?.id || bookingObj?.booking_id || bookingResult?.id || "");
+
+  if (!bookingId) {
+    return { ok: false, error: "Booking may have been created but no ID was returned" };
+  }
+
+  return { ok: true, bookingId };
+}
+
+// ── Orchestration sub-steps ─────────────────────────────────────────────────
 
 async function bookRoom(base44: any, payload: Record<string, any>) {
   try {
@@ -121,6 +292,7 @@ Deno.serve(async (req) => {
 
   try {
     const payload = await req.json();
+    console.log("guestSubmitBooking called with:", JSON.stringify(payload));
 
     // ── Validate required fields ──────────────────────────────────────────
     const guestName = clean(payload.guestName);
@@ -250,7 +422,7 @@ Deno.serve(async (req) => {
       notes += `\n[Cloudbeds booking failed: ${cbResult.error}]`;
     }
 
-    // Step 3: Book SimplyBook treatments (only those NOT already booked)
+    // Step 3: Book SimplyBook treatments directly (inline — no function invoke)
     if (needsBooking.length > 0) {
       for (const t of needsBooking) {
         const svcId = String(t.serviceId || t.id || "");
@@ -259,25 +431,29 @@ Deno.serve(async (req) => {
         const tGuestName = t.guestName || guestName;
         const label = `${t.serviceName || t.name || svcId} for ${tGuestName} on ${t.date} at ${bookTime}`;
         try {
+          console.log(`[SimplyBook] Booking SimplyBook treatment: ${label}`);
           notes += `\n[SimplyBook] Booking SimplyBook treatment: ${label}`;
-          const res = await base44.asServiceRole.functions.invoke("guestCreateBooking", {
-            guestName: tGuestName,
-            guestEmail: email,
-            guestPhone: phone,
-            serviceId: svcId,
-            providerId: provId,
-            date: t.date,
-            time: bookTime,
-          });
-          const d = res?.data || res;
-          if (d?.success && d?.booking?.bookingId) {
-            t.simplybookBookingId = d.booking.bookingId;
-            notes += `\n[SimplyBook] Booked: ${label} → ID ${d.booking.bookingId}`;
+
+          const sbResult = await bookSimplyBookTreatment(
+            tGuestName,
+            email,
+            phone,
+            svcId,
+            provId,
+            t.date,
+            bookTime,
+          );
+
+          if (sbResult.ok && sbResult.bookingId) {
+            t.simplybookBookingId = sbResult.bookingId;
+            console.log(`[SimplyBook] Booked: ${label} → ID ${sbResult.bookingId}`);
+            notes += `\n[SimplyBook] Booked: ${label} → ID ${sbResult.bookingId}`;
           } else {
-            const errMsg = d?.error || d?.message || "No booking ID returned";
-            notes += `\n[SimplyBook] FAILED: ${label} — ${errMsg}`;
+            console.log(`[SimplyBook] FAILED: ${label} — ${sbResult.error}`);
+            notes += `\n[SimplyBook] FAILED: ${label} — ${sbResult.error}`;
           }
         } catch (e: any) {
+          console.log(`[SimplyBook] ERROR: ${label} — ${e.message}`);
           notes += `\n[SimplyBook] ERROR: ${label} — ${e.message}`;
         }
       }
