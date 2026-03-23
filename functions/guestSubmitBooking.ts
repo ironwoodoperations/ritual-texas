@@ -73,10 +73,6 @@ async function createAndPublishInvoice(
           hotel_state: true,
           hotel_city: true,
           hotel_venue: true,
-          sales_state: true,
-          sales_city: true,
-          sales_jedc: true,
-          sales_county: true,
         },
       },
     });
@@ -179,10 +175,6 @@ Deno.serve(async (req) => {
         hotel_state: true,
         hotel_city: true,
         hotel_venue: true,
-        sales_state: true,
-        sales_city: true,
-        sales_jedc: true,
-        sales_county: true,
       },
       preferredContactMethod: "email",
     };

@@ -79,31 +79,34 @@ Deno.serve(async (req) => {
 
     // Build line items
     const lineItems = [];
+    const roomLabel = intake?.roomRequested || "Hotel Stay";
     lineItems.push({
-      name: `Hotel Stay - ${nights} night${nights === 1 ? "" : "s"} (${checkIn} to ${checkOut})`,
+      name: `${roomLabel} · ${nights} night${nights === 1 ? "" : "s"} · ${checkIn} to ${checkOut}`,
       quantity: String(nights),
       base_price_money: { amount: ROOM_RATE * 100, currency: "USD" },
     });
 
-    if (intake?.roomRequested) {
-      lineItems[0].name = `${intake.roomRequested} - ${nights} night${nights === 1 ? "" : "s"} (${checkIn} to ${checkOut})`;
-    }
-
     // SimplyBook treatment line items
     const selected = Array.isArray(intake?.selectedTreatments) ? intake.selectedTreatments : [];
     for (const item of selected) {
-      let name = "", price = 0, date = "", time = "";
+      let name = "", price = 0, date = "", time = "", guestLabel = "", staffName = "";
       try {
         const obj = typeof item === "string" ? JSON.parse(item) : item;
         name = clean(obj.serviceName || obj.name || "Treatment");
         price = Number(obj.price || 0);
         date = obj.date || "";
         time = obj.time || "";
+        guestLabel = clean(obj.guestName || "");
+        staffName = clean(obj.staffName || "");
       } catch {
         name = clean(item);
       }
       if (!name) continue;
-      const label = name + (date ? ` — ${date}` : "") + (time ? ` at ${time}` : "");
+      let label = name;
+      if (guestLabel) label += ` for ${guestLabel}`;
+      if (date) label += ` — ${date}`;
+      if (time) label += ` at ${time}`;
+      if (staffName) label += ` with ${staffName}`;
       lineItems.push({
         name: label,
         quantity: "1",
@@ -114,18 +117,25 @@ Deno.serve(async (req) => {
     // Call-to-book treatment line items
     const ctbSelected = Array.isArray(intake?.callToBookTreatments) ? intake.callToBookTreatments : [];
     for (const item of ctbSelected) {
-      let name = "", price = 0, date = "", time = "";
+      let name = "", price = 0, date = "", time = "", guestLabel = "", staffName = "";
       try {
         const obj = typeof item === "string" ? JSON.parse(item) : item;
-        name = clean(obj.name || "Treatment");
+        name = clean(obj.serviceName || obj.name || "Treatment");
         price = Number(obj.price || 0);
         date = obj.date || "";
         time = obj.time || "";
+        guestLabel = clean(obj.guestName || "");
+        staffName = clean(obj.staffName || "");
       } catch {
         name = clean(item);
       }
       if (!name) continue;
-      const label = name + (date ? ` — ${date}` : "") + (time ? ` at ${time}` : "") + " (call-to-book)";
+      let label = name;
+      if (guestLabel) label += ` for ${guestLabel}`;
+      if (date) label += ` — ${date}`;
+      if (time) label += ` at ${time}`;
+      if (staffName) label += ` with ${staffName}`;
+      label += " (call-to-book)";
       lineItems.push({
         name: label,
         quantity: "1",
@@ -133,29 +143,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Build tax line items from intake.taxes
-    const SALES_TAXES = [
-      { key: 'sales_state',  label: 'State of Texas (Sales Tax)',                     rate: 6.25 },
-      { key: 'sales_city',   label: 'City of Jacksonville (Sales Tax)',                rate: 1.00 },
-      { key: 'sales_jedc',   label: 'Jacksonville Economic Development (JEDC)',        rate: 0.50 },
-      { key: 'sales_county', label: 'Cherokee County (Sales Tax)',                     rate: 0.50 },
-    ];
+    // Hotel occupancy taxes — applied to room cost only (not treatments)
     const HOTEL_TAXES = [
-      { key: 'hotel_state',  label: 'State of Texas (Hotel Occupancy Tax)',            rate: 6.00 },
-      { key: 'hotel_city',   label: 'City of Jacksonville (Hotel Occupancy Tax)',      rate: 7.00 },
-      { key: 'hotel_venue',  label: 'Jacksonville Venue Tax',                          rate: 2.00 },
+      { key: 'hotel_state',  label: 'State of Texas Hotel Occupancy Tax (6%)',         rate: 6.00 },
+      { key: 'hotel_city',   label: 'City of Jacksonville Hotel Occupancy Tax (7%)',   rate: 7.00 },
+      { key: 'hotel_venue',  label: 'Jacksonville Venue Tax (2%)',                     rate: 2.00 },
     ];
-    const ALL_TAXES = [...SALES_TAXES, ...HOTEL_TAXES];
 
     const selectedTaxes = intake?.taxes || {};
     const hotelSubtotal = ROOM_RATE * nights;
-    const treatmentSubtotal = lineItems.slice(1).reduce((sum, li) => sum + (li.base_price_money.amount / 100), 0);
 
-    for (const tax of ALL_TAXES) {
+    for (const tax of HOTEL_TAXES) {
       if (!selectedTaxes[tax.key]) continue;
-      const isHotel = tax.key.startsWith('hotel_');
-      const base = isHotel ? hotelSubtotal : treatmentSubtotal;
-      const amount = Math.round(base * tax.rate) / 100;
+      const amount = Math.round(hotelSubtotal * tax.rate) / 100;
       if (amount <= 0) continue;
       lineItems.push({
         name: tax.label,
