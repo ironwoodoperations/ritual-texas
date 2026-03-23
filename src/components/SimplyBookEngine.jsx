@@ -414,7 +414,7 @@ export default function SimplyBookEngine({
                   <p style={{ fontSize: '12px', color: '#8B7355' }}>
                     {svc.duration} min{svc.providers.length > 0 ? ` · ${svc.providers.length} therapist${svc.providers.length > 1 ? 's' : ''}` : ''}
                   </p>
-                  {svc.description && <p style={{ fontSize: '12px', color: '#a09080', marginTop: '4px' }}>{svc.description}</p>}
+                  {svc.description && <p style={{ fontSize: '12px', color: '#a09080', marginTop: '4px' }}>{svc.description.replace(/<[^>]*>/g, '').trim()}</p>}
                 </div>
                 <span style={{ fontSize: '16px', fontWeight: 700, color: colors.primary, whiteSpace: 'nowrap', marginLeft: '16px' }}>${svc.price}</span>
               </button>
