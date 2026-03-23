@@ -41,9 +41,7 @@ const STEPS = {
 
 export default function SimplyBookEngine({
   stayDates = [],
-  guestName = '',
-  guestEmail = '',
-  guestPhone = '',
+  onBookingSelected,
   onBookingComplete,
   onSkip,
   brandColors = {},
@@ -73,7 +71,6 @@ export default function SimplyBookEngine({
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
 
   // Booking
-  const [bookingInProgress, setBookingInProgress] = useState(false);
   const [bookingError, setBookingError] = useState(null);
   const [completedBookings, setCompletedBookings] = useState([]);
 
@@ -173,51 +170,27 @@ export default function SimplyBookEngine({
     setStep(STEPS.CONFIRM);
   }
 
-  async function handleConfirmBooking() {
+  function handleConfirmBooking() {
     if (!selectedService || !selectedDate || !selectedTime) return;
-    setBookingInProgress(true);
-    setBookingError(null);
 
-    try {
-      const res = await base44.functions.invoke('guestCreateBooking', {
-        guestName,
-        guestEmail,
-        guestPhone,
-        serviceId: selectedService.id,
-        providerId: selectedProvider?.id || undefined,
-        date: selectedDate,
-        time: selectedTime,
-      });
+    const selection = {
+      serviceId: selectedService.id,
+      serviceName: selectedService.name,
+      price: selectedService.price,
+      duration: selectedService.duration,
+      providerId: selectedProvider?.id || null,
+      providerName: selectedProvider?.name || null,
+      date: selectedDate,
+      startTime: selectedTime,
+    };
 
-      if (res.data?.error === 'slot_taken') {
-        setBookingError('That time was just taken — please select another time.');
-        setSelectedTime(null);
-        setStep(STEPS.TIME);
-        return;
-      }
+    setCompletedBookings(prev => [...prev, selection]);
 
-      if (res.data?.error) {
-        setBookingError(res.data.message || res.data.error);
-        return;
-      }
-
-      if (res.data?.success) {
-        const newBooking = res.data.booking;
-        setCompletedBookings(prev => [...prev, newBooking]);
-        setStep(STEPS.DONE);
-      }
-    } catch (e) {
-      const msg = e?.message || '';
-      if (msg.includes('SLOT_TAKEN') || msg.includes('slot')) {
-        setBookingError('That time was just taken — please select another time.');
-        setSelectedTime(null);
-        setStep(STEPS.TIME);
-      } else {
-        setBookingError('Booking failed. Please try again or call us at (903) 810-6695.');
-      }
-    } finally {
-      setBookingInProgress(false);
+    if (onBookingSelected) {
+      onBookingSelected(selection);
     }
+
+    setStep(STEPS.DONE);
   }
 
   function handleAddAnother() {
@@ -368,7 +341,7 @@ export default function SimplyBookEngine({
         {completedBookings.length > 0 && (
           <div style={{ ...cardStyle, backgroundColor: 'rgba(59,72,49,.05)', marginBottom: '20px' }}>
             <p style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: colors.primary, marginBottom: '12px' }}>
-              Booked Treatments ({completedBookings.length})
+              Selected Treatments ({completedBookings.length})
             </p>
             {completedBookings.map((b, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: i < completedBookings.length - 1 ? '1px solid rgba(59,72,49,.08)' : 'none' }}>
@@ -694,14 +667,9 @@ export default function SimplyBookEngine({
 
         <button
           onClick={handleConfirmBooking}
-          disabled={bookingInProgress}
-          style={{
-            ...primaryBtn,
-            opacity: bookingInProgress ? 0.7 : 1,
-            cursor: bookingInProgress ? 'wait' : 'pointer',
-          }}
+          style={primaryBtn}
         >
-          {bookingInProgress ? 'Booking...' : 'Confirm Booking'}
+          Confirm Selection
         </button>
       </div>
     );
@@ -720,7 +688,7 @@ export default function SimplyBookEngine({
             <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'rgba(59,72,49,.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', fontSize: '24px' }}>
               ✓
             </div>
-            <h2 style={{ ...headingStyle, marginBottom: '8px' }}>Treatment Booked!</h2>
+            <h2 style={{ ...headingStyle, marginBottom: '8px' }}>Treatment Selected!</h2>
             <p style={{ fontSize: '13px', color: '#8B7355' }}>
               {lastBooking?.serviceName} on {formatDate(lastBooking?.date)} at {formatTime(lastBooking?.startTime)}
               {lastBooking?.providerName ? ` with ${lastBooking.providerName}` : ''}
@@ -731,7 +699,7 @@ export default function SimplyBookEngine({
           {completedBookings.length > 1 && (
             <div style={{ borderTop: '1px solid rgba(59,72,49,.08)', paddingTop: '16px', marginBottom: '16px' }}>
               <p style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: colors.primary, marginBottom: '12px' }}>
-                All Booked Treatments
+                All Selected Treatments
               </p>
               {completedBookings.map((b, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '13px' }}>

@@ -277,9 +277,8 @@ export default function GuestBookNow() {
           id: b.serviceId,
           name: b.serviceName,
           serviceName: b.serviceName,
-          simplybookBookingId: b.bookingId,
           price: b.price,
-          duration: b.durationMinutes,
+          duration: b.duration,
           date: b.date,
           time: b.startTime,
           staffId: b.providerId,
@@ -437,11 +436,11 @@ export default function GuestBookNow() {
 
             <SimplyBookEngine
               stayDates={stayDates}
-              guestName={guestName}
-              guestEmail={email}
-              guestPhone={phone}
-              onBookingComplete={(bookings) => {
-                setSpaBookings(bookings);
+              onBookingSelected={(selection) => {
+                setSpaBookings(prev => [...prev, selection]);
+              }}
+              onBookingComplete={(allSelections) => {
+                setSpaBookings(allSelections);
                 setStep(4);
               }}
               onSkip={() => {
