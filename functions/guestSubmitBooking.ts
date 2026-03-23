@@ -46,30 +46,6 @@ async function bookRoom(base44: any, payload: Record<string, any>) {
   }
 }
 
-async function bookTreatments(
-  base44: any,
-  intakeId: string,
-  payload: Record<string, any>,
-  treatments: any[],
-) {
-  if (!treatments.length) return { ok: true, errors: [] };
-
-  try {
-    const res = await base44.asServiceRole.functions.invoke("intakeBookTreatments", {
-      intake: {
-        id: intakeId,
-        guestName: payload.guestName,
-        email: payload.email,
-        phone: payload.phone,
-        selectedTreatments: treatments,
-      },
-    });
-    const d = res.data || res;
-    return { ok: true, errors: d?.errors || [] };
-  } catch (e: any) {
-    return { ok: true, errors: [e.message] };
-  }
-}
 
 async function createAndPublishInvoice(
   base44: any,
@@ -175,7 +151,7 @@ Deno.serve(async (req) => {
       if (t.simplybookBookingId) {
         alreadyBooked.push(t);
       } else {
-        needsBooking.push(typeof raw === "string" ? raw : JSON.stringify(raw));
+        needsBooking.push(t);
       }
     }
 
@@ -284,16 +260,30 @@ Deno.serve(async (req) => {
 
     // Step 3: Book SimplyBook treatments (only those NOT already booked)
     if (needsBooking.length > 0) {
-      const sbResult = await bookTreatments(base44, intakeId, {
-        guestName,
-        email,
-        phone,
-      }, needsBooking);
-
-      if (sbResult.errors.length > 0) {
-        notes += `\n[SimplyBook errors: ${sbResult.errors.join("; ")}]`;
-      } else {
-        notes += `\n[SimplyBook: ${needsBooking.length} treatment(s) booked]`;
+      for (const t of needsBooking) {
+        const label = `${t.serviceName || t.serviceId} on ${t.date} at ${t.startTime}`;
+        try {
+          notes += `\n[SimplyBook] Attempting booking: ${label}`;
+          const res = await base44.asServiceRole.functions.invoke("guestCreateBooking", {
+            guestName: t.guestName || guestName,
+            guestEmail: email,
+            guestPhone: phone,
+            serviceId: String(t.serviceId),
+            providerId: t.providerId ? String(t.providerId) : "",
+            date: t.date,
+            time: t.startTime,
+          });
+          const d = res?.data || res;
+          if (d?.success && d?.booking?.bookingId) {
+            t.simplybookBookingId = d.booking.bookingId;
+            notes += `\n[SimplyBook] Booked: ${label} → ID ${d.booking.bookingId}`;
+          } else {
+            const errMsg = d?.error || d?.message || "No booking ID returned";
+            notes += `\n[SimplyBook] FAILED: ${label} — ${errMsg}`;
+          }
+        } catch (e: any) {
+          notes += `\n[SimplyBook] ERROR: ${label} — ${e.message}`;
+        }
       }
     }
 
