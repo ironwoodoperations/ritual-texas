@@ -402,6 +402,23 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
         </div>
       </Section>
 
+      <Section title="Additional Guests · For Multi-Guest Reservations">
+        <p className="text-xs text-[rgb(170,140,110)] mb-4">Add info for 2nd, 3rd, 4th guests as Cloudbeds requires.</p>
+        <div className="space-y-4">
+          {form.additionalGuests.map((guest, idx) => (
+            <div key={idx} className="bg-[rgb(250,248,245)] border border-[rgb(220,210,200)] rounded-lg p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+                <Field label="Guest Name"><input placeholder="First Last" value={guest.name} onChange={e => { const u = [...form.additionalGuests]; u[idx].name = e.target.value; set("additionalGuests", u); }} className={fieldCls} /></Field>
+                <Field label="Email"><input placeholder="guest@email.com" value={guest.email} onChange={e => { const u = [...form.additionalGuests]; u[idx].email = e.target.value; set("additionalGuests", u); }} className={fieldCls} /></Field>
+                <Field label="Phone"><input placeholder="(555) 000-0000" value={guest.phone} onChange={e => { const u = [...form.additionalGuests]; u[idx].phone = e.target.value; set("additionalGuests", u); }} className={fieldCls} /></Field>
+              </div>
+              <button type="button" onClick={() => set("additionalGuests", form.additionalGuests.filter((_, i) => i !== idx))} className="mt-2 text-xs text-red-600 hover:text-red-700">Remove Guest</button>
+            </div>
+          ))}
+          <button type="button" onClick={() => set("additionalGuests", [...form.additionalGuests, { name: "", email: "", phone: "" }])} className="text-xs text-[rgb(107,85,64)] hover:underline">+ Add Another Guest</button>
+        </div>
+      </Section>
+
       <Section title="Spa & Wellness · Treatments">
         <TreatmentSlotPicker
           sbEntries={sbEntries}
@@ -411,6 +428,7 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
           onSbChange={setSbEntries}
           onCtbChange={setCtbEntries}
           primaryGuestName={form.guestName}
+          guestNames={[form.guestName, ...form.additionalGuests.map(g => g.name)].filter(Boolean)}
         />
         <div className="mt-5">
           <Field label="Additional Treatment Notes">
@@ -462,23 +480,6 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
               </button>
             )}
           </div>
-        </div>
-      </Section>
-
-      <Section title="Additional Guests · For Multi-Guest Reservations">
-        <p className="text-xs text-[rgb(170,140,110)] mb-4">Add info for 2nd, 3rd, 4th guests as Cloudbeds requires.</p>
-        <div className="space-y-4">
-          {form.additionalGuests.map((guest, idx) => (
-            <div key={idx} className="bg-[rgb(250,248,245)] border border-[rgb(220,210,200)] rounded-lg p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
-                <Field label="Guest Name"><input placeholder="First Last" value={guest.name} onChange={e => { const u = [...form.additionalGuests]; u[idx].name = e.target.value; set("additionalGuests", u); }} className={fieldCls} /></Field>
-                <Field label="Email"><input placeholder="guest@email.com" value={guest.email} onChange={e => { const u = [...form.additionalGuests]; u[idx].email = e.target.value; set("additionalGuests", u); }} className={fieldCls} /></Field>
-                <Field label="Phone"><input placeholder="(555) 000-0000" value={guest.phone} onChange={e => { const u = [...form.additionalGuests]; u[idx].phone = e.target.value; set("additionalGuests", u); }} className={fieldCls} /></Field>
-              </div>
-              <button type="button" onClick={() => set("additionalGuests", form.additionalGuests.filter((_, i) => i !== idx))} className="mt-2 text-xs text-red-600 hover:text-red-700">Remove Guest</button>
-            </div>
-          ))}
-          <button type="button" onClick={() => set("additionalGuests", [...form.additionalGuests, { name: "", email: "", phone: "" }])} className="text-xs text-[rgb(107,85,64)] hover:underline">+ Add Another Guest</button>
         </div>
       </Section>
 

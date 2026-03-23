@@ -2,11 +2,11 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.21";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function clean(v) {
+function clean(v: any): string {
   return String(v ?? "").trim();
 }
 
-function normalizeTime(raw) {
+function normalizeTime(raw: any): string {
   const t = clean(raw);
   if (!t) return "";
   if (/^\d{2}:\d{2}:\d{2}$/.test(t)) return t;
@@ -14,34 +14,39 @@ function normalizeTime(raw) {
   return t;
 }
 
-function asArrayMap(obj) {
+function asArrayMap(obj: any): any[] {
   if (!obj || typeof obj !== "object") return [];
   if (Array.isArray(obj)) return obj;
-  return Object.entries(obj).map(([id, value]) => ({
+  return Object.entries(obj).map(([id, value]: [string, any]) => ({
     id: String(id),
     ...(typeof value === "object" && value ? value : { value }),
   }));
 }
 
-function timeToMinutes(hms) {
-  const [h, m] = normalizeTime(hms).split(":").map(n => parseInt(n || "0", 10));
+function timeToMinutes(hms: string): number {
+  const [h, m] = normalizeTime(hms).split(":").map((n: string) => parseInt(n || "0", 10));
   return h * 60 + m;
 }
 
-function addMinutesToTime(hms, add) {
+function addMinutesToTime(hms: string, add: number): string {
   const total = timeToMinutes(hms) + add;
   const m = ((total % 1440) + 1440) % 1440;
   return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}:00`;
 }
 
-async function sbRPC(url, method, params, headers = {}) {
+async function sbRPC(
+  url: string,
+  method: string,
+  params: any[],
+  headers: Record<string, string> = {},
+): Promise<any> {
   const resp = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
   });
   const text = await resp.text();
-  let json = {};
+  let json: any = {};
   try {
     json = text ? JSON.parse(text) : {};
   } catch {
@@ -58,7 +63,7 @@ async function sbRPC(url, method, params, headers = {}) {
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request): Promise<Response> => {
   const base44 = createClientFromRequest(req);
 
   try {
@@ -70,9 +75,9 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const intake = body?.intake || body || {};
 
-    // ── Credentials ────────────────────────────────────────────────────────
-    const company = (Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "").trim();
-    const apiKey  = (Deno.env.get("SIMPLYBOOK_API_KEY") || "").trim();
+    // ── Credentials ──────────────────────────────────────────────────────
+    const company: string = (Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "").trim();
+    const apiKey: string = (Deno.env.get("SIMPLYBOOK_API_KEY") || "").trim();
 
     if (!company || !apiKey) {
       return Response.json({
@@ -80,145 +85,153 @@ Deno.serve(async (req) => {
       }, { status: 500 });
     }
 
-    // ── Debug mode: test auth and return service list ───────────────────────
+    // ── Debug mode: test auth and return service list ─────────────────────
     if (body?._debugAuth) {
-      const dUserLogin = (Deno.env.get("SIMPLYBOOK_USER_LOGIN") || "").trim();
-      const dUserPass  = (Deno.env.get("SIMPLYBOOK_USER_PASSWORD") || "").trim();
-      const dSecretKey = (Deno.env.get("SIMPLYBOOK_SECRET_KEY") || "").trim();
+      const dUserLogin: string = (Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "").trim();
+      const dUserPass: string = (Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "").trim();
       const LOGIN_URL_D = "https://user-api.simplybook.me/login";
-      const BASE_URL_D  = "https://user-api.simplybook.me";
+      const BASE_URL_D = "https://user-api.simplybook.me";
       const [pubTok, admTok] = await Promise.all([
-        sbRPC(LOGIN_URL_D, "getToken", [company, apiKey]).catch(e => ({ error: e.message })),
-        sbRPC(LOGIN_URL_D, "getUserToken", [company, dUserLogin, dUserPass, dSecretKey]).catch(e => ({ error: e.message })),
+        sbRPC(LOGIN_URL_D, "getToken", [company, apiKey]).catch((e: any) => ({ error: e.message })),
+        sbRPC(LOGIN_URL_D, "getUserToken", [company, dUserLogin, dUserPass]).catch((e: any) => ({ error: e.message })),
       ]);
       const adminOk = typeof admTok === "string";
       const rTok = adminOk ? admTok : "";
-      const rHeaders = { "X-Company-Login": company, "X-Token": rTok, "X-User-Token": rTok };
-      const services  = adminOk ? await sbRPC(BASE_URL_D, "getEventList", [], rHeaders).catch(() => null) : null;
-      const providers = adminOk ? await sbRPC(BASE_URL_D, "getUnitList", [], rHeaders).catch(() => null) : null;
+      const rHeaders: Record<string, string> = {
+        "X-Company-Login": company,
+        "X-Token": rTok,
+        "X-User-Token": rTok,
+      };
+      const services = adminOk
+        ? await sbRPC(BASE_URL_D, "getEventList", [], rHeaders).catch(() => null)
+        : null;
+      const providers = adminOk
+        ? await sbRPC(BASE_URL_D, "getUnitList", [], rHeaders).catch(() => null)
+        : null;
       return Response.json({
         publicTokenOk: typeof pubTok === "string",
         adminTokenOk: adminOk,
         publicTokenError: typeof pubTok !== "string" ? pubTok : null,
         adminTokenError: !adminOk ? admTok : null,
-        services: services ? asArrayMap(services).map(s => ({ id: s.id, name: s.name })) : null,
-        providers: providers ? asArrayMap(providers).map(p => ({ id: p.id, name: p.name })) : null,
+        services: services ? asArrayMap(services).map((s: any) => ({ id: s.id, name: s.name })) : null,
+        providers: providers ? asArrayMap(providers).map((p: any) => ({ id: p.id, name: p.name })) : null,
       });
     }
 
-    // ── Validate input ─────────────────────────────────────────────────────
+    // ── Validate input ───────────────────────────────────────────────────
     if (!Array.isArray(intake?.selectedTreatments) || intake.selectedTreatments.length === 0) {
       return Response.json({ error: "No treatments selected" }, { status: 400 });
     }
 
-    const guestName  = clean(intake?.guestName || intake?.name);
-    const guestEmail = clean(intake?.email || intake?.guestEmail || "").toLowerCase();
-    const guestPhone = clean(intake?.phone || intake?.guestPhone || "");
+    const guestName: string = clean(intake?.guestName || intake?.name);
+    const guestEmail: string = clean(intake?.email || intake?.guestEmail || "").toLowerCase();
+    const guestPhone: string = clean(intake?.phone || intake?.guestPhone || "");
 
     if (!guestName) {
       return Response.json({ error: "Guest name is required" }, { status: 400 });
     }
 
-    // ── Authenticate ───────────────────────────────────────────────────────
-    // Use getToken + API key — same pattern as all other working SimplyBook functions
+    // ── Authenticate ─────────────────────────────────────────────────────
     const LOGIN_URL = "https://user-api.simplybook.me/login";
-    const BASE_URL  = "https://user-api.simplybook.me";
+    const BASE_URL = "https://user-api.simplybook.me";
     const ADMIN_URL = "https://user-api.simplybook.me/admin/";
 
-    const userLogin = (Deno.env.get("SIMPLYBOOK_USER_LOGIN") || "").trim();
-    const userPass  = (Deno.env.get("SIMPLYBOOK_USER_PASSWORD") || "").trim();
-    const secretKey = (Deno.env.get("SIMPLYBOOK_SECRET_KEY") || "").trim();
+    const userLogin: string = (Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "").trim();
+    const userPassword: string = (Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "").trim();
 
-    if (!userLogin || !userPass || !secretKey) {
+    if (!userLogin || !userPassword) {
       return Response.json({
-        error: "Missing env vars for admin write access: SIMPLYBOOK_USER_LOGIN, SIMPLYBOOK_USER_PASSWORD, SIMPLYBOOK_SECRET_KEY are all required to book treatments.",
+        error: "Missing env vars for admin write access: SIMPLYBOOK_ADMIN_LOGIN and SIMPLYBOOK_ADMIN_PASSWORD are required to book treatments.",
       }, { status: 500 });
     }
 
     // Public token — for reads (getEventList, getUnitList)
-    // Admin token — for writes (addClient, book) — requires secret key
+    // Admin token — for writes (addClient, book) — getUserToken with 3 params
     const [publicToken, adminToken] = await Promise.all([
       sbRPC(LOGIN_URL, "getToken", [company, apiKey]).catch(() => null),
-      sbRPC(LOGIN_URL, "getUserToken", [company, userLogin, userPass, secretKey]),
+      sbRPC(LOGIN_URL, "getUserToken", [company, userLogin, userPassword]),
     ]);
 
     if (!adminToken || typeof adminToken !== "string") {
       return Response.json({
-        error: "SimplyBook admin authentication failed. Check SIMPLYBOOK_USER_LOGIN, SIMPLYBOOK_USER_PASSWORD, and SIMPLYBOOK_SECRET_KEY.",
+        error: "SimplyBook admin authentication failed. Check SIMPLYBOOK_ADMIN_LOGIN and SIMPLYBOOK_ADMIN_PASSWORD.",
         detail: adminToken,
       }, { status: 500 });
     }
 
     // Use whichever token is available for reads; use admin token for writes
-    const readToken = (typeof publicToken === "string" && publicToken) ? publicToken : adminToken;
+    const readToken: string = (typeof publicToken === "string" && publicToken) ? publicToken : adminToken;
 
-    const readHeaders = {
+    const readHeaders: Record<string, string> = {
       "X-Company-Login": company,
       "X-Token": readToken,
       "X-User-Token": readToken,
     };
 
-    const adminHeaders = {
+    const adminHeaders: Record<string, string> = {
       "X-Company-Login": company,
       "X-Token": adminToken,
       "X-User-Token": adminToken,
     };
 
-    // ── Load services and providers ────────────────────────────────────────
-    // Use BASE_URL (not /admin/) for read operations — this is the working pattern
+    // ── Load services and providers ──────────────────────────────────────
     const [servicesRaw, providersRaw] = await Promise.all([
       sbRPC(BASE_URL, "getEventList", [], readHeaders),
       sbRPC(BASE_URL, "getUnitList", [], readHeaders),
     ]);
 
-    const services  = asArrayMap(servicesRaw);
-    const providers = asArrayMap(providersRaw);
+    const services: any[] = asArrayMap(servicesRaw);
+    const providers: any[] = asArrayMap(providersRaw);
 
-    const bookingsCreated = [];
-    const errors = [];
-    const debug = [];
+    const bookingsCreated: any[] = [];
+    const errors: string[] = [];
+    const debug: any[] = [];
 
-    // ── Process each treatment slot ────────────────────────────────────────
+    // ── Process each treatment slot ──────────────────────────────────────
     for (const rawItem of intake.selectedTreatments) {
-      let entry = {};
+      let entry: any = {};
       if (typeof rawItem === "string") {
-        try { entry = JSON.parse(rawItem); } catch { entry = { serviceName: rawItem }; }
+        try {
+          entry = JSON.parse(rawItem);
+        } catch {
+          entry = { serviceName: rawItem };
+        }
       } else if (typeof rawItem === "object" && rawItem) {
         entry = rawItem;
       }
 
-      const entryName       = clean(entry?.serviceName || entry?.name || "Unknown treatment");
-      const entryGuestName  = clean(entry?.guestName || "") || guestName;
-      const entryGuestEmail = clean(entry?.email || guestEmail).toLowerCase();
-      const entryGuestPhone = clean(entry?.phone || guestPhone);
+      const entryName: string = clean(entry?.serviceName || entry?.name || "Unknown treatment");
+      const entryGuestName: string = clean(entry?.guestName || "") || guestName;
+      const entryGuestEmail: string = clean(entry?.email || guestEmail).toLowerCase();
+      const entryGuestPhone: string = clean(entry?.phone || guestPhone);
 
-      // ── Validate date and time are present ────────────────────────────
-      const requestedDate = clean(entry?.date || "");
+      // ── Validate date and time are present ──────────────────────────
+      const requestedDate: string = clean(entry?.date || "");
       if (!requestedDate || !/^\d{4}-\d{2}-\d{2}$/.test(requestedDate)) {
         errors.push(`"${entryName}" needs a date (YYYY-MM-DD). Edit the record and add a date to this treatment slot.`);
         continue;
       }
 
-      const requestedTime = normalizeTime(entry?.time || "");
+      const requestedTime: string = normalizeTime(entry?.time || "");
       if (!requestedTime) {
         errors.push(`"${entryName}" needs a start time. Edit the record and add a time to this treatment slot.`);
         continue;
       }
 
-      // ── Match service by ID then by name ──────────────────────────────
-      const requestedSimplybookId = clean(entry?.simplybookServiceId || "");
-      const requestedServiceId    = clean(entry?.serviceId || entry?.id || "");
-      const requestedServiceName  = clean(entry?.serviceName || entry?.name || "");
+      // ── Match service by ID then by name ────────────────────────────
+      const requestedSimplybookId: string = clean(entry?.simplybookServiceId || "");
+      const requestedServiceId: string = clean(entry?.serviceId || entry?.id || "");
+      const requestedServiceName: string = clean(entry?.serviceName || entry?.name || "");
 
-      let svc =
+      let svc: any =
         // 1. Direct SimplyBook ID match (most reliable — set by live availability picker)
-        (requestedSimplybookId && services.find(s => String(s.id) === requestedSimplybookId)) ||
+        (requestedSimplybookId && services.find((s: any) => String(s.id) === requestedSimplybookId)) ||
         // 2. Local service ID match
-        (requestedServiceId && services.find(s => String(s.id) === requestedServiceId)) ||
+        (requestedServiceId && services.find((s: any) => String(s.id) === requestedServiceId)) ||
         // 3. Exact name match
-        services.find(s => clean(s.name).toLowerCase() === requestedServiceName.toLowerCase()) ||
+        services.find((s: any) => clean(s.name).toLowerCase() === requestedServiceName.toLowerCase()) ||
         // 4. Fuzzy name match
-        services.find(s => {
+        services.find((s: any) => {
           const sn = clean(s.name).toLowerCase();
           const rn = requestedServiceName.toLowerCase();
           return sn && rn && (sn.includes(rn) || rn.includes(sn));
@@ -227,42 +240,50 @@ Deno.serve(async (req) => {
       if (!svc) {
         errors.push(
           `"${requestedServiceName || requestedServiceId}" not found in SimplyBook. ` +
-          `Available services: ${services.map(s => s.name).join(", ")}`
+          `Available services: ${services.map((s: any) => s.name).join(", ")}`,
         );
-        debug.push({ stage: "service_not_found", requestedServiceId, requestedServiceName, availableServices: services.map(s => ({ id: s.id, name: s.name })) });
+        debug.push({
+          stage: "service_not_found",
+          requestedServiceId,
+          requestedServiceName,
+          availableServices: services.map((s: any) => ({ id: s.id, name: s.name })),
+        });
         continue;
       }
 
-      // ── Match provider (optional) ──────────────────────────────────────
-      const requestedProviderName = clean(entry?.staffName || intake?.therapistAssigned || "");
-      let unitId = null;
+      // ── Match provider (optional) ────────────────────────────────────
+      const requestedProviderName: string = clean(entry?.staffName || intake?.therapistAssigned || "");
+      let unitId: string | null = null;
 
       if (requestedProviderName) {
-        const providerMatch = providers.find(p =>
+        const providerMatch = providers.find((p: any) =>
           clean(p.name).toLowerCase() === requestedProviderName.toLowerCase() ||
           clean(p.name).toLowerCase().includes(requestedProviderName.toLowerCase())
         );
-        if (providerMatch) unitId = String(providerMatch.id);
+        if (providerMatch) {
+          unitId = String(providerMatch.id);
+        }
       }
       // If no provider match, unitId stays null — SimplyBook will auto-assign
 
-      // ── Create or find client ─────────────────────────────────────────
-      const clientPayload = { name: entryGuestName };
+      // ── Create or find client ───────────────────────────────────────
+      const clientPayload: Record<string, string> = { name: entryGuestName };
       if (entryGuestEmail) clientPayload.email = entryGuestEmail;
       if (entryGuestPhone) clientPayload.phone = entryGuestPhone;
 
-      let clientId = null;
+      let clientId: number | null = null;
       try {
         // addClient is a write operation — use ADMIN_URL
-        const addClientResult = await sbRPC(ADMIN_URL, "addClient", [clientPayload, false], adminHeaders);
-        if (typeof addClientResult === "number") {
-          clientId = addClientResult;
-        } else if (addClientResult && typeof addClientResult === "object") {
-          clientId = Number(addClientResult.id || addClientResult.client_id || 0) || null;
-        } else if (typeof addClientResult === "string" && !isNaN(Number(addClientResult))) {
-          clientId = Number(addClientResult);
-        }
-      } catch (e) {
+        const addClientRaw: any = await sbRPC(ADMIN_URL, "addClient", [clientPayload, false], adminHeaders);
+        console.log("addClient raw response:", JSON.stringify(addClientRaw));
+        clientId =
+          addClientRaw?.id ||
+          addClientRaw?.client_id ||
+          addClientRaw?.data?.id ||
+          (typeof addClientRaw === "number" ? addClientRaw : null) ||
+          (typeof addClientRaw === "string" && !isNaN(Number(addClientRaw)) ? Number(addClientRaw) : null);
+        if (clientId) clientId = Number(clientId);
+      } catch (e: any) {
         errors.push(`Could not create client for "${entryName}": ${e.message}`);
         debug.push({ stage: "add_client_failed", clientPayload, error: e.message });
         continue;
@@ -273,10 +294,10 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // ── Book the treatment ────────────────────────────────────────────
-      const durationMinutes = Number(entry?.duration || svc?.duration || svc?.duration_minutes || 60);
-      const startTime = normalizeTime(requestedTime);
-      const endTime   = addMinutesToTime(startTime, durationMinutes);
+      // ── Book the treatment ──────────────────────────────────────────
+      const durationMinutes: number = Number(entry?.duration || svc?.duration || svc?.duration_minutes || 60);
+      const startTime: string = normalizeTime(requestedTime);
+      const endTime: string = addMinutesToTime(startTime, durationMinutes);
 
       const additional = {
         predefined: {
@@ -286,7 +307,7 @@ Deno.serve(async (req) => {
       };
 
       // book signature: (eventId, unitId, clientId, startDate, startTime, endDate, endTime, count, additional)
-      const bookPayload = [
+      const bookPayload: any[] = [
         Number(svc.id),
         unitId ? Number(unitId) : null,
         Number(clientId),
@@ -298,25 +319,35 @@ Deno.serve(async (req) => {
         additional,
       ];
 
-      let bookingResult = null;
+      let bookingResult: any = null;
       try {
         // book is a write operation — use ADMIN_URL
         bookingResult = await sbRPC(ADMIN_URL, "book", bookPayload, adminHeaders);
-      } catch (e) {
+      } catch (e: any) {
         errors.push(`Booking failed for "${entryName}" on ${requestedDate} at ${startTime}: ${e.message}`);
-        debug.push({ stage: "book_failed", serviceId: svc.id, unitId, clientId, requestedDate, startTime, endTime, error: e.message });
+        debug.push({
+          stage: "book_failed",
+          serviceId: svc.id,
+          unitId,
+          clientId,
+          requestedDate,
+          startTime,
+          endTime,
+          error: e.message,
+        });
         continue;
       }
 
       // Extract booking ID from various response shapes SimplyBook may return
-      const bookingObj = Array.isArray(bookingResult?.bookings)
+      const bookingObj: any = Array.isArray(bookingResult?.bookings)
         ? bookingResult.bookings[0]
         : bookingResult;
 
-      const bookingId = String(
+      const bookingId: string = String(
         bookingObj?.id ||
         bookingObj?.booking_id ||
-        bookingResult?.id || ""
+        bookingResult?.id ||
+        "",
       );
 
       if (!bookingId) {
@@ -325,9 +356,9 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const bookingHash = String(bookingObj?.hash || bookingObj?.booking_hash || "");
+      const bookingHash: string = String(bookingObj?.hash || bookingObj?.booking_hash || "");
 
-      // ── Save to SpaBooking entity ──────────────────────────────────────
+      // ── Save to SpaBooking entity ────────────────────────────────────
       const spaPayload = {
         source: "simplybook",
         simplybookBookingId: bookingId,
@@ -337,7 +368,7 @@ Deno.serve(async (req) => {
         phone: entryGuestPhone,
         serviceName: clean(svc.name) || requestedServiceName,
         service: String(svc.id),
-        staffName: unitId ? clean(providers.find(p => String(p.id) === unitId)?.name || "") : "",
+        staffName: unitId ? clean(providers.find((p: any) => String(p.id) === unitId)?.name || "") : "",
         staff: unitId || "",
         startAt: `${requestedDate}T${startTime}`,
         durationMinutes,
@@ -366,7 +397,15 @@ Deno.serve(async (req) => {
         clientId,
       });
 
-      debug.push({ stage: "booking_created", bookingId, serviceId: svc.id, unitId, clientId, requestedDate, startTime });
+      debug.push({
+        stage: "booking_created",
+        bookingId,
+        serviceId: svc.id,
+        unitId,
+        clientId,
+        requestedDate,
+        startTime,
+      });
     }
 
     return Response.json({
@@ -380,8 +419,7 @@ Deno.serve(async (req) => {
           : "No bookings created",
       debug,
     });
-
-  } catch (e) {
+  } catch (e: any) {
     return Response.json({
       success: false,
       bookings: [],
