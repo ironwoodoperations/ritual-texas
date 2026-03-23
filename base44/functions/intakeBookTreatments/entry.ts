@@ -259,6 +259,8 @@ Deno.serve(async (req) => {
           clientId = addClientResult;
         } else if (addClientResult && typeof addClientResult === "object") {
           clientId = Number(addClientResult.id || addClientResult.client_id || 0) || null;
+        } else if (typeof addClientResult === "string" && !isNaN(Number(addClientResult))) {
+          clientId = Number(addClientResult);
         }
       } catch (e) {
         errors.push(`Could not create client for "${entryName}": ${e.message}`);

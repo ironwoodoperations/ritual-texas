@@ -371,18 +371,15 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
                 const hasBookableEntries = sbEntries.some(e => e.simplybookServiceId || e.serviceId);
                 const alreadyBooked = completed.BookSimplyBook || record.treatmentsBooked;
                 return (
-                  <>
-                    <button
-                      disabled={true}
-                      title="SimplyBook booking temporarily disabled"
-                      className="flex items-center justify-center gap-1.5 py-2 rounded-xl border border-[rgb(210,205,200)] text-xs font-medium text-[rgb(180,170,160)] bg-[rgb(245,243,240)] opacity-60 cursor-not-allowed line-through"
-                    >
-                      🧘 Book SimplyBook
-                    </button>
-                    <a href="https://simplybook.me" target="_blank" rel="noopener noreferrer" className="text-center text-[10px] text-[rgb(150,150,150)] underline hover:text-[rgb(107,85,64)] transition-colors col-span-1">
-                      Open SimplyBook admin manually ↗
-                    </a>
-                  </>
+                  <button
+                    onClick={() => runAction("BookSimplyBook")}
+                    disabled={!!actioning || alreadyBooked || !hasBookableEntries}
+                    title={!hasBookableEntries ? "No bookable treatments — add treatments with SimplyBook IDs first" : alreadyBooked ? "Treatments already booked" : "Book treatments in SimplyBook"}
+                    className={`flex items-center justify-center gap-1.5 py-2 rounded-xl border text-xs font-medium transition-all disabled:opacity-40 ${alreadyBooked ? "border-green-300 bg-green-50 text-green-700" : "border-[rgb(235,225,213)] text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]"}`}
+                  >
+                    {actioning === "BookSimplyBook" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : alreadyBooked ? <CheckCircle2 className="w-3.5 h-3.5" /> : null}
+                    🧘 Book SimplyBook
+                  </button>
                 );
               })()}
               {record.crmSynced || completed.AddToCRM ? (
