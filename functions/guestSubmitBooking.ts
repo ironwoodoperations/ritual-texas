@@ -69,40 +69,28 @@ async function bookSimplyBookTreatment(
 ): Promise<{ ok: boolean; bookingId?: string; error?: string }> {
   const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
   const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
-  const userLogin = Deno.env.get("SIMPLYBOOK_USER_LOGIN") || Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
-  const userPass = Deno.env.get("SIMPLYBOOK_USER_PASSWORD") || Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
-  const secretKey = Deno.env.get("SIMPLYBOOK_SECRET_KEY") || "";
+  const userLogin = Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
+  const userPassword = Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
 
   if (!company) {
     return { ok: false, error: "SimplyBook credentials not configured (no company)" };
   }
-  if (!userLogin || !userPass) {
-    return { ok: false, error: "SimplyBook admin credentials not configured (no login/password)" };
+  if (!userLogin || !userPassword) {
+    return { ok: false, error: "SimplyBook admin credentials not configured (no SIMPLYBOOK_ADMIN_LOGIN/SIMPLYBOOK_ADMIN_PASSWORD)" };
   }
 
   const LOGIN_URL = "https://user-api.simplybook.me/login";
   const BASE_URL = "https://user-api.simplybook.me";
   const ADMIN_URL = "https://user-api.simplybook.me/admin/";
 
-  // 1. Authenticate — try getUserToken with secretKey (4 params), fall back to 3 params
+  // 1. Authenticate — match simplybookCallback.ts: getUserToken with 3 params (no secretKey)
   let adminToken: string | null = null;
 
-  if (secretKey) {
-    try {
-      const result = await sbRPC(LOGIN_URL, "getUserToken", [company, userLogin, userPass, secretKey]);
-      if (result && typeof result === "string") adminToken = result;
-    } catch (e: any) {
-      console.log("[SimplyBook] getUserToken with secretKey failed:", e.message);
-    }
-  }
-
-  if (!adminToken) {
-    try {
-      const result = await sbRPC(LOGIN_URL, "getUserToken", [company, userLogin, userPass]);
-      if (result && typeof result === "string") adminToken = result;
-    } catch (e: any) {
-      console.log("[SimplyBook] getUserToken without secretKey failed:", e.message);
-    }
+  try {
+    const result = await sbRPC(LOGIN_URL, "getUserToken", [company, userLogin, userPassword]);
+    if (result && typeof result === "string") adminToken = result;
+  } catch (e: any) {
+    console.log("[SimplyBook] getUserToken failed:", e.message);
   }
 
   if (!adminToken) {
