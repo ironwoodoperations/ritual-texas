@@ -329,21 +329,21 @@ export default function AdminSpaSchedule() {
             className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors text-left"
           >
             <div style={{ fontWeight: '600', fontSize: '15px', marginBottom: '4px', color: '#2d2d2d' }}>Bishop</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>Click to text tip link</div>
+            <div style={{ fontSize: '12px', color: '#666' }}>Send Gratuity Link For:</div>
           </button>
           <button 
             onClick={() => setProviderTipModal({ name: 'Whitney', link: 'https://square.link/u/6A73E4eT' })}
             className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors text-left"
           >
             <div style={{ fontWeight: '600', fontSize: '15px', marginBottom: '4px', color: '#2d2d2d' }}>Whitney</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>Click to text tip link</div>
+            <div style={{ fontSize: '12px', color: '#666' }}>Send Gratuity Link For:</div>
           </button>
           <button 
             onClick={() => setProviderTipModal({ name: 'Tanita', link: 'https://square.link/u/PVPH7ZFj' })}
             className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors text-left"
           >
             <div style={{ fontWeight: '600', fontSize: '15px', marginBottom: '4px', color: '#2d2d2d' }}>Tanita</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>Click to text tip link</div>
+            <div style={{ fontSize: '12px', color: '#666' }}>Send Gratuity Link For:</div>
           </button>
         </div>
       </div>
@@ -407,7 +407,7 @@ export default function AdminSpaSchedule() {
       <Dialog open={!!providerTipModal} onOpenChange={() => { setProviderTipModal(null); setProviderTipPhone(''); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-[rgb(107,85,64)]">Send Tip Link to {providerTipModal?.name}</DialogTitle>
+            <DialogTitle className="text-[rgb(107,85,64)]">Send Gratuity Link For: {providerTipModal?.name}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-2">
             <div>
