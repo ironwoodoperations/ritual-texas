@@ -76,8 +76,23 @@ export default function InvoicePreviewModal({ intake, onClose, onConfirmSend, se
     totalTaxAmount += amount;
   });
 
+  // Discount
+  const discountType = intake.discountType || "none";
+  const discountValue = Number(intake.discountValue || 0);
+  let discountAmount = 0;
+  let discountLabel = "";
+  if (discountType !== "none" && discountValue > 0) {
+    const subtotalBeforeDiscount = roomAmount + treatmentSubtotal;
+    if (discountType === "percent") {
+      discountAmount = Math.round(subtotalBeforeDiscount * discountValue) / 100;
+    } else if (discountType === "dollar") {
+      discountAmount = discountValue;
+    }
+    discountLabel = (intake.discountLabel || "").trim() || (discountType === "percent" ? `Discount (${discountValue}%)` : `Discount (-$${discountValue.toFixed(2)})`);
+  }
+
   const subtotal = roomAmount + treatmentSubtotal;
-  const total = subtotal + totalTaxAmount;
+  const total = subtotal - discountAmount + totalTaxAmount;
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -124,6 +139,14 @@ export default function InvoicePreviewModal({ intake, onClose, onConfirmSend, se
               </div>
             );
           })}
+
+          {/* Discount */}
+          {discountAmount > 0 && (
+            <div className="flex justify-between text-sm py-2 border-b border-[rgb(235,225,213)]">
+              <span className="text-green-700 flex-1 mr-4 font-medium">{discountLabel}</span>
+              <span className="text-green-700 shrink-0 font-medium">-{fmtMoney(discountAmount)}</span>
+            </div>
+          )}
 
           {/* Taxes */}
           {taxLines.map((tl, i) => (

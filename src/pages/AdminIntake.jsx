@@ -262,10 +262,11 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
     setInvoiceResult(null);
     try {
       // Auto-save first
-      await onSave(buildPayload());
+      const payload = buildPayload();
+      await onSave(payload);
       setHasChanges(false);
-      // Create draft
-      const draftRes = await base44.functions.invoke("intakeCreateInvoiceDraft", { intakeId: initial.id });
+      // Create draft — pass full intake so discount/taxes are applied
+      const draftRes = await base44.functions.invoke("intakeCreateInvoiceDraft", { intake: { ...payload, id: initial.id } });
       if (draftRes?.data?.error) throw new Error(draftRes.data.error);
       // Publish
       const pubRes = await base44.functions.invoke("intakePublishInvoice", { invoiceId: draftRes.data.invoiceId });
