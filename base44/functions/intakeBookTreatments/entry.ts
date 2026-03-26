@@ -128,7 +128,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const guestPhone: string = clean(intake?.phone || intake?.guestPhone || "");
 
     if (!guestName) {
-      return Response.json({ error: "Guest name is required" }, { status: 400 });
+      return Response.json({ error: "Cannot book SimplyBook: intake is missing guest name" }, { status: 400 });
+    }
+    if (!guestEmail) {
+      return Response.json({ error: "Cannot book SimplyBook: intake is missing guest email" }, { status: 400 });
     }
 
     // ── Authenticate ─────────────────────────────────────────────────────
