@@ -75,6 +75,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const body = await req.json();
     const intake = body?.intake || body || {};
 
+    // ── DEBUG: log raw intake to trace guest field values ─────────────────
+    console.log('[DEBUG] intakeBookTreatments intake received:', JSON.stringify(intake));
+    console.log('[DEBUG] guestName:', intake.guestName, '| email:', intake.email, '| phone:', intake.phone);
+
     // ── Credentials ──────────────────────────────────────────────────────
     const company: string = (Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "").trim();
     const apiKey: string = (Deno.env.get("SIMPLYBOOK_API_KEY") || "").trim();
@@ -123,15 +127,18 @@ Deno.serve(async (req: Request): Promise<Response> => {
       return Response.json({ error: "No treatments selected" }, { status: 400 });
     }
 
-    const guestName: string = clean(intake?.guestName || intake?.name || "");
-    const guestEmail: string = clean(intake?.email || intake?.guestEmail || "").toLowerCase();
-    const guestPhone: string = clean(intake?.phone || intake?.guestPhone || "");
+    // Primary fields from HotelTreatmentIntake entity — no placeholder fallbacks
+    const guestName: string = clean(intake?.guestName || "");
+    const guestEmail: string = clean(intake?.email || "").toLowerCase();
+    const guestPhone: string = clean(intake?.phone || "");
+
+    console.log(`[DEBUG] Resolved guestName: "${guestName}" | guestEmail: "${guestEmail}" | guestPhone: "${guestPhone}"`);
 
     if (!guestName) {
-      return Response.json({ error: "Cannot book SimplyBook: intake is missing guest name" }, { status: 400 });
+      return Response.json({ error: "Cannot book SimplyBook: intake is missing guestName field" }, { status: 400 });
     }
     if (!guestEmail) {
-      return Response.json({ error: "Cannot book SimplyBook: intake is missing guest email" }, { status: 400 });
+      return Response.json({ error: "Cannot book SimplyBook: intake is missing email field" }, { status: 400 });
     }
 
     console.log(`[SimplyBook] Booking for: ${guestName} <${guestEmail}> phone: ${guestPhone || "(none)"}`);
