@@ -371,15 +371,17 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
                 {(missingEmail || missingDates) && <AlertTriangle className="w-3 h-3 text-amber-500" />}
                 View & Send Quote
               </button>
-              <button
-                onClick={() => runAction("BookHotel")}
-                disabled={missingDates || missingEmail || !!actioning}
-                title={missingEmail ? "Guest email required" : missingDates ? "Dates required" : ""}
-                className={`flex items-center justify-center gap-1.5 py-2 rounded-xl border text-xs font-medium transition-all disabled:opacity-40 ${completed.BookHotel ? "border-green-300 bg-green-50 text-green-700" : "border-[rgb(235,225,213)] text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]"}`}
-              >
-                {actioning === "BookHotel" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : completed.BookHotel ? <CheckCircle2 className="w-3.5 h-3.5" /> : null}
-                🏨 Book Cloudbeds
-              </button>
+              {record.bookingType !== 'spa_only' && (
+                <button
+                  onClick={() => runAction("BookHotel")}
+                  disabled={missingDates || missingEmail || !!actioning}
+                  title={missingEmail ? "Guest email required" : missingDates ? "Dates required" : ""}
+                  className={`flex items-center justify-center gap-1.5 py-2 rounded-xl border text-xs font-medium transition-all disabled:opacity-40 ${completed.BookHotel ? "border-green-300 bg-green-50 text-green-700" : "border-[rgb(235,225,213)] text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]"}`}
+                >
+                  {actioning === "BookHotel" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : completed.BookHotel ? <CheckCircle2 className="w-3.5 h-3.5" /> : null}
+                  🏨 Book Cloudbeds
+                </button>
+              )}
               {(() => {
                 const sbEntries = parseTreatmentEntries(record.selectedTreatments || []);
                 const hasBookableEntries = sbEntries.some(e => e.simplybookServiceId || e.serviceId);

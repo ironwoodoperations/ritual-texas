@@ -381,7 +381,9 @@ export default function GuestBookNow() {
   }
 
   // ── Validation helpers ──────────────────────────────────────────────────
-  const step1Valid = checkIn && checkOut && checkOut > checkIn && guestNames.every(n => n.trim());
+  const step1Valid = bookingType === 'spa_only'
+    ? checkIn && guestNames.every(n => n.trim())
+    : checkIn && checkOut && checkOut > checkIn && guestNames.every(n => n.trim());
   const step2Valid = !!selectedRoom;
   const step4Valid = guestName.trim() && email.trim() && phone.trim();
 
@@ -455,16 +457,23 @@ export default function GuestBookNow() {
 
             <h2 style={h2Style}>When would you like to visit?</h2>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-              <div>
-                <label style={labelStyle}>Check-In</label>
-                <input type="date" value={checkIn} min={today} onChange={e => setCheckIn(e.target.value)} style={inputStyle} />
+            {bookingType === 'spa_only' ? (
+              <div style={{ marginBottom: '20px' }}>
+                <label style={labelStyle}>Treatment Date</label>
+                <input type="date" value={checkIn} min={today} onChange={e => { setCheckIn(e.target.value); setCheckOut(e.target.value); }} style={inputStyle} />
               </div>
-              <div>
-                <label style={labelStyle}>Check-Out</label>
-                <input type="date" value={checkOut} min={checkIn || today} onChange={e => setCheckOut(e.target.value)} style={inputStyle} />
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                <div>
+                  <label style={labelStyle}>Check-In</label>
+                  <input type="date" value={checkIn} min={today} onChange={e => setCheckIn(e.target.value)} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Check-Out</label>
+                  <input type="date" value={checkOut} min={checkIn || today} onChange={e => setCheckOut(e.target.value)} style={inputStyle} />
+                </div>
               </div>
-            </div>
+            )}
 
             <div style={{ marginBottom: '24px' }}>
               <label style={labelStyle}>Number of Guests</label>
@@ -504,7 +513,7 @@ export default function GuestBookNow() {
               ))}
             </div>
 
-            {checkIn && checkOut && checkOut <= checkIn && (
+            {bookingType !== 'spa_only' && checkIn && checkOut && checkOut <= checkIn && (
               <p style={{ color: 'rgb(180,100,80)', fontSize: '13px', marginBottom: '16px' }}>Check-out date must be after check-in.</p>
             )}
 

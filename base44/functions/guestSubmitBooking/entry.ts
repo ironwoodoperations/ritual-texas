@@ -451,6 +451,7 @@ Deno.serve(async (req) => {
       treatmentsRequested: payload.specialRequests || "",
       hotelNotes: payload.specialRequests || "",
       howDidYouHearAboutUs: payload.howDidYouHearAboutUs || "",
+      bookingType,
       bookingStatus: hasCallToBook ? "new_inquiry" : "pending",
       internalNotes: `[Guest Online Booking (${bookingType}) — ${new Date().toISOString()}]\nSource: GuestBookNow page`,
       preferredContactMethod: "email",
