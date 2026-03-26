@@ -217,6 +217,68 @@ async function bookSimplyBookTreatment(
   return { ok: true, bookingId };
 }
 
+// ── Cloudbeds availability re-check (submission-time gate) ──────────────────
+
+async function checkCloudbedsRoomAvailable(base44: any, roomTypeId: string, startDate: string, endDate: string): Promise<{ available: boolean; error?: string }> {
+  try {
+    const rows = await base44.asServiceRole.entities.SiteSettings.filter({ key: 'CLOUDBEDS_ACCESS_TOKEN' });
+    let accessToken = rows?.[0]?.value || null;
+    const propertyId = Deno.env.get('CLOUDBEDS_PROPERTY_ID');
+
+    if (!accessToken || !propertyId) {
+      // Can't verify — let the booking proceed (Cloudbeds itself will reject if unavailable)
+      console.log("[Availability] Cloudbeds not configured — skipping pre-check");
+      return { available: true };
+    }
+
+    const doFetch = async (token: string) => {
+      const params = new URLSearchParams({ propertyID: propertyId, startDate, endDate });
+      const resp = await fetch(`https://hotels.cloudbeds.com/api/v1.1/getAvailableRoomTypes?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return { ok: resp.ok, status: resp.status, json: await resp.json() };
+    };
+
+    let result = await doFetch(accessToken);
+
+    // Refresh token if expired
+    if (!result.ok && (result.status === 401 || result.status === 403)) {
+      try {
+        const refreshRows = await base44.asServiceRole.entities.SiteSettings.filter({ key: 'CLOUDBEDS_REFRESH_TOKEN' });
+        const refreshToken = refreshRows?.[0]?.value;
+        if (!refreshToken) return { available: true }; // can't refresh, let it pass
+        const clientId = Deno.env.get('CLOUDBEDS_CLIENT_ID');
+        const clientSecret = Deno.env.get('CLOUDBEDS_CLIENT_SECRET');
+        const form = new URLSearchParams({ grant_type: 'refresh_token', client_id: clientId!, client_secret: clientSecret!, refresh_token: refreshToken });
+        const tokenResp = await fetch('https://hotels.cloudbeds.com/api/v1.1/access_token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: form.toString() });
+        const tokenJson = await tokenResp.json();
+        const newToken = tokenJson?.access_token;
+        if (newToken) {
+          accessToken = newToken;
+          result = await doFetch(newToken);
+        }
+      } catch {
+        return { available: true }; // refresh failed, let Cloudbeds reject at booking time
+      }
+    }
+
+    if (!result.json?.success) {
+      console.log("[Availability] Cloudbeds check failed:", result.json?.message);
+      return { available: true }; // API error — don't block, Cloudbeds will reject at booking
+    }
+
+    const dataArr = result.json?.data || [];
+    const allRooms = dataArr.flatMap((p: any) => p.propertyRooms || []);
+    const isAvailable = allRooms.some((r: any) => String(r.roomTypeID) === String(roomTypeId));
+
+    console.log(`[Availability] Room ${roomTypeId} available: ${isAvailable} (${allRooms.length} rooms returned for ${startDate}–${endDate})`);
+    return { available: isAvailable };
+  } catch (e: any) {
+    console.log("[Availability] Pre-check error (non-fatal):", e.message);
+    return { available: true }; // unexpected error — don't block guest, Cloudbeds will catch it
+  }
+}
+
 // ── Orchestration sub-steps ─────────────────────────────────────────────────
 
 async function bookRoom(base44: any, payload: Record<string, any>) {
@@ -361,6 +423,17 @@ Deno.serve(async (req) => {
     }
 
     const hasCallToBook = Array.isArray(payload.callToBookTreatments) && payload.callToBookTreatments.length > 0;
+
+    // ── Availability re-check at submission time (hotel bookings only) ────
+    if (bookingType !== 'spa_only' && roomTypeId) {
+      const avail = await checkCloudbedsRoomAvailable(base44, roomTypeId, checkIn, checkOut);
+      if (!avail.available) {
+        return Response.json({
+          success: false,
+          error: "Sorry, that room is no longer available for your selected dates. Please go back and choose different dates or a different room.",
+        }, { status: 409 });
+      }
+    }
 
     // ── Step 1: Create HotelTreatmentIntake record ────────────────────────
     const intakePayload: Record<string, any> = {

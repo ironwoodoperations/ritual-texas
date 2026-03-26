@@ -162,10 +162,6 @@ Deno.serve(async (req) => {
     await setCache(base44, cacheKey, "cloudbeds", "availability", finalResult, 5); // 5 min TTL
     return Response.json(finalResult);
 
-    if (!result.json?.success) {
-      return Response.json({ success: false, error: result.json?.message || 'Cloudbeds API error', raw: result.json });
-    }
-
 
   } catch (e) {
     return Response.json({ success: false, error: String(e?.message || e) }, { status: 500 });
