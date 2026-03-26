@@ -123,7 +123,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       return Response.json({ error: "No treatments selected" }, { status: 400 });
     }
 
-    const guestName: string = clean(intake?.guestName || intake?.name);
+    const guestName: string = clean(intake?.guestName || intake?.name || "");
     const guestEmail: string = clean(intake?.email || intake?.guestEmail || "").toLowerCase();
     const guestPhone: string = clean(intake?.phone || intake?.guestPhone || "");
 
@@ -133,6 +133,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
     if (!guestEmail) {
       return Response.json({ error: "Cannot book SimplyBook: intake is missing guest email" }, { status: 400 });
     }
+
+    console.log(`[SimplyBook] Booking for: ${guestName} <${guestEmail}> phone: ${guestPhone || "(none)"}`);
 
     // ── Authenticate ─────────────────────────────────────────────────────
     const LOGIN_URL = "https://user-api.simplybook.me/login";
@@ -217,10 +219,17 @@ Deno.serve(async (req: Request): Promise<Response> => {
       const clientList: any[] = Array.isArray(clientListRaw) ? clientListRaw : asArrayMap(clientListRaw);
 
       if (clientList.length > 0) {
-        // Existing client — reuse their ID
+        // Existing client — reuse their ID, but update name/phone in case stale
         const raw = clientList[0]?.id ?? clientList[0]?.client_id;
         sharedClientId = typeof raw === "string" && !isNaN(Number(raw)) ? Number(raw) : Number(raw);
-        console.log(`[SimplyBook] Using existing client ID: ${sharedClientId} for email: ${guestEmail}`);
+        console.log(`[SimplyBook] Using existing client ID: ${sharedClientId} for email: ${guestEmail} — updating name to: ${guestName}`);
+        try {
+          const updatePayload: Record<string, string> = { name: guestName };
+          if (guestPhone) updatePayload.phone = guestPhone;
+          await sbRPC(ADMIN_URL, "editClient", [sharedClientId, updatePayload], adminHeaders);
+        } catch {
+          // Non-fatal — name update failed but we can still book
+        }
       } else {
         // New client — create once
         const clientPayload: Record<string, string> = { name: guestName };
