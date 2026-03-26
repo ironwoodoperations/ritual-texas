@@ -187,6 +187,51 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const errors: string[] = [];
     const debug: any[] = [];
 
+    // ── Find or create SimplyBook client ONCE for the guest ───────────────
+    let sharedClientId: number | null = null;
+    try {
+      const clientListRaw: any = await sbRPC(ADMIN_URL, "getClientList", [0, 1, null, { email: guestEmail }], adminHeaders);
+      const clientList: any[] = Array.isArray(clientListRaw) ? clientListRaw : asArrayMap(clientListRaw);
+
+      if (clientList.length > 0) {
+        // Existing client — reuse their ID
+        const raw = clientList[0]?.id ?? clientList[0]?.client_id;
+        sharedClientId = typeof raw === "string" && !isNaN(Number(raw)) ? Number(raw) : Number(raw);
+        console.log("Found existing SimplyBook client:", sharedClientId);
+      } else {
+        // New client — create once
+        const clientPayload: Record<string, string> = { name: guestName };
+        if (guestEmail) clientPayload.email = guestEmail;
+        if (guestPhone) clientPayload.phone = guestPhone;
+        const addClientRaw: any = await sbRPC(ADMIN_URL, "addClient", [clientPayload, false], adminHeaders);
+        console.log("addClient raw response:", JSON.stringify(addClientRaw));
+        const raw =
+          addClientRaw?.id ||
+          addClientRaw?.client_id ||
+          addClientRaw?.data?.id ||
+          (typeof addClientRaw === "number" ? addClientRaw : null) ||
+          (typeof addClientRaw === "string" && !isNaN(Number(addClientRaw)) ? addClientRaw : null);
+        sharedClientId = typeof raw === "string" && !isNaN(Number(raw)) ? Number(raw) : Number(raw);
+        console.log("Created new SimplyBook client:", sharedClientId);
+      }
+    } catch (e: any) {
+      return Response.json({
+        success: false,
+        bookings: [],
+        errors: [`Could not find or create SimplyBook client for "${guestEmail}": ${e.message}`],
+        message: "SimplyBook client setup failed — no bookings were made.",
+      }, { status: 500 });
+    }
+
+    if (!sharedClientId) {
+      return Response.json({
+        success: false,
+        bookings: [],
+        errors: [`No client ID returned for guest "${guestName}" — cannot book without a valid client`],
+        message: "SimplyBook client setup failed — no bookings were made.",
+      }, { status: 500 });
+    }
+
     // ── Process each treatment slot ──────────────────────────────────────
     for (const rawItem of intake.selectedTreatments) {
       let entry: any = {};
@@ -266,33 +311,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
       // If no provider match, unitId stays null — SimplyBook will auto-assign
 
-      // ── Create or find client ───────────────────────────────────────
-      const clientPayload: Record<string, string> = { name: entryGuestName };
-      if (entryGuestEmail) clientPayload.email = entryGuestEmail;
-      if (entryGuestPhone) clientPayload.phone = entryGuestPhone;
-
-      let clientId: number | null = null;
-      try {
-        // addClient is a write operation — use ADMIN_URL
-        const addClientRaw: any = await sbRPC(ADMIN_URL, "addClient", [clientPayload, false], adminHeaders);
-        console.log("addClient raw response:", JSON.stringify(addClientRaw));
-        clientId =
-          addClientRaw?.id ||
-          addClientRaw?.client_id ||
-          addClientRaw?.data?.id ||
-          (typeof addClientRaw === "number" ? addClientRaw : null) ||
-          (typeof addClientRaw === "string" && !isNaN(Number(addClientRaw)) ? Number(addClientRaw) : null);
-        if (clientId) clientId = Number(clientId);
-      } catch (e: any) {
-        errors.push(`Could not create client for "${entryName}": ${e.message}`);
-        debug.push({ stage: "add_client_failed", clientPayload, error: e.message });
-        continue;
-      }
-
-      if (!clientId) {
-        errors.push(`No client ID returned for "${entryName}" — cannot book without a valid client`);
-        continue;
-      }
+      // ── Use the shared client ID resolved before the loop ──────────────
+      const clientId: number = sharedClientId;
 
       // ── Book the treatment ──────────────────────────────────────────
       const durationMinutes: number = Number(entry?.duration || svc?.duration || svc?.duration_minutes || 60);
