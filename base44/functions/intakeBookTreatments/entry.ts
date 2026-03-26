@@ -187,8 +187,28 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const providers: any[] = asArrayMap(providersRaw);
 
     const bookingsCreated: any[] = [];
+    const bookingsFailed: any[] = [];
     const errors: string[] = [];
     const debug: any[] = [];
+
+    // ── Load the intake record to check already-booked treatments ────────
+    const intakeId: string = clean(intake?.id || "");
+    let existingBookedIds: Set<string> = new Set();
+    if (intakeId) {
+      try {
+        const intakeRecord: any = await base44.asServiceRole.entities.HotelTreatmentIntake.get(intakeId);
+        const already: any[] = Array.isArray(intakeRecord?.simplybook_failed_treatments)
+          ? intakeRecord.simplybook_failed_treatments
+          : [];
+        // Build a set of already-confirmed simplybookBookingIds from SpaBooking
+        const confirmedBookings: any[] = await base44.asServiceRole.entities.SpaBooking.filter({ intakeId });
+        confirmedBookings.forEach((b: any) => {
+          if (b.simplybookBookingId) existingBookedIds.add(String(b.simplybookBookingId));
+        });
+      } catch {
+        // Non-fatal — proceed without skip logic
+      }
+    }
 
     // ── Find or create SimplyBook client ONCE for the guest ───────────────
     let sharedClientId: number | null = null;
@@ -249,6 +269,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
 
       const entryName: string = clean(entry?.serviceName || entry?.name || "Unknown treatment");
+
+      // ── Skip if already confirmed in SimplyBook ──────────────────────
+      const existingSimplybookId: string = clean(entry?.simplybookBookingId || entry?.booking_id || "");
+      if (existingSimplybookId && existingBookedIds.has(existingSimplybookId)) {
+        debug.push({ stage: "skipped_already_booked", entryName, simplybookBookingId: existingSimplybookId });
+        continue;
+      }
+
       const entryGuestName: string = clean(entry?.guestName || "") || guestName;
       const entryGuestEmail: string = clean(entry?.email || guestEmail).toLowerCase();
       const entryGuestPhone: string = clean(entry?.phone || guestPhone);
@@ -347,7 +375,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
         // book is a write operation — use ADMIN_URL
         bookingResult = await sbRPC(ADMIN_URL, "book", bookPayload, adminHeaders);
       } catch (e: any) {
-        errors.push(`Booking failed for "${entryName}" on ${requestedDate} at ${startTime}: ${e.message}`);
+        const errMsg = `Booking failed for "${entryName}" on ${requestedDate} at ${startTime}: ${e.message}`;
+        errors.push(errMsg);
+        bookingsFailed.push({ treatmentName: entryName, date: requestedDate, time: startTime, error: e.message });
         debug.push({
           stage: "book_failed",
           serviceId: svc.id,
@@ -431,10 +461,22 @@ Deno.serve(async (req: Request): Promise<Response> => {
       });
     }
 
+    // ── Persist failed treatments back to intake record ──────────────────
+    if (intakeId) {
+      try {
+        await base44.asServiceRole.entities.HotelTreatmentIntake.update(intakeId, {
+          simplybook_failed_treatments: bookingsFailed,
+        });
+      } catch {
+        // Non-fatal
+      }
+    }
+
     return Response.json({
       success: bookingsCreated.length > 0,
       bookings: bookingsCreated,
       errors,
+      failed: bookingsFailed,
       message: bookingsCreated.length > 0
         ? `${bookingsCreated.length} treatment booking${bookingsCreated.length === 1 ? "" : "s"} created in SimplyBook`
         : errors.length > 0
