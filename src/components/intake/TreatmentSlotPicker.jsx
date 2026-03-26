@@ -17,14 +17,14 @@ function fmtSlot(slot) {
 
 // A single "book online" treatment row — local state, date-first, fully chained from SimplyBook
 function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName, allGuestNames = [], allEntries = [] }) {
-  const [date, setDate] = useState(entry.date || "");
+  const [date, setDate] = useState("");
   const [availabilityData, setAvailabilityData] = useState(null);
   const [loadingAvailability, setLoadingAvailability] = useState(false);
   const [availabilityError, setAvailabilityError] = useState(false);
 
-  const [selectedServiceId, setSelectedServiceId] = useState(entry.simplybookServiceId || "");
-  const [selectedProviderId, setSelectedProviderId] = useState(entry.staffId || "");
-  const [selectedTime, setSelectedTime] = useState(entry.time || "");
+  const [selectedServiceId, setSelectedServiceId] = useState("");
+  const [selectedProviderId, setSelectedProviderId] = useState("");
+  const [selectedTime, setSelectedTime] = useState("");
 
   // Fallback mode
   const [fallbackTreatmentId, setFallbackTreatmentId] = useState("");
@@ -152,7 +152,7 @@ function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName
       )}
 
       {/* If already saved, show summary with option to clear */}
-      {isSaved && !date ? (
+      {isSaved && date === "" ? (
         <div className="flex items-center justify-between bg-[rgb(248,244,240)] rounded-lg px-3 py-2">
           <div className="text-xs text-[rgb(107,85,64)] font-medium">
             ✓ {entry.serviceName} · {entry.staffName || "—"} · {entry.date} at {entry.time?.slice(0,5)}
@@ -362,7 +362,7 @@ function CtbRow({ index, entry, treatments, onUpdate, onRemove, guestName, allGu
         <div className="sm:col-span-2">
           <label className={labelCls}>Treatment</label>
           {treatments.length > 0 ? (
-            <select value={entry.id || ""} onChange={e => {
+            <select value={entry.id || treatments.find(t => t.name === entry.name)?.id || ""} onChange={e => {
               const t = treatments.find(t => t.id === e.target.value);
               if (t) onUpdate(index, { ...entry, id: t.id, name: t.name, price: t.price, duration: t.duration_minutes, time: "" });
             }} className={selectCls}>
