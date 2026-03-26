@@ -197,7 +197,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         // Existing client — reuse their ID
         const raw = clientList[0]?.id ?? clientList[0]?.client_id;
         sharedClientId = typeof raw === "string" && !isNaN(Number(raw)) ? Number(raw) : Number(raw);
-        console.log("Found existing SimplyBook client:", sharedClientId);
+        console.log(`[SimplyBook] Using existing client ID: ${sharedClientId} for email: ${guestEmail}`);
       } else {
         // New client — create once
         const clientPayload: Record<string, string> = { name: guestName };
@@ -212,7 +212,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           (typeof addClientRaw === "number" ? addClientRaw : null) ||
           (typeof addClientRaw === "string" && !isNaN(Number(addClientRaw)) ? addClientRaw : null);
         sharedClientId = typeof raw === "string" && !isNaN(Number(raw)) ? Number(raw) : Number(raw);
-        console.log("Created new SimplyBook client:", sharedClientId);
+        console.log(`[SimplyBook] Created new client ID: ${sharedClientId} for email: ${guestEmail}`);
       }
     } catch (e: any) {
       return Response.json({
