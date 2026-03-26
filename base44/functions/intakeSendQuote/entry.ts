@@ -1,6 +1,34 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 import { jsPDF } from 'npm:jspdf@2.5.1';
 
+function fmtTime(t) {
+  if (!t) return '';
+  const [h, m] = String(t).split(':').map(Number);
+  const hour = h % 12 || 12;
+  const ampm = h < 12 ? 'AM' : 'PM';
+  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
+function parseTreatment(item) {
+  try {
+    const obj = typeof item === 'string' ? JSON.parse(item) : item;
+    const name = String(obj.serviceName || obj.name || 'Treatment');
+    const price = Number(obj.price || 0);
+    const date = obj.date || '';
+    const time = fmtTime(obj.time || obj.startTime || '');
+    const guest = String(obj.guestName || '');
+    const staff = String(obj.staffName || '');
+    let label = name;
+    if (guest) label += ` for ${guest}`;
+    if (date) label += ` — ${date}`;
+    if (time) label += ` at ${time}`;
+    if (staff) label += ` with ${staff}`;
+    return { label, price };
+  } catch {
+    return { label: String(item), price: 0 };
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -88,9 +116,11 @@ Deno.serve(async (req) => {
     if (intake.selectedTreatments?.length > 0) {
       sectionTitle('Treatments Requested');
       intake.selectedTreatments.forEach(t => {
+        const { label } = parseTreatment(t);
         doc.setFontSize(10);
-        doc.text(`• ${t}`, margin + 8, y);
-        y += 18;
+        const lines = doc.splitTextToSize(`• ${label}`, W - margin * 2 - 16);
+        doc.text(lines, margin + 8, y);
+        y += lines.length * 14;
       });
       if (intake.treatmentsRequested) {
         y += 4;
