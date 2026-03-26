@@ -31,6 +31,8 @@ Deno.serve(async (req) => {
     const checkIn = clean(intake?.checkInDate);
     const checkOut = clean(intake?.checkOutDate);
 
+    console.log("intakeCreateInvoiceDraft input:", { guestName, guestEmail, checkIn, checkOut, intakeKeys: Object.keys(intake || {}) });
+
     if (!guestName) return Response.json({ error: "Guest name required" }, { status: 400 });
     if (!guestEmail) return Response.json({ error: "Guest email required" }, { status: 400 });
     if (!checkIn || !checkOut) return Response.json({ error: "Check-in and check-out dates required" }, { status: 400 });
@@ -192,6 +194,19 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Log full line items before sending to Square
+    console.log("Square order line items:", JSON.stringify(lineItems, null, 2));
+    console.log("Square customer:", { customerId, guestEmail, guestName });
+
+    // Validate all amounts are integers in cents
+    for (const li of lineItems) {
+      const amt = li.base_price_money?.amount;
+      if (typeof amt !== "number" || !Number.isInteger(amt)) {
+        console.error("INVALID amount_money (must be integer cents):", li);
+        return Response.json({ error: `Line item "${li.name}" has invalid amount: ${amt} (must be integer cents)` }, { status: 400 });
+      }
+    }
+
     // Create order
     const orderResp = await fetch(`${baseUrl}/v2/orders`, {
       method: "POST",
@@ -206,6 +221,10 @@ Deno.serve(async (req) => {
       }),
     });
     const orderData = await orderResp.json();
+    if (!orderResp.ok) {
+      console.error("Square order creation failed:", JSON.stringify(orderData, null, 2));
+      return Response.json({ error: "Square order creation failed", detail: orderData, squareStatus: orderResp.status }, { status: 500 });
+    }
     const orderId = orderData?.order?.id;
     if (!orderId) return Response.json({ error: "Could not create order", detail: orderData }, { status: 500 });
 
@@ -233,6 +252,10 @@ Deno.serve(async (req) => {
       }),
     });
     const invData = await invResp.json();
+    if (!invResp.ok) {
+      console.error("Square invoice creation failed:", JSON.stringify(invData, null, 2));
+      return Response.json({ error: "Square invoice creation failed", detail: invData, squareStatus: invResp.status }, { status: 500 });
+    }
     const invoiceId = invData?.invoice?.id;
     if (!invoiceId) return Response.json({ error: "Could not create invoice", detail: invData }, { status: 500 });
 
@@ -248,6 +271,12 @@ Deno.serve(async (req) => {
       message: `Draft invoice created - ${nights} night${nights === 1 ? "" : "s"} + ${selected.length + ctbSelected.length} treatment${(selected.length + ctbSelected.length) === 1 ? "" : "s"}`,
     });
   } catch (e) {
-    return Response.json({ error: e.message }, { status: 500 });
+    console.error("intakeCreateInvoiceDraft ERROR:", e.message);
+    console.error("Stack:", e.stack);
+    return Response.json({
+      error: e.message,
+      stack: e.stack,
+      detail: e.squareResponse || null,
+    }, { status: 500 });
   }
 });

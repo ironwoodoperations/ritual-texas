@@ -16,8 +16,10 @@ Deno.serve(async (req) => {
     }
 
     const formatDate = (dateString) => {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      if (!dateString) return '—';
+      const dateStr = String(dateString).split('T')[0];
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     };
 
     let emailBody = `
@@ -63,13 +65,14 @@ Deno.serve(async (req) => {
       `;
       
       spaBookings.forEach((booking) => {
-        const startDate = new Date(booking.startAt).toLocaleString('en-US', {
+        // Parse as local date to avoid UTC offset shifting the date back by one day
+        const startDate = booking.startAt ? new Date(booking.startAt).toLocaleString('en-US', {
           weekday: 'short',
           month: 'short',
           day: 'numeric',
           hour: 'numeric',
           minute: '2-digit'
-        });
+        }) : '—';
         
         emailBody += `
         <div style="border-bottom: 1px solid #F0E8DD; padding-bottom: 12px; margin-bottom: 12px;">

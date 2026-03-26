@@ -112,12 +112,24 @@ export default function ItineraryPage() {
     }
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  // Parse a date string (YYYY-MM-DD or ISO) as a LOCAL date — never shifts due to UTC offset
+  const parseDateLocal = (v) => {
+    if (!v) return null;
+    const dateStr = String(v).split('T')[0]; // strip time component
+    const [y, m, d] = dateStr.split('-').map(Number);
+    if (!y || !m || !d) return null;
+    return new Date(y, m - 1, d);
   };
 
+  const formatDate = (dateString) => {
+    const d = parseDateLocal(dateString);
+    if (!d) return '—';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  // For datetime strings (with time component), parse UTC as-is for time display only
   const toDateSafe = (v) => {
+    if (!v) return null;
     const d = new Date(v);
     return isNaN(d.getTime()) ? null : d;
   };
@@ -127,8 +139,11 @@ export default function ItineraryPage() {
     return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   };
 
-  const formatDayHeader = (dateString) => {
-    const d = new Date(dateString);
+  const formatDayHeader = (dt) => {
+    // Accept a Date object directly
+    if (dt instanceof Date) return dt.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    const d = parseDateLocal(dt);
+    if (!d) return '';
     return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
   };
 
@@ -154,16 +169,17 @@ export default function ItineraryPage() {
     const items = [];
 
     if (reservation?.checkIn) {
+      const ciDate = parseDateLocal(reservation.checkIn);
       items.push({
         type: 'hotel',
         label: 'Check-In',
-        dt: toDateSafe(`${reservation.checkIn}T15:00:00`),
+        dt: ciDate ? new Date(ciDate.getFullYear(), ciDate.getMonth(), ciDate.getDate(), 15, 0, 0) : null,
         sub: 'Check-in instructions will be sent by text the morning of arrival.',
       });
       items.push({
         type: 'info',
         label: 'During Your Stay',
-        dt: toDateSafe(`${reservation.checkIn}T15:01:00`),
+        dt: ciDate ? new Date(ciDate.getFullYear(), ciDate.getMonth(), ciDate.getDate(), 15, 1, 0) : null,
         bullets: [
           'Breakfast: 8:00–10:00 AM daily',
           'Sauna & rainshower available anytime during your stay',
@@ -199,10 +215,11 @@ export default function ItineraryPage() {
     });
 
     if (reservation?.checkOut) {
+      const coDate = parseDateLocal(reservation.checkOut);
       items.push({
         type: 'hotel',
         label: 'Check-Out',
-        dt: toDateSafe(`${reservation.checkOut}T11:00:00`),
+        dt: coDate ? new Date(coDate.getFullYear(), coDate.getMonth(), coDate.getDate(), 11, 0, 0) : null,
         sub: 'Thank you for restoring with us. We hope to welcome you back soon.',
       });
     }
@@ -214,7 +231,7 @@ export default function ItineraryPage() {
       const dayKey = item.dt.toDateString();
       let group = grouped.find(g => g.dayKey === dayKey);
       if (!group) {
-        group = { dayKey, dayLabel: formatDayHeader(item.dt.toISOString()), items: [] };
+        group = { dayKey, dayLabel: formatDayHeader(item.dt), items: [] };
         grouped.push(group);
       }
       group.items.push(item);
@@ -435,7 +452,10 @@ export default function ItineraryPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-sm" style={{ color: '#1B1B1B' }}>
-                        {booking.startAt ? new Date(booking.startAt).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—'}
+                        {booking.startAt ? (() => {
+                          const d = toDateSafe(booking.startAt);
+                          return d ? d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
+                        })() : '—'}
                       </div>
                       <div className="text-xs mt-0.5" style={{ color: '#888' }}>
                         {booking.durationMinutes ? `${booking.durationMinutes} min` : ''}
