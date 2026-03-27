@@ -6,7 +6,7 @@ const fieldCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transpar
 const selectCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transparent py-2 text-sm text-[rgb(45,45,45)] focus:outline-none focus:border-[rgb(107,85,64)] transition-colors cursor-pointer";
 const labelCls = "block text-[10px] font-semibold tracking-widest text-[rgb(150,130,110)] uppercase mb-0.5";
 
-const THERAPISTS = ["Whitney", "Bishop", "Tanita"];
+const THERAPISTS = ["Whitney", "Bishop", "Tanita", "Tonya Silmon-Foluke", "DaMonica Franklin"];
 
 function fmtSlot(slot) {
   const [h, m] = slot.split(":").map(Number);
