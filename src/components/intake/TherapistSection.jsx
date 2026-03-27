@@ -13,7 +13,7 @@ const THERAPIST_STATUSES = [
   { value: "declined", label: "Declined", color: "text-red-500" },
 ];
 
-const THERAPISTS = ["Whitney", "Bishop", "Tanita"];
+const THERAPISTS = ["Whitney", "Bishop", "Tanita", "Tonya Silmon-Foluke", "DaMonica Franklin"];
 
 export default function TherapistSection({ form, onChange, sbEntries, ctbEntries }) {
   const selectedTherapist = form.therapistAssigned ? { name: form.therapistAssigned } : null;
