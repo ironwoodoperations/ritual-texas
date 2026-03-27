@@ -15,7 +15,7 @@ function nightsBetween(checkIn, checkOut) {
   const b = new Date(checkOut + "T00:00:00");
   const ms = b.getTime() - a.getTime();
   const n = Math.round(ms / (1000 * 60 * 60 * 24));
-  return Math.max(1, n);
+  return Math.max(0, n);
 }
 
 Deno.serve(async (req) => {
@@ -88,12 +88,16 @@ Deno.serve(async (req) => {
 
     // Build line items
     const lineItems = [];
-    const roomLabel = intake?.roomRequested || "Hotel Stay";
-    lineItems.push({
-      name: `${roomLabel} · ${nights} night${nights === 1 ? "" : "s"} · ${checkIn} to ${checkOut}`,
-      quantity: String(nights),
-      base_price_money: { amount: ROOM_RATE * 100, currency: "USD" },
-    });
+    const isSpaOnly = intake?.bookingType === "spa_only" || nights === 0;
+
+    if (!isSpaOnly) {
+      const roomLabel = intake?.roomRequested || "Hotel Stay";
+      lineItems.push({
+        name: `${roomLabel} · ${nights} night${nights === 1 ? "" : "s"} · ${checkIn} to ${checkOut}`,
+        quantity: String(nights),
+        base_price_money: { amount: ROOM_RATE * 100, currency: "USD" },
+      });
+    }
 
     // SimplyBook treatment line items
     const selected = Array.isArray(intake?.selectedTreatments) ? intake.selectedTreatments : [];
