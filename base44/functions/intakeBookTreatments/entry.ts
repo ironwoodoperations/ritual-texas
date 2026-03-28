@@ -228,7 +228,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
       if (clientList.length > 0) {
         // Existing client — reuse their ID, but update name/phone in case stale
         const raw = clientList[0]?.id ?? clientList[0]?.client_id;
-        sharedClientId = typeof raw === "string" && !isNaN(Number(raw)) ? Number(raw) : Number(raw);
+        console.log('[DEBUG] clientList[0]:', JSON.stringify(clientList[0]), 'raw:', raw);
+        const parsed = Number(raw);
+        if (!Number.isFinite(parsed) || parsed <= 0) {
+          throw new Error(`Invalid client ID extracted from getClientList: raw=${JSON.stringify(raw)}, parsed=${parsed}`);
+        }
+        sharedClientId = parsed;
         console.log(`[SimplyBook] Using existing client ID: ${sharedClientId} for email: ${guestEmail} — updating name to: ${guestName}`);
         try {
           const updatePayload: Record<string, string> = { name: guestName };
@@ -250,7 +255,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
           addClientRaw?.data?.id ||
           (typeof addClientRaw === "number" ? addClientRaw : null) ||
           (typeof addClientRaw === "string" && !isNaN(Number(addClientRaw)) ? addClientRaw : null);
-        sharedClientId = typeof raw === "string" && !isNaN(Number(raw)) ? Number(raw) : Number(raw);
+        console.log('[DEBUG] addClient response clientList[0]:', JSON.stringify(addClientRaw), 'raw:', raw);
+        const parsed = Number(raw);
+        if (!Number.isFinite(parsed) || parsed <= 0) {
+          throw new Error(`Invalid client ID from addClient: raw=${JSON.stringify(raw)}, parsed=${parsed}, addClientRaw=${JSON.stringify(addClientRaw)}`);
+        }
+        sharedClientId = parsed;
         console.log(`[SimplyBook] Created new client ID: ${sharedClientId} for email: ${guestEmail}`);
       }
     } catch (e: any) {
@@ -262,7 +272,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }, { status: 500 });
     }
 
-    if (!sharedClientId) {
+    if (!sharedClientId || !Number.isFinite(sharedClientId) || sharedClientId <= 0) {
       return Response.json({
         success: false,
         bookings: [],
@@ -360,6 +370,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       // ── Use the shared client ID resolved before the loop ──────────────
       const clientId: number = sharedClientId;
+      if (!Number.isFinite(clientId) || clientId <= 0) {
+        errors.push(`Invalid clientId (${clientId}) for "${entryName}" — skipping booking`);
+        debug.push({ stage: "invalid_client_id", clientId, entryName });
+        continue;
+      }
 
       // ── Book the treatment ──────────────────────────────────────────
       const durationMinutes: number = Number(entry?.duration || svc?.duration || svc?.duration_minutes || 60);
