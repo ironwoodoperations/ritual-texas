@@ -226,21 +226,26 @@ Deno.serve(async (req: Request): Promise<Response> => {
       const clientList: any[] = Array.isArray(clientListRaw) ? clientListRaw : asArrayMap(clientListRaw);
 
       if (clientList.length > 0) {
-        // Existing client — reuse their ID, but update name/phone in case stale
-        const raw = clientList[0]?.id ?? clientList[0]?.client_id;
-        console.log('[DEBUG] clientList[0]:', JSON.stringify(clientList[0]), 'raw:', raw);
+        // Existing client — reuse their ID, but force-update name/phone if stale
+        const existingClient = clientList[0];
+        const raw = existingClient?.id ?? existingClient?.client_id;
+        const existingName = String(existingClient?.name || existingClient?.client_name || "").trim();
+        console.log(`[SimplyBook] Found existing client by email "${guestEmail}": id=${raw}, currentName="${existingName}", desiredName="${guestName}"`);
         const parsed = Number(raw);
         if (!Number.isFinite(parsed) || parsed <= 0) {
           throw new Error(`Invalid client ID extracted from getClientList: raw=${JSON.stringify(raw)}, parsed=${parsed}`);
         }
         sharedClientId = parsed;
-        console.log(`[SimplyBook] Using existing client ID: ${sharedClientId} for email: ${guestEmail} — updating name to: ${guestName}`);
+
+        // Always update name/phone — the stored name may be a generic placeholder like "Hotel RITUAL Guest"
+        const updatePayload: Record<string, string> = { name: guestName };
+        if (guestPhone) updatePayload.phone = guestPhone;
         try {
-          const updatePayload: Record<string, string> = { name: guestName };
-          if (guestPhone) updatePayload.phone = guestPhone;
           await sbRPC(ADMIN_URL, "editClient", [sharedClientId, updatePayload], adminHeaders);
-        } catch {
-          // Non-fatal — name update failed but we can still book
+          console.log(`[SimplyBook] Updated client ${sharedClientId} name: "${existingName}" → "${guestName}"`);
+        } catch (editErr: any) {
+          console.error(`[SimplyBook] WARNING: editClient failed for client ${sharedClientId} — name remains "${existingName}". Error: ${editErr.message}`);
+          // Continue with booking — the client ID is still valid even if the name update failed
         }
       } else {
         // New client — create once
