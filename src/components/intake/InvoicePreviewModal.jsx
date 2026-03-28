@@ -20,7 +20,7 @@ const ALL_TAXES = [...SALES_TAXES, ...HOTEL_TAXES];
 function nightsBetween(checkIn, checkOut) {
   const a = new Date(checkIn + "T00:00:00");
   const b = new Date(checkOut + "T00:00:00");
-  return Math.max(1, Math.round((b - a) / (1000 * 60 * 60 * 24)));
+  return Math.max(0, Math.round((b - a) / (1000 * 60 * 60 * 24)));
 }
 
 function parseTreatments(arr) {
@@ -122,7 +122,7 @@ export default function InvoicePreviewModal({ intake, onClose, onConfirmSend, se
           <p className="text-[10px] uppercase tracking-widest font-semibold text-[rgb(150,130,110)]">Line Items</p>
 
           {/* Room */}
-          {nights > 0 && (
+          {nights > 0 && intake.bookingType !== "spa_only" && (
             <div className="flex justify-between text-sm py-2 border-b border-[rgb(235,225,213)]">
               <span className="text-[rgb(45,45,45)] flex-1 mr-4">{roomLabel}</span>
               <span className="font-medium text-[rgb(107,85,64)] shrink-0">{fmtMoney(roomAmount)}</span>
