@@ -156,9 +156,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Discount line item (negative amount)
+    // Compute discount (applied via order.discounts, NOT as a line item)
     const discountType = intake?.discountType || "none";
     const discountValue = Number(intake?.discountValue || 0);
+    let orderDiscounts = undefined;
     if (discountType !== "none" && discountValue > 0) {
       const subtotalForDiscount = lineItems.reduce((sum, li) => sum + (li.base_price_money.amount * Number(li.quantity)), 0);
       let discountAmountCents = 0;
@@ -169,11 +170,11 @@ Deno.serve(async (req) => {
       }
       if (discountAmountCents > 0) {
         const discountLabel = (intake?.discountLabel || "").trim() || (discountType === "percent" ? `Discount (${discountValue}%)` : `Discount (-$${discountValue.toFixed(2)})`);
-        lineItems.push({
+        orderDiscounts = [{
           name: discountLabel,
-          quantity: "1",
-          base_price_money: { amount: -discountAmountCents, currency: "USD" },
-        });
+          amount_money: { amount: discountAmountCents, currency: "USD" },
+          scope: "ORDER",
+        }];
       }
     }
 
@@ -220,6 +221,7 @@ Deno.serve(async (req) => {
           location_id: locationId,
           customer_id: customerId,
           line_items: lineItems,
+          ...(orderDiscounts ? { discounts: orderDiscounts } : {}),
         },
         idempotency_key: `order-quote-${Date.now()}`,
       }),
