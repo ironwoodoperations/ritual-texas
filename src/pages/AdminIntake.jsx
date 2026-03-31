@@ -82,6 +82,7 @@ const BLANK = {
   checkInDate: "", checkOutDate: "", numberOfGuests: 1, numberOfChildren: 0,
   cloudbedsRoomTypeId: "", flexibleOnRoom: false, hotelNotes: "",
   additionalGuests: [],
+  rooms: [],
   selectedTreatments: [], callToBookTreatments: [],
   treatmentsRequested: "",
   therapistAssigned: "", therapistStatus: "not_contacted",
@@ -111,6 +112,15 @@ function parseTreatmentEntries(arr) {
     if (typeof item === "object") return item;
     try { return JSON.parse(item); } catch { return { name: item, price: 0 }; }
   });
+}
+
+function initRoomsFromIntake(intake) {
+  if (Array.isArray(intake?.rooms) && intake.rooms.length > 0) return intake.rooms;
+  if (intake?.cloudbedsRoomTypeId) {
+    const roomName = MANUAL_ROOMS.find(r => r.id === intake.cloudbedsRoomTypeId)?.name || intake.roomRequested || intake.cloudbedsRoomTypeId;
+    return [{ roomId: intake.cloudbedsRoomTypeId, roomName, roomRate: 0, guestName: intake.guestName || "" }];
+  }
+  return [{ roomId: "", roomName: "", roomRate: 0, guestName: "" }];
 }
 
 function NumSelect({ value, onChange, max = 20, start = 0 }) {
@@ -175,14 +185,14 @@ function isNextSevenDays(dateStr) {
 
 // ── Intake Form ────────────────────────────────────────────────────────────────
 function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTreatments = [], allRecords = [], onSave, onSaveAndSend, onCancel }) {
-  const [form, setForm] = useState(() => ({ ...BLANK, ...initial, selectedTreatments: [], callToBookTreatments: [] }));
+  const [form, setForm] = useState(() => ({ ...BLANK, ...initial, selectedTreatments: [], callToBookTreatments: [], rooms: initRoomsFromIntake(initial) }));
   const [sbEntries, setSbEntries] = useState(() => parseTreatmentEntries(initial.selectedTreatments));
   const [ctbEntries, setCtbEntries] = useState(() => parseTreatmentEntries(initial.callToBookTreatments));
 
   // Reset form when `initial` record changes (e.g. switching between editing different records)
   const initialId = initial?.id;
   useEffect(() => {
-    setForm({ ...BLANK, ...initial, selectedTreatments: [], callToBookTreatments: [] });
+    setForm({ ...BLANK, ...initial, selectedTreatments: [], callToBookTreatments: [], rooms: initRoomsFromIntake(initial) });
     setSbEntries(parseTreatmentEntries(initial.selectedTreatments));
     setCtbEntries(parseTreatmentEntries(initial.callToBookTreatments));
     setHasChanges(false);
@@ -203,6 +213,36 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
   const [showManualRooms, setShowManualRooms] = useState(false);
 
   const set = (k, v) => { setForm(f => ({ ...f, [k]: v })); setHasChanges(true); };
+
+  // Room management
+  const displayRooms = form.rooms?.length ? form.rooms : [{ roomId: "", roomName: "", roomRate: 0, guestName: "" }];
+  const allGuestNames = [form.guestName, ...form.additionalGuests.map(g => g.name)].filter(Boolean);
+
+  function handleRoomSelect(idx, roomId) {
+    const source = liveRooms.find(r => r.id === roomId) || MANUAL_ROOMS.find(r => r.id === roomId);
+    const updated = [...displayRooms];
+    updated[idx] = { ...updated[idx], roomId, roomName: source?.name || roomId, roomRate: source?.rate || 0 };
+    set("rooms", updated);
+    if (idx === 0) set("cloudbedsRoomTypeId", roomId);
+  }
+
+  function updateRoomField(idx, field, value) {
+    const updated = [...displayRooms];
+    updated[idx] = { ...updated[idx], [field]: value };
+    set("rooms", updated);
+  }
+
+  function addRoom() {
+    if (displayRooms.length >= 7) return;
+    set("rooms", [...displayRooms, { roomId: "", roomName: "", roomRate: 0, guestName: "" }]);
+  }
+
+  function removeRoom(idx) {
+    if (displayRooms.length <= 1) return;
+    const updated = displayRooms.filter((_, i) => i !== idx);
+    set("rooms", updated);
+    if (idx === 0 && updated[0]) set("cloudbedsRoomTypeId", updated[0].roomId);
+  }
 
   // Duplicate detection
   const duplicate = form.guestName?.length > 2 || form.phone?.length > 5
@@ -240,7 +280,7 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
       .then(res => {
         if (cancelled) return;
         if (res.data?.success && res.data?.rooms?.length > 0) {
-          setLiveRooms(res.data.rooms.map(r => ({ id: String(r.roomTypeID), name: r.name + (r.price ? ` — $${r.price}/night` : "") })));
+          setLiveRooms(res.data.rooms.map(r => ({ id: String(r.roomTypeID), name: r.name, rate: Number(r.price) || 0, displayName: r.name + (r.price ? ` — $${r.price}/night` : "") })));
           setRoomsError(false);
         } else { setLiveRooms([]); setRoomsError(true); }
       })
@@ -252,6 +292,7 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
   function buildPayload() {
     return {
       ...form,
+      rooms: (form.rooms || []).filter(r => r.roomId),
       selectedTreatments: sbEntries.filter(e => e.serviceName || e.name).map(e => JSON.stringify(e)),
       callToBookTreatments: ctbEntries.filter(e => e.name).map(e => JSON.stringify(e)),
     };
@@ -368,44 +409,61 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
           <Field label="Check-Out Date" required><input type="date" value={form.checkOutDate} onChange={e => set("checkOutDate", e.target.value)} className={fieldCls} /></Field>
           <Field label="Adults"><NumSelect value={form.numberOfGuests} onChange={v => set("numberOfGuests", v)} max={20} start={1} /></Field>
           <Field label="Children"><NumSelect value={form.numberOfChildren || 0} onChange={v => set("numberOfChildren", v)} max={20} start={0} /></Field>
-          <Field label="Room Type">
-            {!form.checkInDate || !form.checkOutDate ? (
-              // Show existing value if we have one, even without dates
-              form.cloudbedsRoomTypeId ? (
-                <div className="space-y-1">
-                  <p className={fieldCls + " text-[rgb(107,85,64)]"}>
-                    {MANUAL_ROOMS.find(r => r.id === form.cloudbedsRoomTypeId)?.name || form.cloudbedsRoomTypeId}
-                  </p>
-                  <p className="text-xs text-[rgb(170,150,130)]">Enter dates to re-check availability</p>
-                </div>
-              ) : (
-                <p className={fieldCls + " text-[rgb(190,170,150)] italic"}>Enter dates above to see available rooms</p>
-              )
-            ) : loadingLiveRooms ? (
-              <p className={fieldCls + " text-[rgb(170,155,140)] flex items-center gap-2"}><Loader2 className="w-3.5 h-3.5 animate-spin inline" /> Checking Cloudbeds availability…</p>
-            ) : liveRooms.length > 0 ? (
-              <select value={form.cloudbedsRoomTypeId} onChange={e => set("cloudbedsRoomTypeId", e.target.value)} className={selectCls}>
-                <option value="">Select available room</option>
-                {liveRooms.map(rt => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
-              </select>
-            ) : (
-              <div className="space-y-2">
-                {roomsError && (
-                  <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                    Cloudbeds unavailable for these dates.
-                    {!showManualRooms && <button type="button" onClick={() => setShowManualRooms(true)} className="ml-auto underline font-semibold whitespace-nowrap">Enter Manually</button>}
-                  </div>
-                )}
-                {(showManualRooms || form.cloudbedsRoomTypeId) && (
-                  <select value={form.cloudbedsRoomTypeId} onChange={e => set("cloudbedsRoomTypeId", e.target.value)} className={selectCls}>
-                    <option value="">Select room manually</option>
-                    {MANUAL_ROOMS.map(rt => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
-                  </select>
-                )}
+          <div className="sm:col-span-2">
+            <label className={labelCls}>Rooms</label>
+            {loadingLiveRooms && (
+              <p className="text-xs text-[rgb(170,155,140)] flex items-center gap-2 mt-1 mb-2"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Checking Cloudbeds availability…</p>
+            )}
+            {!loadingLiveRooms && roomsError && (
+              <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-1 mb-2">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                Cloudbeds unavailable for these dates.
+                {!showManualRooms && <button type="button" onClick={() => setShowManualRooms(true)} className="ml-auto underline font-semibold whitespace-nowrap">Enter Manually</button>}
               </div>
             )}
-          </Field>
+            <div className="space-y-3 mt-2">
+              {displayRooms.map((room, idx) => (
+                <div key={idx} className="bg-[rgb(250,248,245)] border border-[rgb(220,210,200)] rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-3">
+                      <Field label="Room">
+                        {(!form.checkInDate || !form.checkOutDate) && !room.roomId ? (
+                          <p className={fieldCls + " text-[rgb(190,170,150)] italic text-xs"}>Enter dates above</p>
+                        ) : liveRooms.length > 0 ? (
+                          <select value={room.roomId} onChange={e => handleRoomSelect(idx, e.target.value)} className={selectCls}>
+                            <option value="">Select room</option>
+                            {liveRooms.map(rt => <option key={rt.id} value={rt.id}>{rt.displayName}</option>)}
+                          </select>
+                        ) : (showManualRooms || room.roomId) ? (
+                          <select value={room.roomId} onChange={e => handleRoomSelect(idx, e.target.value)} className={selectCls}>
+                            <option value="">Select room</option>
+                            {MANUAL_ROOMS.map(rt => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
+                          </select>
+                        ) : (
+                          <p className={fieldCls + " text-[rgb(190,170,150)] italic text-xs"}>No rooms available</p>
+                        )}
+                      </Field>
+                      <Field label="Guest">
+                        <select value={room.guestName} onChange={e => updateRoomField(idx, "guestName", e.target.value)} className={selectCls}>
+                          <option value="">Assign guest</option>
+                          {allGuestNames.map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                      </Field>
+                      <Field label="Nightly Rate">
+                        <p className={fieldCls + " text-[rgb(107,85,64)]"}>{room.roomRate ? `$${room.roomRate}/night` : "—"}</p>
+                      </Field>
+                    </div>
+                    {displayRooms.length > 1 && (
+                      <button type="button" onClick={() => removeRoom(idx)} className="mt-5 text-[rgb(190,170,150)] hover:text-red-500 text-lg font-bold leading-none">×</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {displayRooms.length < 7 && (
+                <button type="button" onClick={addRoom} className="text-xs text-[rgb(107,85,64)] hover:underline">+ Add Room</button>
+              )}
+            </div>
+          </div>
           <Field label="Flexible on Room?">
             <label className="flex items-center gap-2 mt-2 cursor-pointer text-sm text-[rgb(45,45,45)]">
               <input type="checkbox" checked={form.flexibleOnRoom} onChange={e => set("flexibleOnRoom", e.target.checked)} className="accent-[rgb(107,85,64)]" />

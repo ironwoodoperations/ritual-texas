@@ -91,12 +91,25 @@ Deno.serve(async (req) => {
     const isSpaOnly = intake?.bookingType === "spa_only" || nights === 0;
 
     if (!isSpaOnly) {
-      const roomLabel = intake?.roomRequested || "Hotel Stay";
-      lineItems.push({
-        name: `${roomLabel} · ${nights} night${nights === 1 ? "" : "s"} · ${checkIn} to ${checkOut}`,
-        quantity: String(nights),
-        base_price_money: { amount: ROOM_RATE * 100, currency: "USD" },
-      });
+      const rooms = Array.isArray(intake?.rooms) && intake.rooms.length > 0 ? intake.rooms : null;
+      if (rooms) {
+        for (const room of rooms) {
+          const roomLabel = room.roomName || "Hotel Stay";
+          const rate = Number(room.roomRate) || ROOM_RATE;
+          lineItems.push({
+            name: `${roomLabel} · ${nights} night${nights === 1 ? "" : "s"} · ${checkIn} to ${checkOut}`,
+            quantity: String(nights),
+            base_price_money: { amount: rate * 100, currency: "USD" },
+          });
+        }
+      } else {
+        const roomLabel = intake?.roomRequested || "Hotel Stay";
+        lineItems.push({
+          name: `${roomLabel} · ${nights} night${nights === 1 ? "" : "s"} · ${checkIn} to ${checkOut}`,
+          quantity: String(nights),
+          base_price_money: { amount: ROOM_RATE * 100, currency: "USD" },
+        });
+      }
     }
 
     // SimplyBook treatment line items
@@ -186,7 +199,9 @@ Deno.serve(async (req) => {
     ];
 
     const selectedTaxes = intake?.taxes || {};
-    const hotelSubtotal = ROOM_RATE * nights;
+    const hotelSubtotal = (Array.isArray(intake?.rooms) && intake.rooms.length > 0
+      ? intake.rooms.reduce((sum, r) => sum + (Number(r.roomRate) || ROOM_RATE), 0)
+      : ROOM_RATE) * nights;
 
     for (const tax of HOTEL_TAXES) {
       if (!selectedTaxes[tax.key]) continue;

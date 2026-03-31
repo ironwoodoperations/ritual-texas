@@ -127,6 +127,59 @@ Deno.serve(async (req) => {
     }
     if (!propertyId) throw new Error("Cloudbeds property ID not configured.");
 
+    // Multi-room booking: if rooms array is provided, book each room separately
+    const rooms = Array.isArray(intake.rooms) && intake.rooms.length > 0 ? intake.rooms : null;
+    if (rooms) {
+      const results = [];
+      for (const room of rooms) {
+        const rid = room.roomId || "";
+        if (!rid) continue;
+
+        const roomEntry = { roomTypeID: rid, quantity: 1 };
+        const params = new URLSearchParams({
+          propertyID: propertyId,
+          guestFirstName,
+          guestLastName,
+          guestEmail,
+          startDate,
+          endDate,
+          adults: JSON.stringify([{ roomTypeID: rid, quantity: 1, adults: Number(adults) }]),
+          children: JSON.stringify([{ roomTypeID: rid, quantity: 1, children: 0 }]),
+          rooms: JSON.stringify([roomEntry]),
+        });
+        params.set("paymentMethod", "credit_card");
+        params.set("guestCountry", "US");
+        if (guestPhone) params.set("guestPhone", guestPhone);
+        if (notes) params.set("notes", notes);
+
+        let result = await doPostReservation(accessToken, propertyId, params);
+        if (!result.ok && (result.status === 401 || result.status === 403)) {
+          accessToken = await refreshAccessToken(base44);
+          result = await doPostReservation(accessToken, propertyId, params);
+        }
+
+        if (!result.json?.success) {
+          return Response.json({
+            error: result.json?.message || "Cloudbeds API error",
+            detail: result.json,
+            room: room.roomName || rid,
+          }, { status: 400 });
+        }
+
+        results.push({
+          roomId: rid,
+          roomName: room.roomName,
+          reservationID: result.json?.reservationID,
+          data: result.json,
+        });
+      }
+
+      return Response.json({
+        message: `${results.length} reservation(s) created in Cloudbeds!`,
+        reservations: results,
+      });
+    }
+
     // Fetch all room types (not filtered by availability) if not provided
     let availDebug = null;
     if (!roomTypeID) {
