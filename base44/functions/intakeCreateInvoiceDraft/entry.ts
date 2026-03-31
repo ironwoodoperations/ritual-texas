@@ -97,15 +97,15 @@ Deno.serve(async (req) => {
           const roomLabel = room.roomName || "Hotel Stay";
           const rate = Number(room.roomRate) || ROOM_RATE;
           lineItems.push({
-            name: `${roomLabel} · ${nights} night${nights === 1 ? "" : "s"} · ${checkIn} to ${checkOut}`,
+            name: `${roomLabel} — ${nights} night${nights === 1 ? "" : "s"} (${checkIn} → ${checkOut})`,
             quantity: String(nights),
-            base_price_money: { amount: rate * 100, currency: "USD" },
+            base_price_money: { amount: Math.round(rate * 100), currency: "USD" },
           });
         }
       } else {
         const roomLabel = intake?.roomRequested || "Hotel Stay";
         lineItems.push({
-          name: `${roomLabel} · ${nights} night${nights === 1 ? "" : "s"} · ${checkIn} to ${checkOut}`,
+          name: `${roomLabel} — ${nights} night${nights === 1 ? "" : "s"} (${checkIn} → ${checkOut})`,
           quantity: String(nights),
           base_price_money: { amount: ROOM_RATE * 100, currency: "USD" },
         });
@@ -199,9 +199,10 @@ Deno.serve(async (req) => {
     ];
 
     const selectedTaxes = intake?.taxes || {};
-    const hotelSubtotal = (Array.isArray(intake?.rooms) && intake.rooms.length > 0
+    const roomRateTotal = Array.isArray(intake?.rooms) && intake.rooms.length > 0
       ? intake.rooms.reduce((sum, r) => sum + (Number(r.roomRate) || ROOM_RATE), 0)
-      : ROOM_RATE) * nights;
+      : ROOM_RATE;
+    const hotelSubtotal = roomRateTotal * nights;
 
     for (const tax of HOTEL_TAXES) {
       if (!selectedTaxes[tax.key]) continue;
