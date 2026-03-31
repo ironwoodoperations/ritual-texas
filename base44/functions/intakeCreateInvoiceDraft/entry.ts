@@ -91,11 +91,11 @@ Deno.serve(async (req) => {
     const isSpaOnly = intake?.bookingType === "spa_only" || nights === 0;
 
     if (!isSpaOnly) {
-      const rooms = Array.isArray(intake?.rooms) && intake.rooms.length > 0 ? intake.rooms : null;
+      const rooms = Array.isArray(intake?.rooms) && intake.rooms.some(r => r.roomId) ? intake.rooms.filter(r => r.roomId) : null;
       if (rooms) {
         for (const room of rooms) {
           const roomLabel = room.roomName || "Hotel Stay";
-          const rate = Number(room.roomRate) || ROOM_RATE;
+          const rate = room.roomRate != null ? Number(room.roomRate) : ROOM_RATE;
           lineItems.push({
             name: `${roomLabel} — ${nights} night${nights === 1 ? "" : "s"} (${checkIn} → ${checkOut})`,
             quantity: String(nights),
@@ -199,8 +199,8 @@ Deno.serve(async (req) => {
     ];
 
     const selectedTaxes = intake?.taxes || {};
-    const roomRateTotal = Array.isArray(intake?.rooms) && intake.rooms.length > 0
-      ? intake.rooms.reduce((sum, r) => sum + (Number(r.roomRate) || ROOM_RATE), 0)
+    const roomRateTotal = Array.isArray(intake?.rooms) && intake.rooms.some(r => r.roomId)
+      ? intake.rooms.filter(r => r.roomId).reduce((sum, r) => sum + (r.roomRate != null ? Number(r.roomRate) : ROOM_RATE), 0)
       : ROOM_RATE;
     const hotelSubtotal = roomRateTotal * nights;
 
