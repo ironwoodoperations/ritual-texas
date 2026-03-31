@@ -1,0 +1,287 @@
+{
+  "name": "HotelTreatmentIntake",
+  "type": "object",
+  "properties": {
+    "guestName": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "preferredContactMethod": {
+      "type": "string",
+      "enum": [
+        "phone",
+        "text",
+        "email"
+      ],
+      "default": "phone"
+    },
+    "numberOfGuests": {
+      "type": "number",
+      "default": 1
+    },
+    "numberOfChildren": {
+      "type": "number",
+      "default": 0
+    },
+    "additionalGuests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Additional guest info for multi-guest reservations (Cloudbeds requires)"
+    },
+    "howDidYouHearAboutUs": {
+      "type": "string",
+      "description": "Marketing source / referral"
+    },
+    "bookingType": {
+      "type": "string",
+      "enum": [
+        "hotel_and_spa",
+        "hotel_only",
+        "spa_only"
+      ],
+      "default": "hotel_and_spa",
+      "description": "Type of booking: hotel+spa, hotel only, or spa day-visit only"
+    },
+    "checkInDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "checkOutDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "cloudbedsRoomTypeId": {
+      "type": "string"
+    },
+    "roomName": {
+      "type": "string",
+      "description": "Human-readable room name (e.g., 'Suite 5 - The Carriage House')"
+    },
+    "roomRequested": {
+      "type": "string"
+    },
+    "flexibleOnRoom": {
+      "type": "boolean",
+      "default": false
+    },
+    "hotelNotes": {
+      "type": "string"
+    },
+    "rooms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string"
+          },
+          "roomName": {
+            "type": "string"
+          },
+          "roomRate": {
+            "type": "number"
+          },
+          "guestName": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Array of room booking objects for multi-room reservations"
+    },
+    "selectedTreatments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "SimplyBook treatments \u2014 each entry is JSON stringified {id,name,price,duration,date,time,staffId,staffName,guestName}"
+    },
+    "callToBookTreatments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Call-to-book treatments \u2014 each entry is JSON stringified {id,name,price,duration,date,time,qty,guestName}"
+    },
+    "treatmentsRequested": {
+      "type": "string"
+    },
+    "preferredTreatmentDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "preferredTreatmentTime": {
+      "type": "string"
+    },
+    "preferredTherapist": {
+      "type": "string"
+    },
+    "flexibleOnTime": {
+      "type": "boolean",
+      "default": false
+    },
+    "therapistStatus": {
+      "type": "string",
+      "enum": [
+        "not_contacted",
+        "contacted",
+        "follow_up",
+        "approved",
+        "declined"
+      ],
+      "default": "not_contacted"
+    },
+    "therapistFollowUpDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "therapistNotes": {
+      "type": "string"
+    },
+    "therapistContacted": {
+      "type": "boolean",
+      "default": false
+    },
+    "therapistConfirmed": {
+      "type": "boolean",
+      "default": false
+    },
+    "therapistResponseNotes": {
+      "type": "string"
+    },
+    "therapistAssigned": {
+      "type": "string"
+    },
+    "verificationStatus": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "declined"
+      ],
+      "default": "pending"
+    },
+    "bookingStatus": {
+      "type": "string",
+      "enum": [
+        "new_inquiry",
+        "pending",
+        "confirmed",
+        "booked_reserved",
+        "not_now",
+        "lost_price",
+        "lost_competitor",
+        "lost_no_response",
+        "lost_dates_unavailable",
+        "do_not_contact",
+        "declined",
+        "archived"
+      ],
+      "default": "new_inquiry"
+    },
+    "lostReason": {
+      "type": "string",
+      "description": "Free-text reason when lead is lost/closed"
+    },
+    "followUpDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "internalNotes": {
+      "type": "string"
+    },
+    "crmSynced": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if this record has been synced to the CRM"
+    },
+    "quoteSent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Set to true when a Square invoice has been successfully published to the guest"
+    },
+    "hotelBooked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Set to true when a Cloudbeds reservation has been successfully created"
+    },
+    "treatmentsBooked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Set to true when SimplyBook treatments have been successfully booked via intakeBookTreatments"
+    },
+    "squareInvoiceId": {
+      "type": "string",
+      "description": "Square invoice ID for managing invoice actions"
+    },
+    "ccName": {
+      "type": "string"
+    },
+    "ccNumber": {
+      "type": "string"
+    },
+    "ccLast4": {
+      "type": "string"
+    },
+    "ccExpiry": {
+      "type": "string"
+    },
+    "ccCvc": {
+      "type": "string"
+    },
+    "ccZip": {
+      "type": "string",
+      "description": "Billing ZIP code for card on file"
+    },
+    "ccType": {
+      "type": "string"
+    },
+    "ccNotes": {
+      "type": "string"
+    },
+    "taxes": {
+      "type": "object",
+      "description": "Selected tax keys from the invoice tax checkboxes",
+      "default": {}
+    },
+    "discountType": {
+      "type": "string",
+      "enum": [
+        "none",
+        "percent",
+        "dollar"
+      ],
+      "default": "none",
+      "description": "Type of discount to apply to the invoice: none, percent off, or fixed dollar amount"
+    },
+    "discountValue": {
+      "type": "number",
+      "default": 0,
+      "description": "Discount amount \u2014 percentage (e.g. 10 = 10%) or dollar amount depending on discountType"
+    },
+    "discountLabel": {
+      "type": "string",
+      "description": "Optional label for the discount line item (e.g. 'Loyalty Discount', 'Package Deal')"
+    }
+  },
+  "required": [
+    "guestName"
+  ]
+}
