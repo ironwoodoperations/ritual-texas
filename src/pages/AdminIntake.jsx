@@ -253,7 +253,7 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
   function handleRoomSelect(idx, roomId) {
     const source = liveRooms.find(r => r.id === roomId) || MANUAL_ROOMS.find(r => r.id === roomId);
     const updated = [...displayRooms];
-    updated[idx] = { ...updated[idx], roomId, roomName: source?.name || roomId, roomRate: source?.rate || 0 };
+    updated[idx] = { ...updated[idx], roomId, roomName: source?.name || roomId, roomRate: source?.rate || 198 };
     set("rooms", updated);
     if (idx === 0) set("cloudbedsRoomTypeId", roomId);
     setSuiteWarning("");
