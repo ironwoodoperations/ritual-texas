@@ -390,7 +390,7 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
                   <button
                     onClick={() => runAction("BookSimplyBook")}
                     disabled={!!actioning || (!alreadyBooked && !hasBookableEntries)}
-                    title={!hasBookableEntries && !alreadyBooked ? "No bookable treatments — add treatments with SimplyBook IDs first" : alreadyBooked ? "Treatments booked (click to re-run)" : "Book treatments in SimplyBook"}
+                    title={!hasBookableEntries && !alreadyBooked ? "No bookable treatments — add treatments with Acuity IDs first" : alreadyBooked ? "Treatments booked (click to re-run)" : "Schedule treatment in Acuity"}
                     className={`flex items-center justify-center gap-1.5 py-2 rounded-xl border text-xs font-medium transition-all disabled:opacity-40 ${alreadyBooked ? "border-green-300 bg-green-50 text-green-700" : "border-[rgb(235,225,213)] text-[rgb(45,45,45)] hover:bg-[rgb(248,246,242)]"}`}
                   >
                     {actioning === "BookSimplyBook" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : alreadyBooked ? <CheckCircle2 className="w-3.5 h-3.5" /> : null}
