@@ -313,6 +313,7 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
       .then(res => {
         if (cancelled) return;
         if (res.data?.success && res.data?.rooms?.length > 0) {
+          console.log("[AdminIntake] Cloudbeds raw rooms:", JSON.stringify(res.data.rooms, null, 2));
           setLiveRooms(res.data.rooms.map(r => ({ id: String(r.roomTypeID), name: r.name, rate: Number(r.price) || 0, displayName: r.name + (r.price ? ` — $${r.price}/night` : "") })));
           setRoomsError(false);
         } else { setLiveRooms([]); setRoomsError(true); }
