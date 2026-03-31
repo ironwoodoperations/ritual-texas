@@ -134,26 +134,27 @@ function NumSelect({ value, onChange, max = 20, start = 0 }) {
 }
 
 // Alternating warm tones per section for visual separation
+// Odd sections: #F5F0E8 (tan cream), Even sections: #EDE0CC (sandy tan)
 const SECTION_BG = {
-  "Guest Information": "bg-white",
-  "Hotel Reservation · Cloudbeds": "bg-[rgb(252,250,247)]",
-  "Additional Guests · For Multi-Guest Reservations": "bg-[rgb(250,248,245)]",
-  "Spa & Wellness · Treatments": "bg-white",
-  "Therapist Outreach · Pipeline": "bg-[rgb(252,250,247)]",
-  "Internal Notes & Status": "bg-[rgb(250,248,245)]",
-  "Marketing & Payment": "bg-white",
-  "Taxes · Quote Line Items": "bg-[rgb(252,250,247)]",
-  "Discount": "bg-[rgb(250,248,245)]",
-  "Square Invoice": "bg-white",
+  "Guest Information": "bg-[#F5F0E8]",
+  "Additional Guests · For Multi-Guest Reservations": "bg-[#EDE0CC]",
+  "Hotel Reservation · Cloudbeds": "bg-[#F5F0E8]",
+  "Spa & Wellness · Treatments": "bg-[#EDE0CC]",
+  "Therapist Outreach · Pipeline": "bg-[#F5F0E8]",
+  "Internal Notes & Status": "bg-[#EDE0CC]",
+  "Marketing & Payment": "bg-[#F5F0E8]",
+  "Taxes · Quote Line Items": "bg-[#EDE0CC]",
+  "Discount": "bg-[#F5F0E8]",
+  "Square Invoice": "bg-[#EDE0CC]",
 };
 
 function Section({ title, children }) {
-  const bgClass = SECTION_BG[title] || "bg-white";
+  const bgClass = SECTION_BG[title] || "bg-[#F5F0E8]";
   return (
     <div className={`mb-8 ${bgClass} rounded-xl px-5 py-5 border border-[rgb(235,228,218)]`}>
       <div className="flex items-center gap-3 mb-5">
         <div className="h-px flex-1 bg-[rgb(220,210,200)]" />
-        <span className="text-xs font-extrabold tracking-widest text-[rgb(107,85,64)] uppercase whitespace-nowrap">{title}</span>
+        <span className="text-xs font-extrabold tracking-widest text-[#3D2B1F] uppercase whitespace-nowrap">{title}</span>
         <div className="h-px flex-1 bg-[rgb(220,210,200)]" />
       </div>
       {children}
@@ -217,6 +218,37 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
   // Room management
   const displayRooms = form.rooms?.length ? form.rooms : [{ roomId: "", roomName: "", roomRate: 0, guestName: "" }];
   const allGuestNames = [form.guestName, ...form.additionalGuests.map(g => g.name)].filter(Boolean);
+  const totalGuestCount = 1 + form.additionalGuests.length;
+  const [suiteWarning, setSuiteWarning] = useState("");
+
+  // Suite 4 & 6 share a bathroom — only available with 3+ guests
+  function isRestrictedSuite(name) {
+    if (!name) return false;
+    const lower = name.toLowerCase();
+    return lower.includes("suite") && (/\b4\b/.test(lower) || /\b6\b/.test(lower));
+  }
+
+  function filterRoomOptions(rooms) {
+    if (totalGuestCount >= 3) return rooms;
+    return rooms.filter(r => !isRestrictedSuite(r.name));
+  }
+
+  // Clear restricted suites when guest count drops below 3
+  useEffect(() => {
+    if (totalGuestCount >= 3) { setSuiteWarning(""); return; }
+    const rooms = form.rooms || [];
+    const hasRestricted = rooms.some(r => isRestrictedSuite(r.roomName));
+    if (hasRestricted) {
+      const cleaned = rooms.map(r =>
+        isRestrictedSuite(r.roomName) ? { roomId: "", roomName: "", roomRate: 0, guestName: r.guestName } : r
+      );
+      set("rooms", cleaned);
+      setSuiteWarning("Suite 4 and Suite 6 require 3 or more guests due to shared bathroom");
+    } else {
+      setSuiteWarning("");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalGuestCount]);
 
   function handleRoomSelect(idx, roomId) {
     const source = liveRooms.find(r => r.id === roomId) || MANUAL_ROOMS.find(r => r.id === roomId);
@@ -224,6 +256,7 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
     updated[idx] = { ...updated[idx], roomId, roomName: source?.name || roomId, roomRate: source?.rate || 0 };
     set("rooms", updated);
     if (idx === 0) set("cloudbedsRoomTypeId", roomId);
+    setSuiteWarning("");
   }
 
   function updateRoomField(idx, field, value) {
@@ -403,6 +436,23 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
         </div>
       </Section>
 
+      <Section title="Additional Guests · For Multi-Guest Reservations">
+        <p className="text-xs text-[rgb(170,140,110)] mb-4">Add info for 2nd, 3rd, 4th guests as Cloudbeds requires.</p>
+        <div className="space-y-4">
+          {form.additionalGuests.map((guest, idx) => (
+            <div key={idx} className="bg-[rgb(250,248,245)] border border-[rgb(220,210,200)] rounded-lg p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+                <Field label="Guest Name"><input placeholder="First Last" value={guest.name} onChange={e => { const u = [...form.additionalGuests]; u[idx].name = e.target.value; set("additionalGuests", u); }} className={fieldCls} /></Field>
+                <Field label="Email"><input placeholder="guest@email.com" value={guest.email} onChange={e => { const u = [...form.additionalGuests]; u[idx].email = e.target.value; set("additionalGuests", u); }} className={fieldCls} /></Field>
+                <Field label="Phone"><input placeholder="(555) 000-0000" value={guest.phone} onChange={e => { const u = [...form.additionalGuests]; u[idx].phone = e.target.value; set("additionalGuests", u); }} className={fieldCls} /></Field>
+              </div>
+              <button type="button" onClick={() => set("additionalGuests", form.additionalGuests.filter((_, i) => i !== idx))} className="mt-2 text-xs text-red-600 hover:text-red-700">Remove Guest</button>
+            </div>
+          ))}
+          <button type="button" onClick={() => set("additionalGuests", [...form.additionalGuests, { name: "", email: "", phone: "" }])} className="text-xs text-[rgb(107,85,64)] hover:underline">+ Add Another Guest</button>
+        </div>
+      </Section>
+
       <Section title="Hotel Reservation · Cloudbeds">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
           <Field label="Check-In Date" required><input type="date" value={form.checkInDate} onChange={e => set("checkInDate", e.target.value)} className={fieldCls} /></Field>
@@ -421,6 +471,12 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
                 {!showManualRooms && <button type="button" onClick={() => setShowManualRooms(true)} className="ml-auto underline font-semibold whitespace-nowrap">Enter Manually</button>}
               </div>
             )}
+            {suiteWarning && (
+              <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-1 mb-2">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                {suiteWarning}
+              </div>
+            )}
             <div className="space-y-3 mt-2">
               {displayRooms.map((room, idx) => (
                 <div key={idx} className="bg-[rgb(250,248,245)] border border-[rgb(220,210,200)] rounded-lg p-4">
@@ -432,12 +488,12 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
                         ) : liveRooms.length > 0 ? (
                           <select value={room.roomId} onChange={e => handleRoomSelect(idx, e.target.value)} className={selectCls}>
                             <option value="">Select room</option>
-                            {liveRooms.map(rt => <option key={rt.id} value={rt.id}>{rt.displayName}</option>)}
+                            {filterRoomOptions(liveRooms).map(rt => <option key={rt.id} value={rt.id}>{rt.displayName}</option>)}
                           </select>
                         ) : (showManualRooms || room.roomId) ? (
                           <select value={room.roomId} onChange={e => handleRoomSelect(idx, e.target.value)} className={selectCls}>
                             <option value="">Select room</option>
-                            {MANUAL_ROOMS.map(rt => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
+                            {filterRoomOptions(MANUAL_ROOMS).map(rt => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
                           </select>
                         ) : (
                           <p className={fieldCls + " text-[rgb(190,170,150)] italic text-xs"}>No rooms available</p>
@@ -450,7 +506,15 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
                         </select>
                       </Field>
                       <Field label="Nightly Rate">
-                        <p className={fieldCls + " text-[rgb(107,85,64)]"}>{room.roomRate ? `$${room.roomRate}/night` : "—"}</p>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={room.roomRate || ""}
+                          onChange={e => updateRoomField(idx, "roomRate", parseFloat(e.target.value) || 0)}
+                          className={fieldCls}
+                        />
                       </Field>
                     </div>
                     {displayRooms.length > 1 && (
@@ -475,23 +539,6 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
               <textarea placeholder="Ground floor, early check-in, pet, anniversary setup…" value={form.hotelNotes} onChange={e => set("hotelNotes", e.target.value)} className={fieldCls + " resize-none h-16"} />
             </Field>
           </div>
-        </div>
-      </Section>
-
-      <Section title="Additional Guests · For Multi-Guest Reservations">
-        <p className="text-xs text-[rgb(170,140,110)] mb-4">Add info for 2nd, 3rd, 4th guests as Cloudbeds requires.</p>
-        <div className="space-y-4">
-          {form.additionalGuests.map((guest, idx) => (
-            <div key={idx} className="bg-[rgb(250,248,245)] border border-[rgb(220,210,200)] rounded-lg p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
-                <Field label="Guest Name"><input placeholder="First Last" value={guest.name} onChange={e => { const u = [...form.additionalGuests]; u[idx].name = e.target.value; set("additionalGuests", u); }} className={fieldCls} /></Field>
-                <Field label="Email"><input placeholder="guest@email.com" value={guest.email} onChange={e => { const u = [...form.additionalGuests]; u[idx].email = e.target.value; set("additionalGuests", u); }} className={fieldCls} /></Field>
-                <Field label="Phone"><input placeholder="(555) 000-0000" value={guest.phone} onChange={e => { const u = [...form.additionalGuests]; u[idx].phone = e.target.value; set("additionalGuests", u); }} className={fieldCls} /></Field>
-              </div>
-              <button type="button" onClick={() => set("additionalGuests", form.additionalGuests.filter((_, i) => i !== idx))} className="mt-2 text-xs text-red-600 hover:text-red-700">Remove Guest</button>
-            </div>
-          ))}
-          <button type="button" onClick={() => set("additionalGuests", [...form.additionalGuests, { name: "", email: "", phone: "" }])} className="text-xs text-[rgb(107,85,64)] hover:underline">+ Add Another Guest</button>
         </div>
       </Section>
 
