@@ -91,7 +91,9 @@ export default function SimplyBookEngine({
         if (res.data?.error) {
           setError(res.data.error);
         } else {
-          setServices(res.data?.services || []);
+          // Filter out private services — only show public treatments to guests
+          const allServices = res.data?.services || [];
+          setServices(allServices.filter(svc => !svc.private));
           setProviders(res.data?.providers || []);
         }
       } catch (e) {

@@ -3,15 +3,27 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 // In-memory cache with 5-minute TTL (services change infrequently)
 let servicesCache: { data: any; expiresAt: number } | null = null;
 
-async function sbRPC(url: string, method: string, params: any[], headers: Record<string, string> = {}) {
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...headers },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+const ACUITY_BASE = "https://acuityscheduling.com/api/v1";
+
+function acuityAuth(): string {
+  const userId = Deno.env.get("ACUITY_USER_ID") || "";
+  const apiKey = Deno.env.get("ACUITY_API_KEY") || "";
+  return "Basic " + btoa(userId + ":" + apiKey);
+}
+
+async function acuityGet(path: string): Promise<any> {
+  const resp = await fetch(`${ACUITY_BASE}${path}`, {
+    method: "GET",
+    headers: {
+      Authorization: acuityAuth(),
+      "Content-Type": "application/json",
+    },
   });
-  const json = await resp.json();
-  if (json?.error) throw new Error(`SB RPC ${method}: ${JSON.stringify(json.error)}`);
-  return json?.result ?? json;
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`Acuity GET ${path} failed (${resp.status}): ${text.slice(0, 300)}`);
+  }
+  return resp.json();
 }
 
 Deno.serve(async (req) => {
@@ -22,80 +34,48 @@ Deno.serve(async (req) => {
       return Response.json(servicesCache.data);
     }
 
-    const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
-    const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
+    const userId = Deno.env.get("ACUITY_USER_ID") || "";
+    const apiKey = Deno.env.get("ACUITY_API_KEY") || "";
 
-    if (!company || !apiKey) {
-      return Response.json({ error: "SimplyBook credentials not configured" }, { status: 500 });
+    if (!userId || !apiKey) {
+      return Response.json({ error: "Acuity credentials not configured" }, { status: 500 });
     }
 
-    const loginUrl = "https://user-api.simplybook.me/login";
-    const apiUrl = "https://user-api.simplybook.me";
-
-    // Public read token
-    const token = await sbRPC(loginUrl, "getToken", [company, apiKey]);
-    if (!token || typeof token !== "string") {
-      return Response.json({ error: "SimplyBook auth failed" }, { status: 500 });
-    }
-
-    const headers = { "X-Company-Login": company, "X-Token": token };
-
-    // Fetch services and providers in parallel
-    const [servicesRaw, unitsRaw] = await Promise.all([
-      sbRPC(apiUrl, "getEventList", [], headers),
-      sbRPC(apiUrl, "getUnitList", [], headers),
+    // Fetch appointment types and calendars in parallel
+    const [appointmentTypes, calendars]: [any[], any[]] = await Promise.all([
+      acuityGet("/appointment-types"),
+      acuityGet("/calendars"),
     ]);
 
-    const servicesMap = (typeof servicesRaw === "object" && !Array.isArray(servicesRaw)) ? servicesRaw : {};
-    const unitsMap = (typeof unitsRaw === "object" && !Array.isArray(unitsRaw)) ? unitsRaw : {};
-
-    // Build provider lookup
+    // Build provider lookup from calendars
     const providers: Record<string, any> = {};
-    for (const [id, p] of Object.entries(unitsMap) as any[]) {
-      if (p.is_visible === false) continue;
-      providers[String(id)] = {
-        id: String(id),
-        name: p.name || `Provider ${id}`,
-        phone: p.phone || "",
-        position: p.position || "",
-        description: p.description || "",
-        picture: p.picture || p.picture_path || "",
+    for (const cal of calendars) {
+      providers[String(cal.id)] = {
+        id: String(cal.id),
+        name: cal.name || `Provider ${cal.id}`,
+        phone: "",
+        position: "",
+        description: "",
+        picture: cal.image || "",
       };
     }
 
-    // Build services list — only active + public
-    const services = Object.entries(servicesMap)
-      .filter(([, svc]: any) => svc.is_active && svc.is_public)
-      .map(([svcId, svc]: any) => {
-        // Map providers for this service
-        // unit_map can be an array [1,2,3], an object {"1":"1","2":"2"}, or empty/null
-        let providerIds: string[];
-        if (Array.isArray(svc.unit_map) && svc.unit_map.length > 0) {
-          providerIds = svc.unit_map.map(String);
-        } else if (svc.unit_map && typeof svc.unit_map === 'object' && Object.keys(svc.unit_map).length > 0) {
-          providerIds = Object.keys(svc.unit_map).map(String);
-        } else {
-          providerIds = [];
-        }
-
-        const serviceProviders = providerIds
-          .filter((pid: string) => providers[pid])
-          .map((pid: string) => providers[pid]);
-
-        return {
-          id: String(svcId),
-          name: svc.name || "",
-          duration: Number(svc.duration || 60),
-          price: Number(svc.price || 0),
-          description: svc.description || "",
-          category: svc.categories || [],
-          picture: svc.picture || svc.picture_path || "",
-          position: Number(svc.position || 0),
-          providers: serviceProviders,
-          providerIds,
-        };
-      })
-      .sort((a, b) => a.position - b.position);
+    // Build services list — include all types, mark private flag
+    // Guest-facing pages will filter out private ones
+    const services = appointmentTypes.map((at: any) => ({
+      id: String(at.id),
+      name: at.name || "",
+      duration: Number(at.duration || 60),
+      price: Number(at.price || 0),
+      description: at.description || "",
+      category: at.category || [],
+      picture: at.image || "",
+      position: Number(at.sortOrder || 0),
+      private: Boolean(at.private),
+      // All calendars are potential providers for any appointment type
+      providers: Object.values(providers),
+      providerIds: Object.keys(providers),
+    }));
 
     const result = {
       services,
