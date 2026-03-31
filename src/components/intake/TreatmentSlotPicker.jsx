@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Plus, X, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
@@ -39,11 +39,13 @@ function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName
     setAvailabilityError(false);
     setAvailabilityData(null);
     try {
-      const res = await base44.functions.invoke("simplybookGetAvailability", { date: selectedDate });
+      const res = await base44.functions.invoke("acuityGetAvailability", { date: selectedDate, includePrivate: true });
       if (res?.data?.error || !res?.data?.services) {
         setAvailabilityError(true);
       } else {
-        setAvailabilityData(res.data);
+        // Only show non-private services in the book-online picker
+        const filtered = { ...res.data, services: (res.data.services || []).filter(s => !s.private) };
+        setAvailabilityData(filtered);
       }
     } catch {
       setAvailabilityError(true);
@@ -89,7 +91,7 @@ function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName
       time: selectedTime,
       price: selectedService.price,
       duration: selectedService.duration,
-      source: "simplybook",
+      source: "acuity",
     });
     // Reset local state
     setDate(""); setSelectedServiceId(""); setSelectedProviderId(""); setSelectedTime("");
@@ -157,7 +159,7 @@ function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName
           <div className="text-xs text-[rgb(107,85,64)] font-medium">
             ✓ {entry.serviceName} · {entry.staffName || "—"} · {entry.date} at {entry.time?.slice(0,5)}
             {entry.price ? ` · $${entry.price}` : ""}
-            {entry.source === "simplybook" && <span className="ml-1.5 text-[rgb(150,170,155)]">· SimplyBook ✓</span>}
+            {entry.source === "acuity" && <span className="ml-1.5 text-[rgb(150,170,155)]">· Acuity ✓</span>}
           </div>
           <button type="button" onClick={() => onUpdate(index, { ...entry, serviceName: "", date: "", time: "", simplybookServiceId: "", staffId: "", staffName: "", source: "" })} className="text-[10px] text-[rgb(150,130,110)] underline ml-3">Edit</button>
         </div>
@@ -181,7 +183,7 @@ function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName
           {/* Loading state */}
           {loadingAvailability && (
             <p className="text-xs text-[rgb(150,170,155)] flex items-center gap-1.5">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Checking SimplyBook availability…
+              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Checking availability…
             </p>
           )}
 
@@ -244,7 +246,7 @@ function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName
           {!loadingAvailability && availabilityError && date && (
             <>
               <div className="text-yellow-600 text-sm">
-                ⚠️ SimplyBook unavailable — selecting from local treatment list
+                ⚠️ Acuity unavailable — selecting from local treatment list
               </div>
               <div>
                 <label className={labelCls}>Treatment</label>
@@ -303,7 +305,7 @@ function CtbRow({ index, entry, treatments, onUpdate, onRemove, guestName, allGu
       setSlots([]);
       setSlotsFailed(false);
       try {
-        const res = await base44.functions.invoke("simplybookGetAvailability", { date });
+        const res = await base44.functions.invoke("acuityGetAvailability", { date, includePrivate: true });
         if (cancelled) return;
         const services = res?.data?.services || [];
         // Match service by name (case-insensitive partial match)
@@ -432,6 +434,35 @@ function CtbRow({ index, entry, treatments, onUpdate, onRemove, guestName, allGu
 
 export default function TreatmentSlotPicker({ sbEntries, ctbEntries, bookOnlineTreatments = [], callToBookTreatments = [], onSbChange, onCtbChange, primaryGuestName, guestNames = [] }) {
   const allGuestNames = guestNames.length > 0 ? guestNames : (primaryGuestName ? [primaryGuestName] : []);
+
+  // Load private Acuity appointment types for the "Needs Verification" section
+  const [acuityPrivateTreatments, setAcuityPrivateTreatments] = useState([]);
+  useEffect(() => {
+    let cancelled = false;
+    async function loadPrivate() {
+      try {
+        const today = new Date().toISOString().split("T")[0];
+        const res = await base44.functions.invoke("acuityGetAvailability", { date: today, includePrivate: true });
+        if (cancelled) return;
+        const allServices = res?.data?.services || [];
+        const privateOnes = allServices
+          .filter(s => s.private)
+          .map(s => ({ id: s.id, name: s.name, price: s.price, duration_minutes: s.duration }));
+        setAcuityPrivateTreatments(privateOnes);
+      } catch {
+        // Non-fatal — fall back to existing callToBookTreatments
+      }
+    }
+    loadPrivate();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Merge Acuity private treatments with locally-configured call-to-book treatments
+  const mergedCtbTreatments = useMemo(() => {
+    const byName = new Set(callToBookTreatments.map(t => t.name?.toLowerCase()));
+    const extra = acuityPrivateTreatments.filter(t => !byName.has(t.name?.toLowerCase()));
+    return [...callToBookTreatments, ...extra];
+  }, [callToBookTreatments, acuityPrivateTreatments]);
   function addSb() {
     if (sbEntries.length >= 10) return;
     onSbChange([...sbEntries, { serviceId: "", serviceName: "", price: 0, duration: 0, date: "", time: "", staffName: "", guestName: primaryGuestName }]);
@@ -498,7 +529,7 @@ export default function TreatmentSlotPicker({ sbEntries, ctbEntries, bookOnlineT
         </div>
         <div className="space-y-3">
           {ctbEntries.map((entry, i) => (
-            <CtbRow key={i} index={i} entry={entry} treatments={callToBookTreatments} onUpdate={updateCtb} onRemove={removeCtb} guestName={entry.guestName || primaryGuestName} allGuestNames={allGuestNames} />
+            <CtbRow key={i} index={i} entry={entry} treatments={mergedCtbTreatments} onUpdate={updateCtb} onRemove={removeCtb} guestName={entry.guestName || primaryGuestName} allGuestNames={allGuestNames} />
           ))}
           {ctbEntries.length === 0 && (
             <p className="text-xs text-[rgb(180,165,150)] italic">No call-to-book treatments added yet.</p>

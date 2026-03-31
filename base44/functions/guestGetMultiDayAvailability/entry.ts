@@ -1,24 +1,32 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
-// In-memory cache: key = "serviceId:date" → slots[], TTL 2 min
-const slotCache = new Map<string, { slots: any[]; expiresAt: number }>();
+const ACUITY_BASE = "https://acuityscheduling.com/api/v1";
 
-async function sbRPC(url: string, method: string, params: any[], headers: Record<string, string> = {}) {
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...headers },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-  });
-  const json = await resp.json();
-  if (json?.error) throw new Error(`SB RPC ${method}: ${JSON.stringify(json.error)}`);
-  return json?.result ?? json;
+function acuityAuth(): string {
+  const userId = Deno.env.get("ACUITY_USER_ID") || "";
+  const apiKey = Deno.env.get("ACUITY_API_KEY") || "";
+  return "Basic " + btoa(userId + ":" + apiKey);
 }
 
-function normalizeSlot(t: string): string | null {
-  const s = String(t).trim();
-  if (/^\d{2}:\d{2}:\d{2}$/.test(s)) return s;
-  if (/^\d{2}:\d{2}$/.test(s)) return `${s}:00`;
-  return null;
+async function acuityGet(path: string): Promise<any> {
+  const resp = await fetch(`${ACUITY_BASE}${path}`, {
+    method: "GET",
+    headers: {
+      Authorization: acuityAuth(),
+      "Content-Type": "application/json",
+    },
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`Acuity GET ${path} failed (${resp.status}): ${text.slice(0, 300)}`);
+  }
+  return resp.json();
+}
+
+function normalizeSlot(time: string): string | null {
+  // Acuity returns ISO datetime like "2026-04-01T10:00:00-0500"
+  const match = String(time).match(/T(\d{2}:\d{2}:\d{2})/);
+  return match ? match[1] : null;
 }
 
 Deno.serve(async (req) => {
@@ -37,118 +45,78 @@ Deno.serve(async (req) => {
       return Response.json({ error: "Maximum 60 dates per request" }, { status: 400 });
     }
 
-    // Validate date formats
     for (const d of dates) {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) {
         return Response.json({ error: `Invalid date format: ${d}` }, { status: 400 });
       }
     }
 
-    const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
-    const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
+    const userId = Deno.env.get("ACUITY_USER_ID") || "";
+    const apiKey = Deno.env.get("ACUITY_API_KEY") || "";
 
-    if (!company || !apiKey) {
-      return Response.json({ error: "SimplyBook credentials not configured" }, { status: 500 });
+    if (!userId || !apiKey) {
+      return Response.json({ error: "Acuity credentials not configured" }, { status: 500 });
     }
 
-    const loginUrl = "https://user-api.simplybook.me/login";
-    const apiUrl = "https://user-api.simplybook.me";
-
-    // Public read token
-    const token = await sbRPC(loginUrl, "getToken", [company, apiKey]);
-    if (!token || typeof token !== "string") {
-      return Response.json({ error: "SimplyBook auth failed" }, { status: 500 });
-    }
-
-    const headers = { "X-Company-Login": company, "X-Token": token };
-
-    // If no specific provider requested, get service's unit_map to know which providers offer it
-    let providerIdsToCheck: string[] = [];
-
+    // Determine which calendars (providers) to check
+    let calendarIds: string[] = [];
     if (providerId) {
-      providerIdsToCheck = [String(providerId)];
+      calendarIds = [String(providerId)];
     } else {
-      // Fetch service details to get unit_map
-      const servicesRaw = await sbRPC(apiUrl, "getEventList", [], headers);
-      const svc = servicesRaw?.[serviceId];
-      if (!svc) {
-        return Response.json({ error: `Service ${serviceId} not found` }, { status: 404 });
-      }
-      if (Array.isArray(svc.unit_map) && svc.unit_map.length > 0) {
-        providerIdsToCheck = svc.unit_map.map(String);
-      } else {
-        // Fallback: get all providers
-        const unitsRaw = await sbRPC(apiUrl, "getUnitList", [], headers);
-        providerIdsToCheck = Object.keys(unitsRaw || {});
-      }
+      // Fetch all calendars
+      const calendars: any[] = await acuityGet("/calendars");
+      calendarIds = calendars.map((c: any) => String(c.id));
     }
 
-    // For each date, check cache first; otherwise fetch from API
-    // Use getStartTimeMatrix which can span a date range for one service+provider combo
-    // Optimization: group consecutive dates into ranges and use range queries
+    // Get calendar names for response
+    let calendarNames: Record<string, string> = {};
+    if (!providerId) {
+      const calendars: any[] = await acuityGet("/calendars");
+      for (const c of calendars) {
+        calendarNames[String(c.id)] = c.name || `Provider ${c.id}`;
+      }
+    }
 
     const sortedDates = [...dates].sort();
-    const firstDate = sortedDates[0];
-    const lastDate = sortedDates[sortedDates.length - 1];
-    const dateSet = new Set(sortedDates);
 
-    // Fetch availability for the full range per provider, then filter to requested dates
-    const providerSlotPromises = providerIdsToCheck.map(async (pid) => {
-      try {
-        const matrix = await sbRPC(
-          apiUrl,
-          "getStartTimeMatrix",
-          [firstDate, lastDate, serviceId, pid, 1],
-          headers
-        );
+    // For each date × calendar, fetch availability times
+    // Acuity doesn't have a range endpoint for times, so we fetch per date
+    const fetchPromises: Promise<{ calendarId: string; date: string; slots: string[] }>[] = [];
 
-        const result: Record<string, string[]> = {};
-        if (matrix && typeof matrix === "object") {
-          for (const [date, raw] of Object.entries(matrix)) {
-            if (!dateSet.has(date)) continue;
-            const rawSlots = Array.isArray(raw) ? raw : Object.keys(raw as any);
-            const slots = rawSlots
-              .map((t: any) => normalizeSlot(String(t)))
-              .filter(Boolean) as string[];
-            if (slots.length > 0) {
-              result[date] = slots.sort();
+    for (const calId of calendarIds) {
+      for (const date of sortedDates) {
+        fetchPromises.push(
+          (async () => {
+            try {
+              let url = `/availability/times?appointmentTypeID=${serviceId}&date=${date}&calendarID=${calId}`;
+              const times: any[] = await acuityGet(url);
+              const slots = (Array.isArray(times) ? times : [])
+                .map((t: any) => normalizeSlot(t.time))
+                .filter(Boolean) as string[];
+              return { calendarId: calId, date, slots: slots.sort() };
+            } catch {
+              return { calendarId: calId, date, slots: [] };
             }
-          }
-        }
-        return { providerId: pid, dateSlots: result };
-      } catch {
-        return { providerId: pid, dateSlots: {} };
-      }
-    });
-
-    const providerResults = await Promise.all(providerSlotPromises);
-
-    // Build the response: { date -> { hasAvailability, providers: [{ id, name, slots }] } }
-    // Also get provider names
-    let providerNames: Record<string, string> = {};
-    if (!providerId) {
-      try {
-        const unitsRaw = await sbRPC(apiUrl, "getUnitList", [], headers);
-        for (const [id, p] of Object.entries(unitsRaw || {}) as any[]) {
-          providerNames[String(id)] = p.name || `Provider ${id}`;
-        }
-      } catch {
-        // Non-fatal
+          })()
+        );
       }
     }
 
+    const results = await Promise.all(fetchPromises);
+
+    // Build availability map: { date -> { hasAvailability, providers, allSlots, totalSlots } }
     const availability: Record<string, any> = {};
 
     for (const date of sortedDates) {
       const dateProviders: any[] = [];
       const allSlots = new Set<string>();
 
-      for (const { providerId: pid, dateSlots } of providerResults) {
-        const slots = dateSlots[date] || [];
+      for (const { calendarId, date: d, slots } of results) {
+        if (d !== date) continue;
         if (slots.length > 0) {
           dateProviders.push({
-            id: pid,
-            name: providerNames[pid] || `Provider ${pid}`,
+            id: calendarId,
+            name: calendarNames[calendarId] || `Provider ${calendarId}`,
             slots,
           });
           slots.forEach((s: string) => allSlots.add(s));
@@ -159,12 +127,10 @@ Deno.serve(async (req) => {
         hasAvailability: dateProviders.length > 0,
         totalSlots: allSlots.size,
         providers: dateProviders,
-        // Merged slots across all providers (for "any provider" mode)
         allSlots: [...allSlots].sort(),
       };
     }
 
-    // Summary: which dates have availability
     const datesWithAvailability = sortedDates.filter(d => availability[d]?.hasAvailability);
     const datesWithoutAvailability = sortedDates.filter(d => !availability[d]?.hasAvailability);
 

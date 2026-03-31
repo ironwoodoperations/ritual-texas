@@ -123,9 +123,24 @@ function NumSelect({ value, onChange, max = 20, start = 0 }) {
   );
 }
 
+// Alternating warm tones per section for visual separation
+const SECTION_BG = {
+  "Guest Information": "bg-white",
+  "Hotel Reservation · Cloudbeds": "bg-[rgb(252,250,247)]",
+  "Additional Guests · For Multi-Guest Reservations": "bg-[rgb(250,248,245)]",
+  "Spa & Wellness · Treatments": "bg-white",
+  "Therapist Outreach · Pipeline": "bg-[rgb(252,250,247)]",
+  "Internal Notes & Status": "bg-[rgb(250,248,245)]",
+  "Marketing & Payment": "bg-white",
+  "Taxes · Quote Line Items": "bg-[rgb(252,250,247)]",
+  "Discount": "bg-[rgb(250,248,245)]",
+  "Square Invoice": "bg-white",
+};
+
 function Section({ title, children }) {
+  const bgClass = SECTION_BG[title] || "bg-white";
   return (
-    <div className="mb-8">
+    <div className={`mb-8 ${bgClass} rounded-xl px-5 py-5 border border-[rgb(235,228,218)]`}>
       <div className="flex items-center gap-3 mb-5">
         <div className="h-px flex-1 bg-[rgb(220,210,200)]" />
         <span className="text-xs font-extrabold tracking-widest text-[rgb(107,85,64)] uppercase whitespace-nowrap">{title}</span>

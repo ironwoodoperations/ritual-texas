@@ -14,51 +14,50 @@ function normalizeTime(raw: any): string {
   return t;
 }
 
-function asArrayMap(obj: any): any[] {
-  if (!obj || typeof obj !== "object") return [];
-  if (Array.isArray(obj)) return obj;
-  return Object.entries(obj).map(([id, value]: [string, any]) => ({
-    id: String(id),
-    ...(typeof value === "object" && value ? value : { value }),
-  }));
+const ACUITY_BASE = "https://acuityscheduling.com/api/v1";
+
+function acuityAuth(): string {
+  const userId = Deno.env.get("ACUITY_USER_ID") || "";
+  const apiKey = Deno.env.get("ACUITY_API_KEY") || "";
+  return "Basic " + btoa(userId + ":" + apiKey);
 }
 
-function timeToMinutes(hms: string): number {
-  const [h, m] = normalizeTime(hms).split(":").map((n: string) => parseInt(n || "0", 10));
-  return h * 60 + m;
+function acuityHeaders(): Record<string, string> {
+  return {
+    Authorization: acuityAuth(),
+    "Content-Type": "application/json",
+  };
 }
 
-function addMinutesToTime(hms: string, add: number): string {
-  const total = timeToMinutes(hms) + add;
-  const m = ((total % 1440) + 1440) % 1440;
-  return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}:00`;
+async function acuityGet(path: string): Promise<any> {
+  const resp = await fetch(`${ACUITY_BASE}${path}`, {
+    method: "GET",
+    headers: acuityHeaders(),
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`Acuity GET ${path} failed (${resp.status}): ${text.slice(0, 300)}`);
+  }
+  return resp.json();
 }
 
-async function sbRPC(
-  url: string,
-  method: string,
-  params: any[],
-  headers: Record<string, string> = {},
-): Promise<any> {
-  const resp = await fetch(url, {
+async function acuityPost(path: string, body: any): Promise<any> {
+  const resp = await fetch(`${ACUITY_BASE}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...headers },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+    headers: acuityHeaders(),
+    body: JSON.stringify(body),
   });
   const text = await resp.text();
-  let json: any = {};
+  let json: any;
   try {
-    json = text ? JSON.parse(text) : {};
+    json = JSON.parse(text);
   } catch {
-    throw new Error(`SimplyBook non-JSON response for "${method}": ${text.slice(0, 300)}`);
+    throw new Error(`Acuity POST ${path} non-JSON response (${resp.status}): ${text.slice(0, 300)}`);
   }
   if (!resp.ok) {
-    throw new Error(`SimplyBook HTTP ${resp.status} for "${method}": ${text.slice(0, 300)}`);
+    throw new Error(`Acuity POST ${path} failed (${resp.status}): ${json?.message || text.slice(0, 300)}`);
   }
-  if (json?.error) {
-    throw new Error(`SimplyBook RPC error for "${method}": ${JSON.stringify(json.error)}`);
-  }
-  return json?.result ?? null;
+  return json;
 }
 
 // ── Main handler ──────────────────────────────────────────────────────────────
@@ -80,46 +79,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
     console.log('[DEBUG] guestName:', intake.guestName, '| email:', intake.email, '| phone:', intake.phone);
 
     // ── Credentials ──────────────────────────────────────────────────────
-    const company: string = (Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "").trim();
-    const apiKey: string = (Deno.env.get("SIMPLYBOOK_API_KEY") || "").trim();
+    const userId: string = (Deno.env.get("ACUITY_USER_ID") || "").trim();
+    const apiKey: string = (Deno.env.get("ACUITY_API_KEY") || "").trim();
 
-    if (!company || !apiKey) {
+    if (!userId || !apiKey) {
       return Response.json({
-        error: "Missing environment variables: SIMPLYBOOK_COMPANY_LOGIN and/or SIMPLYBOOK_API_KEY",
+        error: "Missing environment variables: ACUITY_USER_ID and/or ACUITY_API_KEY",
       }, { status: 500 });
-    }
-
-    // ── Debug mode: test auth and return service list ─────────────────────
-    if (body?._debugAuth) {
-      const dUserLogin: string = (Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "").trim();
-      const dUserPass: string = (Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "").trim();
-      const LOGIN_URL_D = "https://user-api.simplybook.me/login";
-      const BASE_URL_D = "https://user-api.simplybook.me";
-      const [pubTok, admTok] = await Promise.all([
-        sbRPC(LOGIN_URL_D, "getToken", [company, apiKey]).catch((e: any) => ({ error: e.message })),
-        sbRPC(LOGIN_URL_D, "getUserToken", [company, dUserLogin, dUserPass]).catch((e: any) => ({ error: e.message })),
-      ]);
-      const adminOk = typeof admTok === "string";
-      const rTok = adminOk ? admTok : "";
-      const rHeaders: Record<string, string> = {
-        "X-Company-Login": company,
-        "X-Token": rTok,
-        "X-User-Token": rTok,
-      };
-      const services = adminOk
-        ? await sbRPC(BASE_URL_D, "getEventList", [], rHeaders).catch(() => null)
-        : null;
-      const providers = adminOk
-        ? await sbRPC(BASE_URL_D, "getUnitList", [], rHeaders).catch(() => null)
-        : null;
-      return Response.json({
-        publicTokenOk: typeof pubTok === "string",
-        adminTokenOk: adminOk,
-        publicTokenError: typeof pubTok !== "string" ? pubTok : null,
-        adminTokenError: !adminOk ? admTok : null,
-        services: services ? asArrayMap(services).map((s: any) => ({ id: s.id, name: s.name })) : null,
-        providers: providers ? asArrayMap(providers).map((p: any) => ({ id: p.id, name: p.name })) : null,
-      });
     }
 
     // ── Validate input ───────────────────────────────────────────────────
@@ -135,65 +101,16 @@ Deno.serve(async (req: Request): Promise<Response> => {
     console.log(`[DEBUG] Resolved guestName: "${guestName}" | guestEmail: "${guestEmail}" | guestPhone: "${guestPhone}"`);
 
     if (!guestName) {
-      return Response.json({ error: "Cannot book SimplyBook: intake is missing guestName field" }, { status: 400 });
+      return Response.json({ error: "Cannot book Acuity: intake is missing guestName field" }, { status: 400 });
     }
     if (!guestEmail) {
-      return Response.json({ error: "Cannot book SimplyBook: intake is missing email field" }, { status: 400 });
+      return Response.json({ error: "Cannot book Acuity: intake is missing email field" }, { status: 400 });
     }
 
-    console.log(`[SimplyBook] Booking for: ${guestName} <${guestEmail}> phone: ${guestPhone || "(none)"}`);
+    console.log(`[Acuity] Booking for: ${guestName} <${guestEmail}> phone: ${guestPhone || "(none)"}`);
 
-    // ── Authenticate ─────────────────────────────────────────────────────
-    const LOGIN_URL = "https://user-api.simplybook.me/login";
-    const BASE_URL = "https://user-api.simplybook.me";
-    const ADMIN_URL = "https://user-api.simplybook.me/admin/";
-
-    const userLogin: string = (Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "").trim();
-    const userPassword: string = (Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "").trim();
-
-    if (!userLogin || !userPassword) {
-      return Response.json({
-        error: "Missing env vars for admin write access: SIMPLYBOOK_ADMIN_LOGIN and SIMPLYBOOK_ADMIN_PASSWORD are required to book treatments.",
-      }, { status: 500 });
-    }
-
-    // Public token — for reads (getEventList, getUnitList)
-    // Admin token — for writes (addClient, book) — getUserToken with 3 params
-    const [publicToken, adminToken] = await Promise.all([
-      sbRPC(LOGIN_URL, "getToken", [company, apiKey]).catch(() => null),
-      sbRPC(LOGIN_URL, "getUserToken", [company, userLogin, userPassword]),
-    ]);
-
-    if (!adminToken || typeof adminToken !== "string") {
-      return Response.json({
-        error: "SimplyBook admin authentication failed. Check SIMPLYBOOK_ADMIN_LOGIN and SIMPLYBOOK_ADMIN_PASSWORD.",
-        detail: adminToken,
-      }, { status: 500 });
-    }
-
-    // Use whichever token is available for reads; use admin token for writes
-    const readToken: string = (typeof publicToken === "string" && publicToken) ? publicToken : adminToken;
-
-    const readHeaders: Record<string, string> = {
-      "X-Company-Login": company,
-      "X-Token": readToken,
-      "X-User-Token": readToken,
-    };
-
-    const adminHeaders: Record<string, string> = {
-      "X-Company-Login": company,
-      "X-Token": adminToken,
-      "X-User-Token": adminToken,
-    };
-
-    // ── Load services and providers ──────────────────────────────────────
-    const [servicesRaw, providersRaw] = await Promise.all([
-      sbRPC(BASE_URL, "getEventList", [], readHeaders),
-      sbRPC(BASE_URL, "getUnitList", [], readHeaders),
-    ]);
-
-    const services: any[] = asArrayMap(servicesRaw);
-    const providers: any[] = asArrayMap(providersRaw);
+    // ── Load appointment types for matching ──────────────────────────────
+    const appointmentTypes: any[] = await acuityGet("/appointment-types");
 
     const bookingsCreated: any[] = [];
     const bookingsFailed: any[] = [];
@@ -206,10 +123,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     if (intakeId) {
       try {
         const intakeRecord: any = await base44.asServiceRole.entities.HotelTreatmentIntake.get(intakeId);
-        const already: any[] = Array.isArray(intakeRecord?.simplybook_failed_treatments)
-          ? intakeRecord.simplybook_failed_treatments
-          : [];
-        // Build a set of already-confirmed simplybookBookingIds from SpaBooking
+        // Build a set of already-confirmed booking IDs from SpaBooking
         const confirmedBookings: any[] = await base44.asServiceRole.entities.SpaBooking.filter({ intakeId });
         confirmedBookings.forEach((b: any) => {
           if (b.simplybookBookingId) existingBookedIds.add(String(b.simplybookBookingId));
@@ -219,57 +133,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
     }
 
-    // ── Find or create SimplyBook client ONCE for the guest ───────────────
-    let sharedClientId: number | null = null;
-    try {
-      const clientListRaw: any = await sbRPC(ADMIN_URL, "getClientList", [0, 1, null, { email: guestEmail }], adminHeaders);
-      const clientList: any[] = Array.isArray(clientListRaw) ? clientListRaw : asArrayMap(clientListRaw);
-
-      if (clientList.length > 0) {
-        // Existing client — reuse their ID, but update name/phone in case stale
-        const raw = clientList[0]?.id ?? clientList[0]?.client_id;
-        sharedClientId = typeof raw === "string" && !isNaN(Number(raw)) ? Number(raw) : Number(raw);
-        console.log(`[SimplyBook] Using existing client ID: ${sharedClientId} for email: ${guestEmail} — updating name to: ${guestName}`);
-        try {
-          const updatePayload: Record<string, string> = { name: guestName };
-          if (guestPhone) updatePayload.phone = guestPhone;
-          await sbRPC(ADMIN_URL, "editClient", [sharedClientId, updatePayload], adminHeaders);
-        } catch {
-          // Non-fatal — name update failed but we can still book
-        }
-      } else {
-        // New client — create once
-        const clientPayload: Record<string, string> = { name: guestName };
-        if (guestEmail) clientPayload.email = guestEmail;
-        if (guestPhone) clientPayload.phone = guestPhone;
-        const addClientRaw: any = await sbRPC(ADMIN_URL, "addClient", [clientPayload, false], adminHeaders);
-        console.log("addClient raw response:", JSON.stringify(addClientRaw));
-        const raw =
-          addClientRaw?.id ||
-          addClientRaw?.client_id ||
-          addClientRaw?.data?.id ||
-          (typeof addClientRaw === "number" ? addClientRaw : null) ||
-          (typeof addClientRaw === "string" && !isNaN(Number(addClientRaw)) ? addClientRaw : null);
-        sharedClientId = typeof raw === "string" && !isNaN(Number(raw)) ? Number(raw) : Number(raw);
-        console.log(`[SimplyBook] Created new client ID: ${sharedClientId} for email: ${guestEmail}`);
-      }
-    } catch (e: any) {
-      return Response.json({
-        success: false,
-        bookings: [],
-        errors: [`Could not find or create SimplyBook client for "${guestEmail}": ${e.message}`],
-        message: "SimplyBook client setup failed — no bookings were made.",
-      }, { status: 500 });
-    }
-
-    if (!sharedClientId) {
-      return Response.json({
-        success: false,
-        bookings: [],
-        errors: [`No client ID returned for guest "${guestName}" — cannot book without a valid client`],
-        message: "SimplyBook client setup failed — no bookings were made.",
-      }, { status: 500 });
-    }
+    // Split guest name into first/last for Acuity
+    const nameParts = guestName.split(/\s+/);
+    const defaultFirstName = nameParts[0] || "";
+    const defaultLastName = nameParts.slice(1).join(" ") || "";
 
     // ── Process each treatment slot ──────────────────────────────────────
     for (const rawItem of intake.selectedTreatments) {
@@ -286,16 +153,21 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       const entryName: string = clean(entry?.serviceName || entry?.name || "Unknown treatment");
 
-      // ── Skip if already confirmed in SimplyBook ──────────────────────
-      const existingSimplybookId: string = clean(entry?.simplybookBookingId || entry?.booking_id || "");
-      if (existingSimplybookId && existingBookedIds.has(existingSimplybookId)) {
-        debug.push({ stage: "skipped_already_booked", entryName, simplybookBookingId: existingSimplybookId });
+      // ── Skip if already confirmed ──────────────────────────────────
+      const existingBookingId: string = clean(entry?.simplybookBookingId || entry?.booking_id || "");
+      if (existingBookingId && existingBookedIds.has(existingBookingId)) {
+        debug.push({ stage: "skipped_already_booked", entryName, simplybookBookingId: existingBookingId });
         continue;
       }
 
       const entryGuestName: string = clean(entry?.guestName || "") || guestName;
       const entryGuestEmail: string = clean(entry?.email || guestEmail).toLowerCase();
       const entryGuestPhone: string = clean(entry?.phone || guestPhone);
+
+      // Split entry guest name
+      const entryNameParts = entryGuestName.split(/\s+/);
+      const firstName = entryNameParts[0] || defaultFirstName;
+      const lastName = entryNameParts.slice(1).join(" ") || defaultLastName;
 
       // ── Validate date and time are present ──────────────────────────
       const requestedDate: string = clean(entry?.date || "");
@@ -311,113 +183,79 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
 
       // ── Match service by ID then by name ────────────────────────────
-      const requestedSimplybookId: string = clean(entry?.simplybookServiceId || "");
+      const requestedAcuityId: string = clean(entry?.acuityAppointmentTypeId || entry?.simplybookServiceId || "");
       const requestedServiceId: string = clean(entry?.serviceId || entry?.id || "");
       const requestedServiceName: string = clean(entry?.serviceName || entry?.name || "");
 
-      let svc: any =
-        // 1. Direct SimplyBook ID match (most reliable — set by live availability picker)
-        (requestedSimplybookId && services.find((s: any) => String(s.id) === requestedSimplybookId)) ||
+      let matchedType: any =
+        // 1. Direct Acuity appointment type ID match
+        (requestedAcuityId && appointmentTypes.find((at: any) => String(at.id) === requestedAcuityId)) ||
         // 2. Local service ID match
-        (requestedServiceId && services.find((s: any) => String(s.id) === requestedServiceId)) ||
+        (requestedServiceId && appointmentTypes.find((at: any) => String(at.id) === requestedServiceId)) ||
         // 3. Exact name match
-        services.find((s: any) => clean(s.name).toLowerCase() === requestedServiceName.toLowerCase()) ||
+        appointmentTypes.find((at: any) => clean(at.name).toLowerCase() === requestedServiceName.toLowerCase()) ||
         // 4. Fuzzy name match
-        services.find((s: any) => {
-          const sn = clean(s.name).toLowerCase();
+        appointmentTypes.find((at: any) => {
+          const sn = clean(at.name).toLowerCase();
           const rn = requestedServiceName.toLowerCase();
           return sn && rn && (sn.includes(rn) || rn.includes(sn));
         });
 
-      if (!svc) {
+      if (!matchedType) {
         errors.push(
-          `"${requestedServiceName || requestedServiceId}" not found in SimplyBook. ` +
-          `Available services: ${services.map((s: any) => s.name).join(", ")}`,
+          `"${requestedServiceName || requestedServiceId}" not found in Acuity. ` +
+          `Available types: ${appointmentTypes.map((at: any) => at.name).join(", ")}`,
         );
         debug.push({
           stage: "service_not_found",
           requestedServiceId,
           requestedServiceName,
-          availableServices: services.map((s: any) => ({ id: s.id, name: s.name })),
+          availableTypes: appointmentTypes.map((at: any) => ({ id: at.id, name: at.name })),
         });
         continue;
       }
 
       // ── Match provider (optional) ────────────────────────────────────
-      const requestedProviderName: string = clean(entry?.staffName || intake?.therapistAssigned || "");
-      let unitId: string | null = null;
+      const requestedCalendarId: string = clean(entry?.acuityCalendarId || entry?.staffId || "");
+      let calendarId: number | undefined = requestedCalendarId ? Number(requestedCalendarId) : undefined;
 
-      if (requestedProviderName) {
-        const providerMatch = providers.find((p: any) =>
-          clean(p.name).toLowerCase() === requestedProviderName.toLowerCase() ||
-          clean(p.name).toLowerCase().includes(requestedProviderName.toLowerCase())
-        );
-        if (providerMatch) {
-          unitId = String(providerMatch.id);
-        }
-      }
-      // If no provider match, unitId stays null — SimplyBook will auto-assign
+      // Build the Acuity datetime string: "YYYY-MM-DDTHH:MM:SS-0500" (Central time)
+      const datetime = `${requestedDate}T${requestedTime.slice(0, 8)}`;
 
-      // ── Use the shared client ID resolved before the loop ──────────────
-      const clientId: number = sharedClientId;
-
-      // ── Book the treatment ──────────────────────────────────────────
-      const durationMinutes: number = Number(entry?.duration || svc?.duration || svc?.duration_minutes || 60);
-      const startTime: string = normalizeTime(requestedTime);
-      const endTime: string = addMinutesToTime(startTime, durationMinutes);
-
-      const additional = {
-        predefined: {
-          client: { name: entryGuestName, email: entryGuestEmail, phone: entryGuestPhone },
-          fields: {},
-        },
+      // ── Book the treatment via Acuity ──────────────────────────────
+      const bookPayload: any = {
+        appointmentTypeID: Number(matchedType.id),
+        datetime,
+        firstName,
+        lastName,
+        email: entryGuestEmail,
+        phone: entryGuestPhone,
+        notes: intakeId ? `Hotel RITUAL Intake ID: ${intakeId}` : "Hotel RITUAL booking",
       };
 
-      // book signature: (eventId, unitId, clientId, startDate, startTime, endDate, endTime, count, additional)
-      const bookPayload: any[] = [
-        Number(svc.id),
-        unitId ? Number(unitId) : null,
-        Number(clientId),
-        requestedDate,
-        startTime,
-        requestedDate,
-        endTime,
-        0,
-        additional,
-      ];
+      if (calendarId) {
+        bookPayload.calendarID = calendarId;
+      }
 
       let bookingResult: any = null;
       try {
-        // book is a write operation — use ADMIN_URL
-        bookingResult = await sbRPC(ADMIN_URL, "book", bookPayload, adminHeaders);
+        bookingResult = await acuityPost("/appointments", bookPayload);
       } catch (e: any) {
-        const errMsg = `Booking failed for "${entryName}" on ${requestedDate} at ${startTime}: ${e.message}`;
+        const errMsg = `Booking failed for "${entryName}" on ${requestedDate} at ${requestedTime}: ${e.message}`;
         errors.push(errMsg);
-        bookingsFailed.push({ treatmentName: entryName, date: requestedDate, time: startTime, error: e.message });
+        bookingsFailed.push({ treatmentName: entryName, date: requestedDate, time: requestedTime, error: e.message });
         debug.push({
           stage: "book_failed",
-          serviceId: svc.id,
-          unitId,
-          clientId,
+          appointmentTypeID: matchedType.id,
+          calendarId,
           requestedDate,
-          startTime,
-          endTime,
+          requestedTime,
           error: e.message,
         });
         continue;
       }
 
-      // Extract booking ID from various response shapes SimplyBook may return
-      const bookingObj: any = Array.isArray(bookingResult?.bookings)
-        ? bookingResult.bookings[0]
-        : bookingResult;
-
-      const bookingId: string = String(
-        bookingObj?.id ||
-        bookingObj?.booking_id ||
-        bookingResult?.id ||
-        "",
-      );
+      const bookingId: string = String(bookingResult?.id || "");
 
       if (!bookingId) {
         errors.push(`No booking ID returned for "${entryName}" — booking may or may not have been created`);
@@ -425,25 +263,24 @@ Deno.serve(async (req: Request): Promise<Response> => {
         continue;
       }
 
-      const bookingHash: string = String(bookingObj?.hash || bookingObj?.booking_hash || "");
-
       // ── Save to SpaBooking entity ────────────────────────────────────
+      const durationMinutes: number = Number(entry?.duration || matchedType?.duration || 60);
+
       const spaPayload = {
-        source: "simplybook",
-        simplybookBookingId: bookingId,
-        simplybookBookingHash: bookingHash,
+        source: "acuity",
+        simplybookBookingId: bookingId, // keep field name for backward compat
         clientName: entryGuestName,
         email: entryGuestEmail,
         phone: entryGuestPhone,
-        serviceName: clean(svc.name) || requestedServiceName,
-        service: String(svc.id),
-        staffName: unitId ? clean(providers.find((p: any) => String(p.id) === unitId)?.name || "") : "",
-        staff: unitId || "",
-        startAt: `${requestedDate}T${startTime}`,
+        serviceName: clean(bookingResult.type || matchedType.name || requestedServiceName),
+        service: String(matchedType.id),
+        staffName: clean(bookingResult.calendarName || bookingResult.calendar || ""),
+        staff: bookingResult.calendarID ? String(bookingResult.calendarID) : "",
+        startAt: `${requestedDate}T${requestedTime}`,
         durationMinutes,
-        price: Number(entry?.price || svc?.price || 0),
+        price: Number(entry?.price || matchedType?.price || 0),
         paid: false,
-        status: "created",
+        status: "confirmed",
       };
 
       try {
@@ -454,7 +291,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           await base44.asServiceRole.entities.SpaBooking.create(spaPayload);
         }
       } catch {
-        // Non-fatal — booking was created in SimplyBook, just couldn't mirror it locally
+        // Non-fatal — booking was created in Acuity, just couldn't mirror it locally
       }
 
       bookingsCreated.push({
@@ -462,18 +299,16 @@ Deno.serve(async (req: Request): Promise<Response> => {
         serviceName: spaPayload.serviceName,
         staffName: spaPayload.staffName,
         startAt: spaPayload.startAt,
-        status: "created",
-        clientId,
+        status: "confirmed",
       });
 
       debug.push({
         stage: "booking_created",
         bookingId,
-        serviceId: svc.id,
-        unitId,
-        clientId,
+        appointmentTypeID: matchedType.id,
+        calendarId: bookingResult.calendarID,
         requestedDate,
-        startTime,
+        requestedTime,
       });
     }
 
@@ -494,7 +329,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       errors,
       failed: bookingsFailed,
       message: bookingsCreated.length > 0
-        ? `${bookingsCreated.length} treatment booking${bookingsCreated.length === 1 ? "" : "s"} created in SimplyBook`
+        ? `${bookingsCreated.length} treatment booking${bookingsCreated.length === 1 ? "" : "s"} created in Acuity`
         : errors.length > 0
           ? `No bookings created. ${errors.length} error${errors.length === 1 ? "" : "s"} — see details.`
           : "No bookings created",
@@ -505,7 +340,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       success: false,
       bookings: [],
       errors: [e?.message || "Unknown error"],
-      message: "SimplyBook booking failed — see errors for details",
+      message: "Acuity booking failed — see errors for details",
     }, { status: 500 });
   }
 });
