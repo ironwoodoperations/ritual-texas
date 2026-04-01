@@ -13,9 +13,8 @@ import { format, differenceInDays } from 'date-fns';
 import PressStrip from '@/components/reviews/PressStrip';
 
 const PRICING = {
-  weekdayLabel: "Mon–Thu",
-  weekdayNight: 148,
-  weekendLabel: "Fri–Sat",
+  nightLabel: "Every Night",
+  weekdayNight: 198,
   weekendNight: 198,
   baseGuestsIncluded: 2,
   extraGuestNight: 100,
@@ -103,10 +102,7 @@ export default function Rooms() {
                 <h2 className="text-2xl font-light text-[rgb(107,85,64)] mb-3">Plan Your Stay</h2>
                 <div className="flex flex-wrap items-center gap-4 text-sm text-[rgb(45,45,45)]">
                   <div>
-                    <span className="font-medium">{PRICING.weekdayLabel}:</span> ${pricingPreview.weekday}/night
-                  </div>
-                  <div>
-                    <span className="font-medium">{PRICING.weekendLabel}:</span> ${pricingPreview.weekend}/night
+                    <span className="font-medium">{PRICING.nightLabel}:</span> ${pricingPreview.weekend}/night
                   </div>
                 </div>
                 <p className="text-xs text-[rgb(45,45,45)] mt-3 opacity-70">
@@ -265,10 +261,7 @@ export default function Rooms() {
                     </span>
                   )}
                   <span className="px-3 py-1.5 bg-[rgb(235,225,213)] text-[rgb(107,85,64)] text-sm">
-                    {PRICING.weekdayLabel}: ${calcNightly(guests, PRICING.weekdayNight)}/night
-                  </span>
-                  <span className="px-3 py-1.5 bg-[rgb(235,225,213)] text-[rgb(107,85,64)] text-sm">
-                    {PRICING.weekendLabel}: ${calcNightly(guests, PRICING.weekendNight)}/night
+                    ${calcNightly(guests, PRICING.weekendNight)}/night
                   </span>
                 </div>
 
