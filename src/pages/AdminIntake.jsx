@@ -240,7 +240,7 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
     const hasRestricted = rooms.some(r => isRestrictedSuite(r.roomName));
     if (hasRestricted) {
       const cleaned = rooms.map(r =>
-        isRestrictedSuite(r.roomName) ? { roomId: "", roomName: "", roomRate: 0, guestName: r.guestName } : r
+        isRestrictedSuite(r.roomName) ? { roomId: "", roomName: "", roomRate: 198, guestName: r.guestName } : r
       );
       set("rooms", cleaned);
       setSuiteWarning("Suite 4 and Suite 6 require 3 or more guests due to shared bathroom");
@@ -267,7 +267,7 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
 
   function addRoom() {
     if (displayRooms.length >= 7) return;
-    set("rooms", [...displayRooms, { roomId: "", roomName: "", roomRate: 0, guestName: "" }]);
+    set("rooms", [...displayRooms, { roomId: "", roomName: "", roomRate: 198, guestName: "" }]);
   }
 
   function removeRoom(idx) {
@@ -954,7 +954,7 @@ export default function AdminIntake() {
     load();
     if (record?.id) syncToCRM(form, record.id);
     if (form.email && form.checkInDate && form.checkOutDate) {
-      try { await base44.functions.invoke("intakeCreateInvoiceDraft", { intake: { ...form, id: record?.id } }); } catch {}
+      try { await base44.functions.invoke("intakeCreateInvoiceDraft", { intake: { ...form, rooms: (form.rooms || []).filter(r => r.roomId), id: record?.id } }); } catch {}
     }
   }
 
