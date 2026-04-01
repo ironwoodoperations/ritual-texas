@@ -358,23 +358,21 @@ export default function GuestBookNow() {
       const res = await base44.functions.invoke('guestSubmitBooking', payload);
 
       if (res.data?.success) {
+        // Best-effort: send itinerary email (non-blocking)
+        base44.functions.invoke('sendItineraryEmail', {
+          guestEmail: email,
+          guestName,
+          confirmationCode: res.data.confirmationCode || res.data.reservationId || '',
+        }).catch(e => console.error('sendItineraryEmail failed (non-blocking):', e));
+
+        if (res.data.publicUrl) {
+          window.location.href = res.data.publicUrl;
+          return;
+        }
+
+        // No publicUrl (e.g. request flow) — show confirmation screen
         setResult(res.data);
         setStep(7);
-
-        // Best-effort: send itinerary email
-        try {
-          await base44.functions.invoke('sendItineraryEmail', {
-            guestEmail: email,
-            guestName,
-            confirmationCode: res.data.confirmationCode || res.data.reservationId || '',
-          });
-        } catch (e) {
-          console.error('sendItineraryEmail failed (non-blocking):', e);
-        }
-
-        if (res.data.type === 'booking' && res.data.publicUrl) {
-          setTimeout(() => { window.location.href = res.data.publicUrl; }, 2500);
-        }
       } else {
         setSubmitError(res.data?.error || 'Something went wrong. Please try again.');
       }
