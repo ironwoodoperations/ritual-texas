@@ -260,7 +260,7 @@ async function buildSquarePaymentLink(
     },
     pre_populated_data: {
       buyer_email: email,
-      buyer_phone_number: phone,
+      ...(phone ? { buyer_phone_number: '+1' + phone.replace(/\D/g, '').slice(-10) } : {}),
     },
   };
 
