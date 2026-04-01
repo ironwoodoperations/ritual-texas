@@ -315,56 +315,67 @@ async function createAndPublishInvoice(
   payload: Record<string, any>,
 ) {
   // 1. Create draft
+  const draftIntake = {
+    id: intakeId,
+    guestName: payload.guestName,
+    email: payload.email,
+    guestEmail: payload.email,
+    phone: payload.phone,
+    checkInDate: payload.checkInDate,
+    checkOutDate: payload.checkOutDate,
+    roomRequested: payload.roomRequested || "",
+    selectedTreatments: payload.selectedTreatments || [],
+    callToBookTreatments: payload.callToBookTreatments || [],
+    treatmentsRequested: payload.specialRequests || "",
+    taxes: payload.bookingType === 'spa_only' ? {} : {
+      hotel_state: true,
+      hotel_city: true,
+      hotel_venue: true,
+    },
+  };
+  console.log("[createAndPublishInvoice] Draft intake payload:", JSON.stringify(draftIntake, null, 2));
+
   let draftData: any;
   try {
     const draftRes = await base44.asServiceRole.functions.invoke("intakeCreateInvoiceDraft", {
       intakeId,
-      intake: {
-        id: intakeId,
-        guestName: payload.guestName,
-        email: payload.email,
-        guestEmail: payload.email,
-        phone: payload.phone,
-        checkInDate: payload.checkInDate,
-        checkOutDate: payload.checkOutDate,
-        roomRequested: payload.roomRequested || "",
-        selectedTreatments: payload.selectedTreatments || [],
-        callToBookTreatments: payload.callToBookTreatments || [],
-        treatmentsRequested: payload.specialRequests || "",
-        taxes: payload.bookingType === 'spa_only' ? {} : {
-          hotel_state: true,
-          hotel_city: true,
-          hotel_venue: true,
-        },
-      },
+      intake: draftIntake,
     });
     draftData = draftRes.data || draftRes;
+    console.log("[createAndPublishInvoice] Draft response:", JSON.stringify(draftData, null, 2));
   } catch (e: any) {
+    console.error("[createAndPublishInvoice] Draft invoke threw:", e.message, e.stack);
     return { ok: false, error: `Invoice draft failed: ${e.message}` };
   }
 
   if (draftData?.error) {
-    return { ok: false, error: draftData.error };
+    console.error("[createAndPublishInvoice] Draft returned error:", JSON.stringify(draftData));
+    return { ok: false, error: draftData.error, detail: draftData.detail || null };
   }
 
   const invoiceId = draftData?.invoiceId;
   if (!invoiceId) {
-    return { ok: false, error: "No invoice ID returned from draft" };
+    console.error("[createAndPublishInvoice] No invoiceId in draft response:", JSON.stringify(draftData));
+    return { ok: false, error: "No invoice ID returned from draft", detail: draftData };
   }
 
   // 2. Publish
+  console.log("[createAndPublishInvoice] Publishing invoice:", invoiceId);
   let pubData: any;
   try {
     const pubRes = await base44.asServiceRole.functions.invoke("intakePublishInvoice", {
       invoiceId,
     });
     pubData = pubRes.data || pubRes;
+    console.log("[createAndPublishInvoice] Publish response:", JSON.stringify(pubData, null, 2));
   } catch (e: any) {
+    console.error("[createAndPublishInvoice] Publish invoke threw:", e.message, e.stack);
     return { ok: false, error: `Invoice publish failed: ${e.message}`, invoiceId };
   }
 
   if (pubData?.error) {
-    return { ok: false, error: pubData.error, invoiceId };
+    console.error("[createAndPublishInvoice] Publish returned error:", JSON.stringify(pubData));
+    return { ok: false, error: pubData.error, invoiceId, detail: pubData.detail || null };
   }
 
   return {
@@ -611,13 +622,15 @@ Deno.serve(async (req) => {
     }
     invoicePayload.bookingType = bookingType;
 
+    console.log("[guestSubmitBooking] Calling createAndPublishInvoice for intake:", intakeId);
     const invResult = await createAndPublishInvoice(base44, intakeId, invoicePayload);
 
     if (!invResult.ok) {
+      console.error("[guestSubmitBooking] Invoice failed:", JSON.stringify({ error: invResult.error, detail: invResult.detail, invoiceId: invResult.invoiceId }));
       // Soft fail: flag for staff to send manually
       try {
         await base44.asServiceRole.entities.HotelTreatmentIntake.update(intakeId, {
-          internalNotes: notes + `\n[Square invoice failed: ${invResult.error} — send manually]`,
+          internalNotes: notes + `\n[Square invoice failed: ${invResult.error}${invResult.detail ? ` | detail: ${JSON.stringify(invResult.detail)}` : ""} — send manually]`,
           bookingStatus: "pending",
         });
       } catch {
@@ -628,6 +641,7 @@ Deno.serve(async (req) => {
         success: true,
         type: "request",
         intakeId,
+        invoiceError: invResult.error,
         message: "Your booking has been received. We will send your payment link shortly.",
       });
     }
