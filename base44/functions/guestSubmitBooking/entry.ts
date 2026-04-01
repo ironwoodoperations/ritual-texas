@@ -386,7 +386,7 @@ Deno.serve(async (req) => {
       checkInDate: checkIn,
       checkOutDate: checkOut,
       numberOfGuests: payload.numberOfGuests || 1,
-      rooms: bookingType !== 'spa_only' ? JSON.stringify(roomsArr) : "[]",
+      rooms: bookingType !== 'spa_only' ? roomsArr : [],
       cloudbedsRoomTypeId: bookingType !== 'spa_only' ? (roomsArr[0]?.roomId || "") : "",
       roomRequested: bookingType !== 'spa_only' ? roomsArr.map(r => r.roomName).filter(Boolean).join(", ") : "",
       roomName: bookingType !== 'spa_only' ? (roomsArr[0]?.roomName || "") : "",
