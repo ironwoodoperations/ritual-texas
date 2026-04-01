@@ -26,6 +26,8 @@ Deno.serve(async (req) => {
 
     const { intake } = await req.json();
 
+    console.log("[intakeCreateInvoiceDraft] raw intake:", JSON.stringify(intake));
+
     const guestName = clean(intake?.guestName);
     const guestEmail = emailNorm(intake?.email || intake?.guestEmail || "");
     const checkIn = clean(intake?.checkInDate);
