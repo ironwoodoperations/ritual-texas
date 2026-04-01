@@ -910,8 +910,9 @@ export default function GuestBookNow() {
         {step === 6 && (() => {
           const selectedRooms = rooms.filter(r => r.roomTypeID);
           const payRoomTotal = bookingType === 'spa_only' ? 0 : selectedRooms.reduce((sum, r) => sum + (r.pricePerNight || roomRate) * numNights, 0);
+          const payTaxAmount = bookingType === 'spa_only' ? 0 : Math.round(payRoomTotal * 0.15 * 100) / 100;
           const payTreatmentTotal = effectiveTreatments.reduce((sum, b) => sum + (b.price || 0), 0);
-          const payTotal = payRoomTotal + payTreatmentTotal;
+          const payTotal = payRoomTotal + payTaxAmount + payTreatmentTotal;
 
           return (
           <div style={card}>
@@ -936,6 +937,29 @@ export default function GuestBookNow() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Hotel Occupancy Taxes */}
+            {bookingType !== 'spa_only' && payRoomTotal > 0 && (
+              <div style={{ marginBottom: '22px', paddingBottom: '18px', borderBottom: `1px solid ${T.border}` }}>
+                <p style={{ ...labelStyle, marginBottom: '10px' }}>Hotel Occupancy Taxes</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', paddingLeft: '10px' }}>
+                  <span style={{ fontSize: '13px', color: T.muted }}>State of Texas (6%)</span>
+                  <span style={{ fontSize: '13px', color: T.body }}>${(payRoomTotal * 0.06).toFixed(2)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', paddingLeft: '10px' }}>
+                  <span style={{ fontSize: '13px', color: T.muted }}>City of Jacksonville (7%)</span>
+                  <span style={{ fontSize: '13px', color: T.body }}>${(payRoomTotal * 0.07).toFixed(2)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', paddingLeft: '10px' }}>
+                  <span style={{ fontSize: '13px', color: T.muted }}>Jacksonville Venue Tax (2%)</span>
+                  <span style={{ fontSize: '13px', color: T.body }}>${(payRoomTotal * 0.02).toFixed(2)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '8px', borderTop: `1px solid ${T.border}`, marginTop: '6px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: T.muted }}>Tax Subtotal (on room only)</span>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: T.primary }}>${payTaxAmount.toFixed(2)}</span>
+                </div>
               </div>
             )}
 

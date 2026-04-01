@@ -201,13 +201,34 @@ async function buildSquarePaymentLink(
   const lineItems: any[] = [];
 
   // Room line items
+  let roomTotalDollars = 0;
   for (const room of rooms) {
-    const totalRoomCents = Math.ceil(room.roomRate * numNights * 100);
+    const roomDollars = room.roomRate * numNights;
+    roomTotalDollars += roomDollars;
     lineItems.push({
       name: `${room.roomName || "Hotel Stay"} × ${numNights} night${numNights === 1 ? "" : "s"}`,
       quantity: "1",
-      base_price_money: { amount: totalRoomCents, currency: "USD" },
+      base_price_money: { amount: Math.ceil(roomDollars * 100), currency: "USD" },
     });
+  }
+
+  // Hotel occupancy tax line items (only when rooms are present)
+  if (rooms.length > 0) {
+    const taxLines = [
+      { label: "State of Texas Occupancy Tax (6%)", rate: 0.06 },
+      { label: "City of Jacksonville Occupancy Tax (7%)", rate: 0.07 },
+      { label: "Jacksonville Venue Tax (2%)", rate: 0.02 },
+    ];
+    for (const tax of taxLines) {
+      const taxCents = Math.round(roomTotalDollars * tax.rate * 100);
+      if (taxCents > 0) {
+        lineItems.push({
+          name: tax.label,
+          quantity: "1",
+          base_price_money: { amount: taxCents, currency: "USD" },
+        });
+      }
+    }
   }
 
   // Treatment line items
