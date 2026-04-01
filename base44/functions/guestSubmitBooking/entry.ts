@@ -248,8 +248,13 @@ async function buildSquarePaymentLink(
     return { ok: false, error: "No line items to charge" };
   }
 
+  const idempotencyKey = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+
   const body = {
-    idempotency_key: crypto.randomUUID(),
+    idempotency_key: idempotencyKey,
     description: `Hotel RITUAL Booking — ${guestName}`,
     order: {
       location_id: locationId,
