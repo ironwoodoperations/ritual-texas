@@ -90,8 +90,15 @@ Deno.serve(async (req) => {
     const lineItems = [];
     const isSpaOnly = intake?.bookingType === "spa_only" || nights === 0;
 
+    // Parse rooms — may arrive as JSON string from Base44 entity storage
+    let rawRooms = intake?.rooms;
+    if (typeof rawRooms === "string") {
+      try { rawRooms = JSON.parse(rawRooms); } catch { rawRooms = null; }
+    }
+    console.log("intakeCreateInvoiceDraft rooms:", JSON.stringify(rawRooms));
+
     if (!isSpaOnly) {
-      const rooms = Array.isArray(intake?.rooms) && intake.rooms.some(r => r.roomId) ? intake.rooms.filter(r => r.roomId) : null;
+      const rooms = Array.isArray(rawRooms) && rawRooms.some(r => r.roomId) ? rawRooms.filter(r => r.roomId) : null;
       if (rooms) {
         for (const room of rooms) {
           const roomLabel = room.roomName || "Hotel Stay";
@@ -199,8 +206,8 @@ Deno.serve(async (req) => {
     ];
 
     const selectedTaxes = intake?.taxes || {};
-    const roomRateTotal = Array.isArray(intake?.rooms) && intake.rooms.some(r => r.roomId)
-      ? intake.rooms.filter(r => r.roomId).reduce((sum, r) => sum + (r.roomRate != null ? Number(r.roomRate) : ROOM_RATE), 0)
+    const roomRateTotal = Array.isArray(rawRooms) && rawRooms.some(r => r.roomId)
+      ? rawRooms.filter(r => r.roomId).reduce((sum, r) => sum + (r.roomRate != null ? Number(r.roomRate) : ROOM_RATE), 0)
       : ROOM_RATE;
     const hotelSubtotal = roomRateTotal * nights;
 
