@@ -278,7 +278,7 @@ async function buildSquarePaymentLink(
 
     if (!resp.ok) {
       console.error("[Square] Payment link creation failed:", resp.status, text);
-      return { ok: false, error: `Square payment link failed (${resp.status}): ${json?.errors?.[0]?.detail || text.slice(0, 300)}` };
+      return { ok: false, error: `Square payment link failed (HTTP ${resp.status}), location=${locationId.slice(0, 6)}…: ${text.slice(0, 500)}` };
     }
 
     const paymentLink = json?.payment_link;
@@ -565,7 +565,7 @@ Deno.serve(async (req) => {
     );
 
     if (!payResult.ok) {
-      // Soft fail: flag for staff to send manually
+      // Surface error to frontend and flag for staff
       try {
         await base44.asServiceRole.entities.HotelTreatmentIntake.update(intakeId, {
           internalNotes: notes + `\n[Square payment link failed: ${payResult.error} — send manually]`,
@@ -576,10 +576,9 @@ Deno.serve(async (req) => {
       }
 
       return Response.json({
-        success: true,
-        type: "request",
+        success: false,
+        error: `Payment link error: ${payResult.error}`,
         intakeId,
-        message: "Your booking has been received. We will send your payment link shortly.",
       });
     }
 
