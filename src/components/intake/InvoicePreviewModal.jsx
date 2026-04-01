@@ -52,8 +52,31 @@ export default function InvoicePreviewModal({ intake, onClose, onConfirmSend, se
     ? nightsBetween(intake.checkInDate, intake.checkOutDate)
     : 0;
 
-  const roomAmount = ROOM_RATE * nights;
-  const roomLabel = `${intake.roomRequested || 'Hotel Stay'} — ${nights} night${nights === 1 ? '' : 's'} (${intake.checkInDate} → ${intake.checkOutDate})`;
+  // Parse rooms — may arrive as JSON string from Base44 entity storage
+  let rawRooms = intake.rooms;
+  if (typeof rawRooms === "string") {
+    try { rawRooms = JSON.parse(rawRooms); } catch { rawRooms = null; }
+  }
+  const rooms = Array.isArray(rawRooms) && rawRooms.some(r => r.roomId) ? rawRooms.filter(r => r.roomId) : null;
+
+  const roomLines = [];
+  if (nights > 0 && intake.bookingType !== "spa_only") {
+    if (rooms) {
+      for (const room of rooms) {
+        const rate = room.roomRate != null ? Number(room.roomRate) : ROOM_RATE;
+        roomLines.push({
+          label: `${room.roomName || 'Hotel Stay'} — ${nights} night${nights === 1 ? '' : 's'} (${intake.checkInDate} → ${intake.checkOutDate})`,
+          amount: rate * nights,
+        });
+      }
+    } else {
+      roomLines.push({
+        label: `${intake.roomRequested || 'Hotel Stay'} — ${nights} night${nights === 1 ? '' : 's'} (${intake.checkInDate} → ${intake.checkOutDate})`,
+        amount: ROOM_RATE * nights,
+      });
+    }
+  }
+  const roomAmount = roomLines.reduce((s, r) => s + r.amount, 0);
 
   const sbTreatments = parseTreatments(intake.selectedTreatments);
   const ctbTreatments = parseTreatments(intake.callToBookTreatments).map(t => ({ ...t, isCtb: true }));
@@ -121,13 +144,13 @@ export default function InvoicePreviewModal({ intake, onClose, onConfirmSend, se
         <div className="space-y-2">
           <p className="text-[10px] uppercase tracking-widest font-semibold text-[rgb(150,130,110)]">Line Items</p>
 
-          {/* Room */}
-          {nights > 0 && intake.bookingType !== "spa_only" && (
-            <div className="flex justify-between text-sm py-2 border-b border-[rgb(235,225,213)]">
-              <span className="text-[rgb(45,45,45)] flex-1 mr-4">{roomLabel}</span>
-              <span className="font-medium text-[rgb(107,85,64)] shrink-0">{fmtMoney(roomAmount)}</span>
+          {/* Room(s) */}
+          {roomLines.map((rl, i) => (
+            <div key={`room-${i}`} className="flex justify-between text-sm py-2 border-b border-[rgb(235,225,213)]">
+              <span className="text-[rgb(45,45,45)] flex-1 mr-4">{rl.label}</span>
+              <span className="font-medium text-[rgb(107,85,64)] shrink-0">{fmtMoney(rl.amount)}</span>
             </div>
-          )}
+          ))}
 
           {/* Treatments */}
           {allTreatments.map((t, i) => {
