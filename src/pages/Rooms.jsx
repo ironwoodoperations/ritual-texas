@@ -99,14 +99,9 @@ export default function Rooms() {
           >
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div className="flex-1">
-                <h2 className="text-2xl font-light text-[rgb(107,85,64)] mb-3">Plan Your Stay</h2>
-                <div className="flex flex-wrap items-center gap-4 text-sm text-[rgb(45,45,45)]">
-                  <div>
-                    <span className="font-medium">{PRICING.nightLabel}:</span> ${pricingPreview.weekend}/night
-                  </div>
-                </div>
-                <p className="text-xs text-[rgb(45,45,45)] mt-3 opacity-70">
-                  Pricing includes all amenities + gourmet breakfast. +${PRICING.extraGuestNight}/night per extra guest after {PRICING.baseGuestsIncluded}.
+                <h2 className="text-2xl font-light text-[rgb(107,85,64)] mb-3">Book Your Stay for Only $198/Night</h2>
+                <p className="text-xs text-[rgb(45,45,45)] mt-1 opacity-70">
+                  Includes all amenities + gourmet breakfast.
                 </p>
               </div>
               <Link 
