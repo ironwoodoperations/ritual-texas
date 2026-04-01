@@ -135,11 +135,21 @@ Deno.serve(async (req) => {
         const rid = room.roomId || "";
         if (!rid) continue;
 
+        // Use per-room guest name if provided, otherwise fall back to primary guest
+        let roomFirstName = guestFirstName;
+        let roomLastName = guestLastName;
+        const roomGuestName = (room.guestName || "").trim();
+        if (roomGuestName) {
+          const spaceIdx = roomGuestName.indexOf(" ");
+          roomFirstName = spaceIdx > 0 ? roomGuestName.slice(0, spaceIdx) : roomGuestName;
+          roomLastName = spaceIdx > 0 ? roomGuestName.slice(spaceIdx + 1) : "-";
+        }
+
         const roomEntry = { roomTypeID: rid, quantity: 1 };
         const params = new URLSearchParams({
           propertyID: propertyId,
-          guestFirstName,
-          guestLastName,
+          guestFirstName: roomFirstName,
+          guestLastName: roomLastName,
           guestEmail,
           startDate,
           endDate,

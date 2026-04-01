@@ -20,7 +20,7 @@ const T = {
   maxW:       '640px',
 };
 
-const STEP_LABELS = ['Dates', 'Room', 'Treatments', 'Your Info', 'Review'];
+const STEP_LABELS = ['Dates', 'Room', 'Treatments', 'Your Info', 'Review', 'Payment'];
 
 const BOOKING_TYPES = [
   { key: 'hotel_and_spa', icon: '🏨', label: 'Hotel Stay & Spa Treatments', subtitle: 'Book your room and schedule spa treatments' },
@@ -29,6 +29,11 @@ const BOOKING_TYPES = [
 ];
 
 const ROOM_ORDER = ['Suite 1', 'Suite 2', 'Suite 3', 'Suite 5', 'Carriage House'];
+
+const CARRIAGE_HOUSE_CAP = 6;
+const DEFAULT_ROOM_CAP = 2;
+function isCarriageHouse(name) { return (name || '').toLowerCase().includes('carriage house'); }
+function roomCapacity(name) { return isCarriageHouse(name) ? CARRIAGE_HOUSE_CAP : DEFAULT_ROOM_CAP; }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -222,10 +227,10 @@ export default function GuestBookNow() {
   const [guestNames, setGuestNames] = useState(['']);
 
   // Step 2 — Room
-  const [rooms, setRooms] = useState([]);
+  const [availableRooms, setAvailableRooms] = useState([]);
   const [roomsLoading, setRoomsLoading] = useState(false);
   const [roomsError, setRoomsError] = useState(null);
-  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [rooms, setRooms] = useState([]); // selected rooms: [{ roomTypeID, name, guestNames, pricePerNight }]
 
   // Step 3 — Treatments (SimplyBookEngine bookings)
   const [spaBookings, setSpaBookings] = useState([]); // BookingResult[] from SimplyBookEngine
@@ -244,20 +249,20 @@ export default function GuestBookNow() {
   const [result, setResult] = useState(null);
 
   // Step flow based on booking type
-  // All steps: 1=Dates, 2=Room, 3=Treatments, 4=Info, 5=Review, 6=Confirmation
-  // hotel_and_spa: 1 → 2 → 3 → 4 → 5
-  // hotel_only:    1 → 2 → 4 → 5  (skip treatments)
-  // spa_only:      1 → 3 → 4 → 5  (skip room)
+  // All steps: 1=Dates, 2=Room, 3=Treatments, 4=Info, 5=Review, 6=Payment, 7=Confirmation
+  // hotel_and_spa: 1 → 2 → 3 → 4 → 5 → 6
+  // hotel_only:    1 → 2 → 4 → 5 → 6  (skip treatments)
+  // spa_only:      1 → 3 → 4 → 5 → 6  (skip room)
   const activeSteps = bookingType === 'hotel_only'
-    ? [1, 2, 4, 5]
+    ? [1, 2, 4, 5, 6]
     : bookingType === 'spa_only'
-    ? [1, 3, 4, 5]
-    : [1, 2, 3, 4, 5];
+    ? [1, 3, 4, 5, 6]
+    : [1, 2, 3, 4, 5, 6];
 
   const activeStepLabels = bookingType === 'hotel_only'
-    ? ['Dates', 'Room', 'Your Info', 'Review']
+    ? ['Dates', 'Room', 'Your Info', 'Review', 'Payment']
     : bookingType === 'spa_only'
-    ? ['Dates', 'Treatments', 'Your Info', 'Review']
+    ? ['Dates', 'Treatments', 'Your Info', 'Review', 'Payment']
     : STEP_LABELS;
 
   const stepBarPos = activeSteps.indexOf(step) + 1; // 1-indexed position for StepBar
@@ -281,7 +286,7 @@ export default function GuestBookNow() {
   async function handleStep1Continue() {
     if (bookingType === 'spa_only') {
       // Clear room selection, go to treatments
-      setSelectedRoom(null);
+      setRooms([]);
       goNext(1);
       return;
     }
@@ -289,7 +294,8 @@ export default function GuestBookNow() {
     if (!checkIn || !checkOut || checkOut <= checkIn) return;
     setRoomsLoading(true);
     setRoomsError(null);
-    setSelectedRoom(null);
+    const initialCount = Math.max(1, Math.ceil(guests / 2));
+    setRooms(Array.from({ length: initialCount }, () => ({ roomTypeID: '', name: '', guestNames: [], pricePerNight: 198 })));
     setStep(2);
     try {
       const res = await base44.functions.invoke('cloudbedsGetAvailableRooms', {
@@ -297,13 +303,13 @@ export default function GuestBookNow() {
         endDate: checkOut,
       });
       if (res.data?.success && res.data?.rooms?.length > 0) {
-        setRooms(res.data.rooms);
+        setAvailableRooms(res.data.rooms);
       } else {
-        setRooms([]);
+        setAvailableRooms([]);
         setRoomsError('No rooms available for those dates. Please try different dates or call us at (903) 810-6695.');
       }
     } catch {
-      setRooms([]);
+      setAvailableRooms([]);
       setRoomsError('Unable to check availability. Please call us at (903) 810-6695.');
     } finally {
       setRoomsLoading(false);
@@ -326,9 +332,9 @@ export default function GuestBookNow() {
         checkInDate: checkIn,
         checkOutDate: checkOut,
         numberOfGuests: guests,
-        cloudbedsRoomTypeId: bookingType !== 'spa_only' ? selectedRoom?.roomTypeID : '',
-        roomRequested: bookingType !== 'spa_only' ? selectedRoom?.name : '',
-        roomPricePerNight: bookingType !== 'spa_only' ? 198 : 0,
+        rooms: bookingType !== 'spa_only' ? rooms.filter(r => r.roomTypeID).map(r => ({ roomId: r.roomTypeID, roomName: r.name, roomRate: r.pricePerNight, guestNames: r.guestNames })) : [],
+        cloudbedsRoomTypeId: bookingType !== 'spa_only' ? rooms[0]?.roomTypeID || '' : '',
+        roomRequested: bookingType !== 'spa_only' ? rooms.map(r => r.name).filter(Boolean).join(', ') : '',
         selectedTreatments: bookingType !== 'hotel_only' ? spaBookings.map(b => JSON.stringify({
           serviceId: b.serviceId,
           id: b.serviceId,
@@ -353,7 +359,7 @@ export default function GuestBookNow() {
 
       if (res.data?.success) {
         setResult(res.data);
-        setStep(6);
+        setStep(7);
 
         // Best-effort: send itinerary email
         try {
@@ -384,14 +390,19 @@ export default function GuestBookNow() {
   const step1Valid = bookingType === 'spa_only'
     ? checkIn && guestNames.every(n => n.trim())
     : checkIn && checkOut && checkOut > checkIn && guestNames.every(n => n.trim());
-  const step2Valid = !!selectedRoom;
+  const step2Valid = (() => {
+    const selected = rooms.filter(r => r.roomTypeID);
+    if (selected.length === 0 || !rooms.every(r => r.roomTypeID)) return false;
+    const ids = selected.map(r => r.roomTypeID);
+    if (new Set(ids).size !== ids.length) return false;
+    return selected.reduce((sum, r) => sum + roomCapacity(r.name), 0) >= guests;
+  })();
   const step4Valid = guestName.trim() && email.trim() && phone.trim();
 
   const stayDates = (checkIn && checkOut) ? datesBetween(checkIn, checkOut) : [];
   const numNights = nights(checkIn, checkOut);
   const roomRate = 198;
-  const effectiveRoomSubtotal = bookingType === 'spa_only' ? 0 : roomRate * numNights;
-  const roomSubtotal = effectiveRoomSubtotal;
+  const roomSubtotal = bookingType === 'spa_only' ? 0 : rooms.filter(r => r.roomTypeID).reduce((sum, r) => sum + (r.pricePerNight || roomRate) * numNights, 0);
   const effectiveTreatments = bookingType === 'hotel_only' ? [] : spaBookings;
   const treatmentTotal = effectiveTreatments.reduce((s, b) => s + (b.price || 0), 0);
   const hotelTaxRate = 0.15; // 6% state + 7% city + 2% venue
@@ -416,7 +427,7 @@ export default function GuestBookNow() {
             : 'Complete the following steps to reserve your room and spa treatments.'}
         </p>
 
-        {step <= 5 && <StepBar current={stepBarPos} labels={activeStepLabels} />}
+        {step <= 6 && <StepBar current={stepBarPos} labels={activeStepLabels} />}
 
         {/* ═══════════ STEP 1 — DATES ═══════════ */}
         {step === 1 && (
@@ -490,6 +501,10 @@ export default function GuestBookNow() {
                 <option value="2">2 guests</option>
                 <option value="3">3 guests</option>
                 <option value="4">4 guests</option>
+                <option value="5">5 guests</option>
+                <option value="6">6 guests</option>
+                <option value="7">7 guests</option>
+                <option value="8">8 guests</option>
               </select>
             </div>
 
@@ -540,57 +555,134 @@ export default function GuestBookNow() {
               </div>
             )}
 
-            {!roomsLoading && !roomsError && rooms.length === 0 && (
+            {!roomsLoading && !roomsError && availableRooms.length === 0 && (
               <p style={{ color: T.muted, fontSize: '14px', textAlign: 'center', padding: '40px' }}>No rooms available.</p>
             )}
 
-            {!roomsLoading && rooms.length > 0 && (() => {
-              const sortedRooms = [...rooms].sort((a, b) => {
+            {!roomsLoading && availableRooms.length > 0 && (() => {
+              const guestCount = Number(guests || 1);
+              const sortedAvailable = [...availableRooms].sort((a, b) => {
                 const ai = ROOM_ORDER.findIndex(n => a.name?.includes(n) || a.name === n);
                 const bi = ROOM_ORDER.findIndex(n => b.name?.includes(n) || b.name === n);
                 return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
               });
-              const guestCount = Number(guests || 1);
-              const visibleRooms = sortedRooms.filter(room => {
+              const visibleAvailable = sortedAvailable.filter(room => {
                 const name = room.name || '';
                 if (name.includes('Suite 4') || name.includes('Suite 6')) return guestCount >= 3;
                 return true;
               });
+
+              // Compute minimum rooms needed accounting for Carriage House capacity
+              const selectedCapacity = rooms.reduce((sum, r) => sum + (r.roomTypeID ? roomCapacity(r.name) : 0), 0);
+              const remaining = Math.max(0, guestCount - selectedCapacity);
+              const selectedCount = rooms.filter(r => r.roomTypeID).length;
+              const minRooms = Math.max(1, selectedCount + Math.ceil(remaining / DEFAULT_ROOM_CAP));
+
+              // Validation messages
+              const allSelected = rooms.every(r => r.roomTypeID);
+              const ids = rooms.filter(r => r.roomTypeID).map(r => r.roomTypeID);
+              const noDuplicates = new Set(ids).size === ids.length;
+              const totalCapacity = rooms.reduce((sum, r) => sum + (r.roomTypeID ? roomCapacity(r.name) : 0), 0);
+              const capacityOk = totalCapacity >= guestCount;
+
+              let validationError = '';
+              if (rooms.some(r => r.roomTypeID)) {
+                if (!noDuplicates) validationError = 'Each room can only be selected once. Please choose different rooms.';
+                else if (allSelected && !capacityOk) validationError = `Not enough room capacity for ${guestCount} guest${guestCount > 1 ? 's' : ''}. Add another room or select a larger suite.`;
+              }
+
               return (
                 <>
                   <div style={{ display: 'grid', gap: '14px', marginBottom: '20px' }}>
-                    {visibleRooms.map(room => {
-                      const sel = selectedRoom?.roomTypeID === room.roomTypeID;
-                      const price = 198;
+                    {rooms.map((room, idx) => {
+                      const takenIDs = rooms.filter((r, i) => i !== idx && r.roomTypeID).map(r => r.roomTypeID);
+                      const options = visibleAvailable.filter(r => !takenIDs.includes(r.roomTypeID));
+
                       return (
-                        <div
-                          key={room.roomTypeID}
-                          onClick={() => { setSelectedRoom(room); setTimeout(() => document.getElementById('room-continue-btn')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150); }}
-                          style={{
-                            ...card,
-                            marginBottom: 0,
-                            cursor: 'pointer',
-                            borderColor: sel ? T.primary : 'rgba(107,85,64,.10)',
-                            borderWidth: sel ? '2px' : '1px',
-                            backgroundColor: sel ? 'rgba(150,170,155,.06)' : T.card,
-                            transition: 'all .15s',
-                          }}
-                        >
-                          <h3 style={{ fontFamily: T.heading, fontSize: '19px', color: T.primary, fontWeight: 400, marginBottom: '6px' }}>
-                            {room.name}
-                          </h3>
-                          {room.maxOccupancy && (
-                            <p style={{ fontSize: '12px', color: T.muted, marginBottom: '10px' }}>Up to {room.maxOccupancy} guests</p>
+                        <div key={idx} style={{ ...card, marginBottom: 0 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                            <h3 style={{ fontFamily: T.heading, fontSize: '17px', color: T.primary, fontWeight: 400 }}>
+                              Room {idx + 1}
+                            </h3>
+                            {rooms.length > minRooms && (
+                              <button
+                                onClick={() => setRooms(prev => prev.filter((_, i) => i !== idx))}
+                                style={{ fontSize: '12px', color: 'rgb(180,100,80)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+
+                          <label style={labelStyle}>Select Room</label>
+                          <select
+                            value={room.roomTypeID}
+                            onChange={e => {
+                              const picked = availableRooms.find(r => r.roomTypeID === e.target.value);
+                              setRooms(prev => prev.map((r, i) => i === idx ? { ...r, roomTypeID: picked?.roomTypeID || '', name: picked?.name || '', pricePerNight: 198 } : r));
+                            }}
+                            style={{ ...inputStyle, marginBottom: '14px' }}
+                          >
+                            <option value="">— Choose a room —</option>
+                            {options.map(opt => (
+                              <option key={opt.roomTypeID} value={opt.roomTypeID}>{opt.name}</option>
+                            ))}
+                          </select>
+
+                          {room.roomTypeID && (
+                            <>
+                              <label style={labelStyle}>Guests in This Room</label>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+                                {guestNames.filter(n => n.trim()).map((name, gi) => {
+                                  const checked = room.guestNames.includes(name);
+                                  return (
+                                    <label key={gi} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: T.body, cursor: 'pointer' }}>
+                                      <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() => {
+                                          setRooms(prev => prev.map((r, i) => {
+                                            if (i !== idx) return r;
+                                            const gn = checked ? r.guestNames.filter(g => g !== name) : [...r.guestNames, name];
+                                            return { ...r, guestNames: gn };
+                                          }));
+                                        }}
+                                      />
+                                      {name}
+                                    </label>
+                                  );
+                                })}
+                              </div>
+
+                              <p style={{ fontSize: '18px', fontWeight: 700, color: T.primary }}>
+                                $198 / night
+                              </p>
+                            </>
                           )}
-                          <p style={{ fontSize: '18px', fontWeight: 700, color: T.primary }}>
-                            ${price} / night
-                          </p>
                         </div>
                       );
                     })}
                   </div>
+
+                  <button
+                    onClick={() => setRooms(prev => [...prev, { roomTypeID: '', name: '', guestNames: [], pricePerNight: 198 }])}
+                    style={{
+                      display: 'block', width: '100%', padding: '12px', marginBottom: '20px',
+                      fontSize: '14px', fontWeight: 600, color: T.primary, backgroundColor: 'transparent',
+                      border: `2px dashed ${T.border}`, borderRadius: '10px', cursor: 'pointer',
+                    }}
+                  >
+                    + Add Another Room
+                  </button>
+
+                  {validationError && (
+                    <div style={{ backgroundColor: 'rgba(180,100,80,.08)', border: '1px solid rgba(180,100,80,.3)', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px', fontSize: '13px', color: 'rgb(160,90,70)' }}>
+                      {validationError}
+                    </div>
+                  )}
+
                   {guestCount < 3 && (
-                    <p style={{ fontSize: '12px', textAlign: 'center', color: 'rgb(150,150,150)', marginTop: '12px', marginBottom: '16px' }}>
+                    <p style={{ fontSize: '12px', textAlign: 'center', color: 'rgb(150,150,150)', marginBottom: '16px' }}>
                       Traveling with 3 or more guests? Additional suites are available.
                     </p>
                   )}
@@ -702,17 +794,35 @@ export default function GuestBookNow() {
           <div style={card}>
             <h2 style={h2Style}>Review Your Booking</h2>
 
-            {/* Room — only for hotel bookings */}
-            {bookingType !== 'spa_only' && selectedRoom && (
+            {/* Rooms — only for hotel bookings */}
+            {bookingType !== 'spa_only' && rooms.filter(r => r.roomTypeID).length > 0 && (
               <div style={{ marginBottom: '22px', paddingBottom: '18px', borderBottom: `1px solid ${T.border}` }}>
-                <p style={{ ...labelStyle, marginBottom: '10px' }}>Room</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '15px', color: T.body, fontWeight: 500 }}>{selectedRoom?.name}</span>
-                  <span style={{ fontSize: '14px', fontWeight: 600, color: T.primary }}>${roomSubtotal.toFixed(2)}</span>
-                </div>
-                <span style={{ fontSize: '12px', color: T.muted }}>
-                  {fmtDate(checkIn)} — {fmtDate(checkOut)} · {numNights} night{numNights > 1 ? 's' : ''} × ${roomRate}/night
-                </span>
+                <p style={{ ...labelStyle, marginBottom: '10px' }}>{rooms.filter(r => r.roomTypeID).length > 1 ? 'Rooms' : 'Room'}</p>
+                {rooms.filter(r => r.roomTypeID).map((r, i) => {
+                  const perRoom = (r.pricePerNight || roomRate) * numNights;
+                  return (
+                    <div key={i} style={{ marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
+                        <span style={{ fontSize: '15px', color: T.body, fontWeight: 500 }}>{r.name}</span>
+                        <span style={{ fontSize: '14px', fontWeight: 600, color: T.primary }}>${perRoom.toFixed(2)}</span>
+                      </div>
+                      <span style={{ fontSize: '12px', color: T.muted }}>
+                        {fmtDate(checkIn)} — {fmtDate(checkOut)} · {numNights} night{numNights > 1 ? 's' : ''} × ${r.pricePerNight || roomRate}/night
+                      </span>
+                      {r.guestNames.length > 0 && (
+                        <p style={{ fontSize: '12px', color: T.muted, marginTop: '2px' }}>
+                          Guests: {r.guestNames.join(', ')}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+                {rooms.filter(r => r.roomTypeID).length > 1 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '8px', borderTop: `1px solid ${T.border}`, marginTop: '4px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: T.muted }}>Room Subtotal</span>
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: T.primary }}>${roomSubtotal.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -788,6 +898,69 @@ export default function GuestBookNow() {
               </ReviewRow>
             )}
 
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <SecondaryBtn onClick={() => goBack(5)}>Back</SecondaryBtn>
+              <PrimaryBtn onClick={() => goNext(5)}>Continue to Payment</PrimaryBtn>
+            </div>
+          </div>
+          );
+        })()}
+
+        {/* ═══════════ STEP 6 — PAYMENT PREVIEW ═══════════ */}
+        {step === 6 && (() => {
+          const selectedRooms = rooms.filter(r => r.roomTypeID);
+          const payRoomTotal = bookingType === 'spa_only' ? 0 : selectedRooms.reduce((sum, r) => sum + (r.pricePerNight || roomRate) * numNights, 0);
+          const payTreatmentTotal = effectiveTreatments.reduce((sum, b) => sum + (b.price || 0), 0);
+          const payTotal = payRoomTotal + payTreatmentTotal;
+
+          return (
+          <div style={card}>
+            <h2 style={h2Style}>Payment Summary</h2>
+
+            {/* Rooms */}
+            {bookingType !== 'spa_only' && selectedRooms.length > 0 && (
+              <div style={{ marginBottom: '22px', paddingBottom: '18px', borderBottom: `1px solid ${T.border}` }}>
+                <p style={{ ...labelStyle, marginBottom: '10px' }}>{selectedRooms.length > 1 ? 'Rooms' : 'Room'}</p>
+                {selectedRooms.map((r, i) => {
+                  const roomTotal = (r.pricePerNight || roomRate) * numNights;
+                  return (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
+                      <div>
+                        <span style={{ fontSize: '14px', color: T.body }}>{r.name}</span>
+                        {r.guestNames.length > 0 && (
+                          <p style={{ fontSize: '12px', color: T.muted, marginTop: '1px' }}>{r.guestNames.join(', ')}</p>
+                        )}
+                        <p style={{ fontSize: '12px', color: T.muted }}>{numNights} night{numNights > 1 ? 's' : ''} × ${r.pricePerNight || roomRate}/night</p>
+                      </div>
+                      <span style={{ fontSize: '14px', fontWeight: 600, color: T.primary, whiteSpace: 'nowrap', marginLeft: '16px' }}>${roomTotal.toFixed(2)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Treatments */}
+            {effectiveTreatments.length > 0 && (
+              <div style={{ marginBottom: '22px', paddingBottom: '18px', borderBottom: `1px solid ${T.border}` }}>
+                <p style={{ ...labelStyle, marginBottom: '10px' }}>Spa Treatments</p>
+                {effectiveTreatments.map((b, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px' }}>
+                    <div>
+                      <span style={{ fontSize: '14px', color: T.body }}>{b.serviceName}</span>
+                      {b.guestName && <span style={{ fontSize: '12px', color: T.muted }}> — {b.guestName}</span>}
+                    </div>
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: T.primary, whiteSpace: 'nowrap', marginLeft: '16px' }}>${(b.price || 0).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Total */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '28px' }}>
+              <span style={{ fontSize: '18px', fontWeight: 700, color: T.primary }}>Total</span>
+              <span style={{ fontSize: '24px', fontWeight: 700, color: T.primary }}>${payTotal.toFixed(2)}</span>
+            </div>
+
             {submitError && (
               <div style={{ backgroundColor: 'rgba(180,100,80,.08)', border: '1px solid rgba(180,100,80,.3)', borderRadius: '10px', padding: '14px 16px', marginBottom: '20px', fontSize: '13px', color: 'rgb(160,90,70)' }}>
                 {submitError}
@@ -795,11 +968,11 @@ export default function GuestBookNow() {
             )}
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <SecondaryBtn onClick={() => goBack(5)} disabled={submitting}>Back</SecondaryBtn>
+              <SecondaryBtn onClick={() => goBack(6)} disabled={submitting}>Back</SecondaryBtn>
               <PrimaryBtn onClick={handleSubmit} disabled={submitting}>
                 {submitting
-                  ? <><Loader2 className="animate-spin w-4 h-4 mr-2 inline" /> Processing your booking...</>
-                  : 'Complete Booking'}
+                  ? <><Loader2 className="animate-spin w-4 h-4 mr-2 inline" /> Processing...</>
+                  : 'Pay Now'}
               </PrimaryBtn>
             </div>
           </div>
@@ -833,8 +1006,8 @@ export default function GuestBookNow() {
           </div>
         )}
 
-        {/* ═══════════ STEP 6 — CONFIRMATION ═══════════ */}
-        {step === 6 && result && (
+        {/* ═══════════ STEP 7 — CONFIRMATION ═══════════ */}
+        {step === 7 && result && (
           <div style={{ ...card, textAlign: 'center', padding: '48px 24px' }}>
             <div style={{
               width: '56px', height: '56px', borderRadius: '50%',

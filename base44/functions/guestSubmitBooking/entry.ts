@@ -32,189 +32,40 @@ function normalizeTime(raw: string): string {
   return t;
 }
 
-function addMinutesToTime(hms: string, add: number): string {
-  const [h, m] = normalizeTime(hms).split(":").map(n => parseInt(n || "0", 10));
-  const total = h * 60 + m + add;
-  const mins = ((total % 1440) + 1440) % 1440;
-  return `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}:00`;
+// ── Acuity Scheduling helpers ───────────────────────────────────────────────
+
+const ACUITY_BASE = "https://acuityscheduling.com/api/v1";
+
+function acuityAuth(): string {
+  const userId = Deno.env.get("ACUITY_USER_ID") || "";
+  const apiKey = Deno.env.get("ACUITY_API_KEY") || "";
+  return "Basic " + btoa(userId + ":" + apiKey);
 }
 
-// ── SimplyBook JSON-RPC helper ──────────────────────────────────────────────
+function acuityHeaders(): Record<string, string> {
+  return {
+    Authorization: acuityAuth(),
+    "Content-Type": "application/json",
+  };
+}
 
-async function sbRPC(url: string, method: string, params: any[], headers: Record<string, string> = {}) {
-  const resp = await fetch(url, {
+async function acuityPost(path: string, body: any): Promise<any> {
+  const resp = await fetch(`${ACUITY_BASE}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...headers },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+    headers: acuityHeaders(),
+    body: JSON.stringify(body),
   });
   const text = await resp.text();
-  let json: any = {};
+  let json: any;
   try {
-    json = text ? JSON.parse(text) : {};
+    json = JSON.parse(text);
   } catch {
-    throw new Error(`SimplyBook non-JSON response for "${method}": ${text.slice(0, 300)}`);
+    throw new Error(`Acuity POST ${path} non-JSON response (${resp.status}): ${text.slice(0, 300)}`);
   }
   if (!resp.ok) {
-    throw new Error(`SimplyBook HTTP ${resp.status} for "${method}": ${text.slice(0, 300)}`);
+    throw new Error(`Acuity POST ${path} failed (${resp.status}): ${json?.message || text.slice(0, 300)}`);
   }
-  if (json?.error) {
-    throw new Error(`SimplyBook RPC error for "${method}": ${JSON.stringify(json.error)}`);
-  }
-  return json?.result ?? null;
-}
-
-// ── SimplyBook inline booking ───────────────────────────────────────────────
-
-async function bookSimplyBookTreatment(
-  treatmentGuestName: string,
-  guestEmail: string,
-  guestPhone: string,
-  serviceId: string,
-  providerId: string,
-  date: string,
-  startTime: string,
-): Promise<{ ok: boolean; bookingId?: string; error?: string }> {
-  const company = Deno.env.get("SIMPLYBOOK_COMPANY_LOGIN") || "";
-  const apiKey = Deno.env.get("SIMPLYBOOK_API_KEY") || "";
-  const userLogin = Deno.env.get("SIMPLYBOOK_ADMIN_LOGIN") || "";
-  const userPassword = Deno.env.get("SIMPLYBOOK_ADMIN_PASSWORD") || "";
-
-  if (!company) {
-    return { ok: false, error: "SimplyBook credentials not configured (no company)" };
-  }
-  if (!userLogin || !userPassword) {
-    return { ok: false, error: "SimplyBook admin credentials not configured (no SIMPLYBOOK_ADMIN_LOGIN/SIMPLYBOOK_ADMIN_PASSWORD)" };
-  }
-
-  const LOGIN_URL = "https://user-api.simplybook.me/login";
-  const BASE_URL = "https://user-api.simplybook.me";
-  const ADMIN_URL = "https://user-api.simplybook.me/admin/";
-
-  // 1. Authenticate — match simplybookCallback.ts: getUserToken with 3 params (no secretKey)
-  let adminToken: string | null = null;
-
-  try {
-    const result = await sbRPC(LOGIN_URL, "getUserToken", [company, userLogin, userPassword]);
-    if (result && typeof result === "string") adminToken = result;
-  } catch (e: any) {
-    console.log("[SimplyBook] getUserToken failed:", e.message);
-  }
-
-  if (!adminToken) {
-    return { ok: false, error: "SimplyBook admin auth failed — check SIMPLYBOOK_ADMIN_LOGIN / SIMPLYBOOK_ADMIN_PASSWORD" };
-  }
-
-  // Get a read token via apiKey if available, otherwise reuse admin token
-  let readToken = adminToken;
-  if (apiKey) {
-    try {
-      const result = await sbRPC(LOGIN_URL, "getToken", [company, apiKey]);
-      if (result && typeof result === "string") readToken = result;
-    } catch {
-      // fall back to admin token
-    }
-  }
-
-  const readHeaders = { "X-Company-Login": company, "X-Token": readToken, "X-User-Token": readToken };
-  const adminHeaders = { "X-Company-Login": company, "X-Token": adminToken, "X-User-Token": adminToken };
-
-  // 2. Verify service exists
-  const servicesRaw = await sbRPC(BASE_URL, "getEventList", [], readHeaders);
-  const svc = servicesRaw?.[serviceId];
-  if (!svc) {
-    return { ok: false, error: `Service ${serviceId} not found in SimplyBook` };
-  }
-
-  // 3. Resolve provider — if empty, pick first available for the slot
-  const time = normalizeTime(startTime);
-  let resolvedProviderId = providerId || null;
-
-  if (!resolvedProviderId) {
-    const unitIds = Array.isArray(svc.unit_map) && svc.unit_map.length > 0
-      ? svc.unit_map.map(String)
-      : Object.keys(await sbRPC(BASE_URL, "getUnitList", [], readHeaders) || {});
-
-    for (const uid of unitIds) {
-      try {
-        const matrix = await sbRPC(BASE_URL, "getStartTimeMatrix", [date, date, serviceId, uid, 1], readHeaders);
-        if (matrix?.[date]) {
-          const slots = Array.isArray(matrix[date]) ? matrix[date] : Object.keys(matrix[date]);
-          const normalizedSlots = slots.map((s: any) => normalizeTime(String(s)));
-          if (normalizedSlots.includes(time)) {
-            resolvedProviderId = uid;
-            break;
-          }
-        }
-      } catch {
-        continue;
-      }
-    }
-
-    if (!resolvedProviderId) {
-      return { ok: false, error: "That time slot is no longer available" };
-    }
-  }
-
-  // 4. Create client in SimplyBook
-  const clientPayload: any = { name: treatmentGuestName };
-  if (guestEmail) clientPayload.email = guestEmail;
-  if (guestPhone) clientPayload.phone = guestPhone;
-
-  let clientId: number | null = null;
-  const addClientResult = await sbRPC(ADMIN_URL, "addClient", [clientPayload, false], adminHeaders);
-  console.log("addClient response:", JSON.stringify(addClientResult));
-  clientId = addClientResult?.id
-    || addClientResult?.client_id
-    || addClientResult?.data?.id
-    || addClientResult?.result?.id
-    || (typeof addClientResult === "number" ? addClientResult : null)
-    || (typeof addClientResult === "string" && !isNaN(Number(addClientResult)) ? Number(addClientResult) : null);
-  if (clientId) clientId = Number(clientId);
-
-  if (!clientId) {
-    return { ok: false, error: "No client ID returned from SimplyBook. Check logs for full addClient response." };
-  }
-
-  // 5. Create the booking
-  const durationMinutes = Number(svc.duration || 60);
-  // Strip seconds — SimplyBook expects HH:MM, not HH:MM:SS
-  const bookTime = time.substring(0, 5);
-  const endTime = addMinutesToTime(bookTime, durationMinutes).substring(0, 5);
-
-  const additional = {
-    predefined: {
-      client: { name: treatmentGuestName, email: guestEmail, phone: guestPhone },
-      fields: {},
-    },
-  };
-
-  const bookPayload = [
-    Number(serviceId),
-    Number(resolvedProviderId),
-    Number(clientId),
-    date,
-    bookTime,
-    date,
-    endTime,
-    0,
-    additional,
-  ];
-
-  console.log("SimplyBook booking payload:", JSON.stringify({ serviceId, providerId: resolvedProviderId, date, startTime: bookTime, clientId }));
-
-  const bookingResult = await sbRPC(ADMIN_URL, "book", bookPayload, adminHeaders);
-
-  console.log("SimplyBook booking response:", JSON.stringify(bookingResult));
-
-  // 6. Extract booking ID
-  const bookingObj = Array.isArray(bookingResult?.bookings) ? bookingResult.bookings[0] : bookingResult;
-  const bookingId = String(bookingObj?.id || bookingObj?.booking_id || bookingResult?.id || "");
-
-  if (!bookingId) {
-    return { ok: false, error: "Booking may have been created but no ID was returned" };
-  }
-
-  return { ok: true, bookingId };
+  return json;
 }
 
 // ── Cloudbeds availability re-check (submission-time gate) ──────────────────
@@ -309,69 +160,120 @@ async function bookRoom(base44: any, payload: Record<string, any>) {
 }
 
 
-async function createAndPublishInvoice(
-  base44: any,
-  intakeId: string,
-  payload: Record<string, any>,
-) {
-  // 1. Create draft
-  let draftData: any;
-  try {
-    const draftRes = await base44.asServiceRole.functions.invoke("intakeCreateInvoiceDraft", {
-      intakeId,
-      intake: {
-        id: intakeId,
-        guestName: payload.guestName,
-        email: payload.email,
-        guestEmail: payload.email,
-        phone: payload.phone,
-        checkInDate: payload.checkInDate,
-        checkOutDate: payload.checkOutDate,
-        roomRequested: payload.roomRequested || "",
-        selectedTreatments: payload.selectedTreatments || [],
-        callToBookTreatments: payload.callToBookTreatments || [],
-        treatmentsRequested: payload.specialRequests || "",
-        taxes: payload.bookingType === 'spa_only' ? {} : {
-          hotel_state: true,
-          hotel_city: true,
-          hotel_venue: true,
-        },
-      },
-    });
-    draftData = draftRes.data || draftRes;
-  } catch (e: any) {
-    return { ok: false, error: `Invoice draft failed: ${e.message}` };
+async function buildSquarePaymentLink(
+  guestName: string,
+  email: string,
+  phone: string,
+  checkIn: string,
+  checkOut: string,
+  rooms: { roomId: string; roomName: string; roomRate: number; guestNames: string[] }[],
+  treatments: any[],
+): Promise<{ ok: boolean; publicUrl?: string; error?: string }> {
+  const accessToken = Deno.env.get("SQUARE_ACCESS_TOKEN") || "";
+  const squareEnv = Deno.env.get("SQUARE_ENV") || "production";
+  const baseUrl = squareEnv === "production"
+    ? "https://connect.squareup.com"
+    : "https://connect.squareupsandbox.com";
+
+  if (!accessToken) {
+    return { ok: false, error: "SQUARE_ACCESS_TOKEN not configured" };
   }
 
-  if (draftData?.error) {
-    return { ok: false, error: draftData.error };
-  }
-
-  const invoiceId = draftData?.invoiceId;
-  if (!invoiceId) {
-    return { ok: false, error: "No invoice ID returned from draft" };
-  }
-
-  // 2. Publish
-  let pubData: any;
-  try {
-    const pubRes = await base44.asServiceRole.functions.invoke("intakePublishInvoice", {
-      invoiceId,
-    });
-    pubData = pubRes.data || pubRes;
-  } catch (e: any) {
-    return { ok: false, error: `Invoice publish failed: ${e.message}`, invoiceId };
-  }
-
-  if (pubData?.error) {
-    return { ok: false, error: pubData.error, invoiceId };
-  }
-
-  return {
-    ok: true,
-    invoiceId,
-    publicUrl: pubData?.publicUrl || pubData?.invoice?.public_url || null,
+  const sqHeaders = {
+    Authorization: `Bearer ${accessToken}`,
+    "Content-Type": "application/json",
+    "Square-Version": "2024-01-18",
   };
+
+  // Get location ID
+  let locationId: string;
+  try {
+    const locResp = await fetch(`${baseUrl}/v2/locations`, { headers: sqHeaders });
+    const locData = await locResp.json();
+    const location = (locData?.locations || []).find((l: any) => l.status === "ACTIVE") || locData?.locations?.[0];
+    if (!location?.id) return { ok: false, error: "No Square location found" };
+    locationId = location.id;
+  } catch (e: any) {
+    return { ok: false, error: `Square locations lookup failed: ${e.message}` };
+  }
+
+  const numNights = nightsBetween(checkIn, checkOut);
+  const lineItems: any[] = [];
+
+  // Room line items
+  for (const room of rooms) {
+    const totalRoomCents = Math.ceil(room.roomRate * numNights * 100);
+    lineItems.push({
+      name: `${room.roomName || "Hotel Stay"} × ${numNights} night${numNights === 1 ? "" : "s"}`,
+      quantity: "1",
+      base_price_money: { amount: totalRoomCents, currency: "USD" },
+    });
+  }
+
+  // Treatment line items
+  for (const raw of treatments) {
+    const t = typeof raw === "string" ? (() => { try { return JSON.parse(raw); } catch { return { name: raw, price: 0 }; } })() : (raw || {});
+    const name = t.serviceName || t.name || "Treatment";
+    const tGuest = t.guestName || "";
+    const priceCents = Math.ceil(Number(t.price || 0) * 100);
+    lineItems.push({
+      name: tGuest ? `${name} — ${tGuest}` : name,
+      quantity: "1",
+      base_price_money: { amount: priceCents, currency: "USD" },
+    });
+  }
+
+  if (lineItems.length === 0) {
+    return { ok: false, error: "No line items to charge" };
+  }
+
+  const body = {
+    idempotency_key: crypto.randomUUID(),
+    description: `Hotel RITUAL Booking — ${guestName}`,
+    order: {
+      location_id: locationId,
+      line_items: lineItems,
+    },
+    checkout_options: {
+      redirect_url: "https://ritualtexas.com/booking-confirmed",
+    },
+    pre_populated_data: {
+      buyer_email: email,
+      buyer_phone_number: phone,
+    },
+  };
+
+  console.log("[Square] Creating payment link:", JSON.stringify(body, null, 2));
+
+  try {
+    const resp = await fetch(`${baseUrl}/v2/online-checkout/payment-links`, {
+      method: "POST",
+      headers: sqHeaders,
+      body: JSON.stringify(body),
+    });
+    const text = await resp.text();
+    let json: any;
+    try { json = JSON.parse(text); } catch { json = {}; }
+
+    if (!resp.ok) {
+      console.error("[Square] Payment link creation failed:", resp.status, text);
+      return { ok: false, error: `Square payment link failed (${resp.status}): ${json?.errors?.[0]?.detail || text.slice(0, 300)}` };
+    }
+
+    const paymentLink = json?.payment_link;
+    const publicUrl = paymentLink?.url || paymentLink?.long_url || null;
+
+    if (!publicUrl) {
+      console.error("[Square] No URL in payment link response:", text);
+      return { ok: false, error: "Square returned no payment URL" };
+    }
+
+    console.log("[Square] Payment link created:", publicUrl);
+    return { ok: true, publicUrl };
+  } catch (e: any) {
+    console.error("[Square] Payment link request error:", e.message);
+    return { ok: false, error: `Square request failed: ${e.message}` };
+  }
 }
 
 // ── Main handler ─────────────────────────────────────────────────────────────
@@ -391,8 +293,26 @@ Deno.serve(async (req) => {
     const phone     = clean(payload.phone);
     const checkIn   = clean(payload.checkInDate);
     const checkOut  = clean(payload.checkOutDate);
-    const roomTypeId = clean(payload.cloudbedsRoomTypeId);
     const bookingType = clean(payload.bookingType) || "hotel_and_spa";
+
+    // Parse rooms array (new multi-room format) with backward compat for legacy single-room fields
+    let roomsArr: { roomId: string; roomName: string; roomRate: number; guestNames: string[] }[] = [];
+    if (Array.isArray(payload.rooms) && payload.rooms.length > 0) {
+      roomsArr = payload.rooms.map((r: any) => ({
+        roomId: clean(r.roomId || r.roomTypeID || ""),
+        roomName: clean(r.roomName || r.name || ""),
+        roomRate: Number(r.roomRate || r.pricePerNight || 198),
+        guestNames: Array.isArray(r.guestNames) ? r.guestNames : [],
+      })).filter((r: any) => r.roomId);
+    } else if (clean(payload.cloudbedsRoomTypeId)) {
+      // Legacy single-room payload
+      roomsArr = [{
+        roomId: clean(payload.cloudbedsRoomTypeId),
+        roomName: clean(payload.roomRequested || ""),
+        roomRate: Number(payload.roomPricePerNight || 198),
+        guestNames: [],
+      }];
+    }
 
     if (!guestName || !email || !checkIn || !checkOut) {
       return Response.json(
@@ -401,7 +321,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (bookingType !== 'spa_only' && !roomTypeId) {
+    if (bookingType !== 'spa_only' && roomsArr.length === 0) {
       return Response.json(
         { success: false, error: "Room selection required for hotel bookings." },
         { status: 400 },
@@ -425,13 +345,15 @@ Deno.serve(async (req) => {
     const hasCallToBook = Array.isArray(payload.callToBookTreatments) && payload.callToBookTreatments.length > 0;
 
     // ── Availability re-check at submission time (hotel bookings only) ────
-    if (bookingType !== 'spa_only' && roomTypeId) {
-      const avail = await checkCloudbedsRoomAvailable(base44, roomTypeId, checkIn, checkOut);
-      if (!avail.available) {
-        return Response.json({
-          success: false,
-          error: "Sorry, that room is no longer available for your selected dates. Please go back and choose different dates or a different room.",
-        }, { status: 409 });
+    if (bookingType !== 'spa_only' && roomsArr.length > 0) {
+      for (const room of roomsArr) {
+        const avail = await checkCloudbedsRoomAvailable(base44, room.roomId, checkIn, checkOut);
+        if (!avail.available) {
+          return Response.json({
+            success: false,
+            error: `Sorry, ${room.roomName || 'a selected room'} is no longer available for your selected dates. Please go back and choose different dates or a different room.`,
+          }, { status: 409 });
+        }
       }
     }
 
@@ -443,9 +365,10 @@ Deno.serve(async (req) => {
       checkInDate: checkIn,
       checkOutDate: checkOut,
       numberOfGuests: payload.numberOfGuests || 1,
-      cloudbedsRoomTypeId: bookingType !== 'spa_only' ? roomTypeId : "",
-      roomRequested: bookingType !== 'spa_only' ? (payload.roomRequested || "") : "",
-      roomName: bookingType !== 'spa_only' ? (payload.roomRequested || "") : "",
+      rooms: bookingType !== 'spa_only' ? JSON.stringify(roomsArr) : "[]",
+      cloudbedsRoomTypeId: bookingType !== 'spa_only' ? (roomsArr[0]?.roomId || "") : "",
+      roomRequested: bookingType !== 'spa_only' ? roomsArr.map(r => r.roomName).filter(Boolean).join(", ") : "",
+      roomName: bookingType !== 'spa_only' ? (roomsArr[0]?.roomName || "") : "",
       selectedTreatments: payload.selectedTreatments || [],
       callToBookTreatments: payload.callToBookTreatments || [],
       treatmentsRequested: payload.specialRequests || "",
@@ -518,69 +441,88 @@ Deno.serve(async (req) => {
 
     // ── Path A: Full Booking Sequence ─────────────────────────────────────
 
-    // Step 2: Book room in Cloudbeds (skip for spa_only)
-    let cbResult: { ok: boolean; reservationId?: string; error?: string } = { ok: false, error: "Skipped (spa_only)" };
+    // Step 2: Book rooms in Cloudbeds (skip for spa_only)
+    const confirmationCodes: string[] = [];
+    let anyRoomBooked = false;
 
     if (bookingType !== 'spa_only') {
-      cbResult = await bookRoom(base44, {
-        guestName,
-        email,
-        phone,
-        checkInDate: checkIn,
-        checkOutDate: checkOut,
-        numberOfGuests: payload.numberOfGuests,
-        cloudbedsRoomTypeId: roomTypeId,
-        roomRequested: payload.roomRequested,
-        specialRequests: payload.specialRequests,
-      });
+      for (const room of roomsArr) {
+        // Use first guest name assigned to this room, falling back to primary guest
+        const roomGuestName = (room.guestNames?.[0] || "").trim() || guestName;
 
-      if (cbResult.ok) {
-        notes += `\n[Cloudbeds reservation created: ${cbResult.reservationId}]`;
-      } else {
-        notes += `\n[Cloudbeds booking failed: ${cbResult.error}]`;
+        const cbResult = await bookRoom(base44, {
+          guestName: roomGuestName,
+          email,
+          phone,
+          checkInDate: checkIn,
+          checkOutDate: checkOut,
+          numberOfGuests: payload.numberOfGuests,
+          cloudbedsRoomTypeId: room.roomId,
+          roomRequested: room.roomName,
+          specialRequests: payload.specialRequests,
+        });
+
+        if (cbResult.ok && cbResult.reservationId) {
+          confirmationCodes.push(cbResult.reservationId);
+          anyRoomBooked = true;
+          console.log(`[Cloudbeds] Room "${room.roomName}" booked → ${cbResult.reservationId}`);
+          notes += `\n[Cloudbeds reservation created for ${room.roomName}: ${cbResult.reservationId}]`;
+        } else {
+          console.log(`[Cloudbeds] Room "${room.roomName}" FAILED: ${cbResult.error}`);
+          notes += `\n[Cloudbeds booking failed for ${room.roomName}: ${cbResult.error}]`;
+        }
       }
     }
 
-    // Step 3: Book SimplyBook treatments directly (inline — no function invoke)
+    // Step 3: Book treatments via Acuity
     if (needsBooking.length > 0) {
       for (const t of needsBooking) {
         const svcId = String(t.serviceId || t.id || "");
         const provId = String(t.providerId || t.staffId || "");
-        const rawTime = t.startTime || t.time || "";
-        const bookTime = rawTime.substring(0, 5); // strip seconds: "09:00:00" → "09:00"
+        const rawTime = normalizeTime(t.startTime || t.time || "");
         const tGuestName = t.guestName || guestName;
-        const label = `${t.serviceName || t.name || svcId} for ${tGuestName} on ${t.date} at ${toStandardTime(bookTime)}`;
+        const label = `${t.serviceName || t.name || svcId} for ${tGuestName} on ${t.date} at ${toStandardTime(rawTime.substring(0, 5))}`;
+
+        // Split treatment guest name into first/last
+        const tNameParts = tGuestName.trim().split(/\s+/);
+        const firstName = tNameParts[0] || guestName.split(/\s+/)[0] || "";
+        const lastName = tNameParts.slice(1).join(" ") || guestName.split(/\s+/).slice(1).join(" ") || "";
+
+        const datetime = `${t.date}T${rawTime.slice(0, 8)}`;
+        const bookPayload: any = {
+          appointmentTypeID: Number(svcId),
+          datetime,
+          firstName,
+          lastName,
+          email,
+          phone,
+        };
+        if (provId) bookPayload.calendarID = Number(provId);
+
         try {
-          console.log(`[SimplyBook] Booking SimplyBook treatment: ${label}`);
-          notes += `\n[SimplyBook] Booking SimplyBook treatment: ${label}`;
+          console.log(`[Acuity] Booking treatment: ${label}`);
+          notes += `\n[Acuity] Booking treatment: ${label}`;
 
-          const sbResult = await bookSimplyBookTreatment(
-            tGuestName,
-            email,
-            phone,
-            svcId,
-            provId,
-            t.date,
-            bookTime,
-          );
+          const result = await acuityPost("/appointments", bookPayload);
+          const bookingId = String(result?.id || "");
 
-          if (sbResult.ok && sbResult.bookingId) {
-            t.simplybookBookingId = sbResult.bookingId;
-            console.log(`[SimplyBook] Booked: ${label} → ID ${sbResult.bookingId}`);
-            notes += `\n[SimplyBook] Booked: ${label} → ID ${sbResult.bookingId}`;
+          if (bookingId) {
+            t.acuityBookingId = bookingId;
+            console.log(`[Acuity] Booked: ${label} → ID ${bookingId}`);
+            notes += `\n[Acuity] Booked: ${label} → ID ${bookingId}`;
           } else {
-            console.log(`[SimplyBook] FAILED: ${label} — ${sbResult.error}`);
-            notes += `\n[SimplyBook] FAILED: ${label} — ${sbResult.error}`;
+            console.log(`[Acuity] WARN: ${label} — no booking ID returned`);
+            notes += `\n[Acuity] WARN: ${label} — no booking ID returned`;
           }
         } catch (e: any) {
-          console.log(`[SimplyBook] ERROR: ${label} — ${e.message}`);
-          notes += `\n[SimplyBook] ERROR: ${label} — ${e.message}`;
+          console.log(`[Acuity] FAILED: ${label} — ${e.message}`);
+          notes += `\n[Acuity] FAILED: ${label} — ${e.message}`;
         }
       }
     }
 
     if (alreadyBooked.length > 0) {
-      notes += `\n[SimplyBook: ${alreadyBooked.length} treatment(s) pre-booked via booking engine (${alreadyBooked.map(t => t.simplybookBookingId).join(", ")})]`;
+      notes += `\n[${alreadyBooked.length} treatment(s) pre-booked (${alreadyBooked.map(t => t.simplybookBookingId || t.acuityBookingId).join(", ")})]`;
     }
 
     // Update intake with progress notes
@@ -592,32 +534,20 @@ Deno.serve(async (req) => {
       // Non-fatal
     }
 
-    // Step 4: Create and publish Square invoice
-    const invoicePayload: Record<string, any> = {
-      guestName,
-      email,
-      phone,
-      checkInDate: checkIn,
-      checkOutDate: checkOut,
-      selectedTreatments: payload.selectedTreatments,
-      callToBookTreatments: payload.callToBookTreatments,
-      specialRequests: payload.specialRequests,
-    };
+    // Step 4: Create Square Payment Link
+    const treatmentsForPayment = bookingType !== 'hotel_only' ? (payload.selectedTreatments || []) : [];
+    const roomsForPayment = bookingType !== 'spa_only' ? roomsArr : [];
 
-    if (bookingType !== 'spa_only') {
-      invoicePayload.roomRequested = payload.roomRequested;
-    } else {
-      invoicePayload.roomRequested = "";
-    }
-    invoicePayload.bookingType = bookingType;
+    const payResult = await buildSquarePaymentLink(
+      guestName, email, phone, checkIn, checkOut,
+      roomsForPayment, treatmentsForPayment,
+    );
 
-    const invResult = await createAndPublishInvoice(base44, intakeId, invoicePayload);
-
-    if (!invResult.ok) {
+    if (!payResult.ok) {
       // Soft fail: flag for staff to send manually
       try {
         await base44.asServiceRole.entities.HotelTreatmentIntake.update(intakeId, {
-          internalNotes: notes + `\n[Square invoice failed: ${invResult.error} — send manually]`,
+          internalNotes: notes + `\n[Square payment link failed: ${payResult.error} — send manually]`,
           bookingStatus: "pending",
         });
       } catch {
@@ -632,19 +562,20 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── Success: save invoice ID, reservation ID, and mark all actions done ─
+    // ── Success: save payment URL, reservation IDs, and mark all actions done ─
     try {
       const finalUpdate: Record<string, any> = {
-        squareInvoiceId: invResult.invoiceId,
+        squarePaymentUrl: payResult.publicUrl,
         bookingStatus: "confirmed",
         onlineBookingCompleted: true,
         quoteSent: true,
-        hotelBooked: bookingType !== 'spa_only',
+        hotelBooked: bookingType !== 'spa_only' && anyRoomBooked,
         treatmentsBooked: bookingType !== 'hotel_only',
         crmSynced: false,
       };
-      if (cbResult.ok && cbResult.reservationId) {
-        finalUpdate.cloudbedsReservationId = cbResult.reservationId;
+      if (confirmationCodes.length > 0) {
+        finalUpdate.cloudbedsReservationId = confirmationCodes[0];
+        finalUpdate.confirmationCodes = confirmationCodes;
       }
       await base44.asServiceRole.entities.HotelTreatmentIntake.update(intakeId, finalUpdate);
     } catch {
@@ -656,8 +587,9 @@ Deno.serve(async (req) => {
       type: "booking",
       bookingType,
       intakeId,
-      confirmationCode: bookingType === 'spa_only' ? null : (cbResult?.reservationId || null),
-      publicUrl: invResult.publicUrl,
+      confirmationCode: bookingType === 'spa_only' ? null : (confirmationCodes[0] || null),
+      confirmationCodes: bookingType === 'spa_only' ? [] : confirmationCodes,
+      publicUrl: payResult.publicUrl,
       message: bookingType === 'spa_only'
         ? "Spa booking created. Redirecting to payment..."
         : "Booking created. Redirecting to payment...",

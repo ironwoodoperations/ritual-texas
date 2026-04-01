@@ -31,8 +31,6 @@ Deno.serve(async (req) => {
     const checkIn = clean(intake?.checkInDate);
     const checkOut = clean(intake?.checkOutDate);
 
-    console.log("intakeCreateInvoiceDraft input:", { guestName, guestEmail, checkIn, checkOut, intakeKeys: Object.keys(intake || {}) });
-
     if (!guestName) return Response.json({ error: "Guest name required" }, { status: 400 });
     if (!guestEmail) return Response.json({ error: "Guest email required" }, { status: 400 });
     if (!checkIn || !checkOut) return Response.json({ error: "Check-in and check-out dates required" }, { status: 400 });
@@ -95,8 +93,6 @@ Deno.serve(async (req) => {
     if (typeof rawRooms === "string") {
       try { rawRooms = JSON.parse(rawRooms); } catch { rawRooms = null; }
     }
-    console.log("intakeCreateInvoiceDraft rooms:", JSON.stringify(rawRooms));
-
     if (!isSpaOnly) {
       const rooms = Array.isArray(rawRooms) && rawRooms.some(r => r.roomId) ? rawRooms.filter(r => r.roomId) : null;
       if (rooms) {
@@ -221,10 +217,6 @@ Deno.serve(async (req) => {
         base_price_money: { amount: Math.round(amount * 100), currency: "USD" },
       });
     }
-
-    // Log full line items before sending to Square
-    console.log("Square order line items:", JSON.stringify(lineItems, null, 2));
-    console.log("Square customer:", { customerId, guestEmail, guestName });
 
     // Validate all amounts are integers in cents
     for (const li of lineItems) {
