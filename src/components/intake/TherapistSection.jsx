@@ -13,10 +13,18 @@ const THERAPIST_STATUSES = [
   { value: "declined", label: "Declined", color: "text-red-500" },
 ];
 
-const THERAPISTS = ["Whitney", "Bishop", "Tanita", "Tonya Silmon-Foluke", "DaMonica Franklin"];
+const THERAPISTS = [
+  { name: "Whitney", phone: null },
+  { name: "Bishop", phone: "+18327547434" },
+  { name: "Tanita", phone: "+17138585594" },
+  { name: "Tonya Silmon-Foluke", phone: "+12813307568" },
+  { name: "DaMonica Franklin", phone: "+19032830672" },
+];
 
 export default function TherapistSection({ form, onChange, sbEntries, ctbEntries }) {
-  const selectedTherapist = form.therapistAssigned ? { name: form.therapistAssigned } : null;
+  const selectedTherapist = form.therapistAssigned
+    ? THERAPISTS.find(t => t.name === form.therapistAssigned) || { name: form.therapistAssigned, phone: null }
+    : null;
 
   // Build a summary of requested treatments for the text message
   function buildTextBody() {
@@ -39,7 +47,8 @@ export default function TherapistSection({ form, onChange, sbEntries, ctbEntries
 
   function openSmsToTherapist() {
     const body = encodeURIComponent(buildTextBody());
-    window.open(`sms:?body=${body}`, "_blank");
+    const phone = selectedTherapist?.phone || "";
+    window.open(`sms:${phone}?body=${body}`, "_blank");
   }
 
   const statusInfo = THERAPIST_STATUSES.find(s => s.value === (form.therapistStatus || "not_contacted"));
@@ -57,7 +66,7 @@ export default function TherapistSection({ form, onChange, sbEntries, ctbEntries
           >
             <option value="">No therapist assigned</option>
             {THERAPISTS.map(t => (
-              <option key={t} value={t}>{t}</option>
+              <option key={t.name} value={t.name}>{t.name}{t.phone ? ` — ${t.phone}` : ""}</option>
             ))}
           </select>
         </div>
