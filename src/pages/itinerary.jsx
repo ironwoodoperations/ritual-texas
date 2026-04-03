@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { CalendarDays, CheckCircle, Clock, Coffee, Droplets, Phone, MessageCircle, Sparkles, Printer } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-const SIMPLYBOOK_URL = "https://ritualtexas.simplybook.me/v2/";
+const ACUITY_URL = "https://ritual-hotel-texas.as.me/";
 const CONCIERGE_PHONE = "9038106695";
 const CONCIERGE_SMS = "+19038106695";
 
@@ -467,7 +467,7 @@ export default function ItineraryPage() {
                 </div>
               ))}
             </div>
-            <Button onClick={() => window.open(SIMPLYBOOK_URL, '_blank')} variant="outline" style={{ borderColor: '#C57C5D', color: '#C57C5D' }}>
+            <Button onClick={() => window.open(ACUITY_URL, '_blank')} variant="outline" style={{ borderColor: '#C57C5D', color: '#C57C5D' }}>
               <Sparkles className="w-4 h-4 mr-2" />
               Book Another Treatment
             </Button>
@@ -532,7 +532,7 @@ export default function ItineraryPage() {
                                   <ul className="text-sm mt-2 list-disc pl-5" style={{ color: '#1B1B1B' }}>
                                     {item.bullets.map((b, i) => <li key={i}>{b}</li>)}
                                     {item.spaLink && (
-                                     <li>{spaBookings.length > 0 ? 'Book another spa treatment' : 'Book a spa treatment'} — <a href="https://ritualtexas.simplybook.me/v2/" target="_blank" rel="noopener noreferrer" style={{ color: '#C57C5D', textDecoration: 'underline' }}>click here</a></li>
+                                     <li>{spaBookings.length > 0 ? 'Book another spa treatment' : 'Book a spa treatment'} — <a href="https://ritual-hotel-texas.as.me/" target="_blank" rel="noopener noreferrer" style={{ color: '#C57C5D', textDecoration: 'underline' }}>click here</a></li>
                                     )}
                                   </ul>
                                 )}
@@ -562,10 +562,10 @@ export default function ItineraryPage() {
               <Card className="p-8 mb-8" style={{ backgroundColor: '#FCF9F4', borderRadius: '16px' }}>
                 <h2 className="text-2xl font-light mb-4" style={{ color: '#3B4831' }}>Spa & Wellness</h2>
                 <p className="text-sm mb-6" style={{ color: '#1B1B1B' }}>
-                  Book a treatment any time through our SimplyBook portal.
+                  Book a treatment any time through our online scheduler.
                 </p>
                 <Button
-                  onClick={() => window.open(SIMPLYBOOK_URL, '_blank')}
+                  onClick={() => window.open(ACUITY_URL, '_blank')}
                   className="w-full text-white font-medium py-6"
                   style={{ backgroundColor: '#C57C5D' }}
                 >
