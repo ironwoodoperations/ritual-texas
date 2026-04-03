@@ -16,7 +16,7 @@ const THERAPIST_STATUSES = [
 const THERAPISTS = [
   { name: "Whitney", phone: null },
   { name: "Bishop", phone: "+18327547434" },
-  { name: "Tanita", phone: "+17138585594" },
+  { name: "Tanita", phone: "+17138585594", email: "Tanitagraham@yahoo.com" },
   { name: "Tonya Silmon-Foluke", phone: "+12813307568" },
   { name: "DaMonica Franklin", phone: "+19032830672" },
 ];
