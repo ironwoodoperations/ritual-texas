@@ -33,9 +33,13 @@ export async function verifyPin(pin) {
   );
   if (!match) return null;
   // Support multi-role: use roles field if set, otherwise fall back to role
-  const roles = match.roles ? match.roles : (match.role || 'server');
-  // Primary role is the first one in the list
-  const primaryRole = roles.split(',')[0].trim();
+  const rawRoles = match.roles ? match.roles : (match.role || 'server');
+  // Filter out 'staff' — it's not a real role in the system
+  const roleList = rawRoles.split(',').map(s => s.trim()).filter(s => s && s !== 'staff');
+  const roles = roleList.length > 0 ? roleList.join(',') : (rawRoles.trim() || 'server');
+  // Primary role is the highest-priority one in the list (prefer manager/gm over others)
+  const priority = ['general_manager', 'manager', 'hotel_host', 'hotel_service_provider', 'housekeeping', 'chef', 'kitchen_staff', 'server'];
+  const primaryRole = priority.find(p => roleList.includes(p)) || roleList[0] || 'server';
   return { role: primaryRole, roles, name: match.name || 'Staff' };
 }
 
