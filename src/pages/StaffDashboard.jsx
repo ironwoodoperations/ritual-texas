@@ -278,7 +278,7 @@ export default function StaffDashboard() {
   const visibleModules = React.useMemo(() => {
     if (!session) return [];
     const roleKey = session.roles || session.role || 'server';
-    const isGM = roleKey.includes('general_manager');
+    const isGM = roleKey.includes('general_manager') || roleKey.includes('manager');
     const map = settingsMap || new Map();
     return DEFAULT_MODULES.map(m => {
       const row = map.get(m.key);
