@@ -242,6 +242,10 @@ export default function GuestBookNow() {
   const [howHeard, setHowHeard] = useState('');
   const [specialRequests, setSpecialRequests] = useState('');
 
+  // Validation attempt tracking
+  const [step1Attempted, setStep1Attempted] = useState(false);
+  const [step4Attempted, setStep4Attempted] = useState(false);
+
   // Step 5 — Submit
   const [submitting, setSubmitting] = useState(false);
   const [showProcessingModal, setShowProcessingModal] = useState(false);
@@ -508,6 +512,11 @@ export default function GuestBookNow() {
 
             {/* Guest name fields */}
             <div style={{ display: 'grid', gap: '14px', marginBottom: '24px' }}>
+              {step1Attempted && guestNames.some(n => !n.trim()) && (
+                <div style={{ backgroundColor: 'rgba(180,100,80,.08)', border: '1px solid rgba(180,100,80,.4)', borderRadius: '10px', padding: '12px 16px', fontSize: '13px', color: 'rgb(160,90,70)', fontWeight: 500 }}>
+                  ⚠️ Please enter a name for every guest before continuing.
+                </div>
+              )}
               {guestNames.map((name, i) => (
                 <div key={i}>
                   <label style={labelStyle}>Guest {i + 1} Name *</label>
@@ -520,17 +529,23 @@ export default function GuestBookNow() {
                       setGuestNames(next);
                     }}
                     placeholder={i === 0 ? 'Jane Doe' : `Guest ${i + 1}`}
-                    style={inputStyle}
+                    style={{ ...inputStyle, border: step1Attempted && !name.trim() ? '1px solid rgb(180,100,80)' : inputStyle.border }}
                   />
+                  {step1Attempted && !name.trim() && (
+                    <p style={{ fontSize: '12px', color: 'rgb(180,100,80)', marginTop: '4px' }}>Please enter a name for Guest {i + 1}</p>
+                  )}
                 </div>
               ))}
             </div>
 
+            {step1Attempted && bookingType !== 'spa_only' && (!checkIn || !checkOut) && (
+              <p style={{ color: 'rgb(180,100,80)', fontSize: '13px', marginBottom: '16px' }}>⚠️ Please select both check-in and check-out dates.</p>
+            )}
             {bookingType !== 'spa_only' && checkIn && checkOut && checkOut <= checkIn && (
               <p style={{ color: 'rgb(180,100,80)', fontSize: '13px', marginBottom: '16px' }}>Check-out date must be after check-in.</p>
             )}
 
-            <PrimaryBtn disabled={!step1Valid} onClick={handleStep1Continue}>
+            <PrimaryBtn disabled={false} onClick={() => { setStep1Attempted(true); if (step1Valid) handleStep1Continue(); }}>
               {bookingType === 'spa_only' ? 'Continue to Treatments' : 'Continue to Rooms'}
             </PrimaryBtn>
           </div>
@@ -630,6 +645,9 @@ export default function GuestBookNow() {
                           {room.roomTypeID && (
                             <>
                               <label style={labelStyle}>Guests in This Room</label>
+                              {guestNames.filter(n => n.trim()).length > 0 && room.guestNames.length === 0 && (
+                                <p style={{ fontSize: '12px', color: 'rgb(180,100,80)', marginBottom: '8px', fontWeight: 500 }}>👆 Please check who is staying in this room</p>
+                              )}
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
                                 {guestNames.filter(n => n.trim()).map((name, gi) => {
                                   const checked = room.guestNames.includes(name);
@@ -743,17 +761,17 @@ export default function GuestBookNow() {
 
             <div style={{ marginBottom: '18px' }}>
               <label style={labelStyle}>Full Name *</label>
-              <input type="text" value={guestName || guestNames[0] || ''} onChange={e => setGuestName(e.target.value)} onFocus={e => { if (!guestName && guestNames[0]) setGuestName(guestNames[0]); }} placeholder="Jane Doe" style={inputStyle} />
+              <input type="text" value={guestName || guestNames[0] || ''} onChange={e => setGuestName(e.target.value)} onFocus={e => { if (!guestName && guestNames[0]) setGuestName(guestNames[0]); }} placeholder="Jane Doe" style={{ ...inputStyle, border: step4Attempted && !guestName.trim() ? '1px solid rgb(180,100,80)' : inputStyle.border }} />
             </div>
 
             <div style={{ marginBottom: '18px' }}>
               <label style={labelStyle}>Email Address *</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="jane@example.com" style={inputStyle} />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="jane@example.com" style={{ ...inputStyle, border: step4Attempted && !email.trim() ? '1px solid rgb(180,100,80)' : inputStyle.border }} />
             </div>
 
             <div style={{ marginBottom: '18px' }}>
               <label style={labelStyle}>Phone Number *</label>
-              <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="(903) 555-1234" style={inputStyle} />
+              <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="(903) 555-1234" style={{ ...inputStyle, border: step4Attempted && !phone.trim() ? '1px solid rgb(180,100,80)' : inputStyle.border }} />
             </div>
 
             <div style={{ marginBottom: '18px' }}>
@@ -771,9 +789,14 @@ export default function GuestBookNow() {
               />
             </div>
 
+            {step4Attempted && !step4Valid && (
+              <div style={{ backgroundColor: 'rgba(180,100,80,.08)', border: '1px solid rgba(180,100,80,.4)', borderRadius: '10px', padding: '12px 16px', fontSize: '13px', color: 'rgb(160,90,70)', fontWeight: 500, marginBottom: '16px' }}>
+                ⚠️ Please fill in your {!guestName.trim() ? 'name' : !email.trim() ? 'email address' : 'phone number'} before continuing.
+              </div>
+            )}
             <div style={{ display: 'flex', gap: '12px' }}>
               <SecondaryBtn onClick={() => goBack(4)}>Back</SecondaryBtn>
-              <PrimaryBtn disabled={!step4Valid} onClick={() => goNext(4)}>Review &amp; Book</PrimaryBtn>
+              <PrimaryBtn disabled={false} onClick={() => { setStep4Attempted(true); if (step4Valid) goNext(4); }}>Review &amp; Book</PrimaryBtn>
             </div>
           </div>
         )}
