@@ -397,6 +397,7 @@ export default function GuestBookNow() {
     if (selected.length === 0 || !rooms.every(r => r.roomTypeID)) return false;
     const ids = selected.map(r => r.roomTypeID);
     if (new Set(ids).size !== ids.length) return false;
+    if (!selected.every(r => r.guestNames.length > 0)) return false;
     return selected.reduce((sum, r) => sum + roomCapacity(r.name), 0) >= guests;
   })();
   const step4Valid = guestName.trim() && email.trim() && phone.trim();
@@ -691,6 +692,11 @@ export default function GuestBookNow() {
                     + Add Another Room
                   </button>
 
+                  {!validationError && rooms.some(r => r.roomTypeID && r.guestNames.length === 0) && (
+                    <div style={{ backgroundColor: 'rgba(180,100,80,.08)', border: '1px solid rgba(180,100,80,.3)', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px', fontSize: '13px', color: 'rgb(160,90,70)' }}>
+                      ⚠️ Please check at least one guest for each room before continuing.
+                    </div>
+                  )}
                   {validationError && (
                     <div style={{ backgroundColor: 'rgba(180,100,80,.08)', border: '1px solid rgba(180,100,80,.3)', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px', fontSize: '13px', color: 'rgb(160,90,70)' }}>
                       {validationError}
