@@ -288,7 +288,7 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
               <div className="absolute bottom-8 left-8 text-white">
                 <h3 className="text-2xl font-light mb-2 drop-shadow-lg">Suites & Rooms</h3>
-                <p className="text-white/90 font-light drop-shadow-lg">Starting at $150/night</p>
+                <p className="text-white/90 font-light drop-shadow-lg">Starting at $198/night</p>
               </div>
             </motion.div>
 
