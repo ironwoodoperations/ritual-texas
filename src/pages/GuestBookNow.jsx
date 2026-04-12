@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import SimplyBookEngine from '@/components/SimplyBookEngine';
+import AcuityBookingEngine from '@/components/AcuityBookingEngine';
 
 // ── Brand tokens ────────────────────────────────────────────────────────────
 const T = {
@@ -730,7 +730,7 @@ export default function GuestBookNow() {
               </p>
             )}
 
-            <SimplyBookEngine
+            <AcuityBookingEngine
               stayDates={stayDates}
               guestNames={guestNames.filter(n => n.trim())}
               onBookingSelected={(selection) => {
