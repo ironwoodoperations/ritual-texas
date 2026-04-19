@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Leaf, Printer, RefreshCw, Sparkles, Mail, MessageCircle, Check, ChevronDown, X, LogIn, LogOut, CreditCard, Loader2 } from 'lucide-react';
+import { ArrowLeft, Leaf, Printer, RefreshCw, Sparkles, Mail, MessageCircle, Check, ChevronDown, ChevronLeft, ChevronRight, X, LogIn, LogOut, CreditCard, Loader2, Coffee, DoorOpen, DoorClosed } from 'lucide-react';
 import PageHelpBanner from '@/components/PageHelpBanner';
 
 const ITINERARY_HELP = `Print-ready guest briefings for every arrival and spa guest today — pulled live from Cloudbeds and SimplyBook.
@@ -147,76 +147,95 @@ function GuestCard({ reservation, spaBookings }) {
         </div>
       </div>
 
-      {/* Stay Details */}
-      {!reservation.spaOnly ? (
-        <div className="grid grid-cols-3 gap-6 mb-8">
-          <div>
-            <p className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-1">Check-In</p>
-            <p className="text-[rgb(107,85,64)] font-medium">{fmtDate(reservation.checkIn)}</p>
-            <p className="text-xs text-[rgb(150,150,150)] mt-0.5">3:00 PM</p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-1">Check-Out</p>
-            <p className="text-[rgb(107,85,64)] font-medium">{fmtDate(reservation.checkOut)}</p>
-            <p className="text-xs text-[rgb(150,150,150)] mt-0.5">11:00 AM</p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-1">Room</p>
-            <p className="text-[rgb(107,85,64)] font-medium">{reservation.roomName || '—'}</p>
-            {reservation.roomNumber && (
-              <p className="text-xs text-[rgb(150,150,150)] mt-0.5">Room {reservation.roomNumber}</p>
-            )}
-          </div>
-        </div>
-      ) : (
+      {/* Spa-only badge */}
+      {reservation.spaOnly && (
         <div className="mb-6 bg-[rgb(248,246,242)] rounded-xl px-4 py-3 text-sm text-[rgb(107,85,64)]">
           Spa-only guest · No hotel stay on file
         </div>
       )}
 
-      {/* During Your Stay */}
-      <div className="mb-6">
-        <h3 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-3">During Your Stay</h3>
-        <div className="bg-[rgb(248,246,242)] rounded-xl p-4 text-sm text-[rgb(45,45,45)] space-y-1">
-          <p>• Breakfast: 8:00–10:00 AM daily</p>
-          <p>• Sauna & rainshower available anytime</p>
-          <p>• Concierge: (903) 810-6695</p>
-        </div>
-      </div>
-
-      {/* Spa Appointments */}
-      {spaBookings.length > 0 ? (
-        <div className="mb-6">
-          <h3 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-3 flex items-center gap-2">
-            <Sparkles className="w-3 h-3" /> Spa Appointments
-          </h3>
-          <div className="space-y-2">
-            {spaBookings.map((b, i) => (
-              <div key={i} className="flex items-start justify-between bg-[rgb(248,246,242)] rounded-xl p-4">
-                <div>
-                  <p className="font-medium text-[rgb(107,85,64)] text-sm">{b.serviceName || 'Spa Treatment'}</p>
-                  {b.staffName && <p className="text-xs text-[rgb(150,150,150)] mt-0.5">Provider: {b.staffName}</p>}
-                </div>
-                <div className="text-right text-sm">
-                  <p className="text-[rgb(45,45,45)]">
-                    {b.startAt ? format(new Date(b.startAt), 'MMM d') : '—'} · {b.startAt ? fmtTime(b.startAt) : '—'}
-                  </p>
-                  {b.durationMinutes && <p className="text-xs text-[rgb(150,150,150)] mt-0.5">{b.durationMinutes} min</p>}
+      {/* Chronological Timeline */}
+      {(() => {
+        const timeline = buildTimeline(reservation, spaBookings);
+        return timeline.length > 0 ? (
+          <div className="mb-6">
+            <h3 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-3">Stay Timeline</h3>
+            {timeline.map(group => (
+              <div key={group.date} className="mb-4 last:mb-0">
+                <p className="text-xs font-medium text-[rgb(107,85,64)] mb-2 ml-6">
+                  {group.date ? format(new Date(group.date + 'T12:00:00'), 'EEEE, MMMM d') : '—'}
+                </p>
+                <div className="space-y-1.5 border-l-2 border-[rgb(235,225,213)] ml-2 pl-4">
+                  {group.events.map((ev, i) => (
+                    <div key={i} className="relative">
+                      <div className="absolute -left-[21px] top-2 w-2.5 h-2.5 rounded-full" style={{
+                        background: ev.type === 'checkin' ? 'rgb(150,170,155)' : ev.type === 'checkout' ? 'rgb(196,155,145)' : ev.type === 'spa' ? 'rgb(107,85,64)' : 'rgb(200,190,178)',
+                      }} />
+                      {ev.type === 'checkin' && (
+                        <div className="bg-[rgb(240,247,240)] rounded-xl px-4 py-2.5">
+                          <p className="text-sm font-medium text-[rgb(80,120,90)] flex items-center gap-2">
+                            <DoorOpen className="w-3.5 h-3.5" /> Check-In · 3:00 PM
+                            {reservation.roomName ? ` · ${reservation.roomName}` : ''}
+                            {reservation.roomNumber ? ` (Room ${reservation.roomNumber})` : ''}
+                          </p>
+                        </div>
+                      )}
+                      {ev.type === 'breakfast' && (
+                        <div className="px-4 py-1.5 flex items-center gap-2">
+                          <Coffee className="w-3.5 h-3.5 text-[rgb(180,160,140)]" />
+                          <p className="text-sm text-[rgb(107,85,64)]">Breakfast · 8:00–10:00 AM</p>
+                        </div>
+                      )}
+                      {ev.type === 'spa' && (
+                        <div className="bg-[rgb(248,246,242)] rounded-xl px-4 py-2.5">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-2">
+                              <Sparkles className="w-3.5 h-3.5 mt-0.5 text-[rgb(150,170,155)]" />
+                              <div>
+                                <p className="text-sm font-medium text-[rgb(107,85,64)]">{ev.serviceName || 'Spa Treatment'}</p>
+                                {ev.staffName && <p className="text-xs text-[rgb(150,150,150)] mt-0.5">Provider: {ev.staffName}</p>}
+                              </div>
+                            </div>
+                            <div className="text-right text-sm shrink-0">
+                              <p className="text-[rgb(45,45,45)]">{ev.at ? fmtTime(ev.at) : '—'}</p>
+                              {ev.durationMinutes && <p className="text-xs text-[rgb(150,150,150)] mt-0.5">{ev.durationMinutes} min</p>}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {ev.type === 'checkout' && (
+                        <div className="bg-[rgb(252,245,242)] rounded-xl px-4 py-2.5">
+                          <p className="text-sm font-medium text-[rgb(180,120,100)] flex items-center gap-2">
+                            <DoorClosed className="w-3.5 h-3.5" /> Check-Out · 11:00 AM
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      ) : (
-        <div className="mb-6">
-          <h3 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-3 flex items-center gap-2">
-            <Sparkles className="w-3 h-3" /> Spa & Wellness
-          </h3>
-          <div className="bg-[rgb(248,246,242)] rounded-xl p-4 text-sm text-[rgb(150,150,150)]">
-            No spa appointments booked — book at ritualtexas.simplybook.me
+        ) : (
+          <div className="mb-6">
+            <h3 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-3 flex items-center gap-2">
+              <Sparkles className="w-3 h-3" /> Spa & Wellness
+            </h3>
+            <div className="bg-[rgb(248,246,242)] rounded-xl p-4 text-sm text-[rgb(150,150,150)]">
+              No spa appointments booked
+            </div>
           </div>
+        );
+      })()}
+
+      {/* Anytime Amenities */}
+      <div className="mb-6">
+        <h3 className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-3">Anytime Amenities</h3>
+        <div className="bg-[rgb(248,246,242)] rounded-xl p-4 text-sm text-[rgb(45,45,45)] space-y-1">
+          <p>• Sauna & rainshower available anytime</p>
+          <p>• Concierge: (903) 810-6695</p>
         </div>
-      )}
+      </div>
 
       {/* Send Actions — hidden from print */}
       <div className="no-print mt-6 pt-6 border-t border-[rgb(235,225,213)] space-y-3">
@@ -355,6 +374,120 @@ function GuestCard({ reservation, spaBookings }) {
 
 function isCancelled(status) {
   return ['booking.cancelled','cancel','cancelled'].includes((status || '').toLowerCase());
+}
+
+function buildTimeline(reservation, spaBookings) {
+  const events = [];
+
+  if (!reservation.spaOnly && reservation.checkIn) {
+    events.push({ type: 'checkin', at: reservation.checkIn + 'T15:00:00', date: reservation.checkIn });
+
+    // Breakfast each morning: day after check-in through check-out day (inclusive)
+    const ci = new Date(reservation.checkIn + 'T12:00:00');
+    const co = new Date(reservation.checkOut + 'T12:00:00');
+    const d = new Date(ci);
+    d.setDate(d.getDate() + 1);
+    while (d <= co) {
+      const dayStr = d.toISOString().slice(0, 10);
+      events.push({ type: 'breakfast', at: dayStr + 'T08:00:00', date: dayStr });
+      d.setDate(d.getDate() + 1);
+    }
+
+    events.push({ type: 'checkout', at: reservation.checkOut + 'T11:00:00', date: reservation.checkOut });
+  }
+
+  spaBookings.forEach(b => {
+    events.push({
+      type: 'spa', at: b.startAt || '', date: (b.startAt || '').slice(0, 10),
+      serviceName: b.serviceName, staffName: b.staffName, durationMinutes: b.durationMinutes,
+    });
+  });
+
+  events.sort((a, b) => (a.at || '').localeCompare(b.at || ''));
+
+  const grouped = [];
+  let cur = null;
+  events.forEach(e => {
+    if (!cur || e.date !== cur.date) { cur = { date: e.date, events: [] }; grouped.push(cur); }
+    cur.events.push(e);
+  });
+  return grouped;
+}
+
+function ItineraryCalendar({ selectedDate, onSelectDate, guestCountsByDate }) {
+  const today = todayStr();
+  const [calYear, setCalYear] = useState(() => new Date(selectedDate + 'T12:00:00').getFullYear());
+  const [calMonth, setCalMonth] = useState(() => new Date(selectedDate + 'T12:00:00').getMonth());
+
+  const days = useMemo(() => {
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const cells = [];
+    for (let i = 0; i < firstDay; i++) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+    return cells;
+  }, [calYear, calMonth]);
+
+  const monthLabel = new Date(calYear, calMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  const prevMonth = () => {
+    if (calMonth === 0) { setCalYear(y => y - 1); setCalMonth(11); }
+    else setCalMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (calMonth === 11) { setCalYear(y => y + 1); setCalMonth(0); }
+    else setCalMonth(m => m + 1);
+  };
+
+  return (
+    <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5">
+      <div className="flex items-center justify-between mb-4">
+        <button onClick={prevMonth} className="p-1 hover:bg-[rgb(248,246,242)] rounded">
+          <ChevronLeft className="w-5 h-5 text-[rgb(150,150,150)]" />
+        </button>
+        <span className="font-semibold text-sm text-[rgb(107,85,64)]">{monthLabel}</span>
+        <button onClick={nextMonth} className="p-1 hover:bg-[rgb(248,246,242)] rounded">
+          <ChevronRight className="w-5 h-5 text-[rgb(150,150,150)]" />
+        </button>
+      </div>
+      <div className="grid grid-cols-7 mb-1">
+        {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => (
+          <div key={d} className="text-center text-[10px] font-semibold text-[rgb(150,150,150)] uppercase py-1">{d}</div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {days.map((day, idx) => {
+          if (!day) return <div key={`e-${idx}`} />;
+          const iso = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const count = guestCountsByDate[iso] || 0;
+          const isSelected = iso === selectedDate;
+          const isToday = iso === today;
+          return (
+            <button
+              key={iso}
+              onClick={() => onSelectDate(iso)}
+              className={`rounded-lg p-1 flex flex-col items-center gap-0.5 transition-all ${isSelected ? '' : 'hover:bg-[rgb(248,246,242)]'}`}
+              style={{
+                background: isSelected ? 'rgb(107,85,64)' : isToday ? 'rgb(240,247,240)' : 'transparent',
+                border: isSelected ? '2px solid rgb(107,85,64)' : isToday ? '1px solid rgb(150,170,155)' : '1px solid transparent',
+                color: isSelected ? 'white' : 'rgb(45,45,45)',
+              }}
+            >
+              <span className={`text-xs leading-none ${isToday && !isSelected ? 'font-bold' : ''}`}>{day}</span>
+              {count > 0 && (
+                <span
+                  className="text-[9px] font-bold rounded-full px-1 min-w-[16px] text-center leading-relaxed"
+                  style={{ background: isSelected ? 'rgba(255,255,255,0.3)' : 'rgb(107,85,64)', color: 'white' }}
+                >
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export default function AdminTodayItineraries() {
@@ -504,6 +637,42 @@ export default function AdminTodayItineraries() {
   });
 
   const allCards = [...arrivalsWithSpa, ...spaOnlyGuests];
+
+  // Per-day guest counts for the calendar — unique guests with any activity
+  const guestCountsByDate = useMemo(() => {
+    const dayGuests = {};
+    const addGuest = (dayStr, key) => {
+      if (!dayStr || !key) return;
+      if (!dayGuests[dayStr]) dayGuests[dayStr] = new Set();
+      dayGuests[dayStr].add(key);
+    };
+
+    // Hotel guests: present from checkIn through checkOut
+    (cloudbedsData?.reservations || []).forEach(r => {
+      if (!r.checkIn || !r.checkOut) return;
+      const gk = (r.guestEmail || r.guestName || '').toLowerCase().trim();
+      const ci = new Date(r.checkIn + 'T12:00:00');
+      const co = new Date(r.checkOut + 'T12:00:00');
+      const d = new Date(ci);
+      while (d <= co) {
+        addGuest(d.toISOString().slice(0, 10), gk);
+        d.setDate(d.getDate() + 1);
+      }
+    });
+
+    // Spa guests
+    allSpaBookings.forEach(b => {
+      if (isCancelled(b.status)) return;
+      const dayStr = b.startAt?.slice(0, 10);
+      const gk = (b.email || b.clientName || '').toLowerCase().trim();
+      addGuest(dayStr, gk);
+    });
+
+    const result = {};
+    Object.keys(dayGuests).forEach(d => { result[d] = dayGuests[d].size; });
+    return result;
+  }, [cloudbedsData, allSpaBookings]);
+
   const isLoading = cbLoading || spaLoading;
 
   if (!user) {
@@ -537,12 +706,12 @@ export default function AdminTodayItineraries() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={e => setSelectedDate(e.target.value)}
-              className="px-3 py-2 text-sm border border-[rgb(235,225,213)] rounded-lg bg-white text-[rgb(107,85,64)] focus:outline-none focus:border-[rgb(150,170,155)]"
-            />
+            <button
+              onClick={() => setSelectedDate(todayStr())}
+              className={`px-3 py-2 text-sm rounded-lg border transition-colors ${selectedDate === todayStr() ? 'bg-[rgb(107,85,64)] text-white border-[rgb(107,85,64)]' : 'border-[rgb(235,225,213)] text-[rgb(107,85,64)] hover:bg-[rgb(235,225,213)]'}`}
+            >
+              Today
+            </button>
             <button
               onClick={() => refetch()}
               className="flex items-center gap-2 px-3 py-2 text-sm border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(235,225,213)] text-[rgb(107,85,64)]"
@@ -559,40 +728,65 @@ export default function AdminTodayItineraries() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto p-6">
+      <main className="max-w-6xl mx-auto p-6">
         <PageHelpBanner title="Today's Itineraries" content={ITINERARY_HELP} accentColor="rgb(107,85,64)" />
-        {isLoading ? (
-          <div className="flex items-center justify-center py-24">
-            <div className="animate-spin w-8 h-8 border-2 border-[rgb(150,170,155)] border-t-transparent rounded-full" />
-          </div>
-        ) : !cloudbedsData?.success ? (
-          <div className="text-center py-16 text-[rgb(107,85,64)]">
-            {cloudbedsData?.error || 'Could not load Cloudbeds reservations.'}
-          </div>
-        ) : allCards.length === 0 ? (
-          <div className="text-center py-24 text-[rgb(150,150,150)]">
-            <p className="text-lg font-light">No hotel arrivals or spa appointments today.</p>
-          </div>
-        ) : (
-          <>
-            {arrivalsWithSpa.length > 0 && (
-              <div className="mb-2">
-                <p className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-4">Hotel Arrivals</p>
-                {arrivalsWithSpa.map(({ reservation, spaBookings }) => (
-                  <GuestCard key={reservation.reservationID} reservation={reservation} spaBookings={spaBookings} />
-                ))}
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-[260px_1fr]">
+          {/* Calendar sidebar */}
+          <div className="no-print space-y-4">
+            <ItineraryCalendar
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+              guestCountsByDate={guestCountsByDate}
+            />
+            {/* Day summary */}
+            <div className="bg-white border border-[rgb(235,225,213)] rounded-2xl p-5 text-center">
+              <div className="text-2xl font-bold text-[rgb(107,85,64)]">{allCards.length}</div>
+              <div className="text-xs text-[rgb(150,150,150)] mb-1">guest{allCards.length !== 1 ? 's' : ''} on</div>
+              <div className="text-sm font-medium text-[rgb(45,45,45)]">
+                {format(new Date(selectedDate + 'T12:00:00'), 'EEEE, MMMM d')}
               </div>
-            )}
-            {spaOnlyGuests.length > 0 && (
-              <div>
-                <p className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-4">Spa Guests Today</p>
-                {spaOnlyGuests.map(({ reservation, spaBookings }, i) => (
-                  <GuestCard key={i} reservation={reservation} spaBookings={spaBookings} />
-                ))}
+              <div className="text-xs text-[rgb(150,150,150)] mt-2">
+                {todayArrivals.length} hotel · {spaOnlyGuests.length} spa-only
               </div>
+            </div>
+          </div>
+
+          {/* Guest cards */}
+          <div>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-24">
+                <div className="animate-spin w-8 h-8 border-2 border-[rgb(150,170,155)] border-t-transparent rounded-full" />
+              </div>
+            ) : !cloudbedsData?.success ? (
+              <div className="text-center py-16 text-[rgb(107,85,64)]">
+                {cloudbedsData?.error || 'Could not load Cloudbeds reservations.'}
+              </div>
+            ) : allCards.length === 0 ? (
+              <div className="text-center py-24 text-[rgb(150,150,150)]">
+                <p className="text-lg font-light">No hotel arrivals or spa appointments for this date.</p>
+              </div>
+            ) : (
+              <>
+                {arrivalsWithSpa.length > 0 && (
+                  <div className="mb-2">
+                    <p className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-4">Hotel Arrivals</p>
+                    {arrivalsWithSpa.map(({ reservation, spaBookings }) => (
+                      <GuestCard key={reservation.reservationID} reservation={reservation} spaBookings={spaBookings} />
+                    ))}
+                  </div>
+                )}
+                {spaOnlyGuests.length > 0 && (
+                  <div>
+                    <p className="text-xs uppercase tracking-widest text-[rgb(150,150,150)] mb-4">Spa Guests</p>
+                    {spaOnlyGuests.map(({ reservation, spaBookings }, i) => (
+                      <GuestCard key={i} reservation={reservation} spaBookings={spaBookings} />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
+          </div>
+        </div>
       </main>
     </div>
   );
