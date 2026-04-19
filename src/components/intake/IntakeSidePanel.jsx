@@ -209,19 +209,19 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
         const authError = res.data?.error;
 
         if (authError) {
-          setActionMsg({ success: false, text: `SimplyBook error: ${authError}` });
+          setActionMsg({ success: false, text: `Acuity error: ${authError}` });
         } else if (bookings.length === 0 && errors.length > 0) {
           setActionMsg({ success: false, text: `No bookings created. Errors: ${errors.join(" | ")}` });
         } else if (bookings.length === 0 && errors.length === 0) {
-          setActionMsg({ success: false, text: "No treatments were booked. This record's treatments may be missing date, time, or SimplyBook service ID. Edit the record and re-add treatments using the new picker." });
+          setActionMsg({ success: false, text: "No treatments were booked. This record's treatments may be missing date, time, or Acuity service ID. Edit the record and re-add treatments using the new picker." });
         } else if (bookings.length > 0 && errors.length > 0) {
           await markCompleted("BookSimplyBook");
-          await logEvent(`SimplyBook treatments booked with errors`);
+          await logEvent(`Acuity treatments booked with errors`);
           setActionMsg({ success: true, text: `✓ ${bookings.length} treatment(s) booked. ${errors.length} failed: ${errors.join(" | ")}` });
         } else {
           await markCompleted("BookSimplyBook");
-          await logEvent(`SimplyBook treatments booked: ${bookings.length} treatment(s)`);
-          setActionMsg({ success: true, text: `✓ ${bookings.length} treatment(s) booked in SimplyBook` });
+          await logEvent(`Acuity treatments booked: ${bookings.length} treatment(s)`);
+          setActionMsg({ success: true, text: `✓ ${bookings.length} treatment(s) booked in Acuity` });
         }
       } else if (type === "PublishQuote") {
         if (!actionMsg?.invoiceId) { setActioning(null); return; }

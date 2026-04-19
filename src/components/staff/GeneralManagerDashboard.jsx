@@ -196,7 +196,7 @@ export default function GeneralManagerDashboard() {
               <span className="text-xs text-[rgb(120,120,120)]">{todaySpa.length} appts · {spaGapCount} gap{spaGapCount === 1 ? "" : "s"}</span>
               <button
                 onClick={e => { e.preventDefault(); syncSpaToday(); }}
-                title="Sync from SimplyBook"
+                title="Sync from Acuity"
                 className="p-1 rounded hover:bg-[rgb(235,225,213)] transition-colors"
               >
                 <RefreshCw className="w-3 h-3 text-[rgb(150,150,150)]" />
@@ -217,8 +217,8 @@ export default function GeneralManagerDashboard() {
 
         {/* Quick Links — exact same logos as admin */}
         <div className="mt-4 pt-4 border-t border-[rgb(235,225,213)] flex gap-2 flex-wrap">
-          <a href="https://simplybook.me/en/?ref=googleads_us_brand" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
-            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/9c8b32fe8_download3.png" alt="SimplyBook" className="w-5 h-5" />
+          <a href="https://acuityscheduling.com" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all text-xs text-[rgb(107,85,64)] font-medium">
+            Acuity
           </a>
           <a href="https://www.optimum.net" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-lg border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
             <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6952b5de56519adda6e982ce/31abe4610_download1.jpeg" alt="Optimum" className="w-5 h-5" />

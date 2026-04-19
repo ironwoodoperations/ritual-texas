@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Printer, Download, RefreshCw, Sparkles, ArrowLeft, Send } from 'lucide-react';
 import PageHelpBanner from '@/components/PageHelpBanner';
 
-const SPA_HELP = `Daily spa appointment viewer synced from SimplyBook.me.
+const SPA_HELP = `Daily spa appointment viewer synced from Acuity Scheduling.
 
 1. Select Date: Click any date on the calendar or use the date input. Appointments load automatically.
 2. Filter by Provider: Use the Provider dropdown to see one therapist's schedule.
@@ -15,7 +15,7 @@ const SPA_HELP = `Daily spa appointment viewer synced from SimplyBook.me.
 6. Print Day Sheet: Generates a clean printable version for the front desk or therapists.
 7. Export ICS: Downloads the day's appointments as a calendar file to import into Google Calendar.
 
-CRITICAL: This page is read-only. To modify bookings, click the SimplyBook.me logo to go directly to the booking admin.`;
+CRITICAL: This page is read-only. To modify bookings, click the Acuity link to go directly to the booking admin.`;
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import SpaCalendar from '@/components/spa/SpaCalendar';
 import { Link } from 'react-router-dom';
@@ -54,8 +54,6 @@ export default function AdminSpaSchedule() {
 
   const load = async () => {
     setLoading(true);
-    // Sync from SimplyBook first
-    await base44.functions.invoke('syncSimplybookToday', {}).catch(() => {});
     try {
       const resp = await base44.functions.invoke('adminSpaBookingsLookup', {
         startISO: new Date(`${date}T00:00:00`).toISOString(),
@@ -207,14 +205,13 @@ export default function AdminSpaSchedule() {
 
         <div className="ml-auto flex gap-2 items-center">
            <a
-             href="https://simplybook.me/login"
+             href="https://acuityscheduling.com"
              target="_blank"
              rel="noopener noreferrer"
-             className="flex items-center gap-2 px-3 py-2 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors"
-             title="Open SimplyBook.me"
+             className="flex items-center gap-2 px-3 py-2 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors text-xs text-[rgb(107,85,64)] font-medium"
+             title="Open Acuity"
            >
-             <img src="https://simplybook.me/img/logo/simplybook-logo.svg" alt="SimplyBook.me" className="h-5" onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='inline'; }} />
-             <span style={{display:'none'}} className="text-xs text-[rgb(107,85,64)] font-medium">SimplyBook.me</span>
+             Acuity
            </a>
            <Button onClick={() => window.print()} variant="outline" className="flex items-center gap-2">
              <Printer className="w-4 h-4" />

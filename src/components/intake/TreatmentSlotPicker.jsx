@@ -157,7 +157,7 @@ function BookOnlineRow({ index, entry, treatments, onUpdate, onRemove, guestName
       {isSaved && date === "" ? (
         <div className="flex items-center justify-between bg-[rgb(248,244,240)] rounded-lg px-3 py-2">
           <div className="text-xs text-[rgb(107,85,64)] font-medium">
-            ✓ {entry.serviceName} · {entry.staffName || "—"} · {entry.date} at {entry.time?.slice(0,5)}
+            ✓ {entry.serviceName} · {entry.staffName || "—"} · {entry.date} at {entry.time ? fmtSlot(entry.time.slice(0,5)) : "—"}
             {entry.price ? ` · $${entry.price}` : ""}
             {entry.source === "acuity" && <span className="ml-1.5 text-[rgb(150,170,155)]">· Acuity ✓</span>}
           </div>
@@ -425,7 +425,7 @@ function CtbRow({ index, entry, treatments, onUpdate, onRemove, guestName, allGu
       </div>
       {entry.name && (
         <div className="mt-3 text-xs text-purple-700 font-medium bg-purple-50 rounded-lg px-3 py-1.5">
-          📞 {entry.name}{entry.date ? ` · ${entry.date}` : ""}{entry.time ? ` at ${entry.time}` : ""}{entry.price ? ` · $${entry.price}` : ""}
+          📞 {entry.name}{entry.date ? ` · ${entry.date}` : ""}{entry.time ? ` at ${fmtSlot(entry.time.slice(0,5))}` : ""}{entry.price ? ` · $${entry.price}` : ""}
         </div>
       )}
     </div>

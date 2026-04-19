@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, MessageSquare, Package, CheckCircle, Clock, Mail, Plus, X, Save, CalendarCheck, UserX } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Package, CheckCircle, Clock, Mail, Plus, X, Save, CalendarCheck, UserX, Archive } from 'lucide-react';
 import PageHelpBanner from '@/components/PageHelpBanner';
 
 const CONCIERGE_HELP = `All inbound guest inquiries from the website — two tabs.
@@ -125,6 +125,97 @@ function CreateIntakeModal({ inq, onClose, onCreated, onDelete }) {
   );
 }
 
+const ARCHIVE_RESOLUTIONS = [
+  "Answered by phone",
+  "Answered by email",
+  "Answered by text",
+  "Not a valid inquiry",
+  "Converted to intake",
+  "Other",
+];
+
+function ArchiveDropdown({ message, entityType, onArchive }) {
+  const [open, setOpen] = useState(false);
+  const [resolution, setResolution] = useState('');
+  const [archiving, setArchiving] = useState(false);
+
+  async function handleConfirm() {
+    if (!resolution) return;
+    setArchiving(true);
+    try {
+      // Archive the entity
+      const entity = entityType === 'contact'
+        ? base44.entities.RestaurantContactLeads
+        : base44.entities.PackageInquiry;
+      await entity.update(message.id, { status: 'archived' });
+
+      // Log CRM event
+      try {
+        await base44.entities.CrmEvent.create({
+          contactId: '',
+          source: 'concierge',
+          externalId: `concierge-${message.id}`,
+          eventType: 'concierge_archived',
+          title: 'Concierge message archived',
+          startAt: new Date().toISOString(),
+          status: resolution,
+          amount: 0,
+          meta: {
+            resolution,
+            guestEmail: message.email || message.guest_email || '',
+            guestName: message.name || message.full_name || message.guest_name || '',
+          },
+        });
+      } catch {
+        // CRM logging is non-fatal
+      }
+
+      onArchive();
+    } finally {
+      setArchiving(false);
+      setOpen(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgb(235,225,213)] text-[rgb(150,150,150)] text-xs hover:bg-[rgb(248,246,242)] transition-colors"
+        title="Archive"
+      >
+        <Archive className="w-3 h-3" /> Archive
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <select
+        value={resolution}
+        onChange={e => setResolution(e.target.value)}
+        className="border border-[rgb(235,225,213)] rounded-lg px-2 py-1.5 text-xs text-[rgb(45,45,45)] bg-white focus:outline-none focus:border-[rgb(150,170,155)]"
+      >
+        <option value="">Select resolution…</option>
+        {ARCHIVE_RESOLUTIONS.map(r => <option key={r} value={r}>{r}</option>)}
+      </select>
+      <button
+        onClick={handleConfirm}
+        disabled={!resolution || archiving}
+        className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[rgb(107,85,64)] text-white text-xs hover:opacity-90 disabled:opacity-50 transition-opacity"
+      >
+        <Archive className="w-3 h-3" /> {archiving ? 'Archiving…' : 'Archive'}
+      </button>
+      <button
+        onClick={() => { setOpen(false); setResolution(''); }}
+        className="text-xs text-[rgb(150,150,150)] hover:text-[rgb(107,85,64)] px-1"
+      >
+        Cancel
+      </button>
+    </div>
+  );
+}
+
 export default function AdminConciergeInbox() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('messages');
@@ -184,6 +275,8 @@ export default function AdminConciergeInbox() {
   });
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const visibleContacts = contactLeads.filter(l => l.status !== 'archived');
+  const visiblePackageInquiries = packageInquiries.filter(i => i.status !== 'archived');
   const newContacts = contactLeads.filter(l => l.status === 'new' && l.created_date >= sevenDaysAgo);
   const newPackageInquiries = packageInquiries.filter(i => i.status === 'new' && i.created_date >= sevenDaysAgo);
 
@@ -263,10 +356,10 @@ export default function AdminConciergeInbox() {
 
           {activeTab === 'messages' && (
             <>
-              {contactLeads.length === 0 && (
+              {visibleContacts.length === 0 && (
                 <p className="text-sm text-[rgb(150,150,150)] py-10 text-center">No messages yet.</p>
               )}
-              {contactLeads.map((lead, i) => (
+              {visibleContacts.map((lead, i) => (
                 <motion.div key={lead.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
                   className={`bg-white border rounded-xl p-4 ${lead.status === 'new' ? 'border-[rgb(107,85,64)]' : 'border-[rgb(235,225,213)]'}`}
                 >
@@ -302,6 +395,11 @@ export default function AdminConciergeInbox() {
                           >
                             <Plus className="w-3 h-3" /> Create Intake
                           </button>
+                          <ArchiveDropdown
+                            message={lead}
+                            entityType="contact"
+                            onArchive={() => queryClient.invalidateQueries(['contact-leads'])}
+                          />
                         </div>
                       </div>
                     </div>
@@ -323,10 +421,10 @@ export default function AdminConciergeInbox() {
 
           {activeTab === 'packages' && (
             <>
-              {packageInquiries.length === 0 && (
+              {visiblePackageInquiries.length === 0 && (
                 <p className="text-sm text-[rgb(150,150,150)] py-10 text-center">No inquiries yet.</p>
               )}
-              {packageInquiries.map((inq, i) => (
+              {visiblePackageInquiries.map((inq, i) => (
                 <motion.div key={inq.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
                   className={`bg-white border rounded-xl p-4 ${inq.status === 'new' ? 'border-[rgb(107,85,64)]' : 'border-[rgb(235,225,213)]'}`}
                 >
@@ -374,13 +472,18 @@ export default function AdminConciergeInbox() {
                           </div>
                         )}
                         {/* Action buttons */}
-                         <div className="flex items-center gap-2 mt-3">
+                         <div className="flex items-center gap-2 mt-3 flex-wrap">
                            <button
                              onClick={() => setIntakeModal(inq)}
                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgb(107,85,64)] text-white text-xs hover:opacity-90 transition-opacity"
                            >
                              <Plus className="w-3 h-3" /> Create Intake
                            </button>
+                           <ArchiveDropdown
+                             message={inq}
+                             entityType="package"
+                             onArchive={() => queryClient.invalidateQueries(['pkg-inquiries-inbox'])}
+                           />
                          </div>
                       </div>
                     </div>

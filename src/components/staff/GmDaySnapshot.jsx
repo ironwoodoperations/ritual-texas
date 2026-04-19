@@ -137,7 +137,7 @@ export default function GmDaySnapshot() {
         <p className="text-xs uppercase tracking-widest text-[rgb(107,85,64)] mb-3">Quick Links</p>
         <div className="grid grid-cols-2 gap-2">
           {[
-            { label: "SimplyBook", url: "https://simplybook.me" },
+            { label: "Acuity", url: "https://acuityscheduling.com" },
             { label: "Cloudbeds", url: "https://www.cloudbeds.com" },
             { label: "Toast POS", url: "https://www.toasttab.com/restaurants/admin/home" },
             { label: "Square", url: "https://squareup.com/dashboard/invoices" },
