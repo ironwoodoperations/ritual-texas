@@ -10,6 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 function todayStr() { return new Date().toISOString().slice(0, 10); }
 function fmtDate(d) { if (!d) return "—"; return format(new Date(d + "T12:00:00"), "MMMM d, yyyy"); }
 function fmtTime(iso) { if (!iso) return "—"; return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }); }
+function isCancelled(status) { return ["booking.cancelled","cancel","cancelled"].includes((status || "").toLowerCase()); }
 
 function buildSmsText(reservation, spaBookings) {
   const checkIn = fmtDate(reservation.checkIn);
@@ -135,28 +136,30 @@ function GuestCard({ reservation, spaBookings }) {
 }
 
 export default function GmItineraries() {
-  const today = todayStr();
+  const [selectedDate, setSelectedDate] = useState(todayStr());
   const qc = useQueryClient();
 
   const { data: cloudbedsData, isLoading: cbLoading, refetch } = useQuery({
-    queryKey: ["gm-cloudbeds-itineraries"],
+    queryKey: ["gm-cloudbeds-itineraries", selectedDate],
     queryFn: async () => (await base44.functions.invoke("cloudbedsUpcomingReservations", {})).data,
   });
 
+  // NOTE: Base44 entity .list() does not support date-range filters, so we fetch a larger
+  // window and filter client-side. Limit raised to 2000 to reduce the chance of missing records.
   const { data: allSpaBookings = [], isLoading: spaLoading } = useQuery({
-    queryKey: ["gm-spa-itineraries"],
-    queryFn: () => base44.entities.SpaBooking.list("-startAt", 500),
+    queryKey: ["gm-spa-itineraries", selectedDate],
+    queryFn: () => base44.entities.SpaBooking.list("-startAt", 2000),
   });
 
   const { data: todayIntakes = [] } = useQuery({
-    queryKey: ["gm-intake-itineraries", today],
+    queryKey: ["gm-intake-itineraries", selectedDate],
     queryFn: async () => {
       const all = await base44.entities.HotelTreatmentIntake.list("-created_date", 200);
       return all.filter(intake => {
-        if (intake.checkInDate === today) return true;
+        if (intake.checkInDate === selectedDate) return true;
         if (Array.isArray(intake.selectedTreatments)) {
           return intake.selectedTreatments.some(t => {
-            try { const parsed = typeof t === "string" ? JSON.parse(t) : t; return parsed.date === today; } catch { return false; }
+            try { const parsed = typeof t === "string" ? JSON.parse(t) : t; return parsed.date === selectedDate; } catch { return false; }
           });
         }
         return false;
@@ -177,7 +180,7 @@ export default function GmItineraries() {
       (intake.selectedTreatments || []).forEach(raw => {
         try {
           const t = typeof raw === "string" ? JSON.parse(raw) : raw;
-          if (t.date === today && t.source !== "simplybook") {
+          if (t.date === selectedDate && t.source !== "simplybook") {
             treatments.push({
               id: `intake-${intake.id}-${t.simplybookServiceId || t.serviceName}`,
               serviceName: t.serviceName || "Treatment",
@@ -194,11 +197,11 @@ export default function GmItineraries() {
     return treatments;
   };
 
-  const todayArrivals = (cloudbedsData?.reservations || []).filter(r => r.checkIn === today);
+  const todayArrivals = (cloudbedsData?.reservations || []).filter(r => r.checkIn === selectedDate);
   const arrivalsWithSpa = todayArrivals.map(r => {
     const guestEmail = (r.guestEmail || "").toLowerCase().trim();
     const simplybookSpa = allSpaBookings.filter(b =>
-      b.status !== "booking.cancelled" &&
+      !isCancelled(b.status) &&
       (b.email || "").toLowerCase().trim() === guestEmail &&
       b.startAt >= r.checkIn && b.startAt <= (r.checkOut + "T23:59:59")
     );
@@ -207,7 +210,7 @@ export default function GmItineraries() {
   });
 
   const hotelGuestEmails = new Set(todayArrivals.map(r => (r.guestEmail || "").toLowerCase().trim()));
-  const todaySpaBookings = allSpaBookings.filter(b => b.status !== "booking.cancelled" && b.startAt?.slice(0, 10) === today);
+  const todaySpaBookings = allSpaBookings.filter(b => !isCancelled(b.status) && b.startAt?.slice(0, 10) === selectedDate);
   const spaOnlyGuests = [];
   const seen = new Set();
   todaySpaBookings.forEach(b => {
@@ -222,7 +225,7 @@ export default function GmItineraries() {
   // Also include intake guests with today's treatments who aren't in SimplyBook
   todayIntakes.forEach(intake => {
     if (!intake.selectedTreatments?.some(raw => {
-      try { const t = typeof raw === "string" ? JSON.parse(raw) : raw; return t.date === today && t.source !== "simplybook"; } catch { return false; }
+      try { const t = typeof raw === "string" ? JSON.parse(raw) : raw; return t.date === selectedDate && t.source !== "simplybook"; } catch { return false; }
     })) return;
     const email = (intake.email || "").toLowerCase().trim();
     const name = (intake.guestName || "").toLowerCase().trim();
@@ -247,8 +250,14 @@ export default function GmItineraries() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-light text-[rgb(107,85,64)]">Today's Itineraries</h2>
+        <h2 className="text-lg font-light text-[rgb(107,85,64)]">{selectedDate === todayStr() ? "Today's" : fmtDate(selectedDate)} Itineraries</h2>
         <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={e => setSelectedDate(e.target.value)}
+            className="px-3 py-2 text-sm border border-[rgb(235,225,213)] rounded-lg bg-white text-[rgb(107,85,64)] focus:outline-none focus:border-[rgb(150,170,155)]"
+          />
           <button onClick={() => refetch()} className="flex items-center gap-2 px-3 py-2 text-sm border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(235,225,213)] text-[rgb(107,85,64)]">
             <RefreshCw className="w-4 h-4" /> Refresh
           </button>
@@ -258,7 +267,7 @@ export default function GmItineraries() {
         </div>
       </div>
 
-      <p className="text-sm text-[rgb(150,150,150)]">{format(new Date(), "EEEE, MMMM d, yyyy")} · {todayArrivals.length} hotel · {spaOnlyGuests.length} spa-only</p>
+      <p className="text-sm text-[rgb(150,150,150)]">{format(new Date(selectedDate + "T12:00:00"), "EEEE, MMMM d, yyyy")} · {todayArrivals.length} hotel · {spaOnlyGuests.length} spa-only</p>
 
       {isLoading ? (
         <div className="flex justify-center py-16"><div className="animate-spin w-8 h-8 border-2 border-[rgb(150,170,155)] border-t-transparent rounded-full" /></div>
