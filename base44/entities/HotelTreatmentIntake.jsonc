@@ -231,6 +231,9 @@
       "type": "string",
       "description": "Square invoice ID for managing invoice actions"
     },
+    "cloudbedsReservationNumber": {
+      "type": "string"
+    },
     "ccName": {
       "type": "string"
     },
@@ -279,6 +282,10 @@
     "discountLabel": {
       "type": "string",
       "description": "Optional label for the discount line item (e.g. 'Loyalty Discount', 'Package Deal')"
+    },
+    "manualMode": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [
