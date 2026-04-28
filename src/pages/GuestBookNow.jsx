@@ -245,6 +245,7 @@ export default function GuestBookNow() {
   // Validation attempt tracking
   const [step1Attempted, setStep1Attempted] = useState(false);
   const [step4Attempted, setStep4Attempted] = useState(false);
+  const [policyAcknowledged, setPolicyAcknowledged] = useState(false);
 
   // Step 5 — Submit
   const [submitting, setSubmitting] = useState(false);
@@ -1018,9 +1019,38 @@ export default function GuestBookNow() {
               </div>
             )}
 
+            <div className="mt-6 p-5 bg-[rgb(248,246,242)] border border-[rgb(235,225,213)] rounded-2xl space-y-3">
+              <h3 className="text-xs uppercase tracking-widest text-[rgb(107,85,64)] font-semibold">
+                Booking & Cancellation Policy
+              </h3>
+              <p className="text-sm text-[rgb(45,45,45)] leading-relaxed font-light">
+                Each session is thoughtfully prepared and tailored specifically for you, which is why all bookings are secured with payment in advance.
+              </p>
+              <p className="text-sm text-[rgb(45,45,45)] leading-relaxed font-semibold">
+                All payments are non-refundable.
+              </p>
+              <p className="text-sm text-[rgb(45,45,45)] leading-relaxed font-light">
+                If you need to adjust your plans, your investment will remain on file as a credit, and we'll gladly help you reschedule to a new date with priority access, based on availability.
+              </p>
+              <p className="text-sm text-[rgb(45,45,45)] leading-relaxed font-light">
+                We encourage you to book when you feel fully ready to receive the experience.
+              </p>
+              <label className="flex items-start gap-3 pt-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={policyAcknowledged}
+                  onChange={(e) => setPolicyAcknowledged(e.target.checked)}
+                  className="mt-1 w-4 h-4 accent-[rgb(107,85,64)] cursor-pointer flex-shrink-0"
+                />
+                <span className="text-sm text-[rgb(45,45,45)] font-medium">
+                  I have read and agree to the Booking & Cancellation Policy.
+                </span>
+              </label>
+            </div>
+
             <div style={{ display: 'flex', gap: '12px' }}>
               <SecondaryBtn onClick={() => goBack(6)} disabled={submitting}>Back</SecondaryBtn>
-              <PrimaryBtn onClick={handleSubmit} disabled={submitting}>
+              <PrimaryBtn onClick={handleSubmit} disabled={submitting || !policyAcknowledged}>
                 {submitting
                   ? <><Loader2 className="animate-spin w-4 h-4 mr-2 inline" /> Processing...</>
                   : 'Pay Now'}
