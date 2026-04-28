@@ -37,6 +37,7 @@ const COLUMNS = [
   { key: "new_inquiry", label: "New Inquiry", color: "rgb(59,130,246)" },
   { key: "pending", label: "Pending", color: "rgb(217,119,6)" },
   { key: "confirmed", label: "Confirmed", color: "rgb(22,163,74)" },
+  { key: "booked_reserved", label: "Booked / Reserved ✓", color: "rgb(5,150,105)" },
 ];
 
 function todayStr() {
