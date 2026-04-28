@@ -1003,9 +1003,13 @@ export default function AdminIntake() {
 
   const filtered = applySort(records.filter(applyFilter));
 
-  // Auto-switch view based on result count when filters change
+  // Auto-switch to list when searching, pipeline when no search and few results
   useEffect(() => {
-    setViewMode(filtered.length > 3 ? "list" : "pipeline");
+    if (search) {
+      setViewMode("list");
+    } else {
+      setViewMode(filtered.length > 3 ? "list" : "pipeline");
+    }
   }, [search, statusFilter, records]);
 
   return (
