@@ -3,69 +3,11 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function clean(s: any): string { return String(s ?? "").trim(); }
-function toStandardTime(t: string): string {
-  if (!t) return '';
-  const [h, m] = t.split(':').map(Number);
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  const hour = h % 12 || 12;
-  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
-}
 
 function nightsBetween(checkIn: string, checkOut: string): number {
   const a = new Date(checkIn + "T00:00:00");
   const b = new Date(checkOut + "T00:00:00");
   return Math.max(1, Math.round((b.getTime() - a.getTime()) / 864e5));
-}
-
-function parseTreatment(raw: any): Record<string, any> {
-  if (typeof raw === "string") {
-    try { return JSON.parse(raw); } catch { return { name: raw, price: 0 }; }
-  }
-  return raw || {};
-}
-
-function normalizeTime(raw: string): string {
-  const t = clean(raw);
-  if (!t) return "";
-  if (/^\d{2}:\d{2}:\d{2}$/.test(t)) return t;
-  if (/^\d{2}:\d{2}$/.test(t)) return `${t}:00`;
-  return t;
-}
-
-// ── Acuity Scheduling helpers ───────────────────────────────────────────────
-
-const ACUITY_BASE = "https://acuityscheduling.com/api/v1";
-
-function acuityAuth(): string {
-  const userId = Deno.env.get("ACUITY_USER_ID") || "";
-  const apiKey = Deno.env.get("ACUITY_API_KEY") || "";
-  return "Basic " + btoa(userId + ":" + apiKey);
-}
-
-function acuityHeaders(): Record<string, string> {
-  return {
-    Authorization: acuityAuth(),
-    "Content-Type": "application/json",
-  };
-}
-
-async function acuityPost(path: string, body: any): Promise<any> {
-  const resp = await fetch(`${ACUITY_BASE}${path}`, {
-    method: "POST",
-    headers: acuityHeaders(),
-    body: JSON.stringify(body),
-  });
-  const text = await resp.text();
-  let json: any;
-  try {
-    json = JSON.parse(text);
-  } catch {
-    throw new Error(`Acuity POST ${path} non-JSON response (${resp.status}): ${text.slice(0, 300)}`);
-  }
-  if (!resp.ok) {
-    throw new Error(`Acuity POST ${path} failed (${resp.status}): ${json?.message || text.slice(0, 300)}`);
-  }
-  return json;
 }
 
 // ── Cloudbeds availability re-check (submission-time gate) ──────────────────
@@ -130,36 +72,6 @@ async function checkCloudbedsRoomAvailable(base44: any, roomTypeId: string, star
   }
 }
 
-// ── Orchestration sub-steps ─────────────────────────────────────────────────
-
-async function bookRoom(base44: any, payload: Record<string, any>) {
-  try {
-    const res = await base44.asServiceRole.functions.invoke("intakeBookHotel", {
-      intake: {
-        id: "guest-booking",
-        guestName: payload.guestName,
-        email: payload.email,
-        guestEmail: payload.email,
-        phone: payload.phone,
-        checkInDate: payload.checkInDate,
-        checkOutDate: payload.checkOutDate,
-        numberOfGuests: payload.numberOfGuests,
-        cloudbedsRoomTypeId: payload.cloudbedsRoomTypeId,
-        roomRequested: payload.roomRequested,
-        internalNotes: payload.specialRequests || "",
-      },
-    });
-    const d = res.data || res;
-    if (d?.reservationID || d?.data?.reservationID) {
-      return { ok: true, reservationId: d.reservationID || d.data?.reservationID };
-    }
-    return { ok: false, error: d?.error || d?.message || "Cloudbeds booking returned no reservation ID" };
-  } catch (e: any) {
-    return { ok: false, error: e.message };
-  }
-}
-
-
 async function buildSquarePaymentLink(
   guestName: string,
   email: string,
@@ -168,7 +80,7 @@ async function buildSquarePaymentLink(
   checkOut: string,
   rooms: { roomId: string; roomName: string; roomRate: number; guestNames: string[] }[],
   treatments: any[],
-): Promise<{ ok: boolean; publicUrl?: string; error?: string }> {
+): Promise<{ ok: boolean; publicUrl?: string; paymentLinkId?: string; orderId?: string; error?: string }> {
   const accessToken = Deno.env.get("SQUARE_ACCESS_TOKEN") || "";
   const squareEnv = Deno.env.get("SQUARE_ENV") || "production";
   const baseUrl = squareEnv === "production"
@@ -288,14 +200,16 @@ async function buildSquarePaymentLink(
 
     const paymentLink = json?.payment_link;
     const publicUrl = paymentLink?.url || paymentLink?.long_url || null;
+    const paymentLinkId = paymentLink?.id || null;
+    const orderId = paymentLink?.order_id || null;
 
     if (!publicUrl) {
       console.error("[Square] No URL in payment link response:", text);
       return { ok: false, error: "Square returned no payment URL" };
     }
 
-    console.log("[Square] Payment link created:", publicUrl);
-    return { ok: true, publicUrl };
+    console.log("[Square] Payment link created:", publicUrl, "id:", paymentLinkId, "order:", orderId);
+    return { ok: true, publicUrl, paymentLinkId: paymentLinkId || undefined, orderId: orderId || undefined };
   } catch (e: any) {
     console.error("[Square] Payment link request error:", e.message);
     return { ok: false, error: `Square request failed: ${e.message}` };
@@ -354,20 +268,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── Separate already-booked vs needs-booking treatments ──────────────
-    const rawTreatments: any[] = Array.isArray(payload.selectedTreatments) ? payload.selectedTreatments : [];
-    const alreadyBooked: any[] = [];
-    const needsBooking: any[]  = [];
-
-    for (const raw of rawTreatments) {
-      const t = parseTreatment(raw);
-      if (t.simplybookBookingId) {
-        alreadyBooked.push(t);
-      } else {
-        needsBooking.push(t);
-      }
-    }
-
     const hasCallToBook = Array.isArray(payload.callToBookTreatments) && payload.callToBookTreatments.length > 0;
 
     // ── Availability re-check at submission time (hotel bookings only) ────
@@ -401,7 +301,8 @@ Deno.serve(async (req) => {
       hotelNotes: payload.specialRequests || "",
       howDidYouHearAboutUs: payload.howDidYouHearAboutUs || "",
       bookingType,
-      bookingStatus: hasCallToBook ? "new_inquiry" : "pending",
+      bookingStatus: hasCallToBook ? "new_inquiry" : "awaiting_payment",
+      source: "guest_book_now",
       internalNotes: `[Guest Online Booking (${bookingType}) — ${new Date().toISOString()}]\nSource: GuestBookNow page`,
       preferredContactMethod: "email",
     };
@@ -465,102 +366,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── Path A: Full Booking Sequence ─────────────────────────────────────
+    // ── Path A: Pay-Now Flow ─────────────────────────────────────────────
+    // Cloudbeds reservations and Acuity appointments are NOT created here.
+    // They are deferred to the squareWebhook handler, which fires only after
+    // Square confirms payment. See base44/functions/squareWebhook/entry.ts.
 
-    // Step 2: Book rooms in Cloudbeds (skip for spa_only)
-    const confirmationCodes: string[] = [];
-    let anyRoomBooked = false;
-
-    if (bookingType !== 'spa_only') {
-      for (const room of roomsArr) {
-        // Use first guest name assigned to this room, falling back to primary guest
-        const roomGuestName = (room.guestNames?.[0] || "").trim() || guestName;
-
-        const cbResult = await bookRoom(base44, {
-          guestName: roomGuestName,
-          email,
-          phone,
-          checkInDate: checkIn,
-          checkOutDate: checkOut,
-          numberOfGuests: payload.numberOfGuests,
-          cloudbedsRoomTypeId: room.roomId,
-          roomRequested: room.roomName,
-          specialRequests: payload.specialRequests,
-        });
-
-        if (cbResult.ok && cbResult.reservationId) {
-          confirmationCodes.push(cbResult.reservationId);
-          anyRoomBooked = true;
-          console.log(`[Cloudbeds] Room "${room.roomName}" booked → ${cbResult.reservationId}`);
-          notes += `\n[Cloudbeds reservation created for ${room.roomName}: ${cbResult.reservationId}]`;
-        } else {
-          console.log(`[Cloudbeds] Room "${room.roomName}" FAILED: ${cbResult.error}`);
-          notes += `\n[Cloudbeds booking failed for ${room.roomName}: ${cbResult.error}]`;
-        }
-      }
-    }
-
-    // Step 3: Book treatments via Acuity
-    if (needsBooking.length > 0) {
-      for (const t of needsBooking) {
-        const svcId = String(t.serviceId || t.id || "");
-        const provId = String(t.providerId || t.staffId || "");
-        const rawTime = normalizeTime(t.startTime || t.time || "");
-        const tGuestName = t.guestName || guestName;
-        const label = `${t.serviceName || t.name || svcId} for ${tGuestName} on ${t.date} at ${toStandardTime(rawTime.substring(0, 5))}`;
-
-        // Split treatment guest name into first/last
-        const tNameParts = tGuestName.trim().split(/\s+/);
-        const firstName = tNameParts[0] || guestName.split(/\s+/)[0] || "";
-        const lastName = tNameParts.slice(1).join(" ") || guestName.split(/\s+/).slice(1).join(" ") || "";
-
-        const datetime = `${t.date}T${rawTime.slice(0, 8)}`;
-        const bookPayload: any = {
-          appointmentTypeID: Number(svcId),
-          datetime,
-          firstName,
-          lastName,
-          email,
-          phone,
-        };
-        if (provId) bookPayload.calendarID = Number(provId);
-
-        try {
-          console.log(`[Acuity] Booking treatment: ${label}`);
-          notes += `\n[Acuity] Booking treatment: ${label}`;
-
-          const result = await acuityPost("/appointments", bookPayload);
-          const bookingId = String(result?.id || "");
-
-          if (bookingId) {
-            t.acuityBookingId = bookingId;
-            console.log(`[Acuity] Booked: ${label} → ID ${bookingId}`);
-            notes += `\n[Acuity] Booked: ${label} → ID ${bookingId}`;
-          } else {
-            console.log(`[Acuity] WARN: ${label} — no booking ID returned`);
-            notes += `\n[Acuity] WARN: ${label} — no booking ID returned`;
-          }
-        } catch (e: any) {
-          console.log(`[Acuity] FAILED: ${label} — ${e.message}`);
-          notes += `\n[Acuity] FAILED: ${label} — ${e.message}`;
-        }
-      }
-    }
-
-    if (alreadyBooked.length > 0) {
-      notes += `\n[${alreadyBooked.length} treatment(s) pre-booked (${alreadyBooked.map(t => t.simplybookBookingId || t.acuityBookingId).join(", ")})]`;
-    }
-
-    // Update intake with progress notes
-    try {
-      await base44.asServiceRole.entities.HotelTreatmentIntake.update(intakeId, {
-        internalNotes: notes,
-      });
-    } catch {
-      // Non-fatal
-    }
-
-    // Step 4: Create Square Payment Link
     const treatmentsForPayment = bookingType !== 'hotel_only' ? (payload.selectedTreatments || []) : [];
     const roomsForPayment = bookingType !== 'spa_only' ? roomsArr : [];
 
@@ -570,7 +380,6 @@ Deno.serve(async (req) => {
     );
 
     if (!payResult.ok) {
-      // Surface error to frontend and flag for staff
       try {
         await base44.asServiceRole.entities.HotelTreatmentIntake.update(intakeId, {
           internalNotes: notes + `\n[Square payment link failed: ${payResult.error} — send manually]`,
@@ -587,24 +396,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── Success: save payment URL, reservation IDs, and mark all actions done ─
     try {
-      const finalUpdate: Record<string, any> = {
+      await base44.asServiceRole.entities.HotelTreatmentIntake.update(intakeId, {
+        bookingStatus: "awaiting_payment",
+        source: "guest_book_now",
         squarePaymentUrl: payResult.publicUrl,
-        bookingStatus: "confirmed",
-        onlineBookingCompleted: true,
-        quoteSent: true,
-        hotelBooked: bookingType !== 'spa_only' && anyRoomBooked,
-        treatmentsBooked: bookingType !== 'hotel_only',
-        crmSynced: false,
-      };
-      if (confirmationCodes.length > 0) {
-        finalUpdate.cloudbedsReservationId = confirmationCodes[0];
-        finalUpdate.confirmationCodes = confirmationCodes;
-      }
-      await base44.asServiceRole.entities.HotelTreatmentIntake.update(intakeId, finalUpdate);
+        squarePaymentLinkId: payResult.paymentLinkId || "",
+        squareOrderId: payResult.orderId || "",
+        internalNotes: notes + `\n[Square payment link created — awaiting payment. order=${payResult.orderId || "?"} link=${payResult.paymentLinkId || "?"}]`,
+      });
     } catch {
-      // Non-fatal
+      // Non-fatal — the payment link is the source of truth; webhook can still match by order_id.
     }
 
     return Response.json({
@@ -612,12 +414,9 @@ Deno.serve(async (req) => {
       type: "booking",
       bookingType,
       intakeId,
-      confirmationCode: bookingType === 'spa_only' ? null : (confirmationCodes[0] || null),
-      confirmationCodes: bookingType === 'spa_only' ? [] : confirmationCodes,
+      paymentUrl: payResult.publicUrl,
       publicUrl: payResult.publicUrl,
-      message: bookingType === 'spa_only'
-        ? "Spa booking created. Redirecting to payment..."
-        : "Booking created. Redirecting to payment...",
+      message: "Redirecting to payment...",
     });
   } catch (e: any) {
     console.error("[guestSubmitBooking] Unexpected error:", e);
