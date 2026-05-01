@@ -184,8 +184,8 @@
         "new_inquiry",
         "awaiting_payment",
         "processing_booking",
-        "needs_manual_review",
         "pending",
+        "needs_manual_review",
         "confirmed",
         "booked_reserved",
         "not_now",
@@ -246,13 +246,13 @@
       "type": "string",
       "description": "Public URL of the Square Payment Link presented to the guest"
     },
+    "squarePaymentEventId": {
+      "type": "string",
+      "description": "Square webhook event ID \u2014 used by squareWebhook for idempotency / dedup"
+    },
     "source": {
       "type": "string",
       "description": "Where the intake originated (e.g. 'guest_book_now', 'admin_intake')"
-    },
-    "squarePaymentEventId": {
-      "type": "string",
-      "description": "Square webhook event ID — used by squareWebhook for idempotency / dedup"
     },
     "ccName": {
       "type": "string"
