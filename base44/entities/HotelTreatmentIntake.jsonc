@@ -183,6 +183,8 @@
       "enum": [
         "new_inquiry",
         "awaiting_payment",
+        "processing_booking",
+        "needs_manual_review",
         "pending",
         "confirmed",
         "booked_reserved",
@@ -247,6 +249,10 @@
     "source": {
       "type": "string",
       "description": "Where the intake originated (e.g. 'guest_book_now', 'admin_intake')"
+    },
+    "squarePaymentEventId": {
+      "type": "string",
+      "description": "Square webhook event ID — used by squareWebhook for idempotency / dedup"
     },
     "ccName": {
       "type": "string"
