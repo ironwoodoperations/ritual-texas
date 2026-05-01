@@ -885,6 +885,7 @@ export default function AdminIntake() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("active");
+  const [showAwaitingPayment, setShowAwaitingPayment] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [callToBookTreatments, setCallToBookTreatments] = useState([]);
   const [bookOnlineTreatments, setBookOnlineTreatments] = useState([]);
@@ -968,6 +969,10 @@ export default function AdminIntake() {
   // Filter logic
   const today = todayStr();
   function applyFilter(r) {
+    // Abandoned-cart guard: hide awaiting_payment intakes from the default
+    // list. The toggle above the search bar lets staff opt back in.
+    if (r.bookingStatus === "awaiting_payment" && !showAwaitingPayment) return false;
+
     const matchSearch = !search ||
       r.guestName?.toLowerCase().includes(search.toLowerCase()) ||
       r.phone?.includes(search) ||
@@ -1010,7 +1015,7 @@ export default function AdminIntake() {
     } else {
       setViewMode(filtered.length > 3 ? "list" : "pipeline");
     }
-  }, [search, statusFilter, records]);
+  }, [search, statusFilter, showAwaitingPayment, records]);
 
   return (
     <div className="min-h-screen bg-[rgb(248,246,242)]">
@@ -1088,6 +1093,15 @@ export default function AdminIntake() {
             <option value="do_not_contact">Do Not Contact</option>
             <option value="archived">Archived</option>
           </select>
+          <label className="flex items-center gap-2 px-3 py-2.5 border border-[rgb(235,225,213)] rounded-xl text-sm bg-white cursor-pointer select-none whitespace-nowrap">
+            <input
+              type="checkbox"
+              checked={showAwaitingPayment}
+              onChange={e => setShowAwaitingPayment(e.target.checked)}
+              className="w-4 h-4 accent-[rgb(107,85,64)] cursor-pointer"
+            />
+            <span className="text-[rgb(45,45,45)]">Show abandoned carts</span>
+          </label>
         </div>
 
         {/* Main Content */}
