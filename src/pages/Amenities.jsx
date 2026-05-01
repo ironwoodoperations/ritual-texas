@@ -145,8 +145,8 @@ export default function Amenities() {
             wellness studio, antique shops nearby, and nature trails. Everything designed 
             to help you disconnect from the world and reconnect with yourself.
           </p>
-          <Link 
-            to={createPageUrl('BookingFlow')}
+          <Link
+            to={createPageUrl('GuestBookNow')}
             className="inline-block px-8 py-3 bg-[rgb(150,170,155)] text-white tracking-widest text-sm hover:bg-[rgb(130,150,135)] transition-all"
           >
             BOOK YOUR STAY
