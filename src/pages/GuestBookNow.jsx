@@ -363,13 +363,6 @@ export default function GuestBookNow() {
       const res = await base44.functions.invoke('guestSubmitBooking', payload);
 
       if (res.data?.success) {
-        // Best-effort: send itinerary email (non-blocking)
-        base44.functions.invoke('sendItineraryEmail', {
-          guestEmail: email,
-          guestName,
-          confirmationCode: res.data.confirmationCode || res.data.reservationId || '',
-        }).catch(e => console.error('sendItineraryEmail failed (non-blocking):', e));
-
         if (res.data.publicUrl) {
           window.location.href = res.data.publicUrl;
           return;
