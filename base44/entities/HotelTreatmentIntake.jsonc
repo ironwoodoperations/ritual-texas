@@ -197,22 +197,6 @@
       ],
       "default": "new_inquiry"
     },
-    "source": {
-      "type": "string",
-      "description": "Where the intake originated (e.g. 'guest_book_now', 'admin_intake')"
-    },
-    "squarePaymentLinkId": {
-      "type": "string",
-      "description": "Square Payment Link ID — used by squareWebhook as a fallback match key for payment confirmation"
-    },
-    "squareOrderId": {
-      "type": "string",
-      "description": "Square Order ID associated with the payment link — primary match key for squareWebhook payment confirmation"
-    },
-    "squarePaymentUrl": {
-      "type": "string",
-      "description": "Public URL of the Square Payment Link presented to the guest"
-    },
     "lostReason": {
       "type": "string",
       "description": "Free-text reason when lead is lost/closed"
@@ -247,6 +231,22 @@
     "squareInvoiceId": {
       "type": "string",
       "description": "Square invoice ID for managing invoice actions"
+    },
+    "squarePaymentLinkId": {
+      "type": "string",
+      "description": "Square Payment Link ID \u2014 used by squareWebhook as a fallback match key for payment confirmation"
+    },
+    "squareOrderId": {
+      "type": "string",
+      "description": "Square Order ID associated with the payment link \u2014 primary match key for squareWebhook payment confirmation"
+    },
+    "squarePaymentUrl": {
+      "type": "string",
+      "description": "Public URL of the Square Payment Link presented to the guest"
+    },
+    "source": {
+      "type": "string",
+      "description": "Where the intake originated (e.g. 'guest_book_now', 'admin_intake')"
     },
     "ccName": {
       "type": "string"
