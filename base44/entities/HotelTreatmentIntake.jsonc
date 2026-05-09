@@ -252,12 +252,13 @@
     },
     "paidAmountCents": {
       "type": "number",
-      "description": "Amount actually paid via Square, in cents (e.g. 47770 = $477.70). Set by squareWebhook from payment.amount_money.amount on completed payment."
+      "default": null,
+      "description": "Amount paid in cents (Square's native integer format). Populated by squareWebhook when payment.updated fires."
     },
     "itineraryEmailFailed": {
       "type": "boolean",
       "default": false,
-      "description": "Set to true when sendItineraryEmail fails after a successful Cloudbeds + Acuity booking. Status stays 'confirmed' \u2014 this flag tells staff the guest still needs their itinerary resent."
+      "description": "True if sendItineraryEmail threw during the booking pipeline. Booking is still confirmed; email needs manual resend."
     },
     "source": {
       "type": "string",
