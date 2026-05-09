@@ -1,6 +1,7 @@
 import React from "react";
 import { AlertTriangle, Clock } from "lucide-react";
 import { parseActivityLog } from "@/components/intake/ActivityLog";
+import PaymentBadge from "@/components/intake/PaymentBadge";
 
 function getLastNote(record) {
   const entries = parseActivityLog(record.internalNotes, record.created_date);
@@ -12,7 +13,10 @@ function getLastNote(record) {
 
 const STATUS_COLORS = {
   new_inquiry: "bg-blue-100 text-blue-700",
+  awaiting_payment: "bg-yellow-100 text-yellow-800",
+  processing_booking: "bg-indigo-100 text-indigo-700",
   pending: "bg-amber-100 text-amber-700",
+  needs_manual_review: "bg-red-100 text-red-700",
   confirmed: "bg-green-100 text-green-700",
   not_now: "bg-purple-100 text-purple-700",
   lost_price: "bg-orange-100 text-orange-700",
@@ -24,7 +28,12 @@ const STATUS_COLORS = {
   archived: "bg-gray-100 text-gray-500",
 };
 const STATUS_LABELS = {
-  new_inquiry: "New Inquiry", pending: "Pending", confirmed: "Confirmed",
+  new_inquiry: "New Inquiry",
+  awaiting_payment: "Awaiting Payment",
+  processing_booking: "Processing Booking",
+  pending: "Pending",
+  needs_manual_review: "Needs Manual Review",
+  confirmed: "Confirmed",
   not_now: "Not Now", lost_price: "Lost – Price", lost_competitor: "Lost – Competitor",
   lost_no_response: "Lost – No Response", lost_dates_unavailable: "Lost – Dates N/A",
   do_not_contact: "Do Not Contact", declined: "Declined", archived: "Archived",
@@ -80,6 +89,7 @@ export default function IntakeListView({ records, onSelect, sortKey, onSortChang
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-medium text-sm text-[rgb(45,45,45)] truncate">{r.guestName}</span>
+                  <PaymentBadge record={r} size="sm" />
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_COLORS[r.bookingStatus] || ""}`}>
                     {STATUS_LABELS[r.bookingStatus] || r.bookingStatus}
                   </span>

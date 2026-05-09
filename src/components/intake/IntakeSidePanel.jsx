@@ -1,13 +1,19 @@
 import React, { useState, useRef, useEffect } from "react";
-import { X, Phone, Mail, Copy, CheckCircle2, Loader2, CreditCard, AlertTriangle, Trash2 } from "lucide-react";
+import { X, Phone, Mail, Copy, CheckCircle2, Loader2, CreditCard, AlertTriangle, Trash2, ExternalLink } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import ActivityLog, { appendLogEntry } from "./ActivityLog";
 import InvoicePreviewModal from "./InvoicePreviewModal";
 import InvoiceActionsSection from "./InvoiceActionsSection";
+import PaymentBadge from "./PaymentBadge";
 
 const STATUS_STEPS = ["new_inquiry", "pending", "confirmed", "booked_reserved"];
 const STATUS_LABELS = {
-  new_inquiry: "New Inquiry", pending: "Pending", confirmed: "Confirmed",
+  new_inquiry: "New Inquiry",
+  awaiting_payment: "Awaiting Payment",
+  processing_booking: "Processing Booking",
+  pending: "Pending",
+  needs_manual_review: "Needs Manual Review",
+  confirmed: "Confirmed",
   booked_reserved: "Booked / Reserved ✓",
   not_now: "Not Now", lost_price: "Lost – Price", lost_competitor: "Lost – Competitor",
   lost_no_response: "Lost – No Response", lost_dates_unavailable: "Lost – Dates N/A",
@@ -15,7 +21,10 @@ const STATUS_LABELS = {
 };
 const STATUS_COLORS = {
   new_inquiry: "bg-blue-100 text-blue-700",
+  awaiting_payment: "bg-yellow-100 text-yellow-800",
+  processing_booking: "bg-indigo-100 text-indigo-700",
   pending: "bg-amber-100 text-amber-700",
+  needs_manual_review: "bg-red-100 text-red-700",
   confirmed: "bg-green-100 text-green-700",
   booked_reserved: "bg-emerald-100 text-emerald-800",
   not_now: "bg-purple-100 text-purple-700",
@@ -267,13 +276,21 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
       <div className="fixed right-0 top-0 bottom-0 w-full sm:w-[420px] bg-white z-50 flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[rgb(235,225,213)] bg-[rgb(248,246,242)] shrink-0">
-          <div>
-            <h2 className="font-semibold text-[rgb(45,45,45)]">{record.guestName}</h2>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[record.bookingStatus] || ""}`}>
-              {STATUS_LABELS[record.bookingStatus] || record.bookingStatus}
-            </span>
+          <div className="min-w-0">
+            <h2 className="font-semibold text-[rgb(45,45,45)] truncate">{record.guestName}</h2>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <PaymentBadge record={record} />
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[record.bookingStatus] || ""}`}>
+                {STATUS_LABELS[record.bookingStatus] || record.bookingStatus}
+              </span>
+              {record.itineraryEmailFailed && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-800 border border-amber-300">
+                  ITINERARY EMAIL FAILED
+                </span>
+              )}
+            </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-[rgb(235,225,213)] transition-colors">
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-[rgb(235,225,213)] transition-colors shrink-0 ml-2">
             <X className="w-4 h-4 text-[rgb(107,85,64)]" />
           </button>
         </div>
@@ -310,6 +327,17 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
               {record.cloudbedsRoomTypeId && <div className="col-span-2"><span className="text-[rgb(150,130,110)]">Room: </span>{record.cloudbedsRoomTypeId}</div>}
               {record.howDidYouHearAboutUs && <div className="col-span-2"><span className="text-[rgb(150,130,110)]">Source: </span>{record.howDidYouHearAboutUs}</div>}
             </div>
+            {(record.squarePaymentEventId || record.squareOrderId) && (
+              <a
+                href={`https://app.squareup.com/dashboard/sales/transactions/${encodeURIComponent(record.squarePaymentEventId || record.squareOrderId)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-green-300 bg-green-50 text-xs font-medium text-green-800 hover:bg-green-100 transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                View Payment in Square
+              </a>
+            )}
           </div>
 
           {/* Status Progression */}
