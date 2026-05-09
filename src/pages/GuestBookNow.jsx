@@ -1017,16 +1017,10 @@ export default function GuestBookNow() {
                 Booking & Cancellation Policy
               </h3>
               <p className="text-sm text-[rgb(45,45,45)] leading-relaxed font-light">
-                Each session is thoughtfully prepared and tailored specifically for you, which is why all bookings are secured with payment in advance.
-              </p>
-              <p className="text-sm text-[rgb(45,45,45)] leading-relaxed font-semibold">
-                All payments are non-refundable.
+                To honor the preparation and care reserved for each guest experience, all room stays and treatments are prepaid and non-refundable. Reservation dates are considered final; however, with at least 14 days' notice, a one-time courtesy transfer to alternate dates may be considered based on availability. Requests made within 14 days can only be accommodated for significant extenuating circumstances.
               </p>
               <p className="text-sm text-[rgb(45,45,45)] leading-relaxed font-light">
-                If you need to adjust your plans, your investment will remain on file as a credit, and we'll gladly help you reschedule to a new date with priority access, based on availability.
-              </p>
-              <p className="text-sm text-[rgb(45,45,45)] leading-relaxed font-light">
-                We encourage you to book when you feel fully ready to receive the experience.
+                Thank you for honoring this space of restoration and self-care, and for supporting the belief that when we care for the body, mind, and spirit, we create space for true healing.
               </p>
               <label className="flex items-start gap-3 pt-2 cursor-pointer">
                 <input
