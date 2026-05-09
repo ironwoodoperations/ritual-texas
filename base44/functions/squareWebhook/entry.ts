@@ -76,6 +76,7 @@ Deno.serve(async (req) => {
       const orderId = payment?.order_id || "";
       const paymentId = payment?.id || "";
       const eventId = event?.event_id || "";
+      const paidAmountCents = Number(payment?.amount_money?.amount) || 0;
 
       // (A) GUARD — only act on completed payments
       if (status !== "COMPLETED") {
@@ -153,6 +154,7 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.HotelTreatmentIntake.update(intake.id, {
           bookingStatus: "processing_booking",
           squarePaymentEventId: eventId || paymentId || `manual-${Date.now()}`,
+          paidAmountCents: paidAmountCents || undefined,
         });
       } catch (e: any) {
         console.error("[squareWebhook] Atomic flip failed:", e?.message || e);
@@ -251,12 +253,16 @@ Deno.serve(async (req) => {
         }
       }
 
-      // 3. Itinerary email
+      // 3. Itinerary email — isolated from booking confirmation. Email failure
+      // sets `itineraryEmailFailed` for staff visibility but does NOT downgrade
+      // bookingStatus, since the guest's reservation is already real in
+      // Cloudbeds + Acuity at this point.
+      let itineraryEmailFailed = false;
       try {
         const roomNames = hasRooms
           ? intake.rooms.map((r: any) => r.roomName).filter(Boolean).join(", ")
           : "";
-        await base44.asServiceRole.functions.invoke("sendItineraryEmail", {
+        const emailResp: any = await base44.asServiceRole.functions.invoke("sendItineraryEmail", {
           guestName: intake.guestName,
           guestEmail: intake.email,
           confirmationCode: primaryConfirmationCode || intake.id,
@@ -265,11 +271,20 @@ Deno.serve(async (req) => {
           roomType: roomNames || null,
           spaBookings: acuityResultBookings,
         });
+        const emailData: any = emailResp?.data ?? emailResp;
+        if (emailData?.error || emailData?.success === false) {
+          itineraryEmailFailed = true;
+          notes += `\n[Email send failed: ${emailData?.error || "unknown"}]`;
+          console.error("[squareWebhook] sendItineraryEmail returned error:", emailData);
+        }
       } catch (e: any) {
+        itineraryEmailFailed = true;
         notes += `\n[Email send failed: ${e?.message || e}]`;
+        console.error("[squareWebhook] sendItineraryEmail threw:", e?.message || e);
       }
 
-      // 4. Final state — confirmed iff every required leg succeeded.
+      // 4. Final state — bookingStatus only reflects the real booking legs
+      // (Cloudbeds + Acuity). Email failure is tracked separately.
       const hotelOk = !hasRooms || hotelBooked;
       const treatmentsOk = !hasTreatments || treatmentsBooked;
       const finalStatus = (hotelOk && treatmentsOk) ? "confirmed" : "needs_manual_review";
@@ -279,7 +294,9 @@ Deno.serve(async (req) => {
         internalNotes: notes,
         hotelBooked: hotelBooked,
         treatmentsBooked: treatmentsBooked,
+        itineraryEmailFailed,
       };
+      if (paidAmountCents) finalUpdate.paidAmountCents = paidAmountCents;
       if (confirmationCodes.length > 0) {
         finalUpdate.cloudbedsReservationId = confirmationCodes[0];
         finalUpdate.confirmationCodes = confirmationCodes;

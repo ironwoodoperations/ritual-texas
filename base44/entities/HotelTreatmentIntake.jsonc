@@ -250,6 +250,15 @@
       "type": "string",
       "description": "Square webhook event ID \u2014 used by squareWebhook for idempotency / dedup"
     },
+    "paidAmountCents": {
+      "type": "number",
+      "description": "Amount actually paid via Square, in cents (e.g. 47770 = $477.70). Set by squareWebhook from payment.amount_money.amount on completed payment."
+    },
+    "itineraryEmailFailed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Set to true when sendItineraryEmail fails after a successful Cloudbeds + Acuity booking. Status stays 'confirmed' \u2014 this flag tells staff the guest still needs their itinerary resent."
+    },
     "source": {
       "type": "string",
       "description": "Where the intake originated (e.g. 'guest_book_now', 'admin_intake')"

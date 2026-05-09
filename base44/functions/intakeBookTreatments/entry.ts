@@ -66,11 +66,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const base44 = createClientFromRequest(req);
 
   try {
-    const me = await base44.auth.me();
-    if (!me || me.role !== "admin") {
-      return Response.json({ error: "Admin only" }, { status: 403 });
-    }
-
     const body = await req.json();
     const intake = body?.intake || body || {};
 

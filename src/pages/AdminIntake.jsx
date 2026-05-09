@@ -978,7 +978,11 @@ export default function AdminIntake() {
       r.phone?.includes(search) ||
       r.email?.toLowerCase().includes(search.toLowerCase());
 
-    const LOST_STATUSES = ["archived","declined","not_now","lost_price","lost_competitor","lost_no_response","lost_dates_unavailable","do_not_contact"];
+    // "active" hides lost/closed states AND awaiting_payment (the customer
+    // hasn't paid yet — Whitney can opt back in via the toggle above).
+    // processing_booking and needs_manual_review intentionally stay visible:
+    // they need staff attention.
+    const LOST_STATUSES = ["archived","declined","not_now","lost_price","lost_competitor","lost_no_response","lost_dates_unavailable","do_not_contact","awaiting_payment"];
     let matchStatus = true;
     if (statusFilter === "active") matchStatus = !LOST_STATUSES.includes(r.bookingStatus);
     else if (statusFilter === "new_inquiry") matchStatus = r.bookingStatus === "new_inquiry";
@@ -1079,6 +1083,9 @@ export default function AdminIntake() {
             <option value="active">Active</option>
             <option value="all">All</option>
             <option value="new_inquiry">New Inquiry</option>
+            <option value="awaiting_payment">Awaiting Payment</option>
+            <option value="processing_booking">Processing Booking</option>
+            <option value="needs_manual_review">Needs Manual Review</option>
             <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
             <option value="booked_reserved">Booked / Reserved</option>

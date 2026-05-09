@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import { Clock, AlertTriangle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import PaymentBadge from "./PaymentBadge";
 
 const STATUS_COLORS = {
   new_inquiry: "bg-blue-100 text-blue-700",
+  awaiting_payment: "bg-yellow-100 text-yellow-800",
+  processing_booking: "bg-indigo-100 text-indigo-700",
   pending: "bg-amber-100 text-amber-700",
+  needs_manual_review: "bg-red-100 text-red-700",
   confirmed: "bg-green-100 text-green-700",
   booked_reserved: "bg-emerald-100 text-emerald-800",
   not_now: "bg-purple-100 text-purple-700",
@@ -17,7 +21,12 @@ const STATUS_COLORS = {
   archived: "bg-gray-100 text-gray-500",
 };
 const STATUS_LABELS = {
-  new_inquiry: "New Inquiry", pending: "Pending", confirmed: "Confirmed",
+  new_inquiry: "New Inquiry",
+  awaiting_payment: "Awaiting Payment",
+  processing_booking: "Processing Booking",
+  pending: "Pending",
+  needs_manual_review: "Needs Manual Review",
+  confirmed: "Confirmed",
   booked_reserved: "Booked / Reserved ✓",
   not_now: "Not Now", lost_price: "Lost – Price", lost_competitor: "Lost – Competitor",
   lost_no_response: "Lost – No Response", lost_dates_unavailable: "Lost – Dates N/A",
@@ -76,6 +85,9 @@ function PipelineCard({ record, onSelect, onArchive, onDragStart }) {
       onClick={() => onSelect(record)}
       className="bg-white border border-[rgb(235,225,213)] rounded-xl p-3 shadow-sm hover:shadow-md hover:border-[rgb(198,182,165)] transition-all cursor-pointer select-none"
     >
+      {(record.squarePaymentEventId || record.bookingStatus === "awaiting_payment" || record.bookingStatus === "needs_manual_review") && (
+        <div className="mb-2"><PaymentBadge record={record} size="sm" /></div>
+      )}
       <div className="font-semibold text-[rgb(45,45,45)] text-sm mb-1 truncate">{record.guestName}</div>
       {record.checkInDate && (
         <div className="text-xs text-[rgb(120,120,120)] mb-1">

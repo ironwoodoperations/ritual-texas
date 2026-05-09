@@ -75,10 +75,6 @@ async function doPostReservation(token, propertyId, params) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (user?.role !== "admin") {
-      return Response.json({ error: "Admin only" }, { status: 403 });
-    }
 
     const body = await req.json();
     const intake = body.intake || body;
