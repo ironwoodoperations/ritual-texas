@@ -263,7 +263,7 @@
     "cloudbedsPaymentSyncFailed": {
       "type": "boolean",
       "default": false,
-      "description": "True if posting the Square payment to the Cloudbeds folio failed for one or more reservations. Booking is still confirmed; folio needs manual reconciliation."
+      "description": "True if cloudbedsProcessPayment threw during the booking pipeline. Payment collected but Cloudbeds sync failed; needs manual recovery."
     },
     "source": {
       "type": "string",
