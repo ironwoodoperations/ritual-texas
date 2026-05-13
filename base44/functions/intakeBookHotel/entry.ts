@@ -72,6 +72,23 @@ async function doPostReservation(token, propertyId, params) {
   return { ok: resp.ok, status: resp.status, json: JSON.parse(text) };
 }
 
+async function cloudbedsApi(endpoint, method, params, token, propertyId) {
+  const allParams = { propertyID: propertyId, ...params };
+  let url = `https://hotels.cloudbeds.com/api/v1.1/${endpoint}`;
+  const opts = { method, headers: { Authorization: `Bearer ${token}` } };
+  if (method === "GET") {
+    url += "?" + new URLSearchParams(allParams).toString();
+  } else {
+    opts.headers["Content-Type"] = "application/x-www-form-urlencoded";
+    opts.body = new URLSearchParams(allParams).toString();
+  }
+  const resp = await fetch(url, opts);
+  const text = await resp.text();
+  let json;
+  try { json = JSON.parse(text); } catch { json = { raw: text }; }
+  return { ok: resp.ok, status: resp.status, json };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -123,6 +140,64 @@ Deno.serve(async (req) => {
     }
     if (!propertyId) throw new Error("Cloudbeds property ID not configured.");
 
+    // Post-booking Cloudbeds folio sync: when squareWebhook (or admin path with a
+    // Square-paid intake) created this booking, post a folio payment for each
+    // new reservation so the Cloudbeds balance reflects "paid via Square" instead
+    // of showing a phantom balance due. Decoupled from booking creation —
+    // sync failures set cloudbedsPaymentSyncFailed and append to internalNotes,
+    // but never abort the loop or change bookingStatus.
+    const paymentSyncEnabled = Number(intake.paidAmountCents) > 0 && !!intake.squarePaymentEventId;
+    let postedAmount = 0;
+    let paymentsPosted = 0;
+    let paymentSyncFailed = false;
+    const paymentSyncErrors = [];
+
+    async function syncReservationPayment(reservationID) {
+      if (!paymentSyncEnabled || !reservationID) return;
+      try {
+        let getRes = await cloudbedsApi("getReservation", "GET", { reservationID }, accessToken, propertyId);
+        if (!getRes.ok && (getRes.status === 401 || getRes.status === 403)) {
+          accessToken = await refreshAccessToken(base44);
+          getRes = await cloudbedsApi("getReservation", "GET", { reservationID }, accessToken, propertyId);
+        }
+        const balance = Number(getRes.json?.data?.balance);
+        if (!Number.isFinite(balance) || balance <= 0) return;
+        const payParams = {
+          reservationID,
+          amount: String(balance),
+          type: "Square Invoice",
+          description: `Paid via Square — Order ${intake.squareOrderId || ""}`.trim(),
+        };
+        let payRes = await cloudbedsApi("postPayment", "POST", payParams, accessToken, propertyId);
+        if (!payRes.ok && (payRes.status === 401 || payRes.status === 403)) {
+          accessToken = await refreshAccessToken(base44);
+          payRes = await cloudbedsApi("postPayment", "POST", payParams, accessToken, propertyId);
+        }
+        if (!payRes.ok || !payRes.json?.success) {
+          throw new Error(payRes.json?.message || `HTTP ${payRes.status}`);
+        }
+        postedAmount += balance;
+        paymentsPosted += 1;
+      } catch (e) {
+        paymentSyncFailed = true;
+        paymentSyncErrors.push(`reservation ${reservationID}: ${e?.message || e}`);
+      }
+    }
+
+    async function persistPaymentSyncSummary() {
+      if (!paymentSyncEnabled || !intake.id) return;
+      const lines = [`Cloudbeds payments posted: $${postedAmount.toFixed(2)} across ${paymentsPosted} reservation(s)`];
+      if (paymentSyncErrors.length) {
+        lines.push(`Cloudbeds payment sync failures: ${paymentSyncErrors.join("; ")}`);
+      }
+      const appendedNotes = String(intake.internalNotes || "") + lines.map(l => `\n[${l}]`).join("");
+      try {
+        const update = { internalNotes: appendedNotes };
+        if (paymentSyncFailed) update.cloudbedsPaymentSyncFailed = true;
+        await base44.asServiceRole.entities.HotelTreatmentIntake.update(intake.id, update);
+      } catch { /* non-fatal */ }
+    }
+
     // Multi-room booking: if rooms array is provided, book each room separately
     const rooms = Array.isArray(intake.rooms) && intake.rooms.length > 0 ? intake.rooms : null;
     if (rooms) {
@@ -172,6 +247,8 @@ Deno.serve(async (req) => {
           }, { status: 400 });
         }
 
+        await syncReservationPayment(result.json?.reservationID);
+
         results.push({
           roomId: rid,
           roomName: room.roomName,
@@ -179,6 +256,8 @@ Deno.serve(async (req) => {
           data: result.json,
         });
       }
+
+      await persistPaymentSyncSummary();
 
       return Response.json({
         message: `${results.length} reservation(s) created in Cloudbeds!`,
@@ -236,6 +315,9 @@ Deno.serve(async (req) => {
         detail: result.json,
       }, { status: 400 });
     }
+
+    await syncReservationPayment(result.json?.reservationID);
+    await persistPaymentSyncSummary();
 
     return Response.json({
       message: `Reservation created in Cloudbeds! ID: ${result.json?.reservationID || "unknown"}`,

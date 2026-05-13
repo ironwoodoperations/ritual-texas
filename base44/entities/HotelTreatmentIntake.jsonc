@@ -260,6 +260,11 @@
       "default": false,
       "description": "True if sendItineraryEmail threw during the booking pipeline. Booking is still confirmed; email needs manual resend."
     },
+    "cloudbedsPaymentSyncFailed": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if posting the Square payment to the Cloudbeds folio failed for one or more reservations. Booking is still confirmed; folio needs manual reconciliation."
+    },
     "source": {
       "type": "string",
       "description": "Where the intake originated (e.g. 'guest_book_now', 'admin_intake')"

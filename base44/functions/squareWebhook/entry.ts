@@ -203,6 +203,9 @@ Deno.serve(async (req) => {
               rooms: flattenedRooms,
               internalNotes: intake.internalNotes || "",
               treatmentsRequested: intake.treatmentsRequested || "",
+              paidAmountCents,
+              squarePaymentEventId: eventId,
+              squareOrderId: orderId,
             },
           });
           const d: any = cbResp?.data ?? cbResp;
