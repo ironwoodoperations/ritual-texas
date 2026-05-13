@@ -222,33 +222,78 @@ function IntakeForm({ initial = BLANK, bookOnlineTreatments = [], callToBookTrea
   const [suiteWarning, setSuiteWarning] = useState("");
 
   // Suite 4 & 6 share a bathroom — only available with 3+ guests
-  function isRestrictedSuite(name) {
+  function isSuite4(name) {
     if (!name) return false;
     const lower = name.toLowerCase();
-    return lower.includes("suite") && (/\b4\b/.test(lower) || /\b6\b/.test(lower));
+    return lower.includes("suite") && /\b4\b/.test(lower);
   }
+  function isSuite6(name) {
+    if (!name) return false;
+    const lower = name.toLowerCase();
+    return lower.includes("suite") && /\b6\b/.test(lower);
+  }
+  function isSuite3(name) {
+    if (!name) return false;
+    const lower = name.toLowerCase();
+    return lower.includes("suite") && /\b3\b/.test(lower);
+  }
+  function isSuite5(name) {
+    if (!name) return false;
+    const lower = name.toLowerCase();
+    return lower.includes("suite") && /\b5\b/.test(lower);
+  }
+  function isRestrictedSuite(name) {
+    return isSuite4(name) || isSuite6(name);
+  }
+
+  // Suites 3↔4 and 5↔6 share access — when 3 or 5 is booked the connecting
+  // suite is functionally unbookable. Check live availability for primary.
+  const suite3Available = liveRooms.some(r => isSuite3(r.name));
+  const suite5Available = liveRooms.some(r => isSuite5(r.name));
+  const liveAvailabilityKnown = liveRooms.length > 0;
 
   function filterRoomOptions(rooms) {
-    if (totalGuestCount >= 3) return rooms;
-    return rooms.filter(r => !isRestrictedSuite(r.name));
+    return rooms.filter(r => {
+      if (totalGuestCount < 3 && isRestrictedSuite(r.name)) return false;
+      if (liveAvailabilityKnown && isSuite4(r.name) && !suite3Available) return false;
+      if (liveAvailabilityKnown && isSuite6(r.name) && !suite5Available) return false;
+      return true;
+    });
   }
 
-  // Clear restricted suites when guest count drops below 3
+  // Clear restricted suites when guest count drops below 3, or when the paired
+  // primary suite (3 or 5) becomes unavailable for the selected dates.
   useEffect(() => {
-    if (totalGuestCount >= 3) { setSuiteWarning(""); return; }
     const rooms = form.rooms || [];
-    const hasRestricted = rooms.some(r => isRestrictedSuite(r.roomName));
-    if (hasRestricted) {
+    const guestBlocked = totalGuestCount < 3;
+    const suite4Blocked = liveAvailabilityKnown && !suite3Available;
+    const suite6Blocked = liveAvailabilityKnown && !suite5Available;
+
+    const shouldClear = (name) =>
+      (guestBlocked && isRestrictedSuite(name)) ||
+      (suite4Blocked && isSuite4(name)) ||
+      (suite6Blocked && isSuite6(name));
+
+    const hasClearable = rooms.some(r => shouldClear(r.roomName));
+    if (hasClearable) {
       const cleaned = rooms.map(r =>
-        isRestrictedSuite(r.roomName) ? { roomId: "", roomName: "", roomRate: 198, guestName: r.guestName } : r
+        shouldClear(r.roomName) ? { roomId: "", roomName: "", roomRate: 198, guestName: r.guestName } : r
       );
       set("rooms", cleaned);
-      setSuiteWarning("Suite 4 and Suite 6 require 3 or more guests due to shared bathroom");
+      if (guestBlocked && rooms.some(r => isRestrictedSuite(r.roomName))) {
+        setSuiteWarning("Suite 4 and Suite 6 require 3 or more guests due to shared bathroom");
+      } else if (suite4Blocked && rooms.some(r => isSuite4(r.roomName))) {
+        setSuiteWarning("Suite 4 is unavailable because Suite 3 is booked for these dates (shared access)");
+      } else if (suite6Blocked && rooms.some(r => isSuite6(r.roomName))) {
+        setSuiteWarning("Suite 6 is unavailable because Suite 5 is booked for these dates (shared access)");
+      } else {
+        setSuiteWarning("");
+      }
     } else {
       setSuiteWarning("");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalGuestCount]);
+  }, [totalGuestCount, suite3Available, suite5Available, liveAvailabilityKnown]);
 
   function handleRoomSelect(idx, roomId) {
     const source = liveRooms.find(r => r.id === roomId) || MANUAL_ROOMS.find(r => r.id === roomId);
