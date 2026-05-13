@@ -2,6 +2,14 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 function clean(s) { return String(s ?? "").trim(); }
 function emailNorm(s) { return clean(s).toLowerCase(); }
+function toStandardTime(t) {
+  if (!t) return '';
+  const [h, m] = String(t).split(':').map(Number);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return '';
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+}
 
 function nightsBetween(checkIn, checkOut) {
   const a = new Date(checkIn + "T00:00:00");
@@ -103,7 +111,7 @@ Deno.serve(async (req) => {
         name = clean(item);
       }
       if (!name) continue;
-      const label = name + (date ? ` — ${date}` : "") + (time ? ` at ${time}` : "");
+      const label = name + (date ? ` — ${date}` : "") + (time ? ` at ${toStandardTime(time)}` : "");
       lineItems.push({
         name: label,
         quantity: "1",
@@ -125,7 +133,7 @@ Deno.serve(async (req) => {
         name = clean(item);
       }
       if (!name) continue;
-      const label = name + (date ? ` — ${date}` : "") + (time ? ` at ${time}` : "") + " (call-to-book)";
+      const label = name + (date ? ` — ${date}` : "") + (time ? ` at ${toStandardTime(time)}` : "") + " (call-to-book)";
       lineItems.push({
         name: label,
         quantity: "1",
