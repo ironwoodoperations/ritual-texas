@@ -574,9 +574,20 @@ export default function GuestBookNow() {
                 const bi = ROOM_ORDER.findIndex(n => b.name?.includes(n) || b.name === n);
                 return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
               });
+              // Suites 3↔4 and 5↔6 share access — if the primary is unavailable for these
+              // dates, the connecting suite is functionally unbookable.
+              const suite3Available = sortedAvailable.some(r => (r.name || '').includes('Suite 3'));
+              const suite5Available = sortedAvailable.some(r => (r.name || '').includes('Suite 5'));
               const visibleAvailable = sortedAvailable.filter(room => {
                 const name = room.name || '';
-                if (name.includes('Suite 4') || name.includes('Suite 6')) return guestCount >= 3;
+                if (name.includes('Suite 4')) {
+                  if (guestCount < 3) return false;
+                  if (!suite3Available) return false;
+                }
+                if (name.includes('Suite 6')) {
+                  if (guestCount < 3) return false;
+                  if (!suite5Available) return false;
+                }
                 return true;
               });
 
