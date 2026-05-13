@@ -5,6 +5,7 @@ import ActivityLog, { appendLogEntry } from "./ActivityLog";
 import InvoicePreviewModal from "./InvoicePreviewModal";
 import InvoiceActionsSection from "./InvoiceActionsSection";
 import PaymentBadge from "./PaymentBadge";
+import { fmtTime } from "@/lib/time";
 
 const STATUS_STEPS = ["new_inquiry", "pending", "confirmed", "booked_reserved"];
 const STATUS_LABELS = {
@@ -487,7 +488,7 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
                   <div key={i} className="flex items-center justify-between text-xs bg-[rgb(248,246,242)] rounded-lg px-3 py-2">
                     <div>
                       <span className="text-[rgb(45,45,45)]">{t.serviceName || t.name}</span>
-                      {t.date && <span className="text-[rgb(150,150,150)] ml-1.5">{t.date}{t.time ? ` @ ${t.time}` : ""}</span>}
+                      {t.date && <span className="text-[rgb(150,150,150)] ml-1.5">{t.date}{t.time ? ` @ ${fmtTime(t.time)}` : ""}</span>}
                       {t.isCtb && <span className="ml-1.5 text-[rgb(120,100,160)] italic">(call-to-book)</span>}
                     </div>
                     {t.price > 0 && <span className="text-[rgb(107,85,64)] font-medium shrink-0 ml-2">{fmtMoney(t.price)}</span>}

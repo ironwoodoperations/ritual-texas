@@ -1,6 +1,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { X, Send, Loader2 } from 'lucide-react';
+import { fmtTime } from '@/lib/time';
 
 const ROOM_RATE = 198;
 
@@ -150,7 +151,7 @@ export default function InvoicePreviewModal({ intake, onClose, onConfirmSend, se
 
           {/* Treatments */}
           {allTreatments.map((t, i) => {
-            const label = t.name + (t.date ? ` — ${t.date}` : '') + (t.time ? ` at ${t.time}` : '') + (t.isCtb ? ' (call-to-book)' : '');
+            const label = t.name + (t.date ? ` — ${t.date}` : '') + (t.time ? ` at ${fmtTime(t.time)}` : '') + (t.isCtb ? ' (call-to-book)' : '');
             return (
               <div key={i} className="flex justify-between text-sm py-2 border-b border-[rgb(235,225,213)]">
                 <span className="text-[rgb(45,45,45)] flex-1 mr-4">{label}</span>

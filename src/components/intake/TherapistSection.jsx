@@ -1,5 +1,6 @@
 import React from "react";
 import { MessageSquare } from "lucide-react";
+import { fmtTime } from "@/lib/time";
 
 const fieldCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transparent py-2 text-sm text-[rgb(45,45,45)] focus:outline-none focus:border-[rgb(107,85,64)] placeholder-[rgb(190,180,170)] transition-colors";
 const selectCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transparent py-2 text-sm text-[rgb(45,45,45)] focus:outline-none focus:border-[rgb(107,85,64)] transition-colors cursor-pointer";
@@ -32,10 +33,10 @@ export default function TherapistSection({ form, onChange, sbEntries, ctbEntries
     const lines = [`Hi! This is Hotel RITUAL. We have a guest, ${guestName}, requesting the following:`];
 
     sbEntries.filter(e => e.serviceName).forEach(e => {
-      lines.push(`• ${e.serviceName} on ${e.date || "TBD"} at ${e.time || "TBD"}`);
+      lines.push(`• ${e.serviceName} on ${e.date || "TBD"} at ${fmtTime(e.time) || "TBD"}`);
     });
     ctbEntries.filter(e => e.name).forEach(e => {
-      lines.push(`• ${e.name} on ${e.date || "TBD"} at ${e.time || "TBD"} (call-to-book)`);
+      lines.push(`• ${e.name} on ${e.date || "TBD"} at ${fmtTime(e.time) || "TBD"} (call-to-book)`);
     });
 
     if (form.treatmentsRequested) lines.push(`Notes: ${form.treatmentsRequested}`);
