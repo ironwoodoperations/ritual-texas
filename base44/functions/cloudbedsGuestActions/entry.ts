@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
     // action: 'checkin' | 'checkout' | 'payment'
     // amount: only for payment
 
-    if (!action || !reservationID) {
+    if (!action || (!reservationID && action !== 'debug_payment_methods')) {
       return Response.json({ error: 'Missing action or reservationID' }, { status: 400 });
     }
 
@@ -144,6 +144,13 @@ Deno.serve(async (req) => {
       }
     } else if (action === 'debug_reservation') {
       const res = await callCloudbeds('getReservation', 'GET', { reservationID }, accessToken, propertyId);
+      return Response.json({ success: true, data: res.json });
+    } else if (action === 'debug_payment_methods') {
+      let res = await callCloudbeds('getPaymentMethods', 'GET', {}, accessToken, propertyId);
+      if (!res.ok && (res.status === 401 || res.status === 403)) {
+        accessToken = await refreshToken(base44);
+        res = await callCloudbeds('getPaymentMethods', 'GET', {}, accessToken, propertyId);
+      }
       return Response.json({ success: true, data: res.json });
     } else {
       return Response.json({ error: 'Unknown action' }, { status: 400 });
