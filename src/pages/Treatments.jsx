@@ -72,9 +72,7 @@ export default function Treatments() {
                   {(!treatment.booking_mode || treatment.booking_mode === 'book_online') && (
                     treatment.name?.toLowerCase().includes('sound bath') && treatment.name?.toLowerCase().includes('group')
                     ? <a
-                        href="https://book.squareup.com/classes/d61ecc5d-b6c7-4b87-adfc-5c3dea9b43ef/location/9Y1N836Q82W1V/classes"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        href="https://ritualtexas.com/GuestBookNow"
                         style={{ textDecoration: 'none', background: '#C57C5D', color: '#FCF9F4', padding: '10px 14px', borderRadius: '14px', fontWeight: 800, display: 'inline-block' }}
                       >
                         Register for Class
