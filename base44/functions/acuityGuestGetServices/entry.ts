@@ -39,6 +39,13 @@ Deno.serve(async (req) => {
       acuityGet("/calendars"),
     ]);
 
+    // TEMP DIAGNOSTIC — remove in cleanup pass once verified. Logs each appointment
+    // type's calendarIDs so we can confirm in Base44 function logs whether this
+    // account actually populates calendarIDs per type.
+    console.log("acuity-type-calendarIDs", JSON.stringify(appointmentTypes.map((at) => ({
+      id: at.id, name: at.name, calendarIDs: at.calendarIDs,
+    }))));
+
     const providers = {};
     for (const cal of calendars) {
       providers[String(cal.id)] = {
@@ -48,16 +55,32 @@ Deno.serve(async (req) => {
       };
     }
 
-    const services = appointmentTypes.map((at) => ({
-      id: String(at.id),
-      name: at.name || "",
-      duration: Number(at.duration || 60),
-      price: Number(at.price || 0),
-      description: at.description || "",
-      private: Boolean(at.private),
-      providers: Object.values(providers),
-      providerIds: Object.keys(providers),
-    }));
+    const services = appointmentTypes.map((at) => {
+      // Acuity returns each appointment type's authoritative provider assignment in
+      // `calendarIDs` (array of numbers). Filter the global providers map down to those.
+      // The providers map is keyed by String(cal.id), so String()-normalize each id.
+      const calendarIDs = Array.isArray(at.calendarIDs) ? at.calendarIDs : [];
+      let svcProviders = calendarIDs
+        .map((cid) => providers[String(cid)]) // numbers → String to match map keys
+        .filter(Boolean);                      // drop ids not present in /calendars
+
+      // FALLBACK: if calendarIDs is missing/empty (unconfigured type) or filtered to
+      // nothing, preserve the original behavior (all providers) so nothing breaks.
+      if (svcProviders.length === 0) {
+        svcProviders = Object.values(providers);
+      }
+
+      return {
+        id: String(at.id),
+        name: at.name || "",
+        duration: Number(at.duration || 60),
+        price: Number(at.price || 0),
+        description: at.description || "",
+        private: Boolean(at.private),
+        providers: svcProviders,
+        providerIds: svcProviders.map((p) => p.id), // already String-normalized
+      };
+    });
 
     const result = {
       services,
