@@ -1,10 +1,135 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
 import { ExternalLink, ChevronDown } from 'lucide-react';
 
+// New "As Seen In" clippings backed by hosted images in the ImageAsset library.
+// `asset` is the ImageAsset.name resolved at runtime; each tile opens the hosted image.
+const CLIPPING_OUTLETS = [
+  { name: 'The New York Times', asset: 'press-new-york-times' },
+  { name: 'Real Simple', asset: 'press-real-simple' },
+  { name: 'Authority Magazine', asset: 'press-authority-magazine' },
+  { name: 'Studio 512 (Article)', asset: 'press-studio-512-article' },
+  { name: 'Studio 512 (Broadcast)', asset: 'press-studio-512-broadcast' },
+  { name: 'Fox San Antonio', asset: 'press-fox-san-antonio' },
+  { name: 'KETK NBC', asset: 'press-ketk-nbc' },
+];
+
 export default function Press() {
+  // Fetch the image library on mount and map active records by name.
+  const { data: imageAssets } = useQuery({
+    queryKey: ['image-assets', 'press'],
+    queryFn: () => base44.entities.ImageAsset.list('sort_order'),
+  });
+
+  const assetUrlByName = React.useMemo(() => {
+    const map = {};
+    (imageAssets || [])
+      .filter((a) => a.is_active && typeof a.name === 'string' && a.name.startsWith('press-'))
+      .forEach((a) => { map[a.name] = a.url; });
+    return map;
+  }, [imageAssets]);
+
+  // Report which expected clipping records resolved (and warn on any missing).
+  React.useEffect(() => {
+    if (!imageAssets) return;
+    const matched = CLIPPING_OUTLETS.filter((o) => assetUrlByName[o.asset]).map((o) => o.asset);
+    const missing = CLIPPING_OUTLETS.filter((o) => !assetUrlByName[o.asset]).map((o) => o.asset);
+    console.info('[Press] Matched clipping ImageAssets:', matched);
+    if (missing.length) console.warn('[Press] Missing clipping ImageAssets:', missing);
+  }, [imageAssets, assetUrlByName]);
+
+  // Existing article-based outlets (Texas Highways removed), then the hosted clippings.
+  const clippingTiles = CLIPPING_OUTLETS
+    .filter((o) => assetUrlByName[o.asset])
+    .map((o) => ({ name: o.name, url: assetUrlByName[o.asset] }));
+
+  const seenInOutlets = [
+    { name: 'PaperCity', url: 'https://www.papercitymag.com/culture/travel/best-wellness-resorts-texas-hill-country/' },
+    { name: 'The East Texas Weekend', url: 'https://www.theeasttexasweekend.com/2024/11/01/restore-your-peace-this-east-texas-hotel/' },
+    { name: 'Texas Monthly', url: 'https://www.texasmonthly.com/' },
+    { name: 'Wildsam', url: 'https://www.ritualtexas.com/press' },
+    { name: 'ETX View', url: 'https://www.etxview.com/travel/jacksonville-getaway-offers-mental-physical-refresh-through-luxurious-amenities/article_6a719e42-cd7f-11ef-b68b-6f21eb3ef751.html' },
+    ...clippingTiles,
+  ];
+
+  const nytClippingUrl = assetUrlByName['press-new-york-times'];
+
+  // Featured stories (Texas Highways removed); New York Times appended when its clipping resolves.
+  const featuredStories = [
+    {
+      title: '"Hotel RITUAL isn\'t just a getaway spot — it\'s a sanctuary for the soul."',
+      outlet: 'ETX View / Tyler Morning Telegraph',
+      url: 'https://www.etxview.com/travel/jacksonville-getaway-offers-mental-physical-refresh-through-luxurious-amenities/article_6a719e42-cd7f-11ef-b68b-6f21eb3ef751.html'
+    },
+    {
+      title: 'Restore your peace at this East Texas Hotel',
+      outlet: 'The East Texas Weekend',
+      url: 'https://www.theeasttexasweekend.com/2024/11/01/restore-your-peace-this-east-texas-hotel/'
+    },
+    {
+      title: '9 Luxury Texas Wellness Retreats to Relax, Reset, and Explore Somewhere New',
+      outlet: 'PaperCity',
+      url: 'https://www.papercitymag.com/culture/travel/best-wellness-resorts-texas-hill-country/'
+    },
+    {
+      title: '"...a pristinely preserved 1932 mansion..." (Wildsam quote)',
+      outlet: 'Wildsam (via Ritual Texas Press)',
+      url: 'https://www.ritualtexas.com/press',
+      quote: 'A press quote highlighting the property details and "attention to detail and mystique."'
+    },
+    {
+      title: 'Texas Monthly (May 2022): "New Age Meets Days of Yore…" (mention)',
+      outlet: 'Texas Monthly',
+      url: 'https://www.texasmonthly.com/',
+      quote: 'Tip: if you have the exact Texas Monthly article URL, replace this link so visitors land on the story directly.'
+    },
+    ...(nytClippingUrl ? [{
+      title: 'Hotel RITUAL in The New York Times',
+      outlet: 'The New York Times',
+      url: nytClippingUrl,
+      quote: '"It\'s a birthright to know how to heal ourselves." — Whitney Graham, The New York Times'
+    }] : []),
+  ];
+
+  // Press mentions for the JSON-LD ItemList. The New York Times leads (strongest
+  // national credential) when its clipping resolves, pointing at the same hosted image.
+  const pressMentions = [
+    ...(nytClippingUrl ? [{
+      "@type": "CreativeWork",
+      "name": "Hotel RITUAL in The New York Times",
+      "publisher": { "@type": "Organization", "name": "The New York Times" },
+      "url": nytClippingUrl
+    }] : []),
+    {
+      "@type": "CreativeWork",
+      "name": "Restore your peace at this East Texas Hotel",
+      "publisher": { "@type": "Organization", "name": "The East Texas Weekend" },
+      "url": "https://www.theeasttexasweekend.com/2024/11/01/restore-your-peace-this-east-texas-hotel/"
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "9 Luxury Texas Wellness Retreats to Relax, Reset, and Explore Somewhere New",
+      "publisher": { "@type": "Organization", "name": "PaperCity Magazine" },
+      "url": "https://www.papercitymag.com/culture/travel/best-wellness-resorts-texas-hill-country/"
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "ETX View: Jacksonville getaway offers mental & physical refresh through luxurious amenities",
+      "publisher": { "@type": "Organization", "name": "ETX View / Tyler Morning Telegraph" },
+      "url": "https://www.etxview.com/travel/jacksonville-getaway-offers-mental-physical-refresh-through-luxurious-amenities/article_6a719e42-cd7f-11ef-b68b-6f21eb3ef751.html"
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "Wildsam mention / quote (via Ritual Texas Press)",
+      "publisher": { "@type": "Organization", "name": "Wildsam" },
+      "url": "https://www.ritualtexas.com/press"
+    }
+  ];
+
   return (
     <div className="min-h-screen py-16 px-6" style={{ background: 'rgb(248,246,242)' }}>
       <div className="max-w-6xl mx-auto">
@@ -64,14 +189,7 @@ export default function Press() {
             <span className="text-xs text-[rgb(45,45,45)]">Tap to read</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {[
-              { name: 'Texas Highways', url: 'https://texashighways.com/travel/lodging/east-texas-ritual-jefferson-hotel/' },
-              { name: 'PaperCity', url: 'https://www.papercitymag.com/culture/travel/best-wellness-resorts-texas-hill-country/' },
-              { name: 'The East Texas Weekend', url: 'https://www.theeasttexasweekend.com/2024/11/01/restore-your-peace-this-east-texas-hotel/' },
-              { name: 'Texas Monthly', url: 'https://www.texasmonthly.com/' },
-              { name: 'Wildsam', url: 'https://www.ritualtexas.com/press' },
-              { name: 'ETX View', url: 'https://www.etxview.com/travel/jacksonville-getaway-offers-mental-physical-refresh-through-luxurious-amenities/article_6a719e42-cd7f-11ef-b68b-6f21eb3ef751.html' }
-            ].map((outlet) => (
+            {seenInOutlets.map((outlet) => (
               <a
                 key={outlet.name}
                 href={outlet.url}
@@ -99,40 +217,7 @@ export default function Press() {
             </h3>
 
             <div className="space-y-4">
-              {[
-                {
-                  title: '"Hotel RITUAL isn\'t just a getaway spot — it\'s a sanctuary for the soul."',
-                  outlet: 'ETX View / Tyler Morning Telegraph',
-                  url: 'https://www.etxview.com/travel/jacksonville-getaway-offers-mental-physical-refresh-through-luxurious-amenities/article_6a719e42-cd7f-11ef-b68b-6f21eb3ef751.html'
-                },
-                {
-                  title: 'Where to Stay in 2024 (East Texas): Hotel RITUAL',
-                  outlet: 'Texas Highways',
-                  url: 'https://texashighways.com/travel/lodging/east-texas-ritual-jefferson-hotel/'
-                },
-                {
-                  title: 'Restore your peace at this East Texas Hotel',
-                  outlet: 'The East Texas Weekend',
-                  url: 'https://www.theeasttexasweekend.com/2024/11/01/restore-your-peace-this-east-texas-hotel/'
-                },
-                {
-                  title: '9 Luxury Texas Wellness Retreats to Relax, Reset, and Explore Somewhere New',
-                  outlet: 'PaperCity',
-                  url: 'https://www.papercitymag.com/culture/travel/best-wellness-resorts-texas-hill-country/'
-                },
-                {
-                  title: '"...a pristinely preserved 1932 mansion..." (Wildsam quote)',
-                  outlet: 'Wildsam (via Ritual Texas Press)',
-                  url: 'https://www.ritualtexas.com/press',
-                  quote: 'A press quote highlighting the property details and "attention to detail and mystique."'
-                },
-                {
-                  title: 'Texas Monthly (May 2022): "New Age Meets Days of Yore…" (mention)',
-                  outlet: 'Texas Monthly',
-                  url: 'https://www.texasmonthly.com/',
-                  quote: 'Tip: if you have the exact Texas Monthly article URL, replace this link so visitors land on the story directly.'
-                }
-              ].map((story, idx) => (
+              {featuredStories.map((story, idx) => (
                 <div key={idx} className="border border-[rgb(235,225,213)] rounded-xl p-5 bg-white hover:border-[rgb(198,182,165)] transition-all">
                   <a
                     href={story.url}
@@ -245,58 +330,11 @@ export default function Press() {
           "@context": "https://schema.org",
           "@type": "ItemList",
           "name": "Hotel RITUAL Press Mentions",
-          "itemListElement": [
-            {
-              "@type": "ListItem",
-              "position": 1,
-              "item": {
-                "@type": "CreativeWork",
-                "name": "Where to Stay in 2024 (East Texas): Hotel Ritual",
-                "publisher": { "@type": "Organization", "name": "Texas Highways" },
-                "url": "https://texashighways.com/travel/lodging/east-texas-ritual-jefferson-hotel/"
-              }
-            },
-            {
-              "@type": "ListItem",
-              "position": 2,
-              "item": {
-                "@type": "CreativeWork",
-                "name": "Restore your peace at this East Texas Hotel",
-                "publisher": { "@type": "Organization", "name": "The East Texas Weekend" },
-                "url": "https://www.theeasttexasweekend.com/2024/11/01/restore-your-peace-this-east-texas-hotel/"
-              }
-            },
-            {
-              "@type": "ListItem",
-              "position": 3,
-              "item": {
-                "@type": "CreativeWork",
-                "name": "9 Luxury Texas Wellness Retreats to Relax, Reset, and Explore Somewhere New",
-                "publisher": { "@type": "Organization", "name": "PaperCity Magazine" },
-                "url": "https://www.papercitymag.com/culture/travel/best-wellness-resorts-texas-hill-country/"
-              }
-            },
-            {
-              "@type": "ListItem",
-              "position": 4,
-              "item": {
-                "@type": "CreativeWork",
-                "name": "ETX View: Jacksonville getaway offers mental & physical refresh through luxurious amenities",
-                "publisher": { "@type": "Organization", "name": "ETX View / Tyler Morning Telegraph" },
-                "url": "https://www.etxview.com/travel/jacksonville-getaway-offers-mental-physical-refresh-through-luxurious-amenities/article_6a719e42-cd7f-11ef-b68b-6f21eb3ef751.html"
-              }
-            },
-            {
-              "@type": "ListItem",
-              "position": 5,
-              "item": {
-                "@type": "CreativeWork",
-                "name": "Wildsam mention / quote (via Ritual Texas Press)",
-                "publisher": { "@type": "Organization", "name": "Wildsam" },
-                "url": "https://www.ritualtexas.com/press"
-              }
-            }
-          ]
+          "itemListElement": pressMentions.map((item, idx) => ({
+            "@type": "ListItem",
+            "position": idx + 1,
+            "item": item
+          }))
         })
       }} />
 
