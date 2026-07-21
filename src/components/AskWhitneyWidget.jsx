@@ -325,7 +325,7 @@ PROPERTY INFORMATION:
           <a href="/itinerary" style={{ flex: 1, textAlign: 'center', padding: '8px', background: 'rgba(197,124,93,.1)', color: '#C57C5D', borderRadius: '8px', textDecoration: 'none', fontWeight: 700 }}>
             View Itinerary
           </a>
-          <a href="mailto:concierge@hotelritual.com" style={{ flex: 1, textAlign: 'center', padding: '8px', background: 'rgba(59,72,49,.1)', color: '#3B4831', borderRadius: '8px', textDecoration: 'none', fontWeight: 700 }}>
+          <a href="mailto:whitney@ritualtexas.com" style={{ flex: 1, textAlign: 'center', padding: '8px', background: 'rgba(59,72,49,.1)', color: '#3B4831', borderRadius: '8px', textDecoration: 'none', fontWeight: 700 }}>
             Message Concierge
           </a>
         </div>
