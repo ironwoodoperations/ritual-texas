@@ -88,8 +88,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
       durationMinutes: Number(appointment.duration || 0),
       price: Number(appointment.price || appointment.priceSold || 0),
       paid: Boolean(appointment.paid === "yes" || appointment.paid === true),
-      email: appointment.email || "",
-      phone: appointment.phone || "",
+      // Normalize contact info on write — the guest itinerary lookup matches on
+      // these fields, so stored casing/whitespace must be consistent.
+      email: (appointment.email || "").trim().toLowerCase(),
+      phone: (appointment.phone || "").trim(),
       raw: {
         callbackPayload: payload,
         appointment,
@@ -103,6 +105,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
       simplybookBookingId: String(appointmentId),
     });
     if (existing && existing.length > 0) {
+      // Never clobber a non-empty stored email/phone with an empty value —
+      // e.g. a reschedule webhook for a staff-entered appointment that has no
+      // email in Acuity must not wipe an email we backfilled or set at booking.
+      const current = existing[0];
+      if (!spaBookingPayload.email && current.email) spaBookingPayload.email = current.email;
+      if (!spaBookingPayload.phone && current.phone) spaBookingPayload.phone = current.phone;
       await base44.asServiceRole.entities.SpaBooking.update(existing[0].id, spaBookingPayload);
       upsertAction = "updated";
     } else {
