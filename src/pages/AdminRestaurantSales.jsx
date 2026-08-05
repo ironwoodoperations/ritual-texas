@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { ArrowLeft, RefreshCw, ExternalLink, PlusCircle, X } from "lucide-react";
 import PageHelpBanner from "@/components/PageHelpBanner";
+import { ctTodayISO, ctDayISO } from "@/lib/time";
 
 const HELP_CONTENT = `Daily and weekly restaurant sales & labor reporting, synced from Toast POS.
 
@@ -18,8 +19,7 @@ const HELP_CONTENT = `Daily and weekly restaurant sales & labor reporting, synce
 A healthy restaurant runs labor at 28-32% of net sales. Flag anything above 35% for Whitney's review.`;
 
 function todayStrLocal() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return ctTodayISO();
 }
 
 function fmt(n) {
@@ -46,7 +46,7 @@ export default function AdminRestaurantSales() {
     const d = new Date();
     const diff = d.getDay() === 0 ? 6 : d.getDay() - 1;
     d.setDate(d.getDate() - diff);
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    return ctDayISO(d);
   }, []);
 
   const { data: allRows = [], refetch } = useQuery({

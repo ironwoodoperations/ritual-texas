@@ -9,7 +9,7 @@ import {
   Loader2, Link2, CheckCircle2
 } from 'lucide-react';
 import PageHelpBanner from '@/components/PageHelpBanner';
-import { ctTime } from '@/lib/time';
+import { ctTime, ctTodayISO } from '@/lib/time';
 
 const HELP_CONTENT = `Live Cloudbeds hotel reservations — view upcoming stays, check guests in/out, and take payments.
 
@@ -163,7 +163,7 @@ export default function AdminBookings() {
     retry: false,
   });
 
-  const todayCb = new Date().toISOString().slice(0, 10);
+  const todayCb = ctTodayISO();
   const cloudbedsReservations = (cloudbedsData?.reservations || [])
     .filter(r => {
       const q = search.toLowerCase();

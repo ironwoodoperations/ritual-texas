@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Clock, AlertTriangle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import PaymentBadge from "./PaymentBadge";
+import { ctTodayISO } from "@/lib/time";
 
 const STATUS_COLORS = {
   new_inquiry: "bg-blue-100 text-blue-700",
@@ -50,8 +51,7 @@ const COLUMNS = [
 ];
 
 function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  return ctTodayISO();
 }
 
 function FollowUpChip({ date }) {

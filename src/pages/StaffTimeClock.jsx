@@ -5,13 +5,13 @@ import { Clock, CheckCircle, AlertCircle, ArrowLeft, LogIn, LogOut } from 'lucid
 import { format, formatDistanceStrict } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { ctTodayISO, ctNowHHMM } from '@/lib/time';
 
 function getTodayStr() {
-  return new Date().toLocaleDateString('en-CA');
+  return ctTodayISO();
 }
 function getCurrentTimeHHMM() {
-  const now = new Date();
-  return String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  return ctNowHHMM();
 }
 function timeToMinutes(hhmm) {
   const [h, m] = hhmm.split(':').map(Number);

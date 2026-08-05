@@ -2,6 +2,7 @@ import React from "react";
 import { AlertTriangle, Clock } from "lucide-react";
 import { parseActivityLog } from "@/components/intake/ActivityLog";
 import PaymentBadge from "@/components/intake/PaymentBadge";
+import { ctTodayISO } from "@/lib/time";
 
 function getLastNote(record) {
   const entries = parseActivityLog(record.internalNotes, record.created_date);
@@ -40,8 +41,7 @@ const STATUS_LABELS = {
 };
 
 function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  return ctTodayISO();
 }
 
 export default function IntakeListView({ records, onSelect, sortKey, onSortChange }) {

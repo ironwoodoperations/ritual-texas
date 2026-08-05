@@ -20,9 +20,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import SpaCalendar from '@/components/spa/SpaCalendar';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ctTime } from '@/lib/time';
+import { ctTime, ctDayISO } from '@/lib/time';
 
-const toISODate = (d) => d.toISOString().slice(0, 10);
+const toISODate = (d) => ctDayISO(d);
 
 const STATUS_COLORS = {
   confirmed: '#10b981',

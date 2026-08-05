@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PageHelpBanner from '@/components/PageHelpBanner';
+import { ctTodayISO, ctNowHHMM } from '@/lib/time';
 
 const HELP_CONTENT = `Schedule shifts, monitor who's clocked in, and review timesheets for payroll.
 
@@ -57,7 +58,7 @@ function fmtIso(iso) {
   return format(new Date(iso), 'h:mm a');
 }
 function getTodayStr() {
-  return new Date().toLocaleDateString('en-CA');
+  return ctTodayISO();
 }
 function elapsedMins(iso) {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
@@ -331,8 +332,7 @@ function TodayClockStatus({ staff }) {
     onSuccess: () => { qc.invalidateQueries(['today-entries', todayStr]); },
   });
 
-  const now = new Date();
-  const curHHMM = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  const curHHMM = ctNowHHMM();
 
   return (
     <div className="space-y-6">

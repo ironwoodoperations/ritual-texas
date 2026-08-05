@@ -11,6 +11,7 @@ import {
 import HotelTodayPanel from "@/components/dashboard/HotelTodayPanel";
 import RestaurantWeekPanel from "@/components/dashboard/RestaurantWeekPanel";
 import PageHelpBanner from "@/components/PageHelpBanner";
+import { ctTodayISO } from "@/lib/time";
 
 const GM_HELP_CONTENT = `Your command center for daily hotel, spa, and restaurant operations.
 
@@ -31,8 +32,7 @@ INTEGRATION QUICK LINKS
 Icons at the bottom link to SimplyBook (spa bookings), Cloudbeds (hotel PMS), Toast (restaurant POS), Square (payments), Loman (AI phone), and Sonos (music system).`;
 
 function todayStrLocal() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  return ctTodayISO();
 }
 
 function parseIsoMaybe(iso) {

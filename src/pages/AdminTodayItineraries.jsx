@@ -18,10 +18,10 @@ const ITINERARY_HELP = `Print-ready guest briefings for every arrival and spa gu
 HOTEL ARRIVALS: Guests checking in today with room assignments.
 SPA GUESTS TODAY: Guests with spa appointments today who are not hotel guests.`;
 import { format } from 'date-fns';
-import { ctTime } from '@/lib/time';
+import { ctTime, ctTodayISO } from '@/lib/time';
 
 function todayStr() {
-  return new Date().toISOString().slice(0, 10);
+  return ctTodayISO();
 }
 
 function fmtDate(d) {

@@ -6,9 +6,9 @@ import { RefreshCw, Printer, Sparkles, Mail, MessageCircle, Check, ChevronDown, 
 import { format } from "date-fns";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ctTime } from "@/lib/time";
+import { ctTime, ctTodayISO } from "@/lib/time";
 
-function todayStr() { return new Date().toISOString().slice(0, 10); }
+function todayStr() { return ctTodayISO(); }
 function fmtDate(d) { if (!d) return "—"; return format(new Date(d + "T12:00:00"), "MMMM d, yyyy"); }
 function isCancelled(status) { return ["booking.cancelled","cancel","cancelled"].includes((status || "").toLowerCase()); }
 

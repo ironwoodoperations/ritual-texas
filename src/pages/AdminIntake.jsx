@@ -17,6 +17,7 @@ import IntakePipelineView from "@/components/intake/IntakePipelineView";
 import IntakeListView from "@/components/intake/IntakeListView";
 import IntakeSidePanel from "@/components/intake/IntakeSidePanel";
 import { appendLogEntry } from "@/components/intake/ActivityLog";
+import { ctTodayISO } from "@/lib/time";
 
 const INTAKE_HELP = `Hotel + Treatment intake forms — your central booking pipeline.
 
@@ -172,8 +173,7 @@ function Field({ label, required, children }) {
 }
 
 function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  return ctTodayISO();
 }
 
 function isNextSevenDays(dateStr) {

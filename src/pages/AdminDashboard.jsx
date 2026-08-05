@@ -40,16 +40,13 @@ NAVIGATION GRID
 • CRM & MARKETING: Master CRM
 • CONTENT & SETTINGS: Knowledge Base · Image Library · Media · Staff Controls · Files · Training Manual`;
 import { motion } from "framer-motion";
+import { ctTodayISO, ctDayISO } from "@/lib/time";
 
 
 const HK_OPEN_STATUSES = ["pending", "in_progress"];
 
 function todayStrLocal() {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
+  return ctTodayISO();
 }
 
 function parseIsoMaybe(iso) {
@@ -372,10 +369,7 @@ export default function AdminDashboard() {
     const diff = day === 0 ? 6 : day - 1;
     d.setDate(d.getDate() - diff);
     d.setHours(0, 0, 0, 0);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
+    return ctDayISO(d);
   }, []);
 
   const { data: toastWeekRows = [] } = useQuery({
