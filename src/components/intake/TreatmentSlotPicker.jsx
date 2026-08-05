@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Plus, X, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { ctTodayISO } from "@/lib/time";
 
 const fieldCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transparent py-2 text-sm text-[rgb(45,45,45)] focus:outline-none focus:border-[rgb(107,85,64)] placeholder-[rgb(190,180,170)] transition-colors";
 const selectCls = "w-full border-0 border-b border-[rgb(220,210,200)] bg-transparent py-2 text-sm text-[rgb(45,45,45)] focus:outline-none focus:border-[rgb(107,85,64)] transition-colors cursor-pointer";
@@ -441,7 +442,7 @@ export default function TreatmentSlotPicker({ sbEntries, ctbEntries, bookOnlineT
     let cancelled = false;
     async function loadPrivate() {
       try {
-        const today = new Date().toISOString().split("T")[0];
+        const today = ctTodayISO();
         const res = await base44.functions.invoke("acuityGetAvailability", { date: today, includePrivate: true });
         if (cancelled) return;
         const allServices = res?.data?.services || [];

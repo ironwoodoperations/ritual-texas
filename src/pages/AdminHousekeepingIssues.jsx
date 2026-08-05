@@ -4,6 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import { ctTodayISO } from '@/lib/time';
 
 const SEV_COLORS = {
   low: { bg: '#f0f9f0', text: '#2d7a2d' },
@@ -12,7 +13,7 @@ const SEV_COLORS = {
   urgent: { bg: '#fff0f0', text: '#8c2020' },
 };
 
-const todayStr = new Date().toISOString().slice(0, 10);
+const todayStr = ctTodayISO();
 const isOverdue = (issue) =>
   issue.status !== 'resolved' &&
   issue.targetDate &&

@@ -5,7 +5,7 @@ import ActivityLog, { appendLogEntry } from "./ActivityLog";
 import InvoicePreviewModal from "./InvoicePreviewModal";
 import InvoiceActionsSection from "./InvoiceActionsSection";
 import PaymentBadge from "./PaymentBadge";
-import { fmtTime } from "@/lib/time";
+import { fmtTime, ctTodayISO } from "@/lib/time";
 
 const STATUS_STEPS = ["new_inquiry", "pending", "confirmed", "booked_reserved"];
 const STATUS_LABELS = {
@@ -260,7 +260,7 @@ export default function IntakeSidePanel({ record, onClose, onUpdate, onEdit }) {
   const missingEmail = !record.email;
   const missingDates = !record.checkInDate || !record.checkOutDate;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = ctTodayISO();
   const therapistOverdue =
     record.therapistFollowUpDate &&
     record.therapistFollowUpDate <= today &&

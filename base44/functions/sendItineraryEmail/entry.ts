@@ -1,5 +1,69 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// ---------------------------------------------------------------------------
+// INLINE THIS BLOCK at the top of any base44/functions/<name>/entry.ts that
+// renders a timestamp. Base44 functions are deployed standalone and CANNOT
+// import sibling modules, so this must be copied per function, not imported.
+//
+// Deno runs in UTC. Without an explicit timeZone, every rendered time is
+// 5-6 hours ahead of Central. Deno ships full ICU, so the timeZone option
+// works with no flag required.
+// ---------------------------------------------------------------------------
+
+const HOTEL_TZ = 'America/Chicago';
+
+// Base44 timestamps are UTC. A datetime string with no zone designator is
+// parsed by JS as local time, which silently shifts it. Force UTC.
+function parseInstant(v: unknown): Date | null {
+  if (!v) return null;
+  if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+  let s = String(v).trim();
+  const hasTime = s.includes('T') || / \d{2}:\d{2}/.test(s);
+  const hasZone = /[Zz]$|[+-]\d{2}:?\d{2}$/.test(s);
+  if (hasTime && !hasZone) s = s.replace(' ', 'T') + 'Z';
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// "Aug 3, 12:33 PM"
+function ctDateTime(v: unknown, opts: Intl.DateTimeFormatOptions = {}): string {
+  const d = parseInstant(v);
+  if (!d) return '';
+  return d.toLocaleString('en-US', {
+    timeZone: HOTEL_TZ,
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    ...opts,
+  });
+}
+
+// "12:33 PM"
+function ctTime(v: unknown): string {
+  const d = parseInstant(v);
+  if (!d) return '';
+  return d.toLocaleTimeString('en-US', {
+    timeZone: HOTEL_TZ,
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
+
+// "YYYY-MM-DD" — the Central calendar day an instant falls on.
+function ctDayISO(v: unknown = new Date()): string {
+  const d = parseInstant(v);
+  if (!d) return '';
+  return d.toLocaleDateString('en-CA', { timeZone: HOTEL_TZ });
+}
+
+// Today's date in Central, "YYYY-MM-DD".
+function ctTodayISO(): string {
+  return ctDayISO(new Date());
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -61,13 +125,7 @@ Deno.serve(async (req) => {
       
       spaBookings.forEach((booking) => {
         // Parse as local date to avoid UTC offset shifting the date back by one day
-        const startDate = booking.startAt ? new Date(booking.startAt).toLocaleString('en-US', {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: '2-digit'
-        }) : '—';
+        const startDate = booking.startAt ? ctDateTime(booking.startAt, { weekday: 'short' }) : '—';
         
         emailBody += `
         <div style="border-bottom: 1px solid #F0E8DD; padding-bottom: 12px; margin-bottom: 12px;">

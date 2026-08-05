@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ctDayISO } from '@/lib/time';
 
-const toISODate = (d) => d.toISOString().slice(0, 10);
+const toISODate = (d) => ctDayISO(d);
 
 export default function SpaCalendar({ selectedDate, onSelectDate }) {
   const today = toISODate(new Date());

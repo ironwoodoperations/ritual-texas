@@ -6,10 +6,10 @@ import { RefreshCw, Printer, Sparkles, Mail, MessageCircle, Check, ChevronDown, 
 import { format } from "date-fns";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { ctTime, ctTodayISO } from "@/lib/time";
 
-function todayStr() { return new Date().toISOString().slice(0, 10); }
+function todayStr() { return ctTodayISO(); }
 function fmtDate(d) { if (!d) return "—"; return format(new Date(d + "T12:00:00"), "MMMM d, yyyy"); }
-function fmtTime(iso) { if (!iso) return "—"; return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }); }
 function isCancelled(status) { return ["booking.cancelled","cancel","cancelled"].includes((status || "").toLowerCase()); }
 
 function buildSmsText(reservation, spaBookings) {
@@ -20,7 +20,7 @@ function buildSmsText(reservation, spaBookings) {
     msg += `\n\n💆 Spa Appointments:`;
     spaBookings.forEach(b => {
       msg += `\n• ${b.serviceName || "Spa Treatment"}`;
-      if (b.startAt) msg += ` – ${format(new Date(b.startAt), "MMM d")} at ${fmtTime(b.startAt)}`;
+      if (b.startAt) msg += ` – ${format(new Date(b.startAt), "MMM d")} at ${ctTime(b.startAt)}`;
       if (b.durationMinutes) msg += ` (${b.durationMinutes} min)`;
       if (b.staffName) msg += ` w/ ${b.staffName}`;
     });
@@ -99,7 +99,7 @@ function GuestCard({ reservation, spaBookings }) {
                 {spaBookings.map((b, i) => (
                   <div key={i} className="flex items-start justify-between bg-[rgb(248,246,242)] rounded-xl p-4">
                     <div><p className="font-medium text-[rgb(107,85,64)] text-sm">{b.serviceName || "Spa Treatment"}</p>{b.staffName && <p className="text-xs text-[rgb(150,150,150)] mt-0.5">Provider: {b.staffName}</p>}</div>
-                    <div className="text-right text-sm"><p className="text-[rgb(45,45,45)]">{b.startAt ? format(new Date(b.startAt), "MMM d") : "—"} · {b.startAt ? fmtTime(b.startAt) : "—"}</p>{b.durationMinutes && <p className="text-xs text-[rgb(150,150,150)] mt-0.5">{b.durationMinutes} min</p>}</div>
+                    <div className="text-right text-sm"><p className="text-[rgb(45,45,45)]">{b.startAt ? format(new Date(b.startAt), "MMM d") : "—"} · {b.startAt ? ctTime(b.startAt) : "—"}</p>{b.durationMinutes && <p className="text-xs text-[rgb(150,150,150)] mt-0.5">{b.durationMinutes} min</p>}</div>
                   </div>
                 ))}
               </div>

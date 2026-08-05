@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, RefreshCw, AlertTriangle, ChevronRight, Clock, CheckCircle2, Pause, Play, Wrench, ArrowLeft, CalendarDays } from 'lucide-react';
 import PageHelpBanner from '@/components/PageHelpBanner';
+import { ctTodayISO, ctDayISO } from '@/lib/time';
 
 const HK_HELP = `Daily housekeeping task management across all rooms and public spaces.
 
@@ -40,10 +41,10 @@ const STATUS_ICONS = {
   needs_review: <AlertTriangle className="w-4 h-4 text-red-500" />,
 };
 
-const today = () => new Date().toISOString().split('T')[0];
+const today = () => ctTodayISO();
 const tomorrow = () => {
   const d = new Date(); d.setDate(d.getDate() + 1);
-  return d.toISOString().split('T')[0];
+  return ctDayISO(d);
 };
 
 export default function AdminHousekeeping() {

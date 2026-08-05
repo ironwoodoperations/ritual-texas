@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { ArrowLeft, RefreshCw, Download, Search, Loader2 } from "lucide-react";
 import PageHelpBanner from "@/components/PageHelpBanner";
+import { ctDate } from "@/lib/time";
 
 const HELP_CONTENT = `Your unified guest database — every person who has booked a room, treatment, or attended an event.
 
@@ -246,7 +247,7 @@ export default function AdminMasterCRM() {
                         {c.marketingOptIn ? "✓ Opted In" : "✗ Opted Out"}
                       </div>
                       {c.lastActivityAt && (
-                        <div className="text-xs mt-1">{new Date(c.lastActivityAt).toLocaleDateString()}</div>
+                        <div className="text-xs mt-1">{ctDate(c.lastActivityAt)}</div>
                       )}
                     </div>
                   </div>
