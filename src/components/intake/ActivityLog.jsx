@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { MessageSquare, Clock } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { ctDateTime } from "@/lib/time";
 
 // Parse internalNotes — can be JSON array or plain string
 export function parseActivityLog(internalNotes, createdDate) {
@@ -29,14 +30,6 @@ export function appendLogEntry(internalNotes, createdDate, text, author = "Staff
   const existing = parseActivityLog(internalNotes, createdDate);
   const entry = { timestamp: new Date().toISOString(), author, text };
   return serializeActivityLog([...existing, entry]);
-}
-
-function formatTs(ts) {
-  try {
-    const d = new Date(ts);
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) +
-      " · " + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  } catch { return ts; }
 }
 
 export default function ActivityLog({ record, onUpdate }) {
@@ -96,7 +89,7 @@ export default function ActivityLog({ record, onUpdate }) {
           <div key={i} className="bg-white border border-[rgb(235,225,213)] rounded-xl px-3 py-2.5">
             <div className="flex items-center gap-2 mb-1">
               <Clock className="w-3 h-3 text-[rgb(180,165,150)] shrink-0" />
-              <span className="text-[10px] text-[rgb(150,130,110)]">{formatTs(entry.timestamp)}</span>
+              <span className="text-[10px] text-[rgb(150,130,110)]">{ctDateTime(entry.timestamp, { year: 'numeric' })}</span>
               <span className="text-[10px] text-[rgb(150,170,155)] font-medium">{entry.author}</span>
             </div>
             <p className="text-xs text-[rgb(45,45,45)] leading-relaxed">{entry.text}</p>

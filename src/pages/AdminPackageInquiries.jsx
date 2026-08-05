@@ -4,6 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { RefreshCw, ArrowLeft } from 'lucide-react';
+import { ctDateTime, fmtCalendarDate } from '@/lib/time';
 
 const STATUS_COLORS = {
   new: { bg: 'rgba(90,107,71,.15)', color: '#3B4831' },
@@ -30,15 +31,12 @@ export default function AdminPackageInquiries() {
     onSuccess: () => qc.invalidateQueries(['package-inquiries'])
   });
 
-  const formatDate = (iso) => {
-    if (!iso) return '—';
-    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
+  // preferred_checkin / preferred_checkout are calendar dates (YYYY-MM-DD from a
+  // date input) — render literally, never timezone-convert.
+  const formatDate = (iso) => fmtCalendarDate(iso);
 
-  const formatDateTime = (iso) => {
-    if (!iso) return '—';
-    return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-  };
+  // created_date is an instant — render in Central.
+  const formatDateTime = (iso) => ctDateTime(iso);
 
   return (
     <div style={{ background: '#F0E8DD', minHeight: '100vh', padding: '32px 20px' }}>

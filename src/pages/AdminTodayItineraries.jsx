@@ -18,6 +18,7 @@ const ITINERARY_HELP = `Print-ready guest briefings for every arrival and spa gu
 HOTEL ARRIVALS: Guests checking in today with room assignments.
 SPA GUESTS TODAY: Guests with spa appointments today who are not hotel guests.`;
 import { format } from 'date-fns';
+import { ctTime } from '@/lib/time';
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
@@ -28,11 +29,6 @@ function fmtDate(d) {
   return format(new Date(d + 'T12:00:00'), 'MMMM d, yyyy');
 }
 
-function fmtTime(iso) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-}
-
 function buildSmsText(reservation, spaBookings) {
   const checkIn = fmtDate(reservation.checkIn);
   const checkOut = fmtDate(reservation.checkOut);
@@ -41,7 +37,7 @@ function buildSmsText(reservation, spaBookings) {
     msg += `\n\n💆 Spa Appointments:`;
     spaBookings.forEach(b => {
       msg += `\n• ${b.serviceName || 'Spa Treatment'}`;
-      if (b.startAt) msg += ` – ${format(new Date(b.startAt), 'MMM d')} at ${fmtTime(b.startAt)}`;
+      if (b.startAt) msg += ` – ${format(new Date(b.startAt), 'MMM d')} at ${ctTime(b.startAt)}`;
       if (b.durationMinutes) msg += ` (${b.durationMinutes} min)`;
       if (b.staffName) msg += ` w/ ${b.staffName}`;
     });
@@ -197,7 +193,7 @@ function GuestCard({ reservation, spaBookings }) {
                               </div>
                             </div>
                             <div className="text-right text-sm shrink-0">
-                              <p className="text-[rgb(45,45,45)]">{ev.at ? fmtTime(ev.at) : '—'}</p>
+                              <p className="text-[rgb(45,45,45)]">{ev.at ? ctTime(ev.at) : '—'}</p>
                               {ev.durationMinutes && <p className="text-xs text-[rgb(150,150,150)] mt-0.5">{ev.durationMinutes} min</p>}
                             </div>
                           </div>

@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { CalendarDays, CheckCircle, Clock, Coffee, Droplets, Phone, MessageCircle, Sparkles, Printer } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { ctTime, ctDateTime } from '@/lib/time';
 
 const ACUITY_URL = "https://ritual-hotel-texas.as.me/";
 const CONCIERGE_PHONE = "9038106695";
@@ -134,11 +135,6 @@ export default function ItineraryPage() {
     return isNaN(d.getTime()) ? null : d;
   };
 
-  const formatTime = (dateString) => {
-    const d = new Date(dateString);
-    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  };
-
   const formatDayHeader = (dt) => {
     // Accept a Date object directly
     if (dt instanceof Date) return dt.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
@@ -205,7 +201,7 @@ export default function ItineraryPage() {
         label: serviceName,
         dt,
         meta: [
-          `Time: ${formatTime(start)}`,
+          `Time: ${ctTime(start)}`,
           durationMinutes ? `Duration: ${durationMinutes} min` : null,
           b.staffName ? `Provider: ${b.staffName}` : null,
           b.price ? `Price: $${Number(b.price).toFixed(0)}` : null,
@@ -452,10 +448,7 @@ export default function ItineraryPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-sm" style={{ color: '#1B1B1B' }}>
-                        {booking.startAt ? (() => {
-                          const d = toDateSafe(booking.startAt);
-                          return d ? d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
-                        })() : '—'}
+                        {booking.startAt ? ctDateTime(booking.startAt, { weekday: 'short' }) : '—'}
                       </div>
                       <div className="text-xs mt-0.5" style={{ color: '#888' }}>
                         {booking.durationMinutes ? `${booking.durationMinutes} min` : ''}
@@ -523,7 +516,7 @@ export default function ItineraryPage() {
                               <div>
                                 <div className="font-medium" style={{ color: '#3B4831' }}>{item.label}</div>
                                 <div className="text-sm mt-1" style={{ color: '#1B1B1B' }}>
-                                  {formatDate(item.dt.toISOString())} • {formatTime(item.dt.toISOString())}
+                                  {formatDate(item.dt.toISOString())} • {ctTime(item.dt.toISOString())}
                                 </div>
                                 {item.sub && (
                                   <div className="text-sm mt-2" style={{ color: '#1B1B1B' }}>{item.sub}</div>

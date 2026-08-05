@@ -20,11 +20,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import SpaCalendar from '@/components/spa/SpaCalendar';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { ctTime } from '@/lib/time';
 
 const toISODate = (d) => d.toISOString().slice(0, 10);
-
-const fmtTime = (iso) =>
-  new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
 const STATUS_COLORS = {
   confirmed: '#10b981',
@@ -275,8 +273,8 @@ export default function AdminSpaSchedule() {
                               {b.serviceName || b.service || 'Spa Treatment'}
                             </div>
                             <div style={{ fontSize: '13px', color: '#555' }}>
-                              {fmtTime(b.startAt)}
-                              {endTime ? ` – ${fmtTime(endTime.toISOString())}` : ''}
+                              {ctTime(b.startAt)}
+                              {endTime ? ` – ${ctTime(endTime.toISOString())}` : ''}
                               {b.durationMinutes ? ` (${b.durationMinutes} min)` : ''}
                               {b.price ? ` · $${Number(b.price).toFixed(0)}` : ''}
                             </div>

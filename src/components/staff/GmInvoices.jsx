@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { fmtCalendarDate } from "@/lib/time";
 
 const STATUS_COLOR = {
   DRAFT:           "bg-gray-100 text-gray-600",
@@ -23,7 +24,7 @@ const STATUS_COLOR = {
 };
 
 const fmtMoney = (n) => n != null ? `$${(Number(n)/100).toFixed(2)}` : "—";
-const fmtDate  = (s) => s ? new Date(s).toLocaleDateString() : "—";
+const fmtDate  = (s) => fmtCalendarDate(s);
 
 const ALL_TAXES = [
   { key: "sales_state",  label: "State of Texas (Sales)",               rate: 6.25, group: "sales" },

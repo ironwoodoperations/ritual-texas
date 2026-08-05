@@ -2,11 +2,11 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Calendar, ExternalLink } from "lucide-react";
+import { ctDateTime } from "@/lib/time";
 
 function fmtEventTime(event) {
   if (event.start?.dateTime) {
-    const d = new Date(event.start.dateTime);
-    return d.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    return ctDateTime(event.start.dateTime, { weekday: "short" });
   }
   if (event.start?.date) {
     const [y, m, day] = event.start.date.split("-");

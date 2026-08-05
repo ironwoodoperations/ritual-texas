@@ -20,14 +20,7 @@ PACKAGE INQUIRIES TAB
 • Completed — Booked: removes from inbox and treats as won. Completed — Not Booked: saves to CRM and removes.
 
 Target response time: 2 hours for all new inquiries.`;
-import { format } from 'date-fns';
-
-function fmtDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' +
-    d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-}
+import { ctDateTime } from '@/lib/time';
 import { motion } from 'framer-motion';
 
 function buildReplyEmail(inq) {
@@ -372,7 +365,7 @@ export default function AdminConciergeInbox() {
                           {lead.status === 'new' && (
                             <span className="text-[10px] bg-[rgb(107,85,64)] text-white px-2 py-0.5 rounded-full">NEW</span>
                           )}
-                          <span className="text-xs text-[rgb(150,150,150)]">{fmtDate(lead.created_date)}</span>
+                          <span className="text-xs text-[rgb(150,150,150)]">{ctDateTime(lead.created_date)}</span>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap mb-2">
                           {lead.email && <a href={`mailto:${lead.email}`} className="text-xs text-[rgb(107,85,64)] hover:underline">{lead.email}</a>}
@@ -437,7 +430,7 @@ export default function AdminConciergeInbox() {
                           {inq.status === 'new' && (
                             <span className="text-[10px] bg-[rgb(107,85,64)] text-white px-2 py-0.5 rounded-full">NEW</span>
                           )}
-                          <span className="text-xs text-[rgb(150,150,150)]">{fmtDate(inq.created_date)}</span>
+                          <span className="text-xs text-[rgb(150,150,150)]">{ctDateTime(inq.created_date)}</span>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap mb-2">
                           {(inq.email || inq.guest_email) && <a href={`mailto:${inq.email || inq.guest_email}`} className="text-xs text-[rgb(107,85,64)] hover:underline">{inq.email || inq.guest_email}</a>}

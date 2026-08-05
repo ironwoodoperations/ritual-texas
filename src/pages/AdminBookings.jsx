@@ -9,6 +9,7 @@ import {
   Loader2, Link2, CheckCircle2
 } from 'lucide-react';
 import PageHelpBanner from '@/components/PageHelpBanner';
+import { ctTime } from '@/lib/time';
 
 const HELP_CONTENT = `Live Cloudbeds hotel reservations — view upcoming stays, check guests in/out, and take payments.
 
@@ -240,7 +241,7 @@ export default function AdminBookings() {
               <div className="flex items-center gap-3">
                 {lastSyncTime && (
                   <span className="text-xs text-[rgb(150,150,150)]">
-                    Synced {lastSyncTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                    Synced {ctTime(lastSyncTime)}
                   </span>
                 )}
                 <button
