@@ -168,6 +168,13 @@ function DayIn60Panel({ arrivalsToday, departuresToday, inHouseTonight, todaySpa
           <span className="text-xs text-[rgb(120,120,120)]">{hkNeedsCount} open{hkIssues.length ? ` · ${hkIssues.length} issue${hkIssues.length === 1 ? "" : "s"}` : ""}</span>
         </Link>
         <RestaurantWeekPanel />
+        <Link to={createPageUrl("AdminSocial")} className="flex items-center justify-between rounded-xl border border-[rgb(235,225,213)] px-3 py-2 hover:bg-[rgb(248,246,242)] transition-all">
+          <div className="flex items-center gap-2">
+            <Share2 className="w-4 h-4 text-[rgb(150,170,155)]" />
+            <span className="text-sm font-medium text-[rgb(45,45,45)]">Social Media</span>
+          </div>
+          <span className="text-xs text-[rgb(120,120,120)]">Campaigns & posts</span>
+        </Link>
       </div>
       {/* Quick Links Row */}
       <div className="mt-4 pt-4 border-t border-[rgb(235,225,213)] flex gap-2 flex-wrap">
@@ -425,6 +432,7 @@ export default function AdminDashboard() {
       color: "rgb(150,170,155)",
       tiles: [
         { icon: Users, label: "Master CRM", page: "AdminMasterCRM" },
+        { icon: Share2, label: "Social Media", page: "AdminSocial" },
       ],
     },
     {
