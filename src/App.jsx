@@ -16,6 +16,7 @@ import AdminDocs from './pages/AdminDocs';
 import AdminIntakeDocs from './pages/AdminIntakeDocs';
 import GuestBookNow from './pages/GuestBookNow';
 import BookingConfirmed from './pages/BookingConfirmed';
+import AdminSocial from './pages/AdminSocial';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -76,6 +77,7 @@ const AuthenticatedApp = () => {
       <Route path="/AdminIntakeDocs" element={<LayoutWrapper currentPageName="AdminIntakeDocs"><AdminIntakeDocs /></LayoutWrapper>} />
       <Route path="/GuestBookNow" element={<LayoutWrapper currentPageName="GuestBookNow"><GuestBookNow /></LayoutWrapper>} />
       <Route path="/booking-confirmed" element={<LayoutWrapper currentPageName="BookingConfirmed"><BookingConfirmed /></LayoutWrapper>} />
+      <Route path="/AdminSocial" element={<LayoutWrapper currentPageName="AdminSocial"><AdminSocial /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
