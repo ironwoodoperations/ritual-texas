@@ -1,0 +1,46 @@
+{
+  "name": "RestaurantReservationRequests",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Guest name"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email address"
+    },
+    "dateTimeRequested": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Requested reservation date/time"
+    },
+    "partySize": {
+      "type": "number",
+      "description": "Number of guests"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Special requests or notes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "declined"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "name",
+    "phone",
+    "dateTimeRequested",
+    "partySize"
+  ]
+}

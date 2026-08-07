@@ -1,0 +1,84 @@
+{
+  "name": "SocialPost",
+  "type": "object",
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "hotel",
+        "restaurant",
+        "spa"
+      ]
+    },
+    "pillar": {
+      "type": "string",
+      "enum": [
+        "quiet",
+        "glow",
+        "release",
+        "together"
+      ]
+    },
+    "campaignId": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "hashtags": {
+      "type": "string"
+    },
+    "imageUrls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "instagram",
+        "facebook",
+        "tiktok"
+      ]
+    },
+    "scheduledFor": {
+      "type": "string"
+    },
+    "timezone": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved",
+        "scheduled",
+        "published",
+        "failed"
+      ],
+      "default": "draft"
+    },
+    "zernioPostId": {
+      "type": "string"
+    },
+    "generatedBy": {
+      "type": "string",
+      "enum": [
+        "ai",
+        "manual"
+      ],
+      "default": "manual"
+    },
+    "sourceTreatmentId": {
+      "type": "string"
+    },
+    "failureReason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "category",
+    "platform"
+  ]
+}

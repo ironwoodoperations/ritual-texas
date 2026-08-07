@@ -1,0 +1,53 @@
+{
+  "name": "RestaurantDailySpecials",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Special title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Special description"
+    },
+    "price": {
+      "type": "number",
+      "description": "Price in dollars"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Lunch",
+        "Dinner",
+        "Bar",
+        "Dessert",
+        "Other"
+      ],
+      "description": "Special category",
+      "default": "Lunch"
+    },
+    "isActiveToday": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this special is active today"
+    },
+    "isArchived": {
+      "type": "boolean",
+      "default": false,
+      "description": "Archived specials won't show up"
+    },
+    "isSoup": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this a daily soup special"
+    },
+    "soupName": {
+      "type": "string",
+      "description": "Name of the soup (if isSoup=true)"
+    }
+  },
+  "required": [
+    "title",
+    "description"
+  ]
+}

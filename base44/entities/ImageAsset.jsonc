@@ -1,0 +1,43 @@
+{
+  "name": "ImageAsset",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Image name/title"
+    },
+    "url": {
+      "type": "string",
+      "description": "Image URL"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description"
+    },
+    "placement_key": {
+      "type": "string",
+      "description": "Where this image is placed (e.g., home.hero, packages.header)"
+    },
+    "sort_order": {
+      "type": "number",
+      "description": "Display order",
+      "default": 0
+    },
+    "width": {
+      "type": "number",
+      "description": "Image width in pixels"
+    },
+    "height": {
+      "type": "number",
+      "description": "Image height in pixels"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "url"
+  ]
+}

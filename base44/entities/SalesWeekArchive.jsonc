@@ -1,0 +1,42 @@
+{
+  "name": "SalesWeekArchive",
+  "type": "object",
+  "properties": {
+    "weekKey": {
+      "type": "string"
+    },
+    "weekLabel": {
+      "type": "string"
+    },
+    "startDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "endDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "totalSales": {
+      "type": "number",
+      "default": 0
+    },
+    "totalLabor": {
+      "type": "number",
+      "default": 0
+    },
+    "totalLaborHours": {
+      "type": "number",
+      "default": 0
+    },
+    "days": {
+      "type": "string",
+      "description": "JSON array of daily breakdown"
+    }
+  },
+  "required": [
+    "weekKey",
+    "weekLabel",
+    "startDate",
+    "endDate"
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "name": "RestaurantMenuItems",
+  "type": "object",
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "Lunch",
+        "Bar",
+        "Dinner",
+        "Dessert",
+        "Espresso",
+        "Cocktails",
+        "Wine"
+      ],
+      "description": "Menu category"
+    },
+    "section": {
+      "type": "string",
+      "description": "Section within category"
+    },
+    "name": {
+      "type": "string",
+      "description": "Item name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Item description"
+    },
+    "price": {
+      "type": "number",
+      "description": "Price in dollars"
+    },
+    "priceNote": {
+      "type": "string",
+      "description": "Price note (e.g., cup, bowl, 2 pcs)"
+    },
+    "tags": {
+      "type": "string",
+      "description": "Tags (GF, V, etc)"
+    },
+    "sortOrder": {
+      "type": "number",
+      "default": 0,
+      "description": "Display order"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "category",
+    "name",
+    "price"
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "name": "Treatment",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "massage",
+        "facial",
+        "body",
+        "ritual",
+        "wellness"
+      ]
+    },
+    "what_it_is": {
+      "type": "string",
+      "description": "Plain explanation of the treatment"
+    },
+    "how_it_feels": {
+      "type": "string",
+      "description": "Sensory description"
+    },
+    "why_choose": {
+      "type": "string",
+      "description": "Why someone would choose this"
+    },
+    "what_to_expect_after": {
+      "type": "string"
+    },
+    "not_for": {
+      "type": "string",
+      "description": "Who should avoid this"
+    },
+    "duration_minutes": {
+      "type": "number"
+    },
+    "price": {
+      "type": "number"
+    },
+    "sort_order": {
+      "type": "number",
+      "description": "Display order"
+    },
+    "booking_mode": {
+      "type": "string",
+      "enum": [
+        "book_online",
+        "request_info",
+        "call_to_book",
+        "call_and_info"
+      ],
+      "default": "book_online",
+      "description": "How guests can book this treatment"
+    },
+    "is_available": {
+      "type": "boolean",
+      "default": true
+    },
+    "video_url": {
+      "type": "string",
+      "description": "YouTube video URL (e.g. https://www.youtube.com/watch?v=...)"
+    }
+  },
+  "required": [
+    "name",
+    "duration_minutes",
+    "price"
+  ]
+}

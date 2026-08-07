@@ -1,0 +1,44 @@
+{
+  "name": "RestaurantHours",
+  "type": "object",
+  "properties": {
+    "dayOfWeek": {
+      "type": "string",
+      "enum": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "description": "Day of the week"
+    },
+    "openTime": {
+      "type": "string",
+      "description": "Opening time (e.g., 11:00 AM)"
+    },
+    "closeTime": {
+      "type": "string",
+      "description": "Closing time (e.g., 9:00 PM)"
+    },
+    "isClosed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether closed on this day"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "sortOrder": {
+      "type": "number",
+      "default": 0,
+      "description": "Display order"
+    }
+  },
+  "required": [
+    "dayOfWeek"
+  ]
+}

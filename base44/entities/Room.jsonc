@@ -1,0 +1,56 @@
+{
+  "name": "Room",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Room name"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-friendly identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "Short description"
+    },
+    "detailed_description": {
+      "type": "string",
+      "description": "Full description with what's included"
+    },
+    "best_for": {
+      "type": "string",
+      "description": "Who this room is best for"
+    },
+    "max_occupancy": {
+      "type": "number",
+      "description": "Maximum guests"
+    },
+    "price_per_night": {
+      "type": "number",
+      "description": "Nightly rate in dollars"
+    },
+    "amenities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of amenities"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Image URLs"
+    },
+    "is_available": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "price_per_night"
+  ]
+}

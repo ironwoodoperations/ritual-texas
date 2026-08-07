@@ -1,0 +1,62 @@
+{
+  "name": "StaffTimeEntry",
+  "type": "object",
+  "properties": {
+    "staff_pin_id": {
+      "type": "string"
+    },
+    "staff_name": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string"
+    },
+    "shift_id": {
+      "type": "string",
+      "description": "Reference to StaffShift id, may be empty"
+    },
+    "clock_in_time": {
+      "type": "string",
+      "description": "ISO datetime"
+    },
+    "clock_out_time": {
+      "type": "string",
+      "description": "ISO datetime, empty if still clocked in"
+    },
+    "clock_in_date": {
+      "type": "string",
+      "description": "YYYY-MM-DD for easy filtering"
+    },
+    "total_minutes": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "clocked_in",
+        "clocked_out"
+      ],
+      "default": "clocked_in"
+    },
+    "denied_reason": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "manager_edited": {
+      "type": "boolean",
+      "default": false
+    },
+    "manager_edit_note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "staff_pin_id",
+    "staff_name",
+    "clock_in_time",
+    "clock_in_date",
+    "status"
+  ]
+}

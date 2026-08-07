@@ -1,0 +1,29 @@
+{
+  "name": "CrmIdentity",
+  "type": "object",
+  "properties": {
+    "contactId": {
+      "type": "string",
+      "description": "Reference to CrmContact"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "cloudbeds",
+        "square",
+        "acuity",
+        "simplybook"
+      ],
+      "description": "Which platform this ID came from"
+    },
+    "externalId": {
+      "type": "string",
+      "description": "The ID from that platform (reservationId, customerId, appointmentId, etc)"
+    }
+  },
+  "required": [
+    "contactId",
+    "source",
+    "externalId"
+  ]
+}

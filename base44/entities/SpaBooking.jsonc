@@ -1,0 +1,87 @@
+{
+  "name": "SpaBooking",
+  "type": "object",
+  "properties": {
+    "squareBookingId": {
+      "type": "string",
+      "description": "Unique Square booking ID"
+    },
+    "simplybookBookingId": {
+      "type": "string",
+      "description": "Unique SimplyBook booking ID"
+    },
+    "simplybookBookingHash": {
+      "type": "string",
+      "description": "SimplyBook booking hash"
+    },
+    "status": {
+      "type": "string",
+      "description": "Booking status (create, change, cancel)"
+    },
+    "service": {
+      "type": "string",
+      "description": "Service/event ID"
+    },
+    "serviceName": {
+      "type": "string",
+      "description": "Service name"
+    },
+    "staff": {
+      "type": "string",
+      "description": "Staff/unit ID"
+    },
+    "staffName": {
+      "type": "string",
+      "description": "Staff member name"
+    },
+    "clientName": {
+      "type": "string",
+      "description": "Guest full name"
+    },
+    "startAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Appointment start time"
+    },
+    "durationMinutes": {
+      "type": "number",
+      "description": "Duration in minutes"
+    },
+    "price": {
+      "type": "number",
+      "description": "Price amount"
+    },
+    "paid": {
+      "type": "boolean",
+      "default": false
+    },
+    "email": {
+      "type": "string",
+      "description": "Guest email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Guest phone number"
+    },
+    "raw": {
+      "type": "object",
+      "description": "Raw webhook and booking data"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "square",
+        "simplybook",
+        "manual"
+      ],
+      "default": "simplybook"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "startAt"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "StaffPin",
+  "type": "object",
+  "properties": {
+    "pin": {
+      "type": "string",
+      "description": "4-digit PIN"
+    },
+    "name": {
+      "type": "string",
+      "description": "Staff member name"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "server",
+        "chef",
+        "kitchen_staff",
+        "housekeeping",
+        "hotel_host",
+        "hotel_service_provider",
+        "manager"
+      ],
+      "default": "server",
+      "description": "Primary role (for backward compatibility)"
+    },
+    "roles": {
+      "type": "string",
+      "description": "Comma-separated list of roles for multi-role staff members (e.g. server,hotel_host)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "pin",
+    "name"
+  ]
+}

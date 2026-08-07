@@ -1,0 +1,95 @@
+{
+  "name": "TreatmentBooking",
+  "type": "object",
+  "properties": {
+    "confirmation_code": {
+      "type": "string"
+    },
+    "guest_name": {
+      "type": "string"
+    },
+    "guest_email": {
+      "type": "string"
+    },
+    "guest_phone": {
+      "type": "string"
+    },
+    "stay_type": {
+      "type": "string",
+      "enum": [
+        "hotel",
+        "daytrip"
+      ],
+      "description": "Whether guest is staying at hotel or just visiting for treatments"
+    },
+    "room_id": {
+      "type": "string",
+      "description": "Room ID if hotel guest"
+    },
+    "room_name": {
+      "type": "string"
+    },
+    "treatments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "treatment_id": {
+            "type": "string"
+          },
+          "treatment_name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "duration": {
+            "type": "number"
+          },
+          "scheduled_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "confirmed",
+              "completed",
+              "cancelled"
+            ],
+            "default": "pending"
+          }
+        }
+      }
+    },
+    "total_amount": {
+      "type": "number"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "paid",
+        "refunded"
+      ],
+      "default": "pending"
+    },
+    "booking_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "completed",
+        "cancelled"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "guest_name",
+    "guest_email",
+    "stay_type",
+    "treatments"
+  ]
+}

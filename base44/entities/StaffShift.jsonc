@@ -1,0 +1,38 @@
+{
+  "name": "StaffShift",
+  "type": "object",
+  "properties": {
+    "staff_pin_id": {
+      "type": "string",
+      "description": "Reference to StaffPin record id"
+    },
+    "staff_name": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string"
+    },
+    "shift_date": {
+      "type": "string",
+      "description": "YYYY-MM-DD"
+    },
+    "scheduled_start": {
+      "type": "string",
+      "description": "HH:MM 24h format e.g. 09:00"
+    },
+    "scheduled_end": {
+      "type": "string",
+      "description": "HH:MM 24h format e.g. 17:00"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "staff_pin_id",
+    "staff_name",
+    "shift_date",
+    "scheduled_start",
+    "scheduled_end"
+  ]
+}

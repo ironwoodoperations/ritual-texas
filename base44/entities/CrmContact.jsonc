@@ -1,0 +1,63 @@
+{
+  "name": "CrmContact",
+  "type": "object",
+  "properties": {
+    "firstName": {
+      "type": "string"
+    },
+    "lastName": {
+      "type": "string"
+    },
+    "fullName": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "normalizedEmail": {
+      "type": "string",
+      "description": "Lowercased, trimmed email for deduping"
+    },
+    "normalizedPhone": {
+      "type": "string",
+      "description": "Digits only (last 10 for US) for deduping"
+    },
+    "lastActivityAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "lifetimeValue": {
+      "type": "number",
+      "default": 0
+    },
+    "totalBookings": {
+      "type": "number",
+      "default": 0
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "e.g. VIP, Locals, Couples, Spa Lovers"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes / preferences"
+    },
+    "marketingOptIn": {
+      "type": "boolean",
+      "default": true
+    },
+    "doNotContact": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "fullName"
+  ]
+}

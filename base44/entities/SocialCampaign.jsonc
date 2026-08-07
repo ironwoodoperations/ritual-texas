@@ -1,0 +1,50 @@
+{
+  "name": "SocialCampaign",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "hotel",
+        "restaurant",
+        "spa"
+      ]
+    },
+    "durationDays": {
+      "type": "number"
+    },
+    "startDate": {
+      "type": "string"
+    },
+    "platforms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "paused",
+        "complete"
+      ],
+      "default": "draft"
+    },
+    "postCount": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "title",
+    "category"
+  ]
+}

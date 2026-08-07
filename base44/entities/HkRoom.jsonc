@@ -1,0 +1,23 @@
+{
+  "name": "HkRoom",
+  "type": "object",
+  "properties": {
+    "roomNumber": {
+      "type": "string"
+    },
+    "roomType": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "sortOrder": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "roomNumber"
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "name": "ApiCache",
+  "type": "object",
+  "properties": {
+    "source_system": {
+      "type": "string",
+      "description": "cloudbeds | square | simplybook",
+      "enum": [
+        "cloudbeds",
+        "square",
+        "simplybook"
+      ]
+    },
+    "endpoint": {
+      "type": "string",
+      "description": "e.g. room_types, services, availability"
+    },
+    "cache_key": {
+      "type": "string",
+      "description": "Unique key: source_system:endpoint:record_id"
+    },
+    "payload": {
+      "type": "string",
+      "description": "JSON-serialized response payload"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this cache entry expires"
+    },
+    "last_synced": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this was last fetched from the API"
+    }
+  },
+  "required": [
+    "source_system",
+    "endpoint",
+    "cache_key",
+    "payload",
+    "expires_at"
+  ]
+}

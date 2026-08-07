@@ -1,0 +1,24 @@
+{
+  "name": "HkPublicSpace",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of public space (lobby, dining room, etc)"
+    },
+    "description": {
+      "type": "string"
+    },
+    "sortOrder": {
+      "type": "number",
+      "default": 0
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

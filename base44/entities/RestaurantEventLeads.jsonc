@@ -1,0 +1,58 @@
+{
+  "name": "RestaurantEventLeads",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Contact name"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email address"
+    },
+    "dateRequested": {
+      "type": "string",
+      "format": "date",
+      "description": "Requested event date"
+    },
+    "partySize": {
+      "type": "number",
+      "description": "Expected number of guests"
+    },
+    "eventType": {
+      "type": "string",
+      "enum": [
+        "Private Dining",
+        "Corporate Event",
+        "Wedding",
+        "Birthday",
+        "Other"
+      ],
+      "description": "Type of event"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Event details and requirements"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "contacted",
+        "booked",
+        "declined"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "name",
+    "email",
+    "dateRequested",
+    "partySize"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "SiteSettings",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Setting key (e.g., MENU_SOURCE, MENU_PDF_URL)"
+    },
+    "value": {
+      "type": "string",
+      "description": "Setting value"
+    },
+    "description": {
+      "type": "string",
+      "description": "What this setting controls"
+    }
+  },
+  "required": [
+    "key",
+    "value"
+  ]
+}

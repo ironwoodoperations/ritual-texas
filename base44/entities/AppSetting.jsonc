@@ -1,0 +1,18 @@
+{
+  "name": "AppSetting",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Setting key: cloudbeds_lastSync, square_lastSync, etc"
+    },
+    "value": {
+      "type": "string",
+      "description": "JSON or plain string value"
+    }
+  },
+  "required": [
+    "key",
+    "value"
+  ]
+}

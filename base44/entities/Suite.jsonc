@@ -1,0 +1,60 @@
+{
+  "name": "Suite",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Suite name (e.g., Suite 1, Suite 7 \u2014 The Carriage House)"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-friendly identifier"
+    },
+    "headline": {
+      "type": "string",
+      "description": "Short headline description"
+    },
+    "description": {
+      "type": "string",
+      "description": "Full suite description"
+    },
+    "level": {
+      "type": "string",
+      "description": "Suite location (First level, Second level, Carriage House)"
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of suite features"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Image URLs"
+    },
+    "price_per_night": {
+      "type": "number",
+      "description": "Nightly rate in dollars"
+    },
+    "max_occupancy": {
+      "type": "number",
+      "description": "Maximum guests"
+    },
+    "sort_order": {
+      "type": "number",
+      "description": "Display order"
+    },
+    "is_available": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "slug"
+  ]
+}

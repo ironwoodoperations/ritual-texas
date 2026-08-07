@@ -1,0 +1,63 @@
+{
+  "name": "HkIssue",
+  "type": "object",
+  "properties": {
+    "roomId": {
+      "type": "string"
+    },
+    "roomNumber": {
+      "type": "string"
+    },
+    "taskId": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "maintenance",
+        "missing_item",
+        "damage",
+        "odor",
+        "pest",
+        "other"
+      ],
+      "default": "maintenance"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium"
+    },
+    "description": {
+      "type": "string"
+    },
+    "photoUrls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "acknowledged",
+        "resolved"
+      ],
+      "default": "open"
+    },
+    "createdByUserId": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "roomId",
+    "type",
+    "description"
+  ]
+}

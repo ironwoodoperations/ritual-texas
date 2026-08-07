@@ -1,0 +1,44 @@
+{
+  "name": "FileAsset",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "File display name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description"
+    },
+    "category": {
+      "type": "string",
+      "description": "Category/folder for organization"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "Uploaded file URL"
+    },
+    "file_type": {
+      "type": "string",
+      "enum": [
+        "pdf",
+        "word",
+        "excel",
+        "other"
+      ],
+      "description": "Type of file"
+    },
+    "file_size": {
+      "type": "string",
+      "description": "Human-readable file size"
+    },
+    "original_filename": {
+      "type": "string",
+      "description": "Original uploaded filename"
+    }
+  },
+  "required": [
+    "name",
+    "file_url"
+  ]
+}

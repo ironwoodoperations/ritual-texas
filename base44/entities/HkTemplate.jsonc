@@ -1,0 +1,49 @@
+{
+  "name": "HkTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "taskType": {
+      "type": "string",
+      "enum": [
+        "checkout",
+        "stayover",
+        "deep_clean",
+        "manual"
+      ]
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "qtyExpected": {
+            "type": "number"
+          },
+          "sortOrder": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "taskType"
+  ]
+}

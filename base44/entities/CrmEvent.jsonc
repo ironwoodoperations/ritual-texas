@@ -1,0 +1,63 @@
+{
+  "name": "CrmEvent",
+  "type": "object",
+  "properties": {
+    "contactId": {
+      "type": "string",
+      "description": "Reference to CrmContact"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "cloudbeds",
+        "square",
+        "acuity",
+        "simplybook",
+        "other"
+      ]
+    },
+    "externalId": {
+      "type": "string",
+      "description": "Unique ID from source (reservationId, appointmentId, etc)"
+    },
+    "eventType": {
+      "type": "string",
+      "enum": [
+        "hotel_stay",
+        "treatment",
+        "restaurant",
+        "other"
+      ],
+      "default": "other"
+    },
+    "startAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "endAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "description": "confirmed, completed, cancelled, etc"
+    },
+    "title": {
+      "type": "string",
+      "description": "Service/room name: e.g. 'Suite 2 Stay', 'Swedish 60min'"
+    },
+    "amount": {
+      "type": "number",
+      "default": 0
+    },
+    "meta": {
+      "type": "object",
+      "description": "Extra data (room type, provider name, etc)"
+    }
+  },
+  "required": [
+    "contactId",
+    "eventType",
+    "title"
+  ]
+}

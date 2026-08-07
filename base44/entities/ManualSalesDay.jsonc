@@ -1,0 +1,30 @@
+{
+  "name": "ManualSalesDay",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "weekKey": {
+      "type": "string",
+      "description": "Start date of the week (Tuesday)"
+    },
+    "sales": {
+      "type": "number",
+      "default": 0
+    },
+    "labor": {
+      "type": "number",
+      "default": 0
+    },
+    "laborHours": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "date",
+    "weekKey"
+  ]
+}

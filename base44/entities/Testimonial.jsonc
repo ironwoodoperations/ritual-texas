@@ -1,0 +1,42 @@
+{
+  "name": "Testimonial",
+  "type": "object",
+  "properties": {
+    "slug": {
+      "type": "string",
+      "description": "URL-friendly identifier (usually author name)"
+    },
+    "author": {
+      "type": "string",
+      "description": "Guest name"
+    },
+    "quote": {
+      "type": "string",
+      "description": "Testimonial text"
+    },
+    "rating": {
+      "type": "number",
+      "description": "Star rating (1-5)"
+    },
+    "source_name": {
+      "type": "string",
+      "description": "Where the review came from"
+    },
+    "source_url": {
+      "type": "string",
+      "description": "Link to original review"
+    },
+    "sort_order": {
+      "type": "number",
+      "description": "Display order"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "author",
+    "quote"
+  ]
+}

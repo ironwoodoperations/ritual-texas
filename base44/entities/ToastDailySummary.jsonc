@@ -1,0 +1,29 @@
+{
+  "name": "ToastDailySummary",
+  "type": "object",
+  "properties": {
+    "businessDate": {
+      "type": "string",
+      "description": "Date in YYYY-MM-DD format"
+    },
+    "netSales": {
+      "type": "number"
+    },
+    "laborTotalCost": {
+      "type": "number"
+    },
+    "laborHours": {
+      "type": "number"
+    },
+    "salesPerLaborHour": {
+      "type": "number"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "businessDate"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "KnowledgeBaseArticles",
+  "type": "object",
+  "properties": {
+    "question": {
+      "type": "string",
+      "description": "The question being answered"
+    },
+    "answer": {
+      "type": "string",
+      "description": "The detailed answer"
+    },
+    "tags": {
+      "type": "string",
+      "description": "Searchable tags (comma-separated)"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last updated timestamp"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this article is active"
+    }
+  },
+  "required": [
+    "question",
+    "answer"
+  ]
+}

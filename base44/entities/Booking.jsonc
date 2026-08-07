@@ -1,0 +1,125 @@
+{
+  "name": "Booking",
+  "type": "object",
+  "properties": {
+    "confirmation_code": {
+      "type": "string"
+    },
+    "guest_name": {
+      "type": "string"
+    },
+    "guest_email": {
+      "type": "string"
+    },
+    "guest_phone": {
+      "type": "string"
+    },
+    "room_id": {
+      "type": "string"
+    },
+    "room_name": {
+      "type": "string"
+    },
+    "check_in_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "check_out_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "num_guests": {
+      "type": "number"
+    },
+    "arrival_window": {
+      "type": "string",
+      "enum": [
+        "early_afternoon",
+        "late_afternoon",
+        "evening"
+      ]
+    },
+    "wellness_intention": {
+      "type": "string",
+      "description": "Guest's intention for their stay"
+    },
+    "special_requests": {
+      "type": "string"
+    },
+    "treatments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "treatment_id": {
+            "type": "string"
+          },
+          "treatment_name": {
+            "type": "string"
+          },
+          "preferred_day": {
+            "type": "number"
+          },
+          "preferred_time_window": {
+            "type": "string"
+          },
+          "scheduled_datetime": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "package_id": {
+      "type": "string"
+    },
+    "package_name": {
+      "type": "string"
+    },
+    "room_total": {
+      "type": "number"
+    },
+    "treatments_total": {
+      "type": "number"
+    },
+    "grand_total": {
+      "type": "number"
+    },
+    "deposit_paid": {
+      "type": "number"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "deposit_paid",
+        "fully_paid"
+      ],
+      "default": "pending"
+    },
+    "booking_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "checked_in",
+        "checked_out",
+        "cancelled"
+      ],
+      "default": "pending"
+    },
+    "itinerary_sent": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "guest_name",
+    "guest_email",
+    "room_id",
+    "check_in_date",
+    "check_out_date"
+  ]
+}

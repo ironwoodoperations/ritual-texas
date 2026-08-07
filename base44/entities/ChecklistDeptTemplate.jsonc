@@ -1,0 +1,38 @@
+{
+  "name": "ChecklistDeptTemplate",
+  "type": "object",
+  "properties": {
+    "department": {
+      "type": "string",
+      "enum": [
+        "FOH_Open",
+        "FOH_Close",
+        "KitchenClose",
+        "KitchenFoodSafety",
+        "Bar_Open",
+        "Bar_Close",
+        "Kitchen_Open"
+      ],
+      "description": "Which department/shift this template applies to"
+    },
+    "items": {
+      "type": "array",
+      "description": "Ordered list of checklist items",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "department"
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "name": "OpsTask",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "hotel",
+        "spa",
+        "housekeeping",
+        "restaurant",
+        "admin"
+      ],
+      "default": "admin"
+    },
+    "dueDate": {
+      "type": "string",
+      "description": "YYYY-MM-DD"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high"
+      ],
+      "default": "normal"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "done"
+      ],
+      "default": "open"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "relatedType": {
+      "type": "string"
+    },
+    "relatedId": {
+      "type": "string"
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completedByUserId": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "system",
+        "manual",
+        "gpt"
+      ],
+      "default": "manual"
+    }
+  },
+  "required": [
+    "title",
+    "dueDate"
+  ]
+}

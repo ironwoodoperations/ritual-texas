@@ -1,0 +1,21 @@
+{
+  "name": "SocialSettings",
+  "type": "object",
+  "properties": {
+    "zernioProfileId": {
+      "type": "string"
+    },
+    "facebookAccountId": {
+      "type": "string"
+    },
+    "instagramAccountId": {
+      "type": "string"
+    },
+    "tiktokAccountId": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "zernioProfileId"
+  ]
+}

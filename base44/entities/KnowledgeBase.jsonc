@@ -1,0 +1,40 @@
+{
+  "name": "KnowledgeBase",
+  "type": "object",
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "check_in",
+        "check_out",
+        "treatments",
+        "property",
+        "policies",
+        "what_to_bring",
+        "faq"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string",
+      "description": "Admin-approved content for AI to reference"
+    },
+    "video_url": {
+      "type": "string"
+    },
+    "display_order": {
+      "type": "number"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "category",
+    "title",
+    "content"
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "name": "MarketingCRM",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "package_inquiry",
+        "manual",
+        "other"
+      ],
+      "default": "package_inquiry",
+      "description": "Where this contact came from"
+    },
+    "source_ref_id": {
+      "type": "string",
+      "description": "ID of the originating record (e.g. PackageInquiry id)"
+    },
+    "package_interest": {
+      "type": "string",
+      "description": "Package they inquired about"
+    },
+    "preferred_checkin": {
+      "type": "string",
+      "format": "date"
+    },
+    "preferred_checkout": {
+      "type": "string",
+      "format": "date"
+    },
+    "guests": {
+      "type": "number"
+    },
+    "original_message": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "e.g. spa, couples, package"
+    },
+    "last_contacted": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "unsubscribed"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "full_name",
+    "email"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "StaffModuleSetting",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Module key (e.g. staff_home, kitchen_inventory)"
+    },
+    "label": {
+      "type": "string",
+      "description": "Human-readable label"
+    },
+    "staff_visible": {
+      "type": "boolean",
+      "default": true
+    },
+    "allowed_roles": {
+      "type": "string",
+      "description": "Comma-separated roles: staff,chef,manager"
+    }
+  },
+  "required": [
+    "key"
+  ]
+}

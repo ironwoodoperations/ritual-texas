@@ -1,0 +1,50 @@
+{
+  "name": "DailyChecklist",
+  "type": "object",
+  "properties": {
+    "department": {
+      "type": "string",
+      "enum": [
+        "FOH_Open",
+        "FOH_Close",
+        "KitchenClose",
+        "KitchenFoodSafety",
+        "Bar_Open",
+        "Bar_Close",
+        "Kitchen_Open"
+      ]
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean"
+          },
+          "doneBy": {
+            "type": "string"
+          },
+          "doneAt": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "completed": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "department",
+    "date"
+  ]
+}

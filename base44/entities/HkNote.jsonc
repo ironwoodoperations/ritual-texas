@@ -1,0 +1,43 @@
+{
+  "name": "HkNote",
+  "type": "object",
+  "properties": {
+    "scope": {
+      "type": "string",
+      "enum": [
+        "room",
+        "hotel"
+      ],
+      "default": "hotel"
+    },
+    "roomId": {
+      "type": "string"
+    },
+    "taskId": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal"
+    },
+    "createdByUserId": {
+      "type": "string"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "scope",
+    "note"
+  ]
+}

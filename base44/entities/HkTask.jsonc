@@ -1,0 +1,104 @@
+{
+  "name": "HkTask",
+  "type": "object",
+  "properties": {
+    "taskDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "roomId": {
+      "type": "string"
+    },
+    "roomNumber": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "cloudbeds",
+        "manual",
+        "admin"
+      ],
+      "default": "manual"
+    },
+    "cloudbedsReservationId": {
+      "type": "string"
+    },
+    "taskType": {
+      "type": "string",
+      "enum": [
+        "opening_duty",
+        "closing_duty",
+        "checkout",
+        "stayover",
+        "deep_clean",
+        "public_space",
+        "manual"
+      ],
+      "default": "checkout"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "paused",
+        "completed",
+        "needs_review"
+      ],
+      "default": "pending"
+    },
+    "assignedToUserId": {
+      "type": "string"
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completedByUserId": {
+      "type": "string"
+    },
+    "completionPercent": {
+      "type": "number",
+      "default": 0
+    },
+    "adminNotes": {
+      "type": "string"
+    },
+    "housekeeperNotes": {
+      "type": "string"
+    },
+    "totalItems": {
+      "type": "number",
+      "default": 0
+    },
+    "completedItems": {
+      "type": "number",
+      "default": 0
+    },
+    "isBlocker": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true (opening duties), other tasks cannot be started until this is completed"
+    }
+  },
+  "required": [
+    "taskDate",
+    "roomId",
+    "taskType"
+  ]
+}

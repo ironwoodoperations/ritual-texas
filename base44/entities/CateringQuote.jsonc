@@ -1,0 +1,206 @@
+{
+  "name": "CateringQuote",
+  "type": "object",
+  "properties": {
+    "quote_number": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "accepted",
+        "deposit_paid",
+        "completed",
+        "archived"
+      ],
+      "default": "draft"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "event_name": {
+      "type": "string"
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "event_location": {
+      "type": "string"
+    },
+    "indoor_outdoor": {
+      "type": "string",
+      "enum": [
+        "indoor",
+        "outdoor",
+        "both"
+      ],
+      "default": "indoor"
+    },
+    "guest_count": {
+      "type": "number"
+    },
+    "service_style": {
+      "type": "string",
+      "enum": [
+        "plated",
+        "buffet",
+        "passed_appetizers",
+        "family_style",
+        "cocktail_reception"
+      ],
+      "default": "buffet"
+    },
+    "staffing_needed": {
+      "type": "boolean",
+      "default": false
+    },
+    "bar_package": {
+      "type": "boolean",
+      "default": false
+    },
+    "rentals_needed": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    },
+    "staffing": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "count": {
+            "type": "number"
+          },
+          "hours": {
+            "type": "number"
+          },
+          "rate": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "selected_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item_id": {
+            "type": "string"
+          },
+          "item_name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "per_person": {
+            "type": "boolean"
+          },
+          "serves": {
+            "type": "number"
+          },
+          "unit_price": {
+            "type": "number"
+          },
+          "override_price": {
+            "type": "number"
+          },
+          "line_total": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "food_subtotal": {
+      "type": "number",
+      "default": 0
+    },
+    "labor_cost": {
+      "type": "number",
+      "default": 0
+    },
+    "bar_total": {
+      "type": "number",
+      "default": 0
+    },
+    "rentals_total": {
+      "type": "number",
+      "default": 0
+    },
+    "tax_rate": {
+      "type": "number",
+      "default": 8.25
+    },
+    "tax_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "service_charge_rate": {
+      "type": "number",
+      "default": 20
+    },
+    "service_charge_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "grand_total": {
+      "type": "number",
+      "default": 0
+    },
+    "deposit_rate": {
+      "type": "number",
+      "default": 30
+    },
+    "deposit_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "food_cost_percent": {
+      "type": "number"
+    },
+    "labor_percent": {
+      "type": "number"
+    },
+    "projected_margin": {
+      "type": "number"
+    },
+    "pdf_quote_url": {
+      "type": "string"
+    },
+    "pdf_shopping_url": {
+      "type": "string"
+    },
+    "terms": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_name",
+    "event_date",
+    "guest_count"
+  ]
+}

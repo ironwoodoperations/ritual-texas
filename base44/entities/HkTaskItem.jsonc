@@ -1,0 +1,59 @@
+{
+  "name": "HkTaskItem",
+  "type": "object",
+  "properties": {
+    "taskId": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "strip",
+        "bath",
+        "bed",
+        "dust",
+        "floors",
+        "replenish",
+        "inspect",
+        "trash",
+        "final"
+      ]
+    },
+    "label": {
+      "type": "string"
+    },
+    "required": {
+      "type": "boolean",
+      "default": true
+    },
+    "isDone": {
+      "type": "boolean",
+      "default": false
+    },
+    "doneAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "doneByUserId": {
+      "type": "string"
+    },
+    "qtyExpected": {
+      "type": "number"
+    },
+    "qtyDone": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "sortOrder": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "taskId",
+    "category",
+    "label"
+  ]
+}
