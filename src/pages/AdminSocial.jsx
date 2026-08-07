@@ -480,18 +480,18 @@ function ConnectionsModal({ open, onClose, settings, createSettings, updateSetti
       <DialogContent className="max-w-lg bg-[rgb(248,246,242)]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-light text-[rgb(107,85,64)]">
-            Zernio Connection
+            Ironwood Connection
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 mt-2">
           <p className="text-sm text-[rgb(120,120,120)]">
-            One Zernio profile per client. All scheduled posts are routed through Zernio.
+            One Ironwood profile per client. All scheduled posts are routed through Ironwood.
           </p>
 
           {/* Profile ID */}
           <div>
-            <Label className="text-[rgb(45,45,45)]">Zernio Profile ID</Label>
+            <Label className="text-[rgb(45,45,45)]">Ironwood Profile ID</Label>
             <div className="flex gap-2 mt-2">
               <Input
                 value={profileId}
@@ -507,7 +507,7 @@ function ConnectionsModal({ open, onClose, settings, createSettings, updateSetti
               </Button>
             </div>
             <p className="text-xs text-[rgb(120,120,120)] mt-1">
-              Find this in your Zernio dashboard → Profiles → select the profile for this client.
+              Find this in your Ironwood dashboard → Profiles → select the profile for this client.
             </p>
           </div>
 
@@ -542,7 +542,7 @@ function ConnectionsModal({ open, onClose, settings, createSettings, updateSetti
             </div>
 
             <p className="text-xs text-[rgb(120,120,120)] mt-3">
-              Connect each platform inside Zernio first, then paste the account ID here.
+              Connect each platform inside Ironwood first, then paste the account ID here.
             </p>
           </div>
         </div>
