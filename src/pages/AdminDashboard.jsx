@@ -8,7 +8,7 @@ import {
   Users, Sparkles, ArrowRight, Bell, UtensilsCrossed, ChefHat,
   BedDouble, ClipboardList, FileText, Image, LogOut, Leaf,
   CalendarDays, BookOpen, Brush, AlertTriangle, BedSingle, FolderOpen,
-  MessageSquare, Activity, BadgeDollarSign, Timer, Archive, Printer, Upload, Settings, RefreshCw,
+  MessageSquare, Activity, BadgeDollarSign, Timer, Archive, Printer, Upload, Settings, RefreshCw, Share2,
 } from "lucide-react";
 import HotelTodayPanel from "@/components/dashboard/HotelTodayPanel";
 import RestaurantWeekPanel from "@/components/dashboard/RestaurantWeekPanel";
@@ -518,6 +518,13 @@ export default function AdminDashboard() {
             <div>
               <div className="font-semibold text-base leading-tight">Square Invoices</div>
               <div className="text-xs opacity-70 mt-0.5">Create & manage invoices</div>
+            </div>
+          </Link>
+          <Link to={createPageUrl("AdminSocial")} className="bg-[rgb(150,170,155)] text-white rounded-2xl p-5 hover:bg-[rgb(130,150,135)] transition-all flex items-center gap-4">
+            <Share2 className="w-7 h-7 shrink-0 opacity-80" />
+            <div>
+              <div className="font-semibold text-base leading-tight">Social Media</div>
+              <div className="text-xs opacity-70 mt-0.5">Campaigns, content & analytics</div>
             </div>
           </Link>
         </div>
