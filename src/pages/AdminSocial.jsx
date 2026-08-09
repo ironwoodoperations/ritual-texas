@@ -70,6 +70,28 @@ function StatusBadge({ status }) {
   );
 }
 
+// Generation-status pill for campaigns (distinct from the draft/scheduled
+// lifecycle status). Explains why a campaign may have 0 posts.
+const GEN_COLORS = {
+  draft: 'rgb(120,120,120)',
+  pending: 'rgb(120,120,120)',
+  generating: 'rgb(150,170,155)',
+  complete: 'rgb(107,85,64)',
+  failed: 'rgb(180,80,80)',
+};
+
+function GenBadge({ status }) {
+  if (!status) return null;
+  return (
+    <span
+      className="text-xs px-2 py-0.5 rounded-full capitalize border"
+      style={{ color: GEN_COLORS[status] || 'rgb(120,120,120)', borderColor: GEN_COLORS[status] || 'rgb(120,120,120)' }}
+    >
+      {status}
+    </span>
+  );
+}
+
 // Warning badge for captions that tripped the output filter. Flagged
 // posts are still saved — the user sees exactly what was caught.
 function FlaggedBadge({ terms }) {
@@ -125,6 +147,12 @@ export default function AdminSocial() {
 
   const [editingPost, setEditingPost] = useState(null);
   const [expandedCampaign, setExpandedCampaign] = useState(null);
+
+  // Campaign edit / delete
+  const [editingCampaign, setEditingCampaign] = useState(null);
+  const [campaignInitialStep, setCampaignInitialStep] = useState(1);
+  const [deleteTarget, setDeleteTarget] = useState(null); // campaign pending deletion
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   // Content Queue filters
   const [statusFilter, setStatusFilter] = useState('all');
@@ -383,6 +411,77 @@ export default function AdminSocial() {
 
   const approvedCount = filteredPosts.filter((p) => p.status === 'approved').length;
 
+  // --- Campaign lifecycle ---
+
+  const openNewCampaign = () => {
+    setEditingCampaign(null);
+    setCampaignInitialStep(1);
+    setShowCampaign(true);
+  };
+
+  const openEditCampaign = (campaign, step = 1) => {
+    setEditingCampaign(campaign);
+    setCampaignInitialStep(step);
+    setShowCampaign(true);
+  };
+
+  const closeCampaignModal = () => {
+    setShowCampaign(false);
+    setEditingCampaign(null);
+    setCampaignInitialStep(1);
+  };
+
+  // Live posts (at Zernio) can never be deleted from here.
+  const isLivePost = (p) => p.status === 'scheduled' || p.status === 'published';
+
+  // Delete the campaign and every one of its posts. Guarded by the dialog,
+  // which blocks this path when any live posts exist.
+  const deleteCampaignAndPosts = async (campaign) => {
+    setDeleteBusy(true);
+    try {
+      const cPosts = postsByCampaign(campaign.id);
+      for (const p of cPosts) {
+        await base44.entities.SocialPost.delete(p.id);
+      }
+      await base44.entities.SocialCampaign.delete(campaign.id);
+      queryClient.invalidateQueries(['socialPosts']);
+      queryClient.invalidateQueries(['socialCampaigns']);
+      setDeleteTarget(null);
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+
+  // Delete the campaign but keep its posts — detach them first so none are
+  // silently orphaned.
+  const deleteCampaignKeepPosts = async (campaign) => {
+    setDeleteBusy(true);
+    try {
+      const cPosts = postsByCampaign(campaign.id);
+      for (const p of cPosts) {
+        await base44.entities.SocialPost.update(p.id, { campaignId: null, campaignTitle: null });
+      }
+      await base44.entities.SocialCampaign.delete(campaign.id);
+      queryClient.invalidateQueries(['socialPosts']);
+      queryClient.invalidateQueries(['socialCampaigns']);
+      setDeleteTarget(null);
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+
+  // Delete a campaign that has no posts.
+  const deleteCampaignOnly = async (campaign) => {
+    setDeleteBusy(true);
+    try {
+      await base44.entities.SocialCampaign.delete(campaign.id);
+      queryClient.invalidateQueries(['socialCampaigns']);
+      setDeleteTarget(null);
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -453,7 +552,7 @@ export default function AdminSocial() {
             Single Post
           </Button>
           <Button
-            onClick={() => setShowCampaign(true)}
+            onClick={openNewCampaign}
             className="bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white"
           >
             <Plus className="w-4 h-4 mr-1" />
@@ -483,12 +582,18 @@ export default function AdminSocial() {
                     <th className="px-4 py-3 font-medium">Status</th>
                     <th className="px-4 py-3 font-medium">Start</th>
                     <th className="px-4 py-3 font-medium">Posts</th>
+                    <th className="px-4 py-3 font-medium text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {(campaigns || []).map((c) => {
                     const isOpen = expandedCampaign === c.id;
                     const cPosts = postsByCampaign(c.id);
+                    const postTotal = c.postCount ?? cPosts.length;
+                    // Resume is available for a stalled campaign with no posts.
+                    const canGenerate = postTotal === 0
+                      && c.generationStatus !== 'complete'
+                      && c.generationStatus !== 'generating';
                     return (
                       <React.Fragment key={c.id}>
                         <tr
@@ -508,13 +613,57 @@ export default function AdminSocial() {
                               ))}
                             </div>
                           </td>
-                          <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1.5">
+                              <StatusBadge status={c.status} />
+                              <GenBadge status={c.generationStatus} />
+                            </div>
+                          </td>
                           <td className="px-4 py-3">{c.startDate || '—'}</td>
-                          <td className="px-4 py-3">{c.postCount ?? cPosts.length}</td>
+                          <td className="px-4 py-3">{postTotal}</td>
+                          <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-end gap-1">
+                              {canGenerate && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-[rgb(107,85,64)] border-[rgb(235,225,213)]"
+                                  onClick={() => openEditCampaign(c, 4)}
+                                >
+                                  <Sparkles className="w-3 h-3 mr-1" /> Generate Posts
+                                </Button>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-[rgb(107,85,64)] border-[rgb(235,225,213)]"
+                                onClick={() => openEditCampaign(c, 1)}
+                              >
+                                <Edit2 className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-red-600 hover:text-red-700"
+                                onClick={() => setDeleteTarget(c)}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </td>
                         </tr>
                         {isOpen && (
                           <tr className="bg-[rgb(248,246,242)]">
-                            <td colSpan={8} className="px-4 py-3">
+                            <td colSpan={9} className="px-4 py-3">
+                              {c.generationStatus === 'failed' && c.lastError && (
+                                <div
+                                  className="mb-3 text-sm rounded p-2 flex items-start gap-2"
+                                  style={{ color: 'rgb(180,80,80)', background: 'rgba(180,80,80,0.08)' }}
+                                >
+                                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                                  <span>Generation failed: {c.lastError}</span>
+                                </div>
+                              )}
                               {cPosts.length === 0 ? (
                                 <p className="text-sm text-[rgb(120,120,120)] py-2">No posts in this campaign yet.</p>
                               ) : (
@@ -541,7 +690,7 @@ export default function AdminSocial() {
                   })}
                   {(campaigns || []).length === 0 && (
                     <tr>
-                      <td colSpan={8} className="px-4 py-12 text-center text-[rgb(120,120,120)]">
+                      <td colSpan={9} className="px-4 py-12 text-center text-[rgb(120,120,120)]">
                         No campaigns yet. Create one to get started.
                       </td>
                     </tr>
@@ -815,11 +964,114 @@ export default function AdminSocial() {
 
       <CampaignModal
         open={showCampaign}
-        onClose={() => setShowCampaign(false)}
+        onClose={closeCampaignModal}
+        editingCampaign={editingCampaign}
+        initialStep={campaignInitialStep}
         treatments={treatments || []}
         images={images || []}
       />
+
+      <DeleteCampaignDialog
+        campaign={deleteTarget}
+        posts={deleteTarget ? postsByCampaign(deleteTarget.id) : []}
+        busy={deleteBusy}
+        isLivePost={isLivePost}
+        onCancel={() => setDeleteTarget(null)}
+        onDeleteOnly={deleteCampaignOnly}
+        onDeleteWithPosts={deleteCampaignAndPosts}
+        onDeleteKeepPosts={deleteCampaignKeepPosts}
+      />
     </div>
+  );
+}
+
+// ============================================================
+// DELETE CAMPAIGN DIALOG
+// ============================================================
+function DeleteCampaignDialog({
+  campaign, posts, busy, isLivePost,
+  onCancel, onDeleteOnly, onDeleteWithPosts, onDeleteKeepPosts,
+}) {
+  const open = !!campaign;
+  const count = posts.length;
+  const liveCount = posts.filter(isLivePost).length;
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onCancel()}>
+      <DialogContent className="max-w-md bg-[rgb(248,246,242)]">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-light text-[rgb(107,85,64)]">
+            Delete “{campaign?.title}”?
+          </DialogTitle>
+        </DialogHeader>
+
+        {count === 0 ? (
+          <div className="space-y-4">
+            <p className="text-sm text-[rgb(45,45,45)]">
+              This campaign has no posts. This will permanently delete the campaign.
+            </p>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={onCancel} disabled={busy} className="flex-1">
+                Cancel
+              </Button>
+              <Button
+                onClick={() => onDeleteOnly(campaign)}
+                disabled={busy}
+                className="flex-1 bg-[rgb(180,80,80)] hover:bg-[rgb(150,60,60)] text-white"
+              >
+                {busy ? 'Deleting…' : 'Delete Campaign'}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-sm text-[rgb(45,45,45)]">
+              This campaign has {count} post{count === 1 ? '' : 's'}. What should happen to them?
+            </p>
+
+            {liveCount > 0 && (
+              <div
+                className="text-sm rounded p-2 flex items-start gap-2"
+                style={{ color: 'rgb(180,80,80)', background: 'rgba(180,80,80,0.08)' }}
+              >
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>
+                  {liveCount} post{liveCount === 1 ? ' is' : 's are'} already scheduled or published and
+                  cannot be deleted. Cancel them in the Content Queue first.
+                </span>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Button
+                onClick={() => onDeleteWithPosts(campaign)}
+                disabled={busy || liveCount > 0}
+                title={liveCount > 0 ? 'Cannot delete live posts' : undefined}
+                className="w-full bg-[rgb(180,80,80)] hover:bg-[rgb(150,60,60)] text-white"
+              >
+                Delete campaign and its posts
+              </Button>
+              <Button
+                onClick={() => onDeleteKeepPosts(campaign)}
+                disabled={busy}
+                variant="outline"
+                className="w-full text-[rgb(107,85,64)] border-[rgb(235,225,213)]"
+              >
+                Delete campaign only, keep posts
+              </Button>
+              <Button
+                onClick={onCancel}
+                disabled={busy}
+                variant="outline"
+                className="w-full"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -1410,24 +1662,85 @@ const emptyCampaign = {
 
 const BATCH_SIZE = 7;
 
-function CampaignModal({ open, onClose, treatments, images }) {
+function CampaignModal({ open, onClose, editingCampaign, initialStep = 1, treatments, images }) {
   const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(emptyCampaign);
   const [campaignId, setCampaignId] = useState(null);
+  const [saving, setSaving] = useState(false);
   // Generation progress: { running, done, total, error, complete }
   const [gen, setGen] = useState({ running: false, done: 0, total: 0, error: null, complete: false });
 
+  const isEditing = !!editingCampaign;
+  // Once posts exist (generation complete), only title & goal are editable.
+  const locked = isEditing && editingCampaign.generationStatus === 'complete';
+
   useEffect(() => {
     if (open) {
-      setStep(1);
-      setForm(emptyCampaign);
-      setCampaignId(null);
-      setGen({ running: false, done: 0, total: 0, error: null, complete: false });
+      if (editingCampaign) {
+        const c = editingCampaign;
+        setForm({
+          title: c.title || '',
+          goal: c.goal || '',
+          durationDays: c.durationDays || 7,
+          startDate: c.startDate || '',
+          category: c.category || 'hotel',
+          platforms: c.platforms || [],
+          pillars: c.pillars || [...PILLARS],
+          topics: c.topics || '',
+          imageStrategy: c.imageStrategy || 'none',
+          fixedImageId: c.fixedImageId || '',
+          folder: c.folder || '',
+        });
+        setCampaignId(c.id);
+        setStep(initialStep);
+        const existing = c.postCount || 0;
+        setGen({
+          running: false,
+          done: existing,
+          total: c.durationDays || 7,
+          error: c.generationStatus === 'failed' ? (c.lastError || 'Generation failed') : null,
+          complete: c.generationStatus === 'complete',
+        });
+      } else {
+        setForm(emptyCampaign);
+        setCampaignId(null);
+        setStep(initialStep);
+        setGen({ running: false, done: 0, total: 0, error: null, complete: false });
+      }
     }
-  }, [open]);
+  }, [open, editingCampaign, initialStep]);
 
   const set = (patch) => setForm((prev) => ({ ...prev, ...patch }));
+
+  // Known SocialCampaign fields to persist (update merges, so unknown
+  // client-only fields aren't sent).
+  const campaignPayload = () => ({
+    title: form.title,
+    goal: form.goal,
+    durationDays: form.durationDays,
+    startDate: form.startDate,
+    category: form.category,
+    platforms: form.platforms,
+    pillars: form.pillars,
+    topics: form.topics,
+    imageStrategy: form.imageStrategy,
+  });
+
+  // Save edits to an existing campaign. When locked, only title & goal
+  // may change.
+  const saveEdits = async () => {
+    if (!campaignId) return;
+    setSaving(true);
+    try {
+      const payload = locked ? { title: form.title, goal: form.goal } : campaignPayload();
+      await base44.entities.SocialCampaign.update(campaignId, payload);
+      queryClient.invalidateQueries(['socialCampaigns']);
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // Distinct folders (ImageAsset.placement_key) for the folder strategy.
   const folders = Array.from(
@@ -1453,19 +1766,15 @@ function CampaignModal({ open, onClose, treatments, images }) {
     return [];
   };
 
-  // Ensure the campaign record exists; return its id.
+  // Ensure the campaign record exists; return its id. When resuming an
+  // existing campaign, persist any edits to its fields before generating.
   const ensureCampaign = async () => {
-    if (campaignId) return campaignId;
+    if (campaignId) {
+      await base44.entities.SocialCampaign.update(campaignId, campaignPayload());
+      return campaignId;
+    }
     const created = await base44.entities.SocialCampaign.create({
-      title: form.title,
-      goal: form.goal,
-      durationDays: form.durationDays,
-      startDate: form.startDate,
-      category: form.category,
-      platforms: form.platforms,
-      pillars: form.pillars,
-      topics: form.topics,
-      imageStrategy: form.imageStrategy,
+      ...campaignPayload(),
       status: 'draft',
       postCount: 0,
       generationStatus: 'draft',
@@ -1616,9 +1925,15 @@ function CampaignModal({ open, onClose, treatments, images }) {
       <DialogContent className="max-w-lg bg-[rgb(248,246,242)] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-light text-[rgb(107,85,64)]">
-            New Campaign
+            {isEditing ? 'Edit Campaign' : 'New Campaign'}
           </DialogTitle>
         </DialogHeader>
+
+        {locked && (
+          <div className="text-sm rounded p-2 bg-white border border-[rgb(235,225,213)] text-[rgb(120,120,120)]">
+            Posts already generated. Delete the campaign to change these — only title and goal are editable.
+          </div>
+        )}
 
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-2">
@@ -1660,6 +1975,7 @@ function CampaignModal({ open, onClose, treatments, images }) {
                   <Button
                     key={d}
                     type="button"
+                    disabled={locked}
                     variant={form.durationDays === d ? 'default' : 'outline'}
                     onClick={() => set({ durationDays: d })}
                     className={form.durationDays === d
@@ -1677,6 +1993,7 @@ function CampaignModal({ open, onClose, treatments, images }) {
                 type="date"
                 value={form.startDate}
                 onChange={(e) => set({ startDate: e.target.value })}
+                disabled={locked}
                 className="mt-2 bg-white"
               />
             </div>
@@ -1688,7 +2005,7 @@ function CampaignModal({ open, onClose, treatments, images }) {
           <div className="space-y-5">
             <div>
               <Label className="text-[rgb(45,45,45)]">Category</Label>
-              <Select value={form.category} onValueChange={(v) => set({ category: v })}>
+              <Select value={form.category} onValueChange={(v) => set({ category: v })} disabled={locked}>
                 <SelectTrigger className="mt-2 bg-white"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {CATEGORIES.map((c) => (
@@ -1701,10 +2018,11 @@ function CampaignModal({ open, onClose, treatments, images }) {
               <Label className="text-[rgb(45,45,45)]">Platforms</Label>
               <div className="space-y-2 mt-2">
                 {PLATFORMS.map((p) => (
-                  <label key={p} className="flex items-center gap-2 cursor-pointer">
+                  <label key={p} className={`flex items-center gap-2 ${locked ? 'opacity-60' : 'cursor-pointer'}`}>
                     <Checkbox
                       checked={form.platforms.includes(p)}
                       onCheckedChange={() => togglePlatform(p)}
+                      disabled={locked}
                     />
                     <PlatformIcon platform={p} className="w-4 h-4 text-[rgb(107,85,64)]" />
                     <span className="text-sm capitalize text-[rgb(45,45,45)]">{p}</span>
@@ -1716,10 +2034,11 @@ function CampaignModal({ open, onClose, treatments, images }) {
               <Label className="text-[rgb(45,45,45)]">Pillar Mix</Label>
               <div className="space-y-2 mt-2">
                 {PILLARS.map((p) => (
-                  <label key={p} className="flex items-center gap-2 cursor-pointer">
+                  <label key={p} className={`flex items-center gap-2 ${locked ? 'opacity-60' : 'cursor-pointer'}`}>
                     <Checkbox
                       checked={form.pillars.includes(p)}
                       onCheckedChange={() => togglePillar(p)}
+                      disabled={locked}
                     />
                     <span className="text-sm capitalize text-[rgb(45,45,45)]">{p}</span>
                   </label>
@@ -1753,7 +2072,7 @@ function CampaignModal({ open, onClose, treatments, images }) {
                 placeholder="What should these posts cover? (from Whitney)"
                 className="mt-2 bg-white"
                 rows={3}
-                disabled={gen.running}
+                disabled={locked || gen.running}
               />
             </div>
 
@@ -1763,7 +2082,7 @@ function CampaignModal({ open, onClose, treatments, images }) {
                 value={form.imageStrategy}
                 onValueChange={(v) => set({ imageStrategy: v })}
                 className="mt-2 space-y-2"
-                disabled={gen.running}
+                disabled={locked || gen.running}
               >
                 {[
                   { v: 'none', label: 'No images' },
@@ -1782,7 +2101,7 @@ function CampaignModal({ open, onClose, treatments, images }) {
             {form.imageStrategy === 'fixed' && (
               <div>
                 <Label className="text-[rgb(45,45,45)]">Image</Label>
-                <Select value={form.fixedImageId} onValueChange={(v) => set({ fixedImageId: v })}>
+                <Select value={form.fixedImageId} onValueChange={(v) => set({ fixedImageId: v })} disabled={locked || gen.running}>
                   <SelectTrigger className="mt-2 bg-white"><SelectValue placeholder="Choose an image" /></SelectTrigger>
                   <SelectContent>
                     {(images || []).map((img) => (
@@ -1796,7 +2115,7 @@ function CampaignModal({ open, onClose, treatments, images }) {
             {form.imageStrategy === 'folder' && (
               <div>
                 <Label className="text-[rgb(45,45,45)]">Folder</Label>
-                <Select value={form.folder} onValueChange={(v) => set({ folder: v })}>
+                <Select value={form.folder} onValueChange={(v) => set({ folder: v })} disabled={locked || gen.running}>
                   <SelectTrigger className="mt-2 bg-white"><SelectValue placeholder="Choose a folder" /></SelectTrigger>
                   <SelectContent>
                     {folders.length === 0 && <SelectItem value="none" disabled>No folders found</SelectItem>}
@@ -1852,7 +2171,7 @@ function CampaignModal({ open, onClose, treatments, images }) {
 
         {/* Nav */}
         <div className="flex gap-3 pt-4">
-          {step > 1 && step < 4 && (
+          {step > 1 && step < 4 && !gen.running && (
             <Button variant="outline" onClick={() => setStep(step - 1)} className="flex-1">
               Back
             </Button>
@@ -1875,7 +2194,7 @@ function CampaignModal({ open, onClose, treatments, images }) {
               Continue to Generate
             </Button>
           )}
-          {step === 4 && !gen.complete && (
+          {step === 4 && !gen.complete && !locked && (
             <Button
               onClick={() => generatePosts(gen.error ? gen.done : 0)}
               disabled={gen.running || form.platforms.length === 0}
@@ -1885,7 +2204,18 @@ function CampaignModal({ open, onClose, treatments, images }) {
               {gen.running ? 'Generating…' : gen.error ? `Retry (${gen.total - gen.done} left)` : 'Generate Posts'}
             </Button>
           )}
-          {step === 4 && gen.complete && (
+          {/* Edit mode: persist field changes without generating. */}
+          {isEditing && !gen.running && (
+            <Button
+              onClick={saveEdits}
+              disabled={saving}
+              variant="outline"
+              className="flex-1 text-[rgb(107,85,64)] border-[rgb(235,225,213)]"
+            >
+              {saving ? 'Saving…' : 'Save Changes'}
+            </Button>
+          )}
+          {step === 4 && gen.complete && !isEditing && (
             <Button
               onClick={onClose}
               className="flex-1 bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white"
