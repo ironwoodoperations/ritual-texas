@@ -88,6 +88,20 @@
     },
     "zernioStatus": {
       "type": "string"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "primaryCategory": {
+      "type": "string",
+      "enum": [
+        "hotel",
+        "restaurant",
+        "spa"
+      ]
     }
   },
   "required": [

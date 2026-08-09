@@ -41,6 +41,20 @@
     "postCount": {
       "type": "number",
       "default": 0
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "primaryCategory": {
+      "type": "string",
+      "enum": [
+        "hotel",
+        "restaurant",
+        "spa"
+      ]
     }
   },
   "required": [
