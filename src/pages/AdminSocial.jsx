@@ -22,7 +22,7 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
 import { buildCaptionPrompt, buildSchedulePrompt, buildImageMatchPrompt } from '@/lib/socialPrompts';
-import { screenCaption } from '@/lib/socialGuard';
+import { screenFields } from '@/lib/socialGuard';
 import { ctTodayISO } from '@/lib/time';
 
 // --- Constants ---
@@ -855,8 +855,8 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
         content: p.content || '',
         hashtags: p.hashtags || '',
         angle: p.angle || '',
-        // Run the output filter on every generated caption.
-        screen: screenCaption(p.content || ''),
+        // Run the output filter on the caption AND its hashtags.
+        screen: screenFields(p.content || '', p.hashtags || ''),
       }));
       setVariants(list);
     } catch (err) {
@@ -894,8 +894,8 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
   const handleSave = () => {
     // ⚠️ Store scheduledFor as a naive local wall-time string. No toISOString().
     const scheduledFor = normalizeSchedule(scheduleInput);
-    // Screen the final caption so any prohibited terms surface in the queue.
-    const screen = screenCaption(form.content || '');
+    // Screen the final caption AND hashtags so any prohibited terms surface.
+    const screen = screenFields(form.content || '', form.hashtags || '');
     const data = {
       imageUrls: form.imageUrls,
       category: form.category,
@@ -1313,7 +1313,7 @@ function CampaignModal({ open, onClose, treatments, images }) {
         for (let i = 0; i < genPosts.length; i++) {
           const gp = genPosts[i];
           const globalIndex = done + i;
-          const screen = screenCaption(gp.content || '');
+          const screen = screenFields(gp.content || '', gp.hashtags || '');
           const imageUrls = resolveImageUrls(globalIndex, imageMap[i]);
           await base44.entities.SocialPost.create({
             campaignId: cid,
