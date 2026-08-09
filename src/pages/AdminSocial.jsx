@@ -6,7 +6,7 @@ import { base44 } from '@/api/base44Client';
 import {
   ArrowLeft, Plug, Plus, Instagram, Facebook, Music2, Share2,
   Image as ImageIcon, X, Edit2, Trash2, Calendar, ChevronDown, ChevronRight,
-  Sparkles, AlertTriangle, CalendarClock,
+  Sparkles, AlertTriangle, CalendarClock, RefreshCw, Loader2, CheckCircle2, Send,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -134,6 +134,14 @@ export default function AdminSocial() {
   const [scheduling, setScheduling] = useState(false);
   const [schedulePreview, setSchedulePreview] = useState(null); // [{ post, scheduled_for, reasoning }]
   const [scheduleError, setScheduleError] = useState(null);
+
+  // Zernio publish/sync state
+  const [publishingId, setPublishingId] = useState(null); // post id currently being scheduled
+  const [publishErrors, setPublishErrors] = useState({}); // postId -> inline error message
+  const [bulkPublish, setBulkPublish] = useState(null); // { done, total } while running
+  const [bulkReport, setBulkReport] = useState(null); // { ok, failures: [{id, msg}] }
+  const [syncing, setSyncing] = useState(false);
+  const [syncReport, setSyncReport] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -298,6 +306,83 @@ export default function AdminSocial() {
     }
   };
 
+  // --- Zernio publish leg ---
+
+  // Approve a draft (UI-only status change; no API call). A post must be
+  // 'approved' before it can be scheduled — enforced here and in the function.
+  const approvePost = async (post) => {
+    await base44.entities.SocialPost.update(post.id, { status: 'approved' });
+    queryClient.invalidateQueries(['socialPosts']);
+  };
+
+  // Schedule one approved post through Zernio. Returns { ok, msg }.
+  const publishPost = async (post) => {
+    setPublishingId(post.id);
+    setPublishErrors((prev) => {
+      const next = { ...prev };
+      delete next[post.id];
+      return next;
+    });
+    try {
+      await base44.functions.invoke('zernioPublishPost', { postId: post.id });
+      queryClient.invalidateQueries(['socialPosts']);
+      return { ok: true };
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Publish failed';
+      setPublishErrors((prev) => ({ ...prev, [post.id]: msg }));
+      // Reflect any server-side status change (e.g. 'failed').
+      queryClient.invalidateQueries(['socialPosts']);
+      return { ok: false, msg };
+    } finally {
+      setPublishingId(null);
+    }
+  };
+
+  // Retry a failed post: re-approve, then publish again.
+  const retryPost = async (post) => {
+    setPublishingId(post.id);
+    try {
+      await base44.entities.SocialPost.update(post.id, { status: 'approved', failureReason: null });
+    } catch {
+      // fall through to publish attempt regardless
+    }
+    await publishPost(post);
+  };
+
+  // Bulk-schedule every approved post in the current filter, SEQUENTIALLY.
+  // One failure does not abort the rest; failures are collected and reported.
+  const scheduleAllApproved = async () => {
+    const targets = filteredPosts.filter((p) => p.status === 'approved');
+    if (targets.length === 0) return;
+    setBulkReport(null);
+    setBulkPublish({ done: 0, total: targets.length });
+    const failures = [];
+    for (let i = 0; i < targets.length; i += 1) {
+      setBulkPublish({ done: i + 1, total: targets.length });
+      const r = await publishPost(targets[i]); // sequential — await each
+      if (!r.ok) failures.push({ id: targets[i].id, msg: r.msg });
+    }
+    setBulkPublish(null);
+    setBulkReport({ ok: targets.length - failures.length, failures });
+    queryClient.invalidateQueries(['socialPosts']);
+  };
+
+  const runSyncStatus = async () => {
+    setSyncing(true);
+    setSyncReport(null);
+    try {
+      const resp = await base44.functions.invoke('zernioSyncStatus', {});
+      setSyncReport(resp.data);
+      queryClient.invalidateQueries(['socialPosts']);
+    } catch (err) {
+      setSyncReport({ error: err?.response?.data?.message || err?.message || 'Sync failed' });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const approvedCount = filteredPosts.filter((p) => p.status === 'approved').length;
+
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -323,15 +408,40 @@ export default function AdminSocial() {
               <p className="text-sm text-[rgb(120,120,120)]">Manage campaigns, content, and analytics</p>
             </div>
           </div>
-          <Button
-            onClick={() => setShowConnections(true)}
-            variant="outline"
-            className="text-[rgb(107,85,64)] border-[rgb(235,225,213)]"
-          >
-            <Plug className="w-4 h-4 mr-2" />
-            Connections
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={runSyncStatus}
+              variant="outline"
+              disabled={syncing}
+              className="text-[rgb(107,85,64)] border-[rgb(235,225,213)]"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? 'Syncing…' : 'Sync Status'}
+            </Button>
+            <Button
+              onClick={() => setShowConnections(true)}
+              variant="outline"
+              className="text-[rgb(107,85,64)] border-[rgb(235,225,213)]"
+            >
+              <Plug className="w-4 h-4 mr-2" />
+              Connections
+            </Button>
+          </div>
         </div>
+
+        {syncReport && (
+          <div className="mb-2 text-sm rounded p-2 bg-white border border-[rgb(235,225,213)] text-[rgb(45,45,45)]">
+            {syncReport.error ? (
+              <span style={{ color: 'rgb(180,80,80)' }}>Sync failed: {syncReport.error}</span>
+            ) : (
+              <span>
+                Synced {syncReport.checked ?? 0} scheduled post(s): {syncReport.published ?? 0} published,{' '}
+                {syncReport.failed ?? 0} failed, {syncReport.partial ?? 0} partial,{' '}
+                {syncReport.unchanged ?? 0} unchanged{syncReport.errors ? `, ${syncReport.errors} errors` : ''}.
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Action buttons */}
         <div className="flex justify-end gap-2 mb-4">
@@ -469,15 +579,27 @@ export default function AdminSocial() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="ml-auto">
+              <div className="ml-auto flex gap-2">
                 <Button
                   onClick={runSmartSchedule}
                   disabled={scheduling || schedulableDrafts.length === 0}
                   title={schedulableDrafts.length === 0 ? 'No draft posts to schedule' : undefined}
-                  className="bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white"
+                  variant="outline"
+                  className="text-[rgb(107,85,64)] border-[rgb(235,225,213)]"
                 >
                   <CalendarClock className="w-4 h-4 mr-2" />
                   {scheduling && !schedulePreview ? 'Planning…' : `Smart Schedule (${schedulableDrafts.length})`}
+                </Button>
+                <Button
+                  onClick={scheduleAllApproved}
+                  disabled={!!bulkPublish || approvedCount === 0}
+                  title={approvedCount === 0 ? 'No approved posts to schedule' : undefined}
+                  className="bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  {bulkPublish
+                    ? `Scheduling ${bulkPublish.done} of ${bulkPublish.total}…`
+                    : `Schedule All Approved (${approvedCount})`}
                 </Button>
               </div>
             </div>
@@ -485,6 +607,22 @@ export default function AdminSocial() {
             {scheduleError && (
               <div className="mb-4 text-sm rounded p-3" style={{ color: 'rgb(180,80,80)', background: 'rgba(180,80,80,0.08)' }}>
                 {scheduleError}
+              </div>
+            )}
+
+            {bulkReport && (
+              <div className="mb-4 text-sm rounded p-3 bg-white border border-[rgb(235,225,213)] text-[rgb(45,45,45)]">
+                <div>
+                  Scheduled {bulkReport.ok} post(s).
+                  {bulkReport.failures.length > 0 && ` ${bulkReport.failures.length} failed:`}
+                </div>
+                {bulkReport.failures.length > 0 && (
+                  <ul className="mt-1 list-disc pl-5" style={{ color: 'rgb(180,80,80)' }}>
+                    {bulkReport.failures.map((f) => (
+                      <li key={f.id}>{f.msg}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             )}
 
@@ -574,7 +712,52 @@ export default function AdminSocial() {
                       </div>
                       <StatusBadge status={p.status} />
                     </div>
+                    {/* Inline publish error / persisted failure reason — stays
+                        on the card (not a disappearing toast). */}
+                    {(publishErrors[p.id] || (p.status === 'failed' && p.failureReason)) && (
+                      <div
+                        className="mb-2 text-xs rounded p-2"
+                        style={{ color: 'rgb(180,80,80)', background: 'rgba(180,80,80,0.08)' }}
+                      >
+                        {publishErrors[p.id] || p.failureReason}
+                      </div>
+                    )}
                     <div className="flex gap-2">
+                      {p.status === 'draft' && (
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-[rgb(150,170,155)] hover:bg-[rgb(130,150,135)] text-white"
+                          onClick={() => approvePost(p)}
+                        >
+                          <CheckCircle2 className="w-3 h-3 mr-1" /> Approve
+                        </Button>
+                      )}
+                      {p.status === 'approved' && (
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white"
+                          disabled={publishingId === p.id}
+                          onClick={() => publishPost(p)}
+                        >
+                          {publishingId === p.id
+                            ? <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            : <Send className="w-3 h-3 mr-1" />}
+                          {publishingId === p.id ? 'Scheduling…' : 'Schedule'}
+                        </Button>
+                      )}
+                      {p.status === 'failed' && (
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white"
+                          disabled={publishingId === p.id}
+                          onClick={() => retryPost(p)}
+                        >
+                          {publishingId === p.id
+                            ? <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            : <RefreshCw className="w-3 h-3 mr-1" />}
+                          {publishingId === p.id ? 'Retrying…' : 'Retry'}
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="outline"
