@@ -775,13 +775,16 @@ const emptyPost = {
   imageUrls: [],
   category: 'hotel',
   sourceTreatmentId: '',
-  platform: 'instagram',
+  platform: '', // chosen first; empty = no platform selected yet
   pillar: 'quiet',
   topic: '',
   content: '',
   hashtags: '',
   scheduledFor: '',
 };
+
+// Platforms that cannot publish a text-only post.
+const PHOTO_REQUIRED_PLATFORMS = ['instagram', 'tiktok'];
 
 function SinglePostModal({ open, onClose, editingPost, treatments, createPost, updatePost }) {
   const [form, setForm] = useState(emptyPost);
@@ -792,6 +795,8 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
   const [generating, setGenerating] = useState(false);
   const [variants, setVariants] = useState([]); // [{ content, hashtags, angle, screen }]
   const [genError, setGenError] = useState(null);
+  // Inline photo-requirement error surfaced when a save is blocked.
+  const [photoError, setPhotoError] = useState(null);
 
   useEffect(() => {
     if (open) {
@@ -815,13 +820,40 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
       }
       setVariants([]);
       setGenError(null);
+      setPhotoError(null);
     }
   }, [open, editingPost]);
 
   const set = (patch) => setForm((prev) => ({ ...prev, ...patch }));
 
+  // Choosing/changing the platform clears a stale photo-requirement error;
+  // the section's derived text re-surfaces the requirement if still unmet.
+  const setPlatform = (v) => {
+    setForm((prev) => ({ ...prev, platform: v }));
+    setPhotoError(null);
+  };
+
+  // Photo-section state derived from the selected platform.
+  const platformChosen = !!form.platform;
+  const platformLabel = form.platform
+    ? form.platform.charAt(0).toUpperCase() + form.platform.slice(1)
+    : '';
+  const photoRequired = PHOTO_REQUIRED_PLATFORMS.includes(form.platform);
+  const photoHeading = !platformChosen
+    ? 'Photo'
+    : photoRequired
+      ? `Photo — required for ${platformLabel}`
+      : 'Photo (optional)';
+  const photoEmptyText = !platformChosen
+    ? 'Choose a platform first'
+    : photoRequired
+      ? `${platformLabel} posts need at least one photo.`
+      : 'No photo yet — optional for Facebook.';
+
   const handleGenerate = async () => {
-    if (form.imageUrls.length === 0) return;
+    // Generation depends on platform (it shapes caption length/format),
+    // not on a photo — the image is never sent to the LLM.
+    if (!form.platform) return;
     setGenerating(true);
     setGenError(null);
     setVariants([]);
@@ -879,6 +911,7 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
         const result = await base44.integrations.Core.UploadFile({ file });
         setForm((prev) => ({ ...prev, imageUrls: [...prev.imageUrls, result.file_url] }));
       }
+      setPhotoError(null); // requirement now satisfied
     } catch (err) {
       alert('Failed to upload photo');
     } finally {
@@ -892,6 +925,12 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
   };
 
   const handleSave = () => {
+    // Instagram/TikTok cannot publish a text-only post — block the save
+    // (Facebook with no image saves normally).
+    if (PHOTO_REQUIRED_PLATFORMS.includes(form.platform) && form.imageUrls.length === 0) {
+      setPhotoError(`${platformLabel} requires a photo. Add one, or switch to Facebook.`);
+      return;
+    }
     // ⚠️ Store scheduledFor as a naive local wall-time string. No toISOString().
     const scheduledFor = normalizeSchedule(scheduleInput);
     // Screen the final caption AND hashtags so any prohibited terms surface.
@@ -929,25 +968,42 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
         </DialogHeader>
 
         <div className="space-y-5 mt-2">
-          {/* 1. Photo (first — order matters) */}
+          {/* 1. Platform (chosen first — shapes the photo requirement) */}
           <div>
-            <Label className="text-[rgb(45,45,45)]">Photo</Label>
+            <Label className="text-[rgb(45,45,45)]">Platform</Label>
+            <Select value={form.platform} onValueChange={setPlatform}>
+              <SelectTrigger className="mt-2 bg-white">
+                <SelectValue placeholder="Choose a platform" />
+              </SelectTrigger>
+              <SelectContent>
+                {PLATFORMS.map((p) => (
+                  <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* 2. Photo (adapts to the selected platform) */}
+          <div className={platformChosen ? '' : 'opacity-60'}>
+            <Label className="text-[rgb(45,45,45)]">{photoHeading}</Label>
             <div className="mt-2">
               <input
                 type="file"
                 accept="image/*"
                 multiple
                 onChange={handlePhotos}
-                disabled={uploading}
+                disabled={uploading || !platformChosen}
                 className="hidden"
                 id="social-photo-upload"
               />
               <label htmlFor="social-photo-upload">
                 <Button
                   asChild
-                  variant="outline"
-                  disabled={uploading}
-                  className="text-[rgb(107,85,64)] border-[rgb(235,225,213)] cursor-pointer"
+                  variant={photoRequired ? 'default' : 'outline'}
+                  disabled={uploading || !platformChosen}
+                  className={photoRequired
+                    ? 'bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white cursor-pointer'
+                    : 'text-[rgb(107,85,64)] border-[rgb(235,225,213)] cursor-pointer'}
                 >
                   <span>
                     <ImageIcon className="w-4 h-4 mr-2" />
@@ -965,8 +1021,17 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
 
               {form.imageUrls.length === 0 && !uploading && (
                 <p className="text-sm text-[rgb(120,120,120)] mt-2">
-                  No photo yet — required to generate caption
+                  {photoEmptyText}
                 </p>
+              )}
+
+              {photoError && (
+                <div
+                  className="mt-2 text-sm rounded p-2"
+                  style={{ color: 'rgb(180,80,80)', background: 'rgba(180,80,80,0.08)' }}
+                >
+                  {photoError}
+                </div>
               )}
 
               {form.imageUrls.length > 0 && (
@@ -988,7 +1053,7 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
             </div>
           </div>
 
-          {/* 2. Category */}
+          {/* 3. Category */}
           <div>
             <Label className="text-[rgb(45,45,45)]">Category</Label>
             <Select value={form.category} onValueChange={(v) => set({ category: v })}>
@@ -1001,7 +1066,7 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
             </Select>
           </div>
 
-          {/* 3. Treatment (optional) */}
+          {/* 4. Treatment (optional) */}
           <div>
             <Label className="text-[rgb(45,45,45)]">Treatment (optional)</Label>
             <Select
@@ -1013,19 +1078,6 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
                 <SelectItem value="none">(no treatment — standalone post)</SelectItem>
                 {treatments.map((t) => (
                   <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* 4. Platform */}
-          <div>
-            <Label className="text-[rgb(45,45,45)]">Platform</Label>
-            <Select value={form.platform} onValueChange={(v) => set({ platform: v })}>
-              <SelectTrigger className="mt-2 bg-white"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {PLATFORMS.map((p) => (
-                  <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -1058,11 +1110,11 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
 
           {/* AI CAPTION GENERATION */}
           <div>
-            <div title={form.imageUrls.length === 0 ? 'Add a photo first' : undefined} className="inline-block">
+            <div title={!platformChosen ? 'Choose a platform first' : undefined} className="inline-block">
               <Button
                 type="button"
                 onClick={handleGenerate}
-                disabled={form.imageUrls.length === 0 || generating}
+                disabled={!platformChosen || generating}
                 className="bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
@@ -1572,6 +1624,22 @@ function CampaignModal({ open, onClose, treatments, images }) {
                 </Select>
               </div>
             )}
+
+            {/* Warn (don't block): Instagram/TikTok can't publish text-only
+                posts, so image strategy 'none' yields unpublishable drafts. */}
+            {form.imageStrategy === 'none' &&
+              form.platforms.some((p) => PHOTO_REQUIRED_PLATFORMS.includes(p)) && (
+                <div
+                  className="flex items-start gap-2 text-sm rounded p-2"
+                  style={{ color: 'rgb(180,80,80)', background: 'rgba(180,80,80,0.08)' }}
+                >
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>
+                    Instagram and TikTok require photos. Posts for those platforms will
+                    not be publishable with image strategy set to None.
+                  </span>
+                </div>
+              )}
 
             {/* Progress / status */}
             {(gen.running || gen.done > 0 || gen.error || gen.complete) && (
