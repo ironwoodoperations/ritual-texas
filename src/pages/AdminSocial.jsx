@@ -6,6 +6,7 @@ import { base44 } from '@/api/base44Client';
 import {
   ArrowLeft, Plug, Plus, Instagram, Facebook, Music2, Share2,
   Image as ImageIcon, X, Edit2, Trash2, Calendar, ChevronDown, ChevronRight,
+  Sparkles, AlertTriangle, CalendarClock,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,11 +14,16 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
+import { buildCaptionPrompt, buildSchedulePrompt, buildImageMatchPrompt } from '@/lib/socialPrompts';
+import { screenCaption } from '@/lib/socialGuard';
+import { ctTodayISO } from '@/lib/time';
 
 // --- Constants ---
 const CATEGORIES = ['hotel', 'restaurant', 'spa'];
@@ -64,6 +70,51 @@ function StatusBadge({ status }) {
   );
 }
 
+// Warning badge for captions that tripped the output filter. Flagged
+// posts are still saved — the user sees exactly what was caught.
+function FlaggedBadge({ terms }) {
+  if (!terms || terms.length === 0) return null;
+  return (
+    <div
+      className="flex items-center gap-1 text-xs rounded px-2 py-1"
+      style={{ color: 'rgb(180,80,80)', background: 'rgba(180,80,80,0.08)' }}
+    >
+      <AlertTriangle className="w-3 h-3 shrink-0" />
+      <span>Flagged: {terms.join(', ')}</span>
+    </div>
+  );
+}
+
+// PARSING — required for every InvokeLLM response.
+// response_json_schema may return an already-parsed object OR a string.
+// Always strip code fences before JSON.parse. Callers wrap this in
+// try/catch so a parse failure fails only that batch, never the whole run.
+function parseLLM(raw) {
+  if (raw && typeof raw === 'object') return raw;
+  const clean = String(raw).replace(/```json|```/g, '').trim();
+  return JSON.parse(clean);
+}
+
+// Derive lightweight tags for an ImageAsset (used by ai_vision matching).
+function imageTags(img) {
+  return [img.placement_key, img.description, img.name]
+    .filter(Boolean)
+    .map((s) => String(s));
+}
+
+// Add N days to a "YYYY-MM-DD" date string using pure UTC calendar math.
+// This is NOT in the scheduling path — it only computes a prompt date
+// range. No toISOString(), no timezone conversion, no local rollover.
+function addDaysISO(dateStr, days) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + days);
+  const yy = dt.getUTCFullYear();
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getUTCDate()).padStart(2, '0');
+  return `${yy}-${mm}-${dd}`;
+}
+
 export default function AdminSocial() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('campaigns');
@@ -78,6 +129,11 @@ export default function AdminSocial() {
   // Content Queue filters
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
+
+  // Smart Schedule (bulk) state
+  const [scheduling, setScheduling] = useState(false);
+  const [schedulePreview, setSchedulePreview] = useState(null); // [{ post, scheduled_for, reasoning }]
+  const [scheduleError, setScheduleError] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -118,6 +174,11 @@ export default function AdminSocial() {
     queryFn: () => base44.entities.Treatment.list(),
   });
 
+  const { data: images } = useQuery({
+    queryKey: ['images'],
+    queryFn: () => base44.entities.ImageAsset.list('sort_order'),
+  });
+
   // --- Mutations ---
   const createPost = useMutation({
     mutationFn: (data) => base44.entities.SocialPost.create(data),
@@ -141,14 +202,6 @@ export default function AdminSocial() {
     onSuccess: () => queryClient.invalidateQueries(['socialPosts']),
   });
 
-  const createCampaign = useMutation({
-    mutationFn: (data) => base44.entities.SocialCampaign.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['socialCampaigns']);
-      setShowCampaign(false);
-    },
-  });
-
   const createSettings = useMutation({
     mutationFn: (data) => base44.entities.SocialSettings.create(data),
     onSuccess: () => queryClient.invalidateQueries(['socialSettings']),
@@ -168,6 +221,82 @@ export default function AdminSocial() {
 
   const postsByCampaign = (campaignId) =>
     (posts || []).filter((p) => p.campaignId === campaignId);
+
+  // Drafts among the currently filtered posts — the Smart Schedule target.
+  const schedulableDrafts = filteredPosts.filter((p) => p.status === 'draft');
+
+  // Build a Smart Schedule preview via a single InvokeLLM call.
+  // Nothing is written until the user confirms.
+  const runSmartSchedule = async () => {
+    if (schedulableDrafts.length === 0) return;
+    setScheduling(true);
+    setScheduleError(null);
+    try {
+      // Range: today through +30 days, as local Chicago wall-clock dates.
+      const start = schedulableDrafts
+        .map((p) => p.scheduledFor)
+        .filter(Boolean)
+        .sort()[0]?.slice(0, 10);
+      const startDate = start || ctTodayISO();
+      const endDate = addDaysISO(startDate, 30);
+
+      const { prompt } = buildSchedulePrompt({
+        posts: schedulableDrafts.map((p) => ({
+          category: p.category,
+          platform: p.platform,
+          pillar: p.pillar,
+        })),
+        startDate,
+        endDate,
+      });
+
+      const raw = await base44.integrations.Core.InvokeLLM({ prompt });
+      let parsed;
+      try {
+        parsed = parseLLM(raw);
+      } catch (e) {
+        throw new Error('Could not parse the schedule response.');
+      }
+      const rows = Array.isArray(parsed) ? parsed : [];
+      const preview = rows
+        .map((r) => {
+          const post = schedulableDrafts[r.post_index];
+          if (!post) return null;
+          // Store the AI's local Chicago wall-clock time verbatim.
+          return { post, scheduled_for: r.scheduled_for, reasoning: r.reasoning || '' };
+        })
+        .filter(Boolean);
+      setSchedulePreview(preview);
+    } catch (err) {
+      setScheduleError(String(err?.message || err));
+    } finally {
+      setScheduling(false);
+    }
+  };
+
+  const confirmSmartSchedule = async () => {
+    if (!schedulePreview) return;
+    setScheduling(true);
+    try {
+      for (const row of schedulePreview) {
+        // ⚠️ No toISOString / new Date. The value is already a naive local
+        // wall-time string (YYYY-MM-DDTHH:mm:ss). Store it verbatim.
+        const scheduledFor = normalizeSchedule(row.scheduled_for);
+        await base44.entities.SocialPost.update(row.post.id, {
+          scheduledFor,
+          scheduleReasoning: row.reasoning,
+          timezone: 'America/Chicago',
+          status: 'approved',
+        });
+      }
+      queryClient.invalidateQueries(['socialPosts']);
+      setSchedulePreview(null);
+    } catch (err) {
+      setScheduleError(String(err?.message || err));
+    } finally {
+      setScheduling(false);
+    }
+  };
 
   if (!user) {
     return (
@@ -314,8 +443,8 @@ export default function AdminSocial() {
 
           {/* --- CONTENT QUEUE TAB --- */}
           <TabsContent value="content" className="mt-6">
-            {/* Filters */}
-            <div className="flex gap-3 mb-4">
+            {/* Filters + Smart Schedule */}
+            <div className="flex gap-3 mb-4 items-end">
               <div>
                 <Label className="text-xs text-[rgb(120,120,120)]">Status</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -340,7 +469,65 @@ export default function AdminSocial() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="ml-auto">
+                <Button
+                  onClick={runSmartSchedule}
+                  disabled={scheduling || schedulableDrafts.length === 0}
+                  title={schedulableDrafts.length === 0 ? 'No draft posts to schedule' : undefined}
+                  className="bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white"
+                >
+                  <CalendarClock className="w-4 h-4 mr-2" />
+                  {scheduling && !schedulePreview ? 'Planning…' : `Smart Schedule (${schedulableDrafts.length})`}
+                </Button>
+              </div>
             </div>
+
+            {scheduleError && (
+              <div className="mb-4 text-sm rounded p-3" style={{ color: 'rgb(180,80,80)', background: 'rgba(180,80,80,0.08)' }}>
+                {scheduleError}
+              </div>
+            )}
+
+            {/* Smart Schedule preview — nothing is written until confirmed */}
+            {schedulePreview && (
+              <div className="mb-6 bg-white border border-[rgb(235,225,213)] rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-[rgb(107,85,64)] font-medium">
+                    Proposed schedule ({schedulePreview.length})
+                  </h3>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setSchedulePreview(null)} disabled={scheduling}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={confirmSmartSchedule}
+                      disabled={scheduling}
+                      className="bg-[rgb(150,170,155)] hover:bg-[rgb(130,150,135)] text-white"
+                    >
+                      {scheduling ? 'Saving…' : 'Confirm & Approve'}
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {schedulePreview.map((row, i) => (
+                    <div key={i} className="flex items-start gap-3 text-sm border-b border-[rgb(235,225,213)] pb-2">
+                      <PlatformIcon platform={row.post.platform} className="w-4 h-4 mt-0.5 text-[rgb(107,85,64)]" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[rgb(45,45,45)] truncate">
+                          {row.post.content || row.post.topic || '(no content)'}
+                        </div>
+                        {row.reasoning && (
+                          <div className="text-xs text-[rgb(120,120,120)]">{row.reasoning}</div>
+                        )}
+                      </div>
+                      <div className="text-[rgb(107,85,64)] font-medium whitespace-nowrap">
+                        {String(row.scheduled_for || '').replace('T', ' ').slice(0, 16)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredPosts.map((p) => (
@@ -358,6 +545,11 @@ export default function AdminSocial() {
                     <p className="text-sm text-[rgb(45,45,45)] line-clamp-2 mb-3 min-h-[2.5rem]">
                       {p.content || p.topic || '(no content yet)'}
                     </p>
+                    {p.flagged && p.flaggedTerms?.length > 0 && (
+                      <div className="mb-3">
+                        <FlaggedBadge terms={p.flaggedTerms} />
+                      </div>
+                    )}
                     <div className="flex flex-wrap items-center gap-1.5 mb-3">
                       {p.category && (
                         <Badge variant="outline" className="capitalize border-[rgb(235,225,213)] text-[rgb(107,85,64)]">
@@ -441,7 +633,8 @@ export default function AdminSocial() {
       <CampaignModal
         open={showCampaign}
         onClose={() => setShowCampaign(false)}
-        createCampaign={createCampaign}
+        treatments={treatments || []}
+        images={images || []}
       />
     </div>
   );
@@ -595,6 +788,11 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
   const [scheduleInput, setScheduleInput] = useState('');
   const [uploading, setUploading] = useState(false);
 
+  // AI caption generation
+  const [generating, setGenerating] = useState(false);
+  const [variants, setVariants] = useState([]); // [{ content, hashtags, angle, screen }]
+  const [genError, setGenError] = useState(null);
+
   useEffect(() => {
     if (open) {
       if (editingPost) {
@@ -615,10 +813,62 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
         setForm(emptyPost);
         setScheduleInput('');
       }
+      setVariants([]);
+      setGenError(null);
     }
   }, [open, editingPost]);
 
   const set = (patch) => setForm((prev) => ({ ...prev, ...patch }));
+
+  const handleGenerate = async () => {
+    if (form.imageUrls.length === 0) return;
+    setGenerating(true);
+    setGenError(null);
+    setVariants([]);
+    try {
+      // Subject matter: the chosen treatment, else all treatments for spa.
+      let subject = [];
+      if (form.sourceTreatmentId) {
+        const t = treatments.find((x) => x.id === form.sourceTreatmentId);
+        if (t) subject = [t];
+      } else if (form.category === 'spa') {
+        subject = treatments;
+      }
+
+      const { prompt, response_json_schema } = buildCaptionPrompt({
+        category: form.category,
+        pillar: form.pillar,
+        platform: form.platform,
+        topics: form.topic,
+        treatments: subject,
+        count: 3,
+      });
+
+      const raw = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema });
+      let parsed;
+      try {
+        parsed = parseLLM(raw);
+      } catch (e) {
+        throw new Error('Could not parse the generated captions.');
+      }
+      const list = (parsed?.posts || []).map((p) => ({
+        content: p.content || '',
+        hashtags: p.hashtags || '',
+        angle: p.angle || '',
+        // Run the output filter on every generated caption.
+        screen: screenCaption(p.content || ''),
+      }));
+      setVariants(list);
+    } catch (err) {
+      setGenError(String(err?.message || err));
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const applyVariant = (v) => {
+    set({ content: v.content, hashtags: v.hashtags });
+  };
 
   const handlePhotos = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -644,6 +894,8 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
   const handleSave = () => {
     // ⚠️ Store scheduledFor as a naive local wall-time string. No toISOString().
     const scheduledFor = normalizeSchedule(scheduleInput);
+    // Screen the final caption so any prohibited terms surface in the queue.
+    const screen = screenCaption(form.content || '');
     const data = {
       imageUrls: form.imageUrls,
       category: form.category,
@@ -657,6 +909,8 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
       timezone: 'America/Chicago',
       status: 'draft',
       generatedBy: 'manual',
+      flagged: screen.flagged,
+      flaggedTerms: screen.terms,
     };
     if (editingPost) {
       updatePost.mutate({ id: editingPost.id, data });
@@ -802,7 +1056,55 @@ function SinglePostModal({ open, onClose, editingPost, treatments, createPost, u
             />
           </div>
 
-          {/* AI CAPTION GENERATION — commit 2 */}
+          {/* AI CAPTION GENERATION */}
+          <div>
+            <div title={form.imageUrls.length === 0 ? 'Add a photo first' : undefined} className="inline-block">
+              <Button
+                type="button"
+                onClick={handleGenerate}
+                disabled={form.imageUrls.length === 0 || generating}
+                className="bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                {generating ? 'Generating…' : 'Generate Caption'}
+              </Button>
+            </div>
+
+            {genError && (
+              <div className="mt-2 text-sm rounded p-2" style={{ color: 'rgb(180,80,80)', background: 'rgba(180,80,80,0.08)' }}>
+                {genError}
+              </div>
+            )}
+
+            {variants.length > 0 && (
+              <div className="mt-3 space-y-2">
+                <p className="text-xs text-[rgb(120,120,120)]">
+                  Pick a variant to fill the fields below — you can still edit it.
+                </p>
+                {variants.map((v, i) => (
+                  <button
+                    type="button"
+                    key={i}
+                    onClick={() => applyVariant(v)}
+                    className="w-full text-left bg-white border border-[rgb(235,225,213)] rounded-lg p-3 hover:border-[rgb(150,170,155)] transition-colors"
+                  >
+                    {v.angle && (
+                      <div className="text-xs text-[rgb(150,170,155)] mb-1 capitalize">{v.angle}</div>
+                    )}
+                    <div className="text-sm text-[rgb(45,45,45)] whitespace-pre-wrap">{v.content}</div>
+                    {v.hashtags && (
+                      <div className="text-xs text-[rgb(120,120,120)] mt-1">{v.hashtags}</div>
+                    )}
+                    {v.screen.flagged && (
+                      <div className="mt-2">
+                        <FlaggedBadge terms={v.screen.terms} />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* 7. Content */}
           <div>
@@ -865,20 +1167,196 @@ const emptyCampaign = {
   category: 'hotel',
   platforms: [],
   pillars: [...PILLARS],
+  topics: '',
+  imageStrategy: 'none', // none | fixed | folder | ai_vision
+  fixedImageId: '',
+  folder: '',
 };
 
-function CampaignModal({ open, onClose, createCampaign }) {
+const BATCH_SIZE = 7;
+
+function CampaignModal({ open, onClose, treatments, images }) {
+  const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(emptyCampaign);
+  const [campaignId, setCampaignId] = useState(null);
+  // Generation progress: { running, done, total, error, complete }
+  const [gen, setGen] = useState({ running: false, done: 0, total: 0, error: null, complete: false });
 
   useEffect(() => {
     if (open) {
       setStep(1);
       setForm(emptyCampaign);
+      setCampaignId(null);
+      setGen({ running: false, done: 0, total: 0, error: null, complete: false });
     }
   }, [open]);
 
   const set = (patch) => setForm((prev) => ({ ...prev, ...patch }));
+
+  // Distinct folders (ImageAsset.placement_key) for the folder strategy.
+  const folders = Array.from(
+    new Set((images || []).map((img) => img.placement_key).filter(Boolean)),
+  );
+
+  // Resolve image urls for a post at a given global index, per strategy.
+  const resolveImageUrls = (globalIndex, aiMatchedId) => {
+    if (form.imageStrategy === 'fixed' && form.fixedImageId) {
+      const img = (images || []).find((x) => x.id === form.fixedImageId);
+      return img ? [img.url] : [];
+    }
+    if (form.imageStrategy === 'folder' && form.folder) {
+      const pool = (images || []).filter((x) => (x.placement_key || '') === form.folder);
+      if (pool.length === 0) return [];
+      const img = pool[globalIndex % pool.length];
+      return img ? [img.url] : [];
+    }
+    if (form.imageStrategy === 'ai_vision' && aiMatchedId) {
+      const img = (images || []).find((x) => x.id === aiMatchedId);
+      return img ? [img.url] : [];
+    }
+    return [];
+  };
+
+  // Ensure the campaign record exists; return its id.
+  const ensureCampaign = async () => {
+    if (campaignId) return campaignId;
+    const created = await base44.entities.SocialCampaign.create({
+      title: form.title,
+      goal: form.goal,
+      durationDays: form.durationDays,
+      startDate: form.startDate,
+      category: form.category,
+      platforms: form.platforms,
+      pillars: form.pillars,
+      topics: form.topics,
+      imageStrategy: form.imageStrategy,
+      status: 'draft',
+      postCount: 0,
+      generationStatus: 'draft',
+    });
+    setCampaignId(created.id);
+    return created.id;
+  };
+
+  // Batched, client-side generation loop. Resumes from `startFrom`.
+  const generatePosts = async (startFrom = 0) => {
+    const total = form.durationDays; // one post per campaign day
+    const cid = await ensureCampaign();
+    await base44.entities.SocialCampaign.update(cid, { generationStatus: 'generating', lastError: null });
+    setGen({ running: true, done: startFrom, total, error: null, complete: false });
+
+    // ai_vision candidate map — capped at 100, keyed by id for validation.
+    const candidates =
+      form.imageStrategy === 'ai_vision'
+        ? (images || []).slice(0, 100).map((img) => ({
+            id: img.id,
+            filename: img.name || '',
+            tags: imageTags(img),
+          }))
+        : [];
+    const validIds = new Set(candidates.map((c) => c.id));
+
+    let done = startFrom;
+    while (done < total) {
+      const batchCount = Math.min(BATCH_SIZE, total - done);
+      try {
+        // Representative platform/pillar for the batch prompt; assignment
+        // below cycles across the campaign's full platform/pillar mix.
+        const platform = form.platforms[0] || 'instagram';
+        const pillar = form.pillars[0] || 'quiet';
+        const subject = form.category === 'spa' ? treatments : [];
+
+        const { prompt, response_json_schema } = buildCaptionPrompt({
+          category: form.category,
+          pillar,
+          platform,
+          topics: form.topics,
+          treatments: subject,
+          count: batchCount,
+        });
+
+        const raw = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema });
+        let parsed;
+        try {
+          parsed = parseLLM(raw);
+        } catch (e) {
+          throw new Error(`Failed to parse batch at post ${done + 1}.`);
+        }
+        const genPosts = parsed?.posts || [];
+
+        // ai_vision image matching — one call per batch. Failure here is
+        // recorded but does NOT fail the run; posts save with imageUrls: [].
+        let imageMap = {};
+        if (form.imageStrategy === 'ai_vision' && candidates.length > 0 && genPosts.length > 0) {
+          try {
+            const { prompt: matchPrompt } = buildImageMatchPrompt({
+              captions: genPosts.map((p) => p.content || ''),
+              candidates,
+            });
+            const matchRaw = await base44.integrations.Core.InvokeLLM({ prompt: matchPrompt });
+            const matchArr = parseLLM(matchRaw);
+            (Array.isArray(matchArr) ? matchArr : []).forEach((item) => {
+              // VALIDATE every returned id against the candidate map.
+              if (item && validIds.has(item.image_id)) {
+                imageMap[item.caption_index] = item.image_id;
+              }
+            });
+          } catch (e) {
+            await base44.entities.SocialCampaign.update(cid, {
+              lastError: `Image matching failed: ${String(e?.message || e)}`,
+            });
+          }
+        }
+
+        // Write the batch.
+        for (let i = 0; i < genPosts.length; i++) {
+          const gp = genPosts[i];
+          const globalIndex = done + i;
+          const screen = screenCaption(gp.content || '');
+          const imageUrls = resolveImageUrls(globalIndex, imageMap[i]);
+          await base44.entities.SocialPost.create({
+            campaignId: cid,
+            category: gp.category || form.category,
+            pillar: gp.pillar || form.pillars[globalIndex % (form.pillars.length || 1)] || 'quiet',
+            platform: form.platforms[globalIndex % (form.platforms.length || 1)] || 'instagram',
+            content: gp.content || '',
+            hashtags: gp.hashtags || '',
+            angle: gp.angle || '',
+            imageHint: gp.imageHint || '',
+            imageUrls,
+            status: 'draft',
+            generatedBy: 'ai',
+            timezone: 'America/Chicago',
+            flagged: screen.flagged,
+            flaggedTerms: screen.terms,
+          });
+        }
+
+        done += batchCount;
+        setGen((s) => ({ ...s, done }));
+      } catch (err) {
+        // Stop, keep everything already written, mark the campaign failed.
+        await base44.entities.SocialCampaign.update(cid, {
+          generationStatus: 'failed',
+          lastError: String(err?.message || err),
+          postCount: done,
+        });
+        queryClient.invalidateQueries(['socialPosts']);
+        queryClient.invalidateQueries(['socialCampaigns']);
+        setGen({ running: false, done, total, error: String(err?.message || err), complete: false });
+        return;
+      }
+    }
+
+    await base44.entities.SocialCampaign.update(cid, {
+      generationStatus: 'complete',
+      postCount: total,
+    });
+    queryClient.invalidateQueries(['socialPosts']);
+    queryClient.invalidateQueries(['socialCampaigns']);
+    setGen({ running: false, done: total, total, error: null, complete: true });
+  };
 
   const togglePlatform = (p) => {
     setForm((prev) => ({
@@ -898,21 +1376,6 @@ function CampaignModal({ open, onClose, createCampaign }) {
     }));
   };
 
-  const handleSave = () => {
-    // No post generation this commit — only the campaign record.
-    createCampaign.mutate({
-      title: form.title,
-      goal: form.goal,
-      durationDays: form.durationDays,
-      startDate: form.startDate,
-      category: form.category,
-      platforms: form.platforms,
-      pillars: form.pillars,
-      status: 'draft',
-      postCount: 0,
-    });
-  };
-
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-lg bg-[rgb(248,246,242)] max-h-[90vh] overflow-y-auto">
@@ -924,7 +1387,7 @@ function CampaignModal({ open, onClose, createCampaign }) {
 
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-2">
-          {[1, 2, 3].map((s) => (
+          {[1, 2, 3, 4].map((s) => (
             <div
               key={s}
               className="flex-1 h-1.5 rounded-full"
@@ -1044,9 +1507,101 @@ function CampaignModal({ open, onClose, createCampaign }) {
           </div>
         )}
 
+        {/* Step 4 — Generate */}
+        {step === 4 && (
+          <div className="space-y-5">
+            <div>
+              <Label className="text-[rgb(45,45,45)]">Topics / keywords</Label>
+              <Textarea
+                value={form.topics}
+                onChange={(e) => set({ topics: e.target.value })}
+                placeholder="What should these posts cover? (from Whitney)"
+                className="mt-2 bg-white"
+                rows={3}
+                disabled={gen.running}
+              />
+            </div>
+
+            <div>
+              <Label className="text-[rgb(45,45,45)]">Image strategy</Label>
+              <RadioGroup
+                value={form.imageStrategy}
+                onValueChange={(v) => set({ imageStrategy: v })}
+                className="mt-2 space-y-2"
+                disabled={gen.running}
+              >
+                {[
+                  { v: 'none', label: 'No images' },
+                  { v: 'fixed', label: 'One fixed image for all posts' },
+                  { v: 'folder', label: 'Rotate through a folder' },
+                  { v: 'ai_vision', label: 'AI matches images to captions' },
+                ].map((opt) => (
+                  <label key={opt.v} className="flex items-center gap-2 cursor-pointer">
+                    <RadioGroupItem value={opt.v} id={`img-${opt.v}`} />
+                    <span className="text-sm text-[rgb(45,45,45)]">{opt.label}</span>
+                  </label>
+                ))}
+              </RadioGroup>
+            </div>
+
+            {form.imageStrategy === 'fixed' && (
+              <div>
+                <Label className="text-[rgb(45,45,45)]">Image</Label>
+                <Select value={form.fixedImageId} onValueChange={(v) => set({ fixedImageId: v })}>
+                  <SelectTrigger className="mt-2 bg-white"><SelectValue placeholder="Choose an image" /></SelectTrigger>
+                  <SelectContent>
+                    {(images || []).map((img) => (
+                      <SelectItem key={img.id} value={img.id}>{img.name || img.id}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {form.imageStrategy === 'folder' && (
+              <div>
+                <Label className="text-[rgb(45,45,45)]">Folder</Label>
+                <Select value={form.folder} onValueChange={(v) => set({ folder: v })}>
+                  <SelectTrigger className="mt-2 bg-white"><SelectValue placeholder="Choose a folder" /></SelectTrigger>
+                  <SelectContent>
+                    {folders.length === 0 && <SelectItem value="none" disabled>No folders found</SelectItem>}
+                    {folders.map((f) => (
+                      <SelectItem key={f} value={f}>{f}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Progress / status */}
+            {(gen.running || gen.done > 0 || gen.error || gen.complete) && (
+              <div className="space-y-2">
+                <Progress value={gen.total ? (gen.done / gen.total) * 100 : 0} />
+                <p className="text-sm text-[rgb(120,120,120)]">
+                  {gen.error
+                    ? `Stopped after ${gen.done} of ${gen.total}.`
+                    : gen.complete
+                      ? `Generated ${gen.done} of ${gen.total}.`
+                      : `Generating ${gen.done} of ${gen.total}…`}
+                </p>
+                {gen.error && (
+                  <div className="text-sm rounded p-2" style={{ color: 'rgb(180,80,80)', background: 'rgba(180,80,80,0.08)' }}>
+                    {gen.error}
+                  </div>
+                )}
+                {gen.complete && (
+                  <p className="text-sm text-[rgb(150,170,155)]">
+                    Posts are in the Content Queue as drafts. Review flagged captions before scheduling.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Nav */}
         <div className="flex gap-3 pt-4">
-          {step > 1 && (
+          {step > 1 && step < 4 && (
             <Button variant="outline" onClick={() => setStep(step - 1)} className="flex-1">
               Back
             </Button>
@@ -1062,11 +1617,29 @@ function CampaignModal({ open, onClose, createCampaign }) {
           )}
           {step === 3 && (
             <Button
-              onClick={handleSave}
-              disabled={createCampaign.isPending}
+              onClick={() => setStep(4)}
+              disabled={form.platforms.length === 0}
+              className="flex-1 bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white"
+            >
+              Continue to Generate
+            </Button>
+          )}
+          {step === 4 && !gen.complete && (
+            <Button
+              onClick={() => generatePosts(gen.error ? gen.done : 0)}
+              disabled={gen.running || form.platforms.length === 0}
               className="flex-1 bg-[rgb(150,170,155)] hover:bg-[rgb(130,150,135)] text-white"
             >
-              Create Campaign
+              <Sparkles className="w-4 h-4 mr-2" />
+              {gen.running ? 'Generating…' : gen.error ? `Retry (${gen.total - gen.done} left)` : 'Generate Posts'}
+            </Button>
+          )}
+          {step === 4 && gen.complete && (
+            <Button
+              onClick={onClose}
+              className="flex-1 bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white"
+            >
+              Done
             </Button>
           )}
         </div>
