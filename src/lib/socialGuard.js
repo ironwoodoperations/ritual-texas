@@ -5,10 +5,23 @@
 // recorded — they are never silently dropped, auto-edited, or rewritten.
 // The user must see what was caught and decide.
 
-// Note: bare singular "treat" (a noun — "a little treat") is allowed;
-// only the verb forms "treats"/"treating" read as a medical claim.
-const BANNED = /\b(treats|treating|cures?|heals?|healing|detox(ify|ing)?|therapeutic|remed(y|ies)|medicinal|clinically|prescribe[sd]?)\b/i;
+// "treat" is banned in all its forms (treat/treats/treating) — the verb
+// "treat" is the most likely form a health claim takes. A narrow
+// carve-out below exempts the indulgence noun ("a treat").
+const BANNED = /\b(treats?|treating|cures?|heals?|healing|detox(ify|ing)?|therapeutic|remed(y|ies)|medicinal|clinically|prescribe[sd]?)\b/i;
 const CONDITIONS = /\b(anxiety|insomnia|depression|inflammation|arthritis|migraines?|eczema|psoriasis|IBS)\b/i;
+
+// Determiners/articles that mark the indulgence sense of the noun
+// "treat" ("a treat", "such a treat", "a little treat"). "little" and
+// "real" are included per spec, which also covers the "optional adjective
+// between" case for them ("a little treat" → immediate predecessor is
+// "little"). We only exempt when "treat" is IMMEDIATELY preceded by one
+// of these: a general "any word between" lookback would wrongly exempt a
+// real claim like "this will treat" (determiner two words back), and the
+// spec says to prefer flagging over passing.
+const DETERMINERS = new Set([
+  'a', 'an', 'the', 'this', 'that', 'some', 'any', 'little', 'real',
+]);
 // Capture the full number, not just the first digit ("$45", "$1,200.50").
 const PRICE = /\$\s?\d[\d,]*(\.\d+)?|\b\d+\s+(dollars|usd)\b/i;
 
@@ -50,10 +63,20 @@ export function screenCaption(text) {
   // normalized fragment ("healing"). Every BANNED/CONDITIONS entry is a
   // single word, so per-token screening is sufficient.
   const tokens = str.split(/\s+/).filter(Boolean);
-  for (const tok of tokens) {
+  for (let i = 0; i < tokens.length; i += 1) {
+    const tok = tokens[i];
     const norm = normalize(tok);
     if (BANNED.test(norm) || CONDITIONS.test(norm)) {
-      push(cleanToken(tok));
+      const cleaned = cleanToken(tok);
+      // Carve-out: the bare noun "treat" preceded by a determiner is the
+      // indulgence sense, not a claim. Applies only to standalone
+      // "treat" (not "treats"/"treating", not compounds like "retreat"
+      // which never match here anyway).
+      if (cleaned.toLowerCase() === 'treat') {
+        const prev = i > 0 ? cleanToken(tokens[i - 1]).toLowerCase() : '';
+        if (DETERMINERS.has(prev)) continue;
+      }
+      push(cleaned);
     }
   }
 

@@ -70,6 +70,20 @@ expectFieldsFlagged('A calm evening.', '#DeepHealing #SoundBath', true, ['#DeepH
 expectFieldsFlagged('This treats tension.', '#Stillness', true, ['treats']);
 expectFieldsFlagged('A quiet morning.', '#SoundBath #Stillness', false, []);
 
+// --- Bare verb "treat" restored to BANNED, with a noun carve-out ---
+// MUST FLAG:
+expectFlagged('This will treat your tension', true, 'treat');
+expectFlagged('designed to treat stress', true, 'treat');
+expectFlagged('treat, treats, treating', true, 'treat');
+expectFlagged('treat, treats, treating', true, 'treats');
+expectFlagged('treat, treats, treating', true, 'treating');
+// MUST NOT FLAG (indulgence noun / word-boundary):
+expectFlagged('a treat', false);
+expectFlagged('a little treat', false);
+expectFlagged('such a treat', false);
+expectFlagged('retreat', false);
+expectFlagged('#Retreat', false);
+
 if (failures > 0) {
   console.error(`\n${failures} test(s) failed.`);
   process.exit(1);
