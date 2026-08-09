@@ -29,7 +29,7 @@ import { ctTodayISO } from '@/lib/time';
 const CATEGORIES = ['hotel', 'restaurant', 'spa'];
 const PLATFORMS = ['instagram', 'facebook', 'tiktok'];
 const PILLARS = ['quiet', 'glow', 'release', 'together'];
-const STATUSES = ['draft', 'scheduled', 'published', 'failed'];
+const STATUSES = ['draft', 'approved', 'scheduled', 'published', 'failed'];
 const DURATIONS = [7, 14, 30];
 
 const PLATFORM_ICONS = {
@@ -54,6 +54,7 @@ function normalizeSchedule(val) {
 
 const STATUS_COLORS = {
   draft: 'rgb(120,120,120)',
+  approved: 'rgb(180,150,90)',
   scheduled: 'rgb(150,170,155)',
   published: 'rgb(107,85,64)',
   failed: 'rgb(180,80,80)',
