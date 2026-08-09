@@ -3,6 +3,7 @@
 // Exits non-zero if any case fails, so it's verifiable without an LLM.
 
 import { screenCaption, screenFields } from './socialGuard.js';
+import process from 'process';
 
 let failures = 0;
 

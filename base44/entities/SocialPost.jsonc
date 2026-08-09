@@ -75,6 +75,19 @@
     },
     "failureReason": {
       "type": "string"
+    },
+    "publishedAt": {
+      "type": "string"
+    },
+    "mediaType": {
+      "type": "string",
+      "enum": [
+        "image",
+        "video"
+      ]
+    },
+    "zernioStatus": {
+      "type": "string"
     }
   },
   "required": [
