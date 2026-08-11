@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Leaf, Phone, Mail, ArrowRight, BedDouble, Sparkles, CalendarDays } from 'lucide-react';
@@ -19,17 +19,7 @@ const rooms = [
   },
 ];
 
-const CLOUDBEDS_URL = 'https://hotels.cloudbeds.com/en/reservation/aqlut4?currency=usd';
-
 export default function BookRooms() {
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const direct = urlParams.get('direct');
-    if (direct === '1') {
-      window.open(CLOUDBEDS_URL, '_blank');
-    }
-  }, []);
-
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'rgb(248,246,242)' }}>
 
@@ -52,16 +42,14 @@ export default function BookRooms() {
           <p className="text-white/90 font-light text-lg mb-10 max-w-xl mx-auto">
             Boutique suites designed for deep rest, restoration, and return.
           </p>
-          <a
-            href={CLOUDBEDS_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to={createPageUrl('GuestBookNow')}
             className="inline-flex items-center gap-3 px-8 py-4 bg-[rgb(150,170,155)] text-white tracking-widest text-sm hover:bg-[rgb(130,150,135)] transition-all"
           >
             <CalendarDays className="w-4 h-4" />
             CHECK AVAILABILITY & BOOK
             <ArrowRight className="w-4 h-4" />
-          </a>
+          </Link>
         </motion.div>
       </section>
 
@@ -94,14 +82,12 @@ export default function BookRooms() {
                   <p className="text-sm text-[rgb(45,45,45)] font-light mb-4 leading-relaxed">{room.description}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[rgb(150,170,155)] font-medium">{room.price}</span>
-                    <a
-                      href={CLOUDBEDS_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Link
+                      to={createPageUrl('GuestBookNow')}
                       className="flex items-center gap-1.5 text-sm text-[rgb(107,85,64)] hover:text-[rgb(150,170,155)] transition-colors"
                     >
                       Book Now <ArrowRight className="w-3.5 h-3.5" />
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </motion.div>
@@ -126,18 +112,16 @@ export default function BookRooms() {
           <Leaf className="w-8 h-8 text-[rgb(198,182,165)] mx-auto mb-6" />
           <h2 className="text-3xl font-extralight text-white mb-4">Ready to Begin?</h2>
           <p className="text-white/80 font-light mb-10">
-            Check availability and reserve your suite directly through our secure booking portal.
+            Check availability and reserve your suite — rooms and spa treatments, booked together in one place.
           </p>
-          <a
-            href={CLOUDBEDS_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to={createPageUrl('GuestBookNow')}
             className="inline-flex items-center gap-3 px-8 py-4 bg-white text-[rgb(107,85,64)] tracking-widest text-sm hover:bg-[rgb(235,225,213)] transition-all"
           >
             <BedDouble className="w-4 h-4" />
             BOOK YOUR STAY
             <ArrowRight className="w-4 h-4" />
-          </a>
+          </Link>
           <div className="flex items-center justify-center gap-8 mt-10">
             <a href="tel:9038106695" className="flex items-center gap-1.5 text-white/70 text-sm hover:text-white transition-colors">
               <Phone className="w-4 h-4" /> (903) 810-6695
