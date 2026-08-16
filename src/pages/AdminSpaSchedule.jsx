@@ -24,6 +24,16 @@ import { ctTime, ctDayISO } from '@/lib/time';
 
 const toISODate = (d) => ctDayISO(d);
 
+const PROVIDER_TIP_LINKS = [
+  { name: 'Bishop', link: 'https://square.link/u/RjHBTMQP' },
+  { name: "Da'Monica Franklin", link: 'https://square.link/u/qwLpor4W' },
+  { name: 'Hazel Baker', link: 'https://square.link/u/MlVjtWs0' },
+  { name: 'Monica', link: 'https://square.link/u/cvR2HjGQ' },
+  { name: 'Patton Carter', link: 'https://square.link/u/qDVwMM0n' },
+  { name: 'Tanita', link: 'https://square.link/u/PVPH7ZFj' },
+  { name: 'Whitney', link: 'https://square.link/u/6A73E4eT' },
+];
+
 const STATUS_COLORS = {
   confirmed: '#10b981',
   booked: '#3b82f6',
@@ -318,28 +328,17 @@ export default function AdminSpaSchedule() {
       {/* Provider Tip Links */}
       <div style={{ marginTop: '24px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px' }}>
         <h2 style={{ fontSize: '18px', fontWeight: '600', margin: '0 0 16px 0' }}>Provider Tip Links</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <button 
-            onClick={() => setProviderTipModal({ name: 'Bishop', link: 'https://square.link/u/RjHBTMQP' })}
-            className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors text-left"
-          >
-            <div style={{ fontWeight: '600', fontSize: '15px', marginBottom: '4px', color: '#2d2d2d' }}>Bishop</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>Send Gratuity Link For:</div>
-          </button>
-          <button 
-            onClick={() => setProviderTipModal({ name: 'Whitney', link: 'https://square.link/u/6A73E4eT' })}
-            className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors text-left"
-          >
-            <div style={{ fontWeight: '600', fontSize: '15px', marginBottom: '4px', color: '#2d2d2d' }}>Whitney</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>Send Gratuity Link For:</div>
-          </button>
-          <button 
-            onClick={() => setProviderTipModal({ name: 'Tanita', link: 'https://square.link/u/PVPH7ZFj' })}
-            className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors text-left"
-          >
-            <div style={{ fontWeight: '600', fontSize: '15px', marginBottom: '4px', color: '#2d2d2d' }}>Tanita</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>Send Gratuity Link For:</div>
-          </button>
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {PROVIDER_TIP_LINKS.map((p) => (
+            <button
+              key={p.name}
+              onClick={() => setProviderTipModal(p)}
+              className="p-4 border border-[rgb(235,225,213)] rounded-lg hover:bg-[rgb(248,246,242)] transition-colors text-left"
+            >
+              <div style={{ fontWeight: '600', fontSize: '15px', marginBottom: '4px', color: '#2d2d2d' }}>{p.name}</div>
+              <div style={{ fontSize: '12px', color: '#666' }}>Send Gratuity Link For:</div>
+            </button>
+          ))}
         </div>
       </div>
 
