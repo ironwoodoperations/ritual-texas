@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -1085,6 +1085,31 @@ function ConnectionsModal({ open, onClose, settings, createSettings, updateSetti
   const [instagram, setInstagram] = useState('');
   const [tiktok, setTiktok] = useState('');
 
+  // Live connection status, read from Ironwood rather than inferred from the
+  // inputs below. `status` stays null until a read resolves — a not-yet-known
+  // zero must never render the same as a real zero, which is how the old
+  // badge came to claim three connections against zero authorized accounts.
+  const [status, setStatus] = useState(null);
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [statusError, setStatusError] = useState(null);
+
+  const loadStatus = useCallback(async () => {
+    setStatusLoading(true);
+    setStatusError(null);
+    try {
+      const resp = await base44.functions.invoke('zernioListAccounts', {});
+      setStatus(resp.data);
+    } catch (err) {
+      setStatus(null);
+      // Deliberately NOT falling back to err.message: on a network or SDK
+      // failure that is raw text which never passed through the function,
+      // and it can name the vendor. The function's own messages are safe.
+      setStatusError(err?.response?.data?.message || 'Could not load connection status.');
+    } finally {
+      setStatusLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (open) {
       setProfileId(settings?.zernioProfileId || '');
@@ -1094,6 +1119,14 @@ function ConnectionsModal({ open, onClose, settings, createSettings, updateSetti
     }
   }, [open, settings]);
 
+  // Separate from the field seeding above: that effect also re-runs whenever
+  // `settings` changes (i.e. after every Save), and a save must not trigger
+  // another vendor round-trip. Live read on open, plus manual Refresh — no
+  // polling, no interval, no focus listener.
+  useEffect(() => {
+    if (open) loadStatus();
+  }, [open, loadStatus]);
+
   const persist = (patch) => {
     if (settings?.id) {
       updateSettings.mutate({ id: settings.id, data: { ...settings, ...patch } });
@@ -1102,7 +1135,12 @@ function ConnectionsModal({ open, onClose, settings, createSettings, updateSetti
     }
   };
 
-  const filledCount = [facebook, instagram, tiktok].filter((v) => v && v.trim()).length;
+  // Presence in accounts[] is the only connection signal there is — the
+  // vendor exposes no per-account status field, so a revoked account is
+  // indistinguishable from one that was never connected.
+  const accountFor = (platform) =>
+    (status?.accounts || []).find((a) => a.platform === platform) || null;
+  const statusKnown = !!status && !statusLoading;
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -1142,14 +1180,34 @@ function ConnectionsModal({ open, onClose, settings, createSettings, updateSetti
 
           {/* Connected Platforms */}
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-3 gap-2">
               <Label className="text-[rgb(45,45,45)]">Connected Platforms</Label>
-              <span
-                className="text-xs px-2 py-0.5 rounded-full text-white"
-                style={{ background: 'rgb(150,170,155)' }}
-              >
-                {filledCount} of 3 connected
-              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={loadStatus}
+                  disabled={statusLoading}
+                  className="h-7 px-2 text-xs text-[rgb(107,85,64)] border-[rgb(235,225,213)]"
+                >
+                  <RefreshCw className={`w-3 h-3 mr-1 ${statusLoading ? 'animate-spin' : ''}`} />
+                  Refresh status
+                </Button>
+                {statusLoading ? (
+                  <span className="text-xs text-[rgb(120,120,120)]">Checking…</span>
+                ) : statusError ? (
+                  <span className="text-xs text-right" style={{ color: 'rgb(180,80,80)' }}>
+                    {statusError}
+                  </span>
+                ) : (
+                  <span
+                    className="text-xs px-2 py-0.5 rounded-full text-white whitespace-nowrap"
+                    style={{ background: 'rgb(150,170,155)' }}
+                  >
+                    {status?.connectedCount ?? 0} of {PLATFORMS.length} connected
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -1157,16 +1215,19 @@ function ConnectionsModal({ open, onClose, settings, createSettings, updateSetti
                 platform="facebook" label="Facebook" value={facebook}
                 onChange={setFacebook}
                 onSave={() => persist({ facebookAccountId: facebook })}
+                account={accountFor('facebook')} statusKnown={statusKnown}
               />
               <PlatformRow
                 platform="instagram" label="Instagram" value={instagram}
                 onChange={setInstagram}
                 onSave={() => persist({ instagramAccountId: instagram })}
+                account={accountFor('instagram')} statusKnown={statusKnown}
               />
               <PlatformRow
                 platform="tiktok" label="TikTok" value={tiktok}
                 onChange={setTiktok}
                 onSave={() => persist({ tiktokAccountId: tiktok })}
+                account={accountFor('tiktok')} statusKnown={statusKnown}
               />
             </div>
 
@@ -1180,26 +1241,44 @@ function ConnectionsModal({ open, onClose, settings, createSettings, updateSetti
   );
 }
 
-function PlatformRow({ platform, label, value, onChange, onSave }) {
+function PlatformRow({ platform, label, value, onChange, onSave, account, statusKnown }) {
+  const handle = account?.username
+    ? `@${account.username}`
+    : account?.name || account?.displayName || '';
+
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center gap-2 w-28 text-[rgb(107,85,64)]">
-        <PlatformIcon platform={platform} className="w-4 h-4" />
-        <span className="text-sm">{label}</span>
+    <div>
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-28 text-[rgb(107,85,64)]">
+          <PlatformIcon platform={platform} className="w-4 h-4" />
+          <span className="text-sm">{label}</span>
+        </div>
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Account ID"
+          className="bg-white flex-1"
+        />
+        <Button
+          onClick={onSave}
+          variant="outline"
+          className="text-[rgb(107,85,64)] border-[rgb(235,225,213)]"
+        >
+          Save
+        </Button>
       </div>
-      <Input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Account ID"
-        className="bg-white flex-1"
-      />
-      <Button
-        onClick={onSave}
-        variant="outline"
-        className="text-[rgb(107,85,64)] border-[rgb(235,225,213)]"
-      >
-        Save
-      </Button>
+      <div className="pl-[7.5rem] mt-1 text-xs">
+        {!statusKnown ? (
+          <span className="text-[rgb(120,120,120)]">Checking…</span>
+        ) : account ? (
+          <span className="inline-flex items-center gap-1" style={{ color: 'rgb(150,170,155)' }}>
+            <CheckCircle2 className="w-3 h-3 shrink-0" />
+            Connected{handle ? ` · ${handle}` : ''}
+          </span>
+        ) : (
+          <span className="text-[rgb(120,120,120)]">Not connected</span>
+        )}
+      </div>
     </div>
   );
 }
