@@ -207,7 +207,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
       );
       // Never tunnel a non-2xx as a 200 — pass the upstream status through.
       const upstream = clientMessageForStatus(pubResp.status);
-      const failureReason = mediaFailureReason ? `${mediaFailureReason} | ${upstream}` : upstream;
+      // Sentence space, not a pipe — this string is read by a hotel owner,
+      // not tailed from a log. Both halves are already full sentences.
+      const failureReason = mediaFailureReason ? `${mediaFailureReason} ${upstream}` : upstream;
       await base44.asServiceRole.entities.SocialPost.update(post.id, {
         status: "failed",
         failureReason,

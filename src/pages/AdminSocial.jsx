@@ -118,7 +118,14 @@ function FlaggedBadge({ terms }) {
 //      never passed through the server.
 // Anything naming the vendor is replaced wholesale; a partial redaction
 // would still leak the shape of the upstream body.
-const VENDOR_NAME = /zernio/i;
+//
+// Two names, not one. `latePostId` is residue from a vendor rebrand and
+// appears in the vendor's own API responses, so it survives anywhere we
+// deliberately pass vendor-authored text through — which zernioSyncStatus
+// now does, because its failureReason names the only actionable cause
+// Whitney ever sees (aspect ratio, caption length). Matching only /zernio/
+// would let a second vendor name onto her screen by that exact route.
+const VENDOR_NAME = /zernio|latepostid/i;
 
 function scrubVendor(msg, fallback = 'Publishing failed.') {
   if (!msg) return msg;
