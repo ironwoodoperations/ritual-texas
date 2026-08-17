@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -36,6 +36,15 @@ const PLATFORM_ICONS = {
   instagram: Instagram,
   facebook: Facebook,
   tiktok: Music2,
+};
+
+// Display names, declared rather than derived. Capitalising the first letter
+// happens to work for Instagram and Facebook and is wrong for TikTok, which
+// is exactly the shape of bug that reads as a one-off instead of a pattern.
+const PLATFORM_LABELS = {
+  instagram: 'Instagram',
+  facebook: 'Facebook',
+  tiktok: 'TikTok',
 };
 
 function PlatformIcon({ platform, className = 'w-4 h-4' }) {
@@ -224,11 +233,10 @@ export default function AdminSocial() {
     queryFn: () => base44.entities.SocialCampaign.list('-created_date'),
   });
 
-  const { data: settingsList } = useQuery({
-    queryKey: ['socialSettings'],
-    queryFn: () => base44.entities.SocialSettings.list(),
-  });
-  const settings = settingsList?.[0] || null;
+  // No SocialSettings query here any more. The connections panel reads its
+  // state from Ironwood via zernioListAccounts, and the account ids are
+  // written back server-side by that same function — nothing on this page
+  // reads or writes the entity from the browser.
 
   const { data: treatments } = useQuery({
     queryKey: ['treatments'],
@@ -261,16 +269,6 @@ export default function AdminSocial() {
   const deletePost = useMutation({
     mutationFn: (id) => base44.entities.SocialPost.delete(id),
     onSuccess: () => queryClient.invalidateQueries(['socialPosts']),
-  });
-
-  const createSettings = useMutation({
-    mutationFn: (data) => base44.entities.SocialSettings.create(data),
-    onSuccess: () => queryClient.invalidateQueries(['socialSettings']),
-  });
-
-  const updateSettings = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.SocialSettings.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries(['socialSettings']),
   });
 
   // --- Derived ---
@@ -975,9 +973,6 @@ export default function AdminSocial() {
       <ConnectionsModal
         open={showConnections}
         onClose={() => setShowConnections(false)}
-        settings={settings}
-        createSettings={createSettings}
-        updateSettings={updateSettings}
       />
 
       <SinglePostModal
@@ -1105,19 +1100,54 @@ function DeleteCampaignDialog({
 // ============================================================
 // CONNECTIONS MODAL
 // ============================================================
-function ConnectionsModal({ open, onClose, settings, createSettings, updateSettings }) {
-  const [profileId, setProfileId] = useState('');
-  const [facebook, setFacebook] = useState('');
-  const [instagram, setInstagram] = useState('');
-  const [tiktok, setTiktok] = useState('');
+// Completion detection. There is no webhook receiver, so the only way to
+// learn that a grant finished is to ask. Three mechanisms, because each one
+// alone has a hole: the accounts poll catches the normal case but times out,
+// the popup-closed poll catches an abandoned window, and the manual button
+// covers a popup lost behind another window.
+const ACCOUNTS_POLL_MS = 3000;
+const POPUP_CLOSE_POLL_MS = 1000;
+const CONNECT_TIMEOUT_MS = 3 * 60 * 1000;
 
-  // Live connection status, read from Ironwood rather than inferred from the
-  // inputs below. `status` stays null until a read resolves — a not-yet-known
-  // zero must never render the same as a real zero, which is how the old
-  // badge came to claim three connections against zero authorized accounts.
+const STATUS_ERROR_FALLBACK = 'Could not load connection status.';
+const CONNECT_ERROR_FALLBACK = 'Could not start authorization. Please try again.';
+
+// The provider's consent screen asks for far more than posting — the live
+// probe returned twelve Facebook scopes, including Page messaging, Business
+// Manager and ads access. Whitney can untick scopes and Facebook will still
+// complete a PARTIAL grant, but dropping pages_manage_posts or
+// pages_show_list breaks publishing, and it fails at post time rather than at
+// connect time. Because there is no per-account status field, a
+// partially-granted account is indistinguishable from a working one in the
+// accounts list — nothing downstream can detect it. Hence copy that steers
+// toward accepting everything.
+const CONSENT_PLATFORMS = ['facebook', 'instagram'];
+const CONSENT_NOTE =
+  'Facebook runs this authorization screen and asks for a broad set of permissions, '
+  + 'including Page messaging, Business Manager and ads access. Accept all of them — '
+  + 'RITUAL only ever uses posting and account listing.';
+
+function ConnectionsModal({ open, onClose }) {
+  // Live connection status, read from Ironwood. `status` stays null until a
+  // read resolves — a not-yet-known zero must never render the same as a real
+  // zero, which is how the old badge came to claim three connections against
+  // zero authorized accounts.
   const [status, setStatus] = useState(null);
   const [statusLoading, setStatusLoading] = useState(false);
   const [statusError, setStatusError] = useState(null);
+
+  // Connect flow, one platform at a time.
+  const [connecting, setConnecting] = useState(null);       // platform | null
+  const [connectError, setConnectError] = useState(null);   // { platform, message }
+  const [connectNote, setConnectNote] = useState(null);     // { platform, message }
+
+  // Refs, not state: the interval callbacks below must read current values
+  // without being torn down and rebuilt on every render.
+  const pollRef = useRef(null);
+  const closeRef = useRef(null);
+  const popupRef = useRef(null);
+  const targetRef = useRef(null);
+  const deadlineRef = useRef(0);
 
   const loadStatus = useCallback(async () => {
     setStatusLoading(true);
@@ -1125,39 +1155,142 @@ function ConnectionsModal({ open, onClose, settings, createSettings, updateSetti
     try {
       const resp = await base44.functions.invoke('zernioListAccounts', {});
       setStatus(resp.data);
+      return resp.data;
     } catch (err) {
       setStatus(null);
-      // Deliberately NOT falling back to err.message: on a network or SDK
-      // failure that is raw text which never passed through the function,
-      // and it can name the vendor. The function's own messages are safe.
-      setStatusError(err?.response?.data?.message || 'Could not load connection status.');
+      // The function's own messages are vendor-free, but this can also be a
+      // platform-level error naming the function itself, so it goes through
+      // the guard. No err.message fallback: that is raw text which never
+      // passed through the server.
+      setStatusError(
+        scrubVendor(err?.response?.data?.message, STATUS_ERROR_FALLBACK) || STATUS_ERROR_FALLBACK,
+      );
+      return null;
     } finally {
       setStatusLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    if (open) {
-      setProfileId(settings?.zernioProfileId || '');
-      setFacebook(settings?.facebookAccountId || '');
-      setInstagram(settings?.instagramAccountId || '');
-      setTiktok(settings?.tiktokAccountId || '');
+  const stopPolling = useCallback(() => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
     }
-  }, [open, settings]);
+    if (closeRef.current) {
+      clearInterval(closeRef.current);
+      closeRef.current = null;
+    }
+    popupRef.current = null;
+    targetRef.current = null;
+  }, []);
 
-  // Separate from the field seeding above: that effect also re-runs whenever
-  // `settings` changes (i.e. after every Save), and a save must not trigger
-  // another vendor round-trip. Live read on open, plus manual Refresh — no
-  // polling, no interval, no focus listener.
+  const startPolling = useCallback(() => {
+    stopPolling(); // never stack intervals
+
+    pollRef.current = setInterval(async () => {
+      const platform = targetRef.current;
+      if (Date.now() > deadlineRef.current) {
+        stopPolling();
+        setConnecting(null);
+        // Not a failure claim — the grant may have succeeded and the poll
+        // simply missed it.
+        setConnectNote({
+          platform,
+          message: 'We haven’t seen this connection yet. If you finished authorizing, check again.',
+        });
+        return;
+      }
+      const data = await loadStatus();
+      if (data && platform && (data.connectedPlatforms || []).includes(platform)) {
+        stopPolling();
+        setConnecting(null);
+        setConnectNote(null);
+      }
+    }, ACCOUNTS_POLL_MS);
+
+    closeRef.current = setInterval(async () => {
+      const win = popupRef.current;
+      if (!win || !win.closed) return;
+      const platform = targetRef.current;
+      stopPolling();
+      setConnecting(null);
+      // One final read after the window closes, then stop. Closing the popup
+      // must never leave a spinner running.
+      const data = await loadStatus();
+      if (platform && data && !(data.connectedPlatforms || []).includes(platform)) {
+        setConnectNote({
+          platform,
+          message: 'The authorization window closed. If you completed it, check again.',
+        });
+      }
+    }, POPUP_CLOSE_POLL_MS);
+  }, [loadStatus, stopPolling]);
+
   useEffect(() => {
     if (open) loadStatus();
   }, [open, loadStatus]);
 
-  const persist = (patch) => {
-    if (settings?.id) {
-      updateSettings.mutate({ id: settings.id, data: { ...settings, ...patch } });
-    } else {
-      createSettings.mutate(patch);
+  // Clear both intervals when the modal closes and on unmount. A stray
+  // 3-second interval hammering the vendor API is a real defect.
+  useEffect(() => {
+    if (!open) {
+      stopPolling();
+      setConnecting(null);
+      setConnectError(null);
+      setConnectNote(null);
+    }
+    return stopPolling;
+  }, [open, stopPolling]);
+
+  const handleConnect = async (platform) => {
+    setConnecting(platform);
+    setConnectError(null);
+    setConnectNote(null);
+
+    let authUrl = '';
+    try {
+      const resp = await base44.functions.invoke('zernioConnectUrl', { platform });
+      authUrl = resp.data?.authUrl || '';
+    } catch (err) {
+      setConnecting(null);
+      setConnectError({
+        platform,
+        message:
+          scrubVendor(err?.response?.data?.message, CONNECT_ERROR_FALLBACK) || CONNECT_ERROR_FALLBACK,
+      });
+      return;
+    }
+
+    if (!authUrl) {
+      setConnecting(null);
+      setConnectError({ platform, message: CONNECT_ERROR_FALLBACK });
+      return;
+    }
+
+    // A sized, named popup whose handle we KEEP — discarding it is precisely
+    // why completion can never be detected otherwise.
+    const win = window.open(authUrl, 'ironwood-connect', 'width=600,height=800');
+    if (!win) {
+      setConnecting(null);
+      setConnectError({
+        platform,
+        message: 'The authorization window was blocked. Allow pop-ups for this site, then try again.',
+      });
+      return;
+    }
+
+    popupRef.current = win;
+    targetRef.current = platform;
+    deadlineRef.current = Date.now() + CONNECT_TIMEOUT_MS;
+    startPolling();
+  };
+
+  const handleManualCheck = async (platform) => {
+    const data = await loadStatus();
+    if (data && platform && (data.connectedPlatforms || []).includes(platform)) {
+      stopPolling();
+      setConnecting(null);
+      setConnectNote(null);
     }
   };
 
@@ -1166,41 +1299,48 @@ function ConnectionsModal({ open, onClose, settings, createSettings, updateSetti
   // indistinguishable from one that was never connected.
   const accountFor = (platform) =>
     (status?.accounts || []).find((a) => a.platform === platform) || null;
-  const statusKnown = !!status && !statusLoading;
+
+  // Deliberately NOT `&& !statusLoading`. The accounts poll runs every three
+  // seconds during a connect, so keying this on the in-flight flag would
+  // flicker every row back to "Checking…" on each tick. Once a read has
+  // landed we know the answer; a refresh in flight does not un-know it.
+  const statusKnown = !!status;
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg bg-[rgb(248,246,242)]">
+      <DialogContent className="max-w-lg bg-[rgb(248,246,242)] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-light text-[rgb(107,85,64)]">
             Ironwood Connection
           </DialogTitle>
         </DialogHeader>
 
+        {/* The Ironwood profile ID is deliberately NOT rendered here, and has
+            no field. It is operator configuration rather than something
+            Whitney sets: seed it once through Base44's Data panel on the
+            SocialSettings entity, field `zernioProfileId`. RITUAL's row
+            already holds one. When this platform is reused for another
+            client, that Data-panel write is the first step — until it exists,
+            every call on this panel answers "Social connection is not
+            configured yet." */}
+
         <div className="space-y-6 mt-2">
           <p className="text-sm text-[rgb(120,120,120)]">
             One Ironwood profile per client. All scheduled posts are routed through Ironwood.
           </p>
 
-          {/* Profile ID */}
-          <div>
-            <Label className="text-[rgb(45,45,45)]">Ironwood Profile ID</Label>
-            <div className="flex gap-2 mt-2">
-              <Input
-                value={profileId}
-                onChange={(e) => setProfileId(e.target.value)}
-                placeholder="prof_..."
-                className="bg-white"
-              />
-              <Button
-                onClick={() => persist({ zernioProfileId: profileId })}
-                className="bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white"
-              >
-                Save
-              </Button>
-            </div>
-            <p className="text-xs text-[rgb(120,120,120)] mt-1">
-              Find this in your Ironwood dashboard → Profiles → select the profile for this client.
+          {/* Prerequisites — these gate authorization, and hitting them
+              unprepared surfaces as an opaque error on the provider's screen. */}
+          <div className="text-xs text-[rgb(120,120,120)] space-y-1 bg-white border border-[rgb(235,225,213)] rounded p-3">
+            <p className="font-medium text-[rgb(45,45,45)]">Before you connect</p>
+            <p>
+              Instagram must be a Business or Creator account linked to the RITUAL Facebook Page.
+              Check this first — it gates the other two.
+            </p>
+            <p>TikTok must be a Business account.</p>
+            <p>
+              Instagram can be authorized directly or through the Facebook Page. Both work; the
+              Facebook route requires the Page link.
             </p>
           </div>
 
@@ -1219,7 +1359,7 @@ function ConnectionsModal({ open, onClose, settings, createSettings, updateSetti
                   <RefreshCw className={`w-3 h-3 mr-1 ${statusLoading ? 'animate-spin' : ''}`} />
                   Refresh status
                 </Button>
-                {statusLoading ? (
+                {statusLoading && !status ? (
                   <span className="text-xs text-[rgb(120,120,120)]">Checking…</span>
                 ) : statusError ? (
                   <span className="text-xs text-right" style={{ color: 'rgb(180,80,80)' }}>
@@ -1237,28 +1377,30 @@ function ConnectionsModal({ open, onClose, settings, createSettings, updateSetti
             </div>
 
             <div className="space-y-3">
-              <PlatformRow
-                platform="facebook" label="Facebook" value={facebook}
-                onChange={setFacebook}
-                onSave={() => persist({ facebookAccountId: facebook })}
-                account={accountFor('facebook')} statusKnown={statusKnown}
-              />
-              <PlatformRow
-                platform="instagram" label="Instagram" value={instagram}
-                onChange={setInstagram}
-                onSave={() => persist({ instagramAccountId: instagram })}
-                account={accountFor('instagram')} statusKnown={statusKnown}
-              />
-              <PlatformRow
-                platform="tiktok" label="TikTok" value={tiktok}
-                onChange={setTiktok}
-                onSave={() => persist({ tiktokAccountId: tiktok })}
-                account={accountFor('tiktok')} statusKnown={statusKnown}
-              />
+              {PLATFORMS.map((p) => (
+                <PlatformRow
+                  key={p}
+                  platform={p}
+                  label={PLATFORM_LABELS[p] || p}
+                  account={accountFor(p)}
+                  statusKnown={statusKnown}
+                  connecting={connecting === p}
+                  disabled={!!connecting && connecting !== p}
+                  error={connectError?.platform === p ? connectError.message : null}
+                  note={connectNote?.platform === p ? connectNote.message : null}
+                  consentNote={CONSENT_PLATFORMS.includes(p) ? CONSENT_NOTE : null}
+                  onConnect={() => handleConnect(p)}
+                  onManualCheck={() => handleManualCheck(p)}
+                />
+              ))}
             </div>
 
+            {/* Says what the mechanism actually does. Notably NOT "your
+                account will appear automatically" — polling times out. */}
             <p className="text-xs text-[rgb(120,120,120)] mt-3">
-              Connect each platform inside Ironwood first, then paste the account ID here.
+              Authorize in the pop-up window. This panel updates when it finishes; if it doesn’t,
+              use “I’ve completed authorization”. Disconnecting a platform is done in the Ironwood
+              dashboard.
             </p>
           </div>
         </div>
@@ -1267,44 +1409,75 @@ function ConnectionsModal({ open, onClose, settings, createSettings, updateSetti
   );
 }
 
-function PlatformRow({ platform, label, value, onChange, onSave, account, statusKnown }) {
+function PlatformRow({
+  platform, label, account, statusKnown, connecting, disabled,
+  error, note, consentNote, onConnect, onManualCheck,
+}) {
   const handle = account?.username
     ? `@${account.username}`
     : account?.name || account?.displayName || '';
 
   return (
-    <div>
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2 w-28 text-[rgb(107,85,64)]">
+    <div className="bg-white border border-[rgb(235,225,213)] rounded p-3">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 w-28 shrink-0 text-[rgb(107,85,64)]">
           <PlatformIcon platform={platform} className="w-4 h-4" />
           <span className="text-sm">{label}</span>
         </div>
-        <Input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Account ID"
-          className="bg-white flex-1"
-        />
-        <Button
-          onClick={onSave}
-          variant="outline"
-          className="text-[rgb(107,85,64)] border-[rgb(235,225,213)]"
-        >
-          Save
-        </Button>
-      </div>
-      <div className="pl-[7.5rem] mt-1 text-xs">
-        {!statusKnown ? (
-          <span className="text-[rgb(120,120,120)]">Checking…</span>
-        ) : account ? (
-          <span className="inline-flex items-center gap-1" style={{ color: 'rgb(150,170,155)' }}>
-            <CheckCircle2 className="w-3 h-3 shrink-0" />
-            Connected{handle ? ` · ${handle}` : ''}
-          </span>
-        ) : (
-          <span className="text-[rgb(120,120,120)]">Not connected</span>
+
+        <div className="flex-1 min-w-0 text-xs">
+          {!statusKnown ? (
+            <span className="text-[rgb(120,120,120)]">Checking…</span>
+          ) : account ? (
+            <span className="inline-flex items-center gap-1" style={{ color: 'rgb(150,170,155)' }}>
+              <CheckCircle2 className="w-3 h-3 shrink-0" />
+              <span className="truncate">Connected{handle ? ` · ${handle}` : ''}</span>
+            </span>
+          ) : (
+            <span className="text-[rgb(120,120,120)]">Not connected</span>
+          )}
+        </div>
+
+        {statusKnown && !account && (
+          <Button
+            size="sm"
+            onClick={onConnect}
+            disabled={connecting || disabled}
+            className="bg-[rgb(107,85,64)] hover:bg-[rgb(85,65,45)] text-white shrink-0"
+          >
+            {connecting
+              ? <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+              : <Plug className="w-3 h-3 mr-1" />}
+            {connecting ? 'Waiting…' : `Connect ${label}`}
+          </Button>
         )}
       </div>
+
+      {consentNote && statusKnown && !account && (
+        <p className="text-xs text-[rgb(120,120,120)] mt-2">{consentNote}</p>
+      )}
+
+      {error && (
+        <div
+          className="mt-2 text-xs rounded p-2"
+          style={{ color: 'rgb(180,80,80)', background: 'rgba(180,80,80,0.08)' }}
+        >
+          {error}
+        </div>
+      )}
+
+      {note && <p className="mt-2 text-xs text-[rgb(120,120,120)]">{note}</p>}
+
+      {(connecting || note) && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onManualCheck}
+          className="mt-2 h-7 px-2 text-xs text-[rgb(107,85,64)] border-[rgb(235,225,213)]"
+        >
+          I’ve completed authorization
+        </Button>
+      )}
     </div>
   );
 }

@@ -20,11 +20,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
       return Response.json({ error: true, message: "Admin only" }, { status: 403 });
     }
 
-    // 1. Profile. This function is READ-ONLY — it never writes SocialSettings.
-    //    Persisting account ids belongs with the Connect flow, where hand
-    //    entry goes away; writing here would also have to spread the whole
-    //    settings record back through update(), which is what makes the
-    //    required: ["zernioProfileId"] constraint fragile.
+    // 1. Profile. Since the Connect flow replaced hand-entered account ids,
+    //    this function also OWNS writing them back (step 4 below) — it is the
+    //    only place that learns what the vendor considers connected.
     const settingsList = await base44.asServiceRole.entities.SocialSettings.list();
     const settings = Array.isArray(settingsList) ? settingsList[0] : null;
     const profileId = settings?.zernioProfileId || "";
@@ -96,6 +94,41 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const connectedPlatforms = Array.from(
       new Set(accounts.map((a: any) => a.platform).filter(Boolean)),
     );
+
+    // 4. Persist the resolved account ids, so zernioPublishPost can keep
+    //    reading the same three fields it always has. Reached only on a
+    //    successful 2xx — every failure path above returned already, because
+    //    a transient upstream error must never wipe working connections.
+    //
+    //    A platform ABSENT from accounts[] is written as "" rather than left
+    //    alone. A revoked account simply vanishes from accounts[] and is
+    //    indistinguishable from never-connected, so a stale id left behind
+    //    would let publishing keep firing at a dead account. Writing ""
+    //    lands in the falsy branch zernioPublishPost already handles, so the
+    //    user gets "<platform> is not connected in Ironwood yet." instead —
+    //    no coordinating change is needed on the publish side, and the empty
+    //    string is load-bearing rather than sloppy.
+    const idFor = (platform: string) =>
+      accounts.find((a: any) => a.platform === platform)?.accountId || "";
+    const desired = {
+      facebookAccountId: idFor("facebook"),
+      instagramAccountId: idFor("instagram"),
+      tiktokAccountId: idFor("tiktok"),
+    };
+
+    // Skip a pointless mutation on every modal open.
+    const unchanged =
+      (settings.facebookAccountId || "") === desired.facebookAccountId &&
+      (settings.instagramAccountId || "") === desired.instagramAccountId &&
+      (settings.tiktokAccountId || "") === desired.tiktokAccountId;
+
+    if (!unchanged) {
+      // Narrow patch. Do NOT spread the whole settings record back the way
+      // the old client-side persist helper did — that round-trips id and
+      // created_date, which is what makes required: ["zernioProfileId"]
+      // fragile.
+      await base44.asServiceRole.entities.SocialSettings.update(settings.id, desired);
+    }
 
     return Response.json({
       accounts,
