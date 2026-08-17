@@ -44,9 +44,18 @@ Deno.serve(async (req: Request): Promise<Response> => {
           await base44.asServiceRole.entities.SocialPost.update(post.id, patch);
           counts.published += 1;
         } else if (status === "failed") {
+          // Log the full upstream payload; the vendor's own failureReason
+          // text is still surfaced to the user because it names the real
+          // cause (aspect ratio, caption length, ...). Only OUR fallback
+          // literal is neutralised here — the client scrubs any vendor-named
+          // string that slips through.
+          console.error(
+            `[zernioSyncStatus] upstream reported failed for post ${post.id}:`,
+            JSON.stringify(data),
+          );
           await base44.asServiceRole.entities.SocialPost.update(post.id, {
             status: "failed",
-            failureReason: String(data?.failureReason || data?.message || "Zernio reported failed").slice(0, 300),
+            failureReason: String(data?.failureReason || data?.message || "Publishing failed.").slice(0, 300),
           });
           counts.failed += 1;
         } else if (status === "partial") {
@@ -67,6 +76,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     return Response.json({ checked: posts.length, ...counts });
   } catch (e) {
-    return Response.json({ error: true, message: String(e) }, { status: 500 });
+    // As in zernioPublishPost: String(e) on a transport failure embeds the
+    // request URL and so names the vendor. Log it, return a neutral message.
+    console.error("[zernioSyncStatus] unhandled:", String((e as any)?.stack || e));
+    return Response.json(
+      { error: true, message: "Could not refresh post status. Try again shortly." },
+      { status: 500 },
+    );
   }
 });

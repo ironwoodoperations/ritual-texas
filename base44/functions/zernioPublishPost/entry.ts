@@ -12,6 +12,28 @@ function zernioHeaders(): Record<string, string> {
   };
 }
 
+// Map an upstream status class onto a message that is safe to show the
+// client. Never include the vendor's name, the status code, or any part of
+// the upstream body — those go to the server log at the call site instead.
+function clientMessageForStatus(status: number): string {
+  if (status === 401 || status === 403) {
+    return "Ironwood rejected the request. The connection may need to be re-authorized.";
+  }
+  if (status === 404) {
+    return "Ironwood could not find that account. Reconnect the platform.";
+  }
+  if (status === 400 || status === 422) {
+    return "Ironwood rejected the post content. Check the caption and image.";
+  }
+  if (status === 429) {
+    return "Too many requests. Try again in a few minutes.";
+  }
+  if (status >= 500) {
+    return "Ironwood is temporarily unavailable. Try again shortly.";
+  }
+  return "Publishing failed. Try again, or contact Ironwood support.";
+}
+
 // Derive a filename from an image URL (strip query string).
 function filenameFromUrl(url: string): string {
   const last = String(url).split("/").pop() || "";
@@ -52,7 +74,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const settingsList = await base44.asServiceRole.entities.SocialSettings.list();
     const settings = Array.isArray(settingsList) ? settingsList[0] : null;
     if (!settings?.zernioProfileId) {
-      return Response.json({ error: true, message: "Zernio not configured" }, { status: 400 });
+      return Response.json(
+        { error: true, message: "Social publishing is not configured yet." },
+        { status: 400 },
+      );
     }
 
     // 5. Resolve the account id for this platform. Zernio uses these exact
@@ -63,7 +88,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     else if (post.platform === "tiktok") accountId = settings.tiktokAccountId || "";
     if (!accountId) {
       return Response.json(
-        { error: true, message: `${post.platform} not connected in Zernio` },
+        { error: true, message: `${post.platform} is not connected in Ironwood yet.` },
         { status: 400 },
       );
     }
@@ -127,7 +152,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
         }
       } catch (mediaErr: any) {
         // Media failed — continue and publish text-only.
-        mediaFailureReason = `Media upload failed: ${String(mediaErr?.message || mediaErr)}`.slice(0, 300);
+        // The real error is logged here and NOWHERE else: the stored and
+        // returned reason must not carry vendor identity or raw upstream
+        // text, since the client renders it verbatim.
+        console.error(
+          `[zernioPublishPost] media attach failed for post ${post.id}:`,
+          String(mediaErr?.stack || mediaErr?.message || mediaErr),
+        );
+        mediaFailureReason = "The image could not be attached.";
         mediaItems.length = 0;
       }
     }
@@ -165,8 +197,16 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     // 9. Write back.
     if (!pubResp.ok) {
+      // Full upstream status and body are logged here, untruncated, and go
+      // nowhere else. The vendor's documented field names have proven wrong
+      // more than once, so the raw error body is the single most useful
+      // diagnostic this integration has — it moves to the log, it is not lost.
+      console.error(
+        `[zernioPublishPost] upstream ${pubResp.status} for post ${post.id}:`,
+        pubText,
+      );
       // Never tunnel a non-2xx as a 200 — pass the upstream status through.
-      const upstream = `Zernio ${pubResp.status}: ${pubText.slice(0, 300)}`;
+      const upstream = clientMessageForStatus(pubResp.status);
       const failureReason = mediaFailureReason ? `${mediaFailureReason} | ${upstream}` : upstream;
       await base44.asServiceRole.entities.SocialPost.update(post.id, {
         status: "failed",
@@ -195,6 +235,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
     // 10. Return the updated post.
     return Response.json({ ...post, ...patch });
   } catch (e) {
-    return Response.json({ error: true, message: String(e) }, { status: 500 });
+    // String(e) on a transport failure embeds the request URL, so the raw
+    // text names the vendor. Log it, return a neutral message.
+    console.error("[zernioPublishPost] unhandled:", String((e as any)?.stack || e));
+    return Response.json(
+      { error: true, message: "Publishing failed. Try again, or contact Ironwood support." },
+      { status: 500 },
+    );
   }
 });
