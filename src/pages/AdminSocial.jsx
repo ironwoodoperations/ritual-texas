@@ -108,6 +108,30 @@ function FlaggedBadge({ terms }) {
   );
 }
 
+// VENDOR-NAME GUARD for every error string rendered on this page.
+// Server messages are sanitized at the source, but two paths bypass that:
+//   1. SocialPost rows written before this change still hold raw strings
+//      like `Zernio 422: {...}`. There is deliberately no data migration —
+//      old rows are neutralised at render time instead.
+//   2. The invoke handlers fall back to `err.message` (see publishPost and
+//      runSyncStatus), which on an SDK or network failure is raw text that
+//      never passed through the server.
+// Anything naming the vendor is replaced wholesale; a partial redaction
+// would still leak the shape of the upstream body.
+//
+// Two names, not one. `latePostId` is residue from a vendor rebrand and
+// appears in the vendor's own API responses, so it survives anywhere we
+// deliberately pass vendor-authored text through — which zernioSyncStatus
+// now does, because its failureReason names the only actionable cause
+// Whitney ever sees (aspect ratio, caption length). Matching only /zernio/
+// would let a second vendor name onto her screen by that exact route.
+const VENDOR_NAME = /zernio|latepostid/i;
+
+function scrubVendor(msg, fallback = 'Publishing failed.') {
+  if (!msg) return msg;
+  return VENDOR_NAME.test(String(msg)) ? fallback : msg;
+}
+
 // PARSING — required for every InvokeLLM response.
 // response_json_schema may return an already-parsed object OR a string.
 // Always strip code fences before JSON.parse. Callers wrap this in
@@ -532,7 +556,9 @@ export default function AdminSocial() {
         {syncReport && (
           <div className="mb-2 text-sm rounded p-2 bg-white border border-[rgb(235,225,213)] text-[rgb(45,45,45)]">
             {syncReport.error ? (
-              <span style={{ color: 'rgb(180,80,80)' }}>Sync failed: {syncReport.error}</span>
+              <span style={{ color: 'rgb(180,80,80)' }}>
+                Sync failed: {scrubVendor(syncReport.error, 'Please try again.')}
+              </span>
             ) : (
               <span>
                 Synced {syncReport.checked ?? 0} scheduled post(s): {syncReport.published ?? 0} published,{' '}
@@ -769,7 +795,7 @@ export default function AdminSocial() {
                 {bulkReport.failures.length > 0 && (
                   <ul className="mt-1 list-disc pl-5" style={{ color: 'rgb(180,80,80)' }}>
                     {bulkReport.failures.map((f) => (
-                      <li key={f.id}>{f.msg}</li>
+                      <li key={f.id}>{scrubVendor(f.msg)}</li>
                     ))}
                   </ul>
                 )}
@@ -869,7 +895,7 @@ export default function AdminSocial() {
                         className="mb-2 text-xs rounded p-2"
                         style={{ color: 'rgb(180,80,80)', background: 'rgba(180,80,80,0.08)' }}
                       >
-                        {publishErrors[p.id] || p.failureReason}
+                        {scrubVendor(publishErrors[p.id] || p.failureReason)}
                       </div>
                     )}
                     <div className="flex gap-2">
