@@ -146,10 +146,18 @@ export default function Layout({ children, currentPageName }) {
         <nav className="fixed top-0 left-0 right-0 z-50 bg-[rgb(248,246,242)]/95 backdrop-blur-sm border-b border-[rgb(235,225,213)]">
           <div className="max-w-7xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
-              <Link to={createPageUrl('Home')} className="flex items-center gap-2">
-                <Leaf className="w-6 h-6 text-[rgb(150,170,155)]" />
-                <span className="text-xl tracking-widest font-light text-[rgb(107,85,64)]">RITUAL</span>
-              </Link>
+              <div className="flex items-center gap-4">
+                <Link to={createPageUrl('Home')} className="flex items-center gap-2">
+                  <Leaf className="w-6 h-6 text-[rgb(150,170,155)]" />
+                  <span className="text-xl tracking-widest font-light text-[rgb(107,85,64)]">RITUAL</span>
+                </Link>
+                <Link
+                  to="/GuestBookNow"
+                  className="px-5 py-2 rounded-full bg-[rgb(150,170,155)] text-white text-xs tracking-widest uppercase font-medium hover:bg-[rgb(130,150,135)] transition-colors shadow-sm"
+                >
+                  Book Now
+                </Link>
+              </div>
 
               {/* Desktop Nav */}
               <div className="hidden md:flex items-center gap-10">
