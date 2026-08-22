@@ -23,12 +23,10 @@ export default function RestaurantOrder() {
         </p>
 
         <div style={{ marginTop: '48px', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
-          {toastOrderUrl && (
-            <a href={toastOrderUrl} target="_blank" rel="noopener noreferrer" style={{ padding: '16px 40px', background: '#C57C5D', color: '#FCF9F4', textDecoration: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '18px', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
-              <ShoppingBag className="w-5 h-5" />
-              Start Order
-            </a>
-          )}
+          <a href={toastOrderUrl || 'https://order.toasttab.com/online/ritual-214-s-main-street'} target="_blank" rel="noopener noreferrer" style={{ padding: '16px 40px', background: '#C57C5D', color: '#FCF9F4', textDecoration: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '18px', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+            <ShoppingBag className="w-5 h-5" />
+            Place Your Order Online
+          </a>
 
           <a href="tel:9032846880" style={{ padding: '16px 40px', background: '#3B4831', color: '#FCF9F4', textDecoration: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '18px', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
             <Phone className="w-5 h-5" />
